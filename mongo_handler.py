@@ -50,3 +50,21 @@ def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = 
         except:
             print('failure to insert data into gke_autopilot_clusters table')
             return False
+
+
+def insert_eks_deployment(eks_deployment_object: dict = None) -> bool:
+    """
+    @param eks_deployment_object: The dictionary with all the cluster data.
+    @param cluster_type: The type of the cluster we want to add to the DB. Ex: EKS
+    """
+    eks_clusters.insert_one(eks_deployment_object)
+    return True
+
+
+def insert_aks_deployment(aks_deployment_object: dict = None) -> bool:
+    """
+    @param aks_deployment_object: The dictionary with all the cluster data.
+    @param cluster_type: The type of the cluster we want to add to the DB. Ex: AKS
+    """
+    aks_clusters.insert_one(aks_deployment_object)
+    return True
