@@ -7,10 +7,10 @@ from flask import request, Response, Flask
 
 from utils import random_string
 
-from mongo_handler import config
+from mongo_handler import config, set_cluster_availability
 from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
-    APPLICATION_JSON
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS
 
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -22,8 +22,11 @@ JENKINS_USER = config['DEFAULT']['jenkins_user']
 JENKINS_PASSWORD = os.getenv('JENKINS_PASSWORD')
 JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME = 'gke_deployment'
 JENKINS_KUBERNETES_GKE_AUTOPILOT_DEPLOYMENT_JOB_NAME = 'gke_autopilot_deployment'
+JENKINS_DELETE_GKE_JOB = 'delete_gke_cluster'
 JENKINS_EKS_DEPLOYMENT_JOB_NAME = 'eks_deployment'
+JENKINS_DELETE_EKS_JOB = 'delete_eks_cluster'
 JENKINS_AKS_DEPLOYMENT_JOB_NAME = 'aks_deployment'
+JENKINS_DELETE_AKS_JOB = 'delete_aks_cluster'
 
 
 def fetch_aks_version(kubernetes_version: str = '') -> str:
@@ -132,6 +135,44 @@ def trigger_aks_build_jenkins(
         return 'fail'
 
 
+def delete_gke_cluster(cloud_provider: str = '', cluster_type: str = '', cluster_name: str = '', region: str = ''):
+    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
+    try:
+        job_id = server.build_job(name=JENKINS_DELETE_GKE_JOB, parameters={
+            CLUSTER_NAME: cluster_name,
+            REGION_NAME: region,
+        })
+        print(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_GKE_JOB}')
+        return 'OK'
+    except:
+        return 'fail'
+
+
+def delete_eks_cluster(cluster_name: str = '', region: str = '', cloud_provider: str = '', cluster_type: str = ''):
+    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
+    try:
+        job_id = server.build_job(name=JENKINS_DELETE_EKS_JOB, parameters={
+            CLUSTER_NAME: cluster_name,
+            REGION_NAME: region,
+        })
+        print(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_EKS_JOB}')
+        return 'OK'
+    except:
+        return 'fail'
+
+
+def delete_aks_cluster(cluster_name: str = '', cluster_type: str = ''):
+    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
+    try:
+        job_id = server.build_job(name=JENKINS_DELETE_AKS_JOB, parameters={
+            CLUSTER_NAME: cluster_name,
+        })
+        print(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_AKS_JOB}')
+        return 'OK'
+    except:
+        return 'fail'
+
+
 @app.route('/trigger_kubernetes_deployment', methods=[POST])
 def trigger_kubernetes_deployment():
     content = request.get_json()
@@ -159,6 +200,25 @@ def trigger_aks_deployment():
     function_name = inspect.stack()[0][3]
     print(f'A request for {function_name} was requested with the following parameters: {content}')
     trigger_aks_build_jenkins(**content)
+    return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+
+@app.route('/delete_cluster', methods=[DELETE])
+def delete_cluster():
+    content = request.get_json()
+    function_name = inspect.stack()[0][3]
+    print(f'A request for {function_name} was requested with the following parameters: {content}')
+    if content[CLUSTER_TYPE] == GKE:
+        delete_gke_cluster(**content)
+        set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
+                                 availability=False)
+    elif content[CLUSTER_TYPE] == EKS:
+        delete_eks_cluster(**content)
+        set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
+                                 availability=False)
+    elif content[CLUSTER_TYPE] == AKS:
+        delete_aks_cluster(**content)
+        set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
+                                 availability=False)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 

@@ -2,6 +2,11 @@
 # OS
 MACOS = 'macOS'
 
+# verbs
+DELETE = 'DELETE'
+PUT = 'PUT'
+GET = 'GET'
+POST = 'POST'
 
 # GKE
 CLUSTER_TYPE = 'cluster_type'
@@ -19,9 +24,11 @@ EXPIRATION_TIME = 'EXPIRATION_TIME'
 ZONE_NAME = 'zone_name'
 IMAGE_TYPE = 'IMAGE_TYPE'
 REGION_NAME = 'REGION_NAME'
-GET = 'GET'
-POST = 'POST'
 APPLICATION_JSON = 'application/json'
+CLUSTER_NAME = 'CLUSTER_NAME'
+AVAILABILITY = 'availability'
+
+
 # EKS
 VERSION = 'version'
 EKS = 'eks'
@@ -30,3 +37,4 @@ EKS = 'eks'
 # AKS
 AKS_VERSION = 'AKS_VERSION'
 AKS_LOCATION = 'AKS_LOCATION'
+AKS = 'aks'

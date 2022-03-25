@@ -4,7 +4,7 @@ import platform
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
-from variables import GKE, MACOS, GKE_AUTOPILOT
+from variables import GKE, MACOS, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS
 
 CUR_DIR = os.getcwd()
 print(f'Current directory is: {CUR_DIR}')
@@ -68,3 +68,27 @@ def insert_aks_deployment(aks_deployment_object: dict = None) -> bool:
     """
     aks_clusters.insert_one(aks_deployment_object)
     return True
+
+
+def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', availability: bool = False):
+    """
+
+    @param cluster_type:
+    @param cluster_name:
+    @param availability:
+    @return:
+    """
+
+    myquery = {CLUSTER_NAME.lower(): cluster_name}
+    newvalues = {"$set": {AVAILABILITY: availability}}
+    if cluster_type == GKE:
+        result = gke_clusters.update_one(myquery, newvalues)
+    elif cluster_type == GKE_AUTOPILOT:
+        result = gke_autopilot_clusters.update_one(myquery, newvalues)
+    elif cluster_type == EKS:
+        result = eks_clusters.update_one(myquery, newvalues)
+    elif cluster_type == AKS:
+        result = aks_clusters.update_one(myquery, newvalues)
+    else:
+        result = gke_clusters.update_one(myquery, newvalues)
+    return result.raw_result['updatedExisting']
