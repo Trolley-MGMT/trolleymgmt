@@ -10,7 +10,7 @@ from utils import random_string
 from mongo_handler import config, set_cluster_availability
 from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE
 
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -201,6 +201,7 @@ def trigger_aks_deployment():
     print(f'A request for {function_name} was requested with the following parameters: {content}')
     trigger_aks_build_jenkins(**content)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+
 
 @app.route('/delete_cluster', methods=[DELETE])
 def delete_cluster():
