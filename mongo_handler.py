@@ -1,10 +1,12 @@
 import configparser
 import os
 import platform
+import time
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
-from variables import GKE, MACOS, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS
+from variables import GKE, MACOS, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, USER_NAME, \
+    USER_EMAIL
 
 CUR_DIR = os.getcwd()
 print(f'Current directory is: {CUR_DIR}')
@@ -92,3 +94,90 @@ def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', ava
     else:
         result = gke_clusters.update_one(myquery, newvalues)
     return result.raw_result['updatedExisting']
+
+
+def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
+    clusters_object = []
+    if cluster_type == GKE:
+        cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME: user_name})
+    elif cluster_type == GKE_AUTOPILOT:
+        cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME: user_name})
+    elif cluster_type == EKS:
+        cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME: user_name})
+    elif cluster_type == AKS:
+        cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME: user_name})
+    else:
+        cluster_object = []
+    for cluster in cluster_object:
+        del cluster['_id']
+        clusters_object.append(cluster)
+    return clusters_object
+
+
+def retrieve_expired_clusters(cluster_type: str) -> list:
+    current_time = int(time.time())
+    expired_clusters_list = []
+    mongo_query = {"$and": [{EXPIRATION_TIMESTAMP: {"$lt": current_time}},
+                            {AVAILABILITY: True}]}
+    if cluster_type == GKE:
+        clusters_objects = gke_clusters.find(mongo_query)
+        for object in clusters_objects:
+            expired_clusters_list.append(object)
+            print(expired_clusters_list)
+    elif cluster_type == GKE_AUTOPILOT:
+        autopilot_clusters_objects = gke_autopilot_clusters.find(mongo_query)
+        for object in autopilot_clusters_objects:
+            expired_clusters_list.append(object)
+            print(expired_clusters_list)
+    elif cluster_type == EKS:
+        eks_clusters_objects = eks_clusters.find(mongo_query)
+        for object in eks_clusters_objects:
+            expired_clusters_list.append(object)
+            print(expired_clusters_list)
+    elif cluster_type == AKS:
+        aks_clusters_objects = aks_clusters.find(mongo_query)
+        for object in aks_clusters_objects:
+            expired_clusters_list.append(object)
+            print(expired_clusters_list)
+    return expired_clusters_list
+
+
+def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', availability: bool = False):
+    """
+    @param cluster_type:
+    @param cluster_name:
+    @param availability:
+    @return:
+    """
+
+    myquery = {CLUSTER_NAME.lower(): cluster_name}
+    newvalues = {"$set": {AVAILABILITY: availability}}
+    if cluster_type == GKE:
+        result = gke_clusters.update_one(myquery, newvalues)
+    elif cluster_type == GKE_AUTOPILOT:
+        result = gke_autopilot_clusters.update_one(myquery, newvalues)
+    elif cluster_type == EKS:
+        result = eks_clusters.update_one(myquery, newvalues)
+    elif cluster_type == AKS:
+        result = aks_clusters.update_one(myquery, newvalues)
+    else:
+        result = gke_clusters.update_one(myquery, newvalues)
+    return result.raw_result['updatedExisting']
+
+
+def retrieve_user(user_email: str):
+    """
+    @param user_email:  retrieve a returning user data
+    @return:
+    """
+    mongo_query = {USER_EMAIL: user_email}
+    user_object = users.find_one(mongo_query)
+    return user_object
+
+
+def insert_user(user_object: dict = None) -> bool:
+    """
+    @param user_object: The dictionary with all the user data.
+    """
+    users.insert_one(user_object)
+    return True

@@ -1,4 +1,3 @@
-
 # OS
 MACOS = 'macOS'
 
@@ -13,6 +12,7 @@ CLUSTER_TYPE = 'cluster_type'
 GKE = 'gke'
 GKE_AUTOPILOT = 'gke_autopilot'
 TROLLEY_PROJECT_NAME = 'trolley'
+GCP = 'gcp'
 
 # GENERAL
 HELM_INSTALLS = 'HELM_INSTALLS'
@@ -27,12 +27,18 @@ REGION_NAME = 'REGION_NAME'
 APPLICATION_JSON = 'application/json'
 CLUSTER_NAME = 'CLUSTER_NAME'
 AVAILABILITY = 'availability'
+EXPIRATION_TIMESTAMP = 'expiration_timestamp'
+CREATED_TIMESTAMP = 'created_timestamp'
+HUMAN_CREATED_TIMESTAMP = 'human_created_timestamp'
+HUMAN_EXPIRATION_TIMESTAMP = 'human_expiration_timestamp'
 
+#  USER
+USER_NAME = 'user_name'
+USER_EMAIL = 'user_email'
 
 # EKS
 VERSION = 'version'
 EKS = 'eks'
-
 
 # AKS
 AKS_VERSION = 'AKS_VERSION'

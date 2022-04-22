@@ -1,16 +1,18 @@
 import inspect
 import json
 import os
+from subprocess import PIPE, run
+import time
 
 from jenkins import Jenkins
 from flask import request, Response, Flask
 
 from utils import random_string
 
-from mongo_handler import config, set_cluster_availability
+from mongo_handler import config, set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters
 from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, GCP, USER_NAME
 
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -86,6 +88,18 @@ def trigger_kubernetes_gke_autopilot_build_jenkins(cluster_type: str = '',
         return 'OK'
     except:
         return 'fail'
+
+
+def get_eks_zones(eks_location: str = '') -> str:
+    zones_list = []
+    command = f'aws ec2 describe-availability-zones --region {eks_location}'
+    print(f'Running a {command} command')
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    result_parsed = json.loads(result.stdout)
+    availability_zones = result_parsed['AvailabilityZones']
+    for availability_zone in availability_zones:
+        zones_list.append(availability_zone['ZoneName'])
+    return ','.join(zones_list)
 
 
 def trigger_eks_build_jenkins(
@@ -173,6 +187,14 @@ def delete_aks_cluster(cluster_name: str = '', cluster_type: str = ''):
         return 'fail'
 
 
+@app.route('/get_clusters_data', methods=[GET])
+def get_clusters_data():
+    cluster_type = request.args.get(CLUSTER_TYPE)
+    user_name = request.args.get(USER_NAME)
+    clusters_list = retrieve_available_clusters(cluster_type, user_name)
+    return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
+
+
 @app.route('/trigger_kubernetes_deployment', methods=[POST])
 def trigger_kubernetes_deployment():
     content = request.get_json()
@@ -200,6 +222,20 @@ def trigger_aks_deployment():
     function_name = inspect.stack()[0][3]
     print(f'A request for {function_name} was requested with the following parameters: {content}')
     trigger_aks_build_jenkins(**content)
+    return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+
+
+@app.route('/delete_expired_clusters', methods=[DELETE])
+def delete_expired_clusters(GCP=None):
+    content = request.get_json()
+    expired_clusters_list = retrieve_expired_clusters(cluster_type=content['cluster_type'])
+    for expired_cluster in expired_clusters_list:
+        delete_gke_cluster(cloud_provider=GCP, cluster_name=expired_cluster['cluster_name'],
+                           region=expired_cluster['zone_name'])
+        # why only gke here
+        time.sleep(5)
+        set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
+                                 availability=False)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
