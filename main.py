@@ -1,5 +1,6 @@
 import inspect
 import json
+import logging
 import os
 from subprocess import PIPE, run
 import time
@@ -35,6 +36,20 @@ JENKINS_DELETE_EKS_JOB = 'delete_eks_cluster'
 JENKINS_AKS_DEPLOYMENT_JOB_NAME = 'aks_deployment'
 JENKINS_DELETE_AKS_JOB = 'delete_aks_cluster'
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.FileHandler('trolley.log')
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+logger.info(f'The selected project_id is: {PROJECT_ID}')
+logger.info(f'The selected jenkins_url is: {JENKINS_URL}')
+logger.info(f'The selected jenkins_user is: {JENKINS_USER}')
+logger.info(f'The selected jenkins_password is: {JENKINS_PASSWORD}')
+
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
                       user_email: str = '', team_name: str = '') -> bool:
@@ -51,7 +66,7 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False):
     user_agent = request.headers.get('User-Agent')
-    print(f'The request comes from {user_agent} user agent')
+    logger.info(f'The request comes from {user_agent} user agent')
     if new:
         session.pop('x-access-token', None)
         session.pop('user_email', None)
@@ -63,9 +78,9 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
         except:
             user_email = request.form['user_email']
             password = request.form['user_password']
-    print(f'The request is being done with: {user_email} user')
+    logger.info(f'The request is being done with: {user_email} user')
     user_obj = retrieve_user(user_email)
-    print(f'user_obj is: {user_obj}')
+    logger.info(f'user_obj is: {user_obj}')
     if not user_obj:
         return False, user_email
     session['user_email'] = user_email
@@ -82,21 +97,21 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                                                f'or you provided a wrong password, please try again')
     try:
         if check_password_hash(user_obj['hashed_password'], password):
-            print(f'The hashed password is correct')
+            logger.info(f'The hashed password is correct')
             try:
                 token = jwt.encode(
                     {'user_id': str(user_obj['_id']),
                      'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)},
                     app.config['SECRET_KEY'])
             except:
-                print(f'Failed to create a token')
+                logger.info(f'Failed to create a token')
                 token = ''
             # decoded_token = token.decode("utf-8")
             session['x-access-token'] = token
-            print(f'The decoded token is: {token}')
+            logger.info(f'The decoded token is: {token}')
             return token, user_email
         else:
-            print(f'The hashed password is incorrect')
+            logger.info(f'The hashed password is incorrect')
             return False, user_email
     except:
         redirect(url_for('login',
@@ -138,7 +153,7 @@ def trigger_kubernetes_gke_build_jenkins(cluster_type: str = '',
             NUM_NODES: num_nodes,
             EXPIRATION_TIME: expiration_time
         })
-        print(f'Job number {job_id - 1} was triggered on {JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME}')
+        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME}')
         return 'OK'
     except:
         return 'fail'
@@ -156,7 +171,7 @@ def trigger_kubernetes_gke_autopilot_build_jenkins(cluster_type: str = '',
             REGION_NAME: region,
             EXPIRATION_TIME: expiration_time
         })
-        print(f'Job number {job_id - 1} was triggered on {JENKINS_KUBERNETES_GKE_AUTOPILOT_DEPLOYMENT_JOB_NAME}')
+        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_KUBERNETES_GKE_AUTOPILOT_DEPLOYMENT_JOB_NAME}')
 
         return 'OK'
     except:
@@ -166,7 +181,7 @@ def trigger_kubernetes_gke_autopilot_build_jenkins(cluster_type: str = '',
 def get_eks_zones(eks_location: str = '') -> str:
     zones_list = []
     command = f'aws ec2 describe-availability-zones --region {eks_location}'
-    print(f'Running a {command} command')
+    logger.info(f'Running a {command} command')
     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     result_parsed = json.loads(result.stdout)
     availability_zones = result_parsed['AvailabilityZones']
@@ -188,7 +203,7 @@ def trigger_eks_build_jenkins(
             NUM_NODES: num_nodes,
             EXPIRATION_TIME: expiration_time
         })
-        print(f'Job number {job_id - 1} was triggered on {JENKINS_EKS_DEPLOYMENT_JOB_NAME}')
+        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_EKS_DEPLOYMENT_JOB_NAME}')
         return 'OK'
     except:
         return 'fail'
@@ -216,7 +231,7 @@ def trigger_aks_build_jenkins(
             EXPIRATION_TIME: expiration_time,
             HELM_INSTALLS: helm_installs_string
         })
-        print(f'Job number {job_id - 1} was triggered on {JENKINS_AKS_DEPLOYMENT_JOB_NAME}')
+        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_AKS_DEPLOYMENT_JOB_NAME}')
         return 'OK'
     except:
         return 'fail'
@@ -229,7 +244,7 @@ def delete_gke_cluster(cloud_provider: str = '', cluster_type: str = '', cluster
             CLUSTER_NAME: cluster_name,
             REGION_NAME: region,
         })
-        print(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_GKE_JOB}')
+        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_GKE_JOB}')
         return 'OK'
     except:
         return 'fail'
@@ -242,7 +257,7 @@ def delete_eks_cluster(cluster_name: str = '', region: str = '', cloud_provider:
             CLUSTER_NAME: cluster_name,
             REGION_NAME: region,
         })
-        print(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_EKS_JOB}')
+        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_EKS_JOB}')
         return 'OK'
     except:
         return 'fail'
@@ -254,7 +269,7 @@ def delete_aks_cluster(cluster_name: str = '', cluster_type: str = ''):
         job_id = server.build_job(name=JENKINS_DELETE_AKS_JOB, parameters={
             CLUSTER_NAME: cluster_name,
         })
-        print(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_AKS_JOB}')
+        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_AKS_JOB}')
         return 'OK'
     except:
         return 'fail'
@@ -274,7 +289,7 @@ def trigger_kubernetes_deployment():
     if content['cluster_type'] == 'gke':
         trigger_kubernetes_gke_build_jenkins(**content)
         function_name = inspect.stack()[0][3]
-        print(f'A request for {function_name} was requested with the following parameters: {content}')
+        logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     elif content['cluster_type'] == 'gke_autopilot':
         trigger_kubernetes_gke_autopilot_build_jenkins(**content)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
@@ -284,7 +299,7 @@ def trigger_kubernetes_deployment():
 def trigger_eks_deployment():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
-    print(f'A request for {function_name} was requested with the following parameters: {content}')
+    logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     trigger_eks_build_jenkins(**content)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
@@ -293,7 +308,7 @@ def trigger_eks_deployment():
 def trigger_aks_deployment():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
-    print(f'A request for {function_name} was requested with the following parameters: {content}')
+    logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     trigger_aks_build_jenkins(**content)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
@@ -316,7 +331,7 @@ def delete_expired_clusters(GCP=None):
 def delete_cluster():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
-    print(f'A request for {function_name} was requested with the following parameters: {content}')
+    logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     if content[CLUSTER_TYPE] == GKE:
         delete_gke_cluster(**content)
         set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
@@ -334,7 +349,7 @@ def delete_cluster():
 
 @app.route('/healthz', methods=[GET, POST])
 def healthz():
-    print('A request was received')
+    logger.info('A request was received')
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 

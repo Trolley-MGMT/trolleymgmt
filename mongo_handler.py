@@ -23,7 +23,6 @@ PROJECT_NAME = config['DEFAULT']['project_id']
 MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
 MONGO_USER = os.getenv('MONGO_USER')
 
-
 client = MongoClient(JENKINS_URL, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
 db = client[PROJECT_NAME]
 gke_clusters: Collection = db.gke_clusters
