@@ -35,6 +35,12 @@ HUMAN_EXPIRATION_TIMESTAMP = 'human_expiration_timestamp'
 #  USER
 USER_NAME = 'user_name'
 USER_EMAIL = 'user_email'
+FIRST_NAME = 'first_name'
+LAST_NAME = 'last_name'
+HASHED_PASSWORD = 'hashed_password'
+TEAM_NAME = 'team_name'
+USER_EMAIL = 'user_email'
+
 
 # EKS
 VERSION = 'version'

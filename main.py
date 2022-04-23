@@ -3,13 +3,18 @@ import json
 import os
 from subprocess import PIPE, run
 import time
+import datetime
+import jwt
 
 from jenkins import Jenkins
-from flask import request, Response, Flask
+from flask import request, Response, Flask, session, redirect, url_for, render_template
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from utils import random_string
 
-from mongo_handler import config, set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters
+from mongo_handler import config, set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
+    insert_user, retrieve_user
+from mongo_objects import UserObject
 from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, GCP, USER_NAME
@@ -29,6 +34,74 @@ JENKINS_EKS_DEPLOYMENT_JOB_NAME = 'eks_deployment'
 JENKINS_DELETE_EKS_JOB = 'delete_eks_cluster'
 JENKINS_AKS_DEPLOYMENT_JOB_NAME = 'aks_deployment'
 JENKINS_DELETE_AKS_JOB = 'delete_aks_cluster'
+
+
+def user_registration(first_name: str = '', last_name: str = '', password: str = '',
+                      user_email: str = '', team_name: str = '') -> bool:
+    """"""
+    hashed_password = generate_password_hash(password, method='sha256')
+    user_object = UserObject(first_name=first_name, last_name=last_name, user_email=user_email,
+                             team_name=team_name, hashed_password=hashed_password)
+    user_object = user_object.to_dict()
+    if insert_user(user_object=user_object):
+        return True
+    else:
+        return False
+
+
+def login_processor(user_email: str = "", password: str = "", new: bool = False):
+    user_agent = request.headers.get('User-Agent')
+    print(f'The request comes from {user_agent} user agent')
+    if new:
+        session.pop('x-access-token', None)
+        session.pop('user_email', None)
+        session.pop('user_password', None)
+    if not user_email and not password:
+        try:
+            user_email = session['user_email']
+            password = session['user_password']
+        except:
+            user_email = request.form['user_email']
+            password = request.form['user_password']
+    print(f'The request is being done with: {user_email} user')
+    user_obj = retrieve_user(user_email)
+    print(f'user_obj is: {user_obj}')
+    if not user_obj:
+        return False, user_email
+    session['user_email'] = user_email
+    session['user_password'] = password
+    try:
+        session['first_name'] = user_obj['first_name'].capitalize()
+    except:
+        redirect(url_for('login',
+                         failure_message=f'username or password were not found in the system '
+                                         f' please try again'))
+    if not user_email or not password:
+        return render_template('login.html',
+                               failure_message=f'{user_email} was not found in the system '
+                                               f'or you provided a wrong password, please try again')
+    try:
+        if check_password_hash(user_obj['hashed_password'], password):
+            print(f'The hashed password is correct')
+            try:
+                token = jwt.encode(
+                    {'user_id': str(user_obj['_id']),
+                     'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)},
+                    app.config['SECRET_KEY'])
+            except:
+                print(f'Failed to create a token')
+                token = ''
+            # decoded_token = token.decode("utf-8")
+            session['x-access-token'] = token
+            print(f'The decoded token is: {token}')
+            return token, user_email
+        else:
+            print(f'The hashed password is incorrect')
+            return False, user_email
+    except:
+        redirect(url_for('login',
+                         failure_message=f'username or password were not found in the system '
+                                         f' please try again'))
 
 
 def fetch_aks_version(kubernetes_version: str = '') -> str:
