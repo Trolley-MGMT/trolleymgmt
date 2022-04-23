@@ -275,6 +275,17 @@ def delete_aks_cluster(cluster_name: str = '', cluster_type: str = ''):
         return 'fail'
 
 
+def render_page(page_name: str = ''):
+    try:
+        is_login_pass, user_email = login_processor()
+    except:
+        is_login_pass = False
+    if is_login_pass:
+        return render_template(page_name, **locals())
+    else:
+        return render_template('login.html')
+
+
 @app.route('/get_clusters_data', methods=[GET])
 def get_clusters_data():
     cluster_type = request.args.get(CLUSTER_TYPE)
@@ -351,6 +362,78 @@ def delete_cluster():
 def healthz():
     logger.info('A request was received')
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+
+
+@app.route('/', methods=[GET, POST])
+def root():
+    return render_page('index.html')
+
+
+@app.route('/index', methods=[GET, POST])
+def index():
+    return render_page('index.html')
+
+
+@app.route('/register', methods=[GET, POST])
+def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+    if request.method == 'POST':
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        user_email = request.form['user_email']
+        team_name = request.form['team_name']
+        password = request.form['password']
+        if not first_name:
+            return render_template('register.html',
+                                   error_message=f'Dear {first_name}, your first name was not entered correctly. '
+                                                 f'Please try again')
+        if not last_name:
+            return render_template('register.html',
+                                   error_message=f'Dear {first_name}, your last name was not entered correctly. '
+                                                 f'Please try again')
+        if not first_name:
+            return render_template('register.html',
+                                   error_message=f'Your first name was not entered correctly. Please try again')
+        if not password:
+            return render_template('register.html',
+                                   error_message=f'Dear {first_name}, your password was not entered correctly. '
+                                                 f'Please try again')
+        else:
+            if not retrieve_user(user_email):
+                user_registration(first_name, last_name, password, user_email, team_name)
+            else:
+                return render_template('register.html',
+                                       error_message=f'Dear {first_name}, your email was already registered. '
+                                                     f'Please try again')
+            return render_template('login.html',
+                                   error_message=f'Dear {first_name}, your password was not entered correctly. '
+                                                 f'Please try again')
+
+
+@app.route('/login', methods=[GET, POST])
+def login():
+    message = request.args.get('message')
+    if message is None:
+        message = ''
+    if request.method == 'GET':
+        return render_template('login.html', failure_message=message)
+    if request.method == 'POST':
+        is_login_pass, user_email = login_processor(new=True)
+        if is_login_pass:
+            return render_template('index.html')
+        else:
+            return render_template('login.html',
+                                   error_message=f'Dear {user_email}, your password was not entered correctly. '
+                                                 f'Please try again')
+
+
+@app.route('/logout', methods=[GET, POST])
+def logout():
+    session.pop('x-access-token', None)
+    session.pop('user_email', None)
+    session.pop('user_password', None)
+    return redirect(url_for('login'))
 
 
 app.run(host='0.0.0.0', port=8081, debug=True)
