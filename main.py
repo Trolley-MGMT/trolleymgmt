@@ -2,26 +2,48 @@ import inspect
 import json
 import logging
 import os
-from subprocess import PIPE, run
 import time
 import datetime
 import jwt
+import configparser
+import platform
+
+from subprocess import PIPE, run
+from distutils import util
 
 from jenkins import Jenkins
-from flask import request, Response, Flask, session, redirect, url_for, render_template
+from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from utils import random_string
 
-from mongo_handler import config, set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
+from mongo_handler import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
     insert_user, retrieve_user
 from mongo_objects import UserObject
 from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, GCP, USER_NAME
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, GCP, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES
 
+CUR_DIR = os.getcwd()
+PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+config = configparser.ConfigParser()
+if MACOS in platform.platform():
+    config.read(f'{PROJECT_ROOT}/config.ini')
+    HELM_COMMAND = '/usr/local/bin/helm'
+    AKS_LOCATIONS_COMMAND = 'az account list-locations'
+    GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
+    EKS_ZONES_COMMAND = 'aws ec2 describe-regions'
+    AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
+else:
+    config.read(f'{CUR_DIR}/config.ini')
+    HELM_COMMAND = '/snap/bin/helm'
+    AKS_LOCATIONS_COMMAND = 'az account list-locations'
+    GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
+    EKS_ZONES_COMMAND = 'aws ec2 describe-regions'
+    AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
+
 
 PROJECT_ID = config['DEFAULT']['project_id']
 JENKINS_URL = 'http://' + config['DEFAULT']['jenkins_url'] + ':8080'
@@ -194,14 +216,23 @@ def trigger_eks_build_jenkins(
         user_id: str = 'lior',
         version: str = '1.21',
         num_nodes: int = 3,
-        expiration_time: int = 4):
+        expiration_time: int = 4,
+        eks_location: str = 'us-east-1',
+        helm_installs: list = None):
+    if not helm_installs:
+        helm_installs = '.'
+    eks_zones = get_eks_zones(eks_location)
+    print(f'The list of retrieved eks_zones is: {eks_zones}')
     server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
     try:
         job_id = server.build_job(name=JENKINS_EKS_DEPLOYMENT_JOB_NAME, parameters={
             CLUSTER_NAME: f'{user_id}-{EKS}-{random_string(5)}',
             VERSION: version,
             NUM_NODES: num_nodes,
-            EXPIRATION_TIME: expiration_time
+            EXPIRATION_TIME: expiration_time,
+            HELM_INSTALLS: helm_installs,
+            EKS_LOCATION: eks_location,
+            EKS_ZONES: eks_zones
         })
         logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_EKS_DEPLOYMENT_JOB_NAME}')
         return 'OK'
@@ -372,6 +403,23 @@ def root():
 @app.route('/index', methods=[GET, POST])
 def index():
     return render_page('index.html')
+
+
+@app.route('/fetch_helm_installs', methods=[GET, POST])
+def fetch_helm_installs():
+    names = bool(util.strtobool(request.args.get("names")))
+    logger.info(f'A request to fetch helm installs for {names} names has arrived')
+    installs_names = []
+    command = HELM_COMMAND + ' search repo stable -o json'
+    logger.info(f'Running a {command} command')
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    installs_list = json.loads(result.stdout)
+    if names:
+        for install in installs_list:
+            installs_names.append(install['name'])
+        return jsonify(installs_names)
+    else:
+        return jsonify(installs_list)
 
 
 @app.route('/register', methods=[GET, POST])

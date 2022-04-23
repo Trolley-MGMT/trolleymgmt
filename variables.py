@@ -45,6 +45,8 @@ USER_EMAIL = 'user_email'
 # EKS
 VERSION = 'version'
 EKS = 'eks'
+EKS_LOCATION = 'eks_location'
+EKS_ZONES = 'eks_zones'
 
 # AKS
 AKS_VERSION = 'AKS_VERSION'
