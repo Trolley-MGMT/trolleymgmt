@@ -71,11 +71,14 @@ logger.info(f'The selected project_id is: {PROJECT_ID}')
 logger.info(f'The selected jenkins_url is: {JENKINS_URL}')
 logger.info(f'The selected jenkins_user is: {JENKINS_USER}')
 logger.info(f'The selected jenkins_password is: {JENKINS_PASSWORD}')
+logger.info(f'The current directory is: {CUR_DIR}')
+logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
                       user_email: str = '', team_name: str = '') -> bool:
     """"""
+    
     hashed_password = generate_password_hash(password, method='sha256')
     user_object = UserObject(first_name=first_name, last_name=last_name, user_email=user_email,
                              team_name=team_name, hashed_password=hashed_password)
@@ -157,12 +160,24 @@ def fetch_aks_version(kubernetes_version: str = '') -> str:
 
 def trigger_kubernetes_gke_build_jenkins(cluster_type: str = '',
                                          project_name: str = TROLLEY_PROJECT_NAME,
-                                         user_id: str = 'pavel',
+                                         user_id: str = 'lior',
                                          cluster_version: str = '',
                                          zone: str = '',
                                          image_type: str = '',
                                          num_nodes: int = '',
                                          expiration_time: int = ''):
+    """
+    this functions trigger jenkins job to build GKE cluster.
+    @param cluster_type: GKE
+    @param project_name: Your project name, change or add a global variable in variables.
+    @param user_id:
+    @param cluster_version: single select scrolldown from realtime generated versions list
+    @param zone:
+    @param image_type:
+    @param num_nodes:
+    @param expiration_time: set a default to make sure no cluster is left running.
+    @return:
+    """
     server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
     try:
         from utils import random_string
@@ -185,6 +200,15 @@ def trigger_kubernetes_gke_autopilot_build_jenkins(cluster_type: str = '',
                                                    project_name: str = TROLLEY_PROJECT_NAME,
                                                    user_id: str = 'lior',
                                                    region: str = '', expiration_time: int = ''):
+    """
+
+    @param cluster_type:o GKE autpilot
+    @param project_name: Your project name, change or add a global variable in variables.
+    @param user_id:
+    @param region:
+    @param expiration_time:
+    @return:
+    """
     server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
     try:
         job_id = server.build_job(name=JENKINS_KUBERNETES_GKE_AUTOPILOT_DEPLOYMENT_JOB_NAME, parameters={
@@ -201,6 +225,12 @@ def trigger_kubernetes_gke_autopilot_build_jenkins(cluster_type: str = '',
 
 
 def get_eks_zones(eks_location: str = '') -> str:
+
+    """
+    Retrieve EKS zones from server, show them in a list
+    @param eks_location:
+    @return:
+    """
     zones_list = []
     command = f'aws ec2 describe-availability-zones --region {eks_location}'
     logger.info(f'Running a {command} command')
@@ -213,12 +243,23 @@ def get_eks_zones(eks_location: str = '') -> str:
 
 
 def trigger_eks_build_jenkins(
-        user_id: str = 'lior',
-        version: str = '1.21',
-        num_nodes: int = 3,
-        expiration_time: int = 4,
-        eks_location: str = 'us-east-1',
+        user_id: str = '',
+        version: str = '',
+        num_nodes: int = '',
+        expiration_time: int = '4',
+        eks_location: str = '',
         helm_installs: list = None):
+
+    """
+
+    @param user_id:
+    @param version: single select scrolldown from realtime generated versions list
+    @param num_nodes:
+    @param expiration_time: set a default to make sure no cluster is left running.
+    @param eks_location:
+    @param helm_installs:
+    @return:
+    """
     if not helm_installs:
         helm_installs = '.'
     eks_zones = get_eks_zones(eks_location)
@@ -247,6 +288,16 @@ def trigger_aks_build_jenkins(
         aks_location: str = '',
         expiration_time: int = '',
         helm_installs: list = ''):
+    """
+
+    @param user_id:
+    @param num_nodes:
+    @param kubernetes_version:
+    @param aks_location:
+    @param expiration_time:
+    @param helm_installs:
+    @return:
+    """
     if helm_installs:
         helm_installs_string = ','.join(helm_installs)
     else:
@@ -269,6 +320,14 @@ def trigger_aks_build_jenkins(
 
 
 def delete_gke_cluster(cloud_provider: str = '', cluster_type: str = '', cluster_name: str = '', region: str = ''):
+    """
+
+    @param cloud_provider: #why
+    @param cluster_type: GKE/GKE_AUTOPILOT
+    @param cluster_name: from built clusters list
+    @param region: from available regions
+    @return:
+    """
     server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
     try:
         job_id = server.build_job(name=JENKINS_DELETE_GKE_JOB, parameters={
@@ -282,6 +341,14 @@ def delete_gke_cluster(cloud_provider: str = '', cluster_type: str = '', cluster
 
 
 def delete_eks_cluster(cluster_name: str = '', region: str = '', cloud_provider: str = '', cluster_type: str = ''):
+    """
+
+    @param cluster_name: from built clusters list
+    @param region: required param for deletion command
+    @param cloud_provider: GCP/Azure/AWS #why
+    @param cluster_type:
+    @return:
+    """
     server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
     try:
         job_id = server.build_job(name=JENKINS_DELETE_EKS_JOB, parameters={
@@ -295,6 +362,12 @@ def delete_eks_cluster(cluster_name: str = '', region: str = '', cloud_provider:
 
 
 def delete_aks_cluster(cluster_name: str = '', cluster_type: str = ''):
+    """
+
+    @param cluster_name: from built clusters list
+    @param cluster_type: required param for deletion command
+    @return:
+    """
     server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
     try:
         job_id = server.build_job(name=JENKINS_DELETE_AKS_JOB, parameters={
@@ -362,7 +435,6 @@ def delete_expired_clusters(GCP=None):
     for expired_cluster in expired_clusters_list:
         delete_gke_cluster(cloud_provider=GCP, cluster_name=expired_cluster['cluster_name'],
                            region=expired_cluster['zone_name'])
-        # why only gke here
         time.sleep(5)
         set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
                                  availability=False)
