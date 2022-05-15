@@ -13,6 +13,7 @@
           integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
     <!-- Theme style -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.1/dist/css/adminlte.min.css">
+    <link href="static/img/trolley.png" rel="icon">
 </head>
 
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
@@ -26,7 +27,7 @@
                 <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
             </li>
             <li class="nav-item d-none d-sm-inline-block">
-                <a href="index.html" class="nav-link">Home</a>
+                <a href="#" class="nav-link">Home</a>
             </li>
             </li>
         </ul>
@@ -41,8 +42,7 @@
                 <div class="navbar-search-block">
                     <form class="form-inline">
                         <div class="input-group input-group-sm">
-                            <input class="form-control form-control-navbar" type="search"
-                                   placeholder="Search for AKS Cluster"
+                            <input class="form-control form-control-navbar" type="search" placeholder="Search"
                                    aria-label="Search">
                             <div class="input-group-append">
                                 <button class="btn btn-navbar" type="submit">
@@ -63,7 +63,9 @@
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
         <!-- Brand Logo -->
-        <a href="index.html" class="brand-link">
+        <a href="#" class="brand-link">
+            <img src="static/img/trolley.png" alt="Trolley Logo" class="brand-image  elevation-2"
+                 style="opacity: .99">
             <span class="brand-text font-weight-light">Trolley</span>
         </a>
 
@@ -71,6 +73,9 @@
         <div class="sidebar">
             <!-- Sidebar user panel (optional) -->
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="image">
+                    <img src="static/img/lior.jpg" class="img-circle elevation-2" alt="User Image">
+                </div>
                 <div class="info">
                     <a href="#" class="d-block">Lior</a>
                 </div>
@@ -103,13 +108,13 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="build-aks-clusters" class="nav-link">
+                                <a href="build-aks-clusters" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="build-aks-clusters" class="nav-link">
+                                <a href="build-eks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>EKS Clusters</p>
                                 </a>
@@ -132,7 +137,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="manage-aks-clusters" class="nav-link active">
+                                <a href="manage-aks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
                                 </a>
@@ -148,8 +153,6 @@
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
                                 </a>
-                            </li>
-                            <li class="nav-item">
                             </li>
                         </ul>
                     </li>
@@ -175,81 +178,105 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
+                        <h1 class="m-0">Build an AKS cluster</h1>
                     </div><!-- /.col -->
-                    <div id="clusters-data">
-                    </div>
                 </div><!-- /.row -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Manage AKS clusters</h3>
-
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                <div class="col-lg-2 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select the amount of nodes</label>
+                        <select class="form-control" id="aks-nodes-amt">
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                        </select>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped projects" id="aks-clusters-management-table">
-                        </table>
+                </div>
+                <div class="col-lg-2 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select the Kubernetes version</label>
+                        <select class="form-control" id="aks-version">
+                            <option>1.21</option>
+                            <option>1.20</option>
+                            <option>1.19</option>
+                        </select>
                     </div>
-                    <!--                    -->
-                </div><!-- /.container-fluid -->
-            </div>
-            <!-- /.content-header -->
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <div class="form-group">
+                        <label>Select Location</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" id="aks-locations-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select Helm Installations</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" multiple id="helm-installs-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-2 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select the expiration time</label>
+                        <select class="form-control" id="aks-expiration-time">
+                            <option value="1">1h</option>
+                            <option value="2">2h</option>
+                            <option value="4">4h</option>
+                            <option value="8">8h</option>
+                            <option value="12">12h</option>
+                            <option value="24">24h</option>
+                            <option value="48">2d</option>
+                            <option value="96">4d</option>
+                            <option value="168">7d</option>
+                            <option value="336">14d</option>
+                            <option value="720">30d</option>
+                        </select>
+                    </div>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-info" id="build-cluster-button">Build Cluster!</button>
+            </div><!-- /.container-fluid -->
         </div>
-        <!-- /.content-wrapper -->
-        <!--        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"-->
-        <!--             aria-hidden="true">-->
-        <!--            <div class="modal-dialog" role="document">-->
-        <!--                <div class="modal-content">-->
-        <!--                    <div class="modal-header">-->
-        <!--                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>-->
-        <!--                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">-->
-        <!--                            <span aria-hidden="true">&times;</span>-->
-        <!--                        </button>-->
-        <!--                    </div>-->
-        <!--                    <div class="modal-body">-->
-        <!--                        Testing stuff-->
-        <!--                    </div>-->
-        <!--                    <div class="modal-footer">-->
-        <!--                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
-        <!--                        <button type="button" class="btn btn-primary" id="copyKubeconfig">Copy Kubeconfig</button>-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--            </div>-->
-        <!--        </div>-->
-        <!-- Control Sidebar -->
-        <aside class="control-sidebar control-sidebar-dark">
-            <!-- Control sidebar content goes here -->
-        </aside>
-        <!-- /.control-sidebar -->
-
-        <!-- Main Footer -->
-        <footer class="main-footer">
-            <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
-            All rights reserved.
-            <div class="float-right d-none d-sm-inline-block">
-                <b>Version</b> 0.1
-            </div>
-        </footer>
+        <!-- /.content-header -->
     </div>
-    <!-- ./wrapper -->
+    <!-- /.content-wrapper -->
 
-    <!-- REQUIRED SCRIPTS -->
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="static/script.js"></script>
-    <!-- Bootstrap 4 -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-            crossorigin="anonymous"></script>
-    <!-- AdminLTE App -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+        <!-- Control sidebar content goes here -->
+    </aside>
+    <!-- /.control-sidebar -->
+
+    <!-- Main Footer -->
+    <footer class="main-footer">
+        <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">trolley</a></strong>
+        All rights reserved.
+        <div class="float-right d-none d-sm-inline-block">
+            <b>Version</b> 0.1
+        </div>
+    </footer>
+</div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED SCRIPTS -->
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="static/script.js"></script>
+<!-- Bootstrap 4 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
+<!-- AdminLTE App -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
 </body>
 </html>

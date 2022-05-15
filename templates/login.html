@@ -1,7 +1,8 @@
-<html lang="en"><head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Trolley</title>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trolley</title>
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet"
@@ -11,68 +12,69 @@
           integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
     <!-- Theme style -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.1/dist/css/adminlte.min.css">
+    <link href="static/img/trolley.png" rel="icon">
 </head>
 <body class="login-page" style="min-height: 466px;">
 <div class="login-box">
-  <!-- /.login-logo -->
-  <div class="card card-outline card-primary">
-    <div class="card-header text-center">
-      <a href="../../index2.html" class="h1"><b>Trolley</b></a>
+    <!-- /.login-logo -->
+    <div class="card card-outline card-primary">
+        <div class="card-header text-center">
+            <a href="../../index2.html" class="h1"><b>Trolley</b></a>
+        </div>
+        <div class="card-body">
+            <p class="login-box-msg">Sign in to start your session</p>
+
+            <form action="login" method="POST">
+                <div class="input-group mb-3">
+                    <input type="email" class="form-control" placeholder="Email" name="user_email">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="password" class="form-control" placeholder="Password" name="user_password">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                        <div class="icheck-primary">
+                            <input type="checkbox" id="remember">
+                            <label for="remember">
+                                Remember Me
+                            </label>
+                        </div>
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                    </div>
+                    <!-- /.col -->
+                </div>
+            </form>
+
+            <div class="social-auth-links text-center mt-2 mb-3">
+                <a href="#" class="btn btn-block btn-danger">
+                    <i class="fab fa-google mr-2"></i> Sign in using Google
+                </a>
+            </div>
+            <!-- /.social-auth-links -->
+
+            <!--      <p class="mb-1">-->
+            <!--        <a href="forgot-password.html">I forgot my password</a>-->
+            <!--      </p>-->
+            <p class="mb-0">
+                <a href="register" class="text-center">Register a new user</a>
+            </p>
+        </div>
+        <!-- /.card-body -->
     </div>
-    <div class="card-body">
-      <p class="login-box-msg">Sign in to start your session</p>
-
-      <form action="login" method="POST">
-        <div class="input-group mb-3">
-          <input type="email" class="form-control" placeholder="Email" name="user_email">
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-envelope"></span>
-            </div>
-          </div>
-        </div>
-        <div class="input-group mb-3">
-          <input type="password" class="form-control" placeholder="Password" name="user_password">
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-lock"></span>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-8">
-            <div class="icheck-primary">
-              <input type="checkbox" id="remember">
-              <label for="remember">
-                Remember Me
-              </label>
-            </div>
-          </div>
-          <!-- /.col -->
-          <div class="col-4">
-            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-          </div>
-          <!-- /.col -->
-        </div>
-      </form>
-
-      <div class="social-auth-links text-center mt-2 mb-3">
-        <a href="#" class="btn btn-block btn-danger">
-          <i class="fab fa-google mr-2"></i> Sign in using Google
-        </a>
-      </div>
-      <!-- /.social-auth-links -->
-
-<!--      <p class="mb-1">-->
-<!--        <a href="forgot-password.html">I forgot my password</a>-->
-<!--      </p>-->
-      <p class="mb-0">
-        <a href="register" class="text-center">Register a new user</a>
-      </p>
-    </div>
-    <!-- /.card-body -->
-  </div>
-  <!-- /.card -->
+    <!-- /.card -->
 </div>
 <!-- /.login-box -->
 

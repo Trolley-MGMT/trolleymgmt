@@ -31,7 +31,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 config = configparser.ConfigParser()
 if MACOS in platform.platform():
     config.read(f'{PROJECT_ROOT}/config.ini')
-    HELM_COMMAND = '/usr/local/bin/helm'
+    HELM_COMMAND = '/opt/homebrew/bin/helm'
     AKS_LOCATIONS_COMMAND = 'az account list-locations'
     GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
     EKS_ZONES_COMMAND = 'aws ec2 describe-regions'
