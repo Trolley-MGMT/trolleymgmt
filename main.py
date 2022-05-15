@@ -477,6 +477,28 @@ def index():
     return render_page('index.html')
 
 
+@app.route('/fetch_regions', methods=[GET])
+def fetch_regions():
+    cluster_type = request.args.get("cluster_type")
+    logger.info(f'A request to fetch regions for {cluster_type} has arrived')
+    if cluster_type == AKS:
+        command = AKS_LOCATIONS_COMMAND
+        logger.info(f'Running a {command} command')
+    elif cluster_type == GKE:
+        command = GKE_ZONES_COMMAND
+        logger.info(f'Running a {command} command')
+    elif cluster_type == EKS:
+        command = EKS_ZONES_COMMAND
+        logger.info(f'Running a {command} command')
+        result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+        regions_list = json.loads(result.stdout)
+        for key, value in regions_list.items():
+            return jsonify(value)
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    regions_list = json.loads(result.stdout)
+    return jsonify(regions_list)
+
+
 @app.route('/fetch_helm_installs', methods=[GET, POST])
 def fetch_helm_installs():
     names = bool(util.strtobool(request.args.get("names")))
@@ -492,6 +514,21 @@ def fetch_helm_installs():
         return jsonify(installs_names)
     else:
         return jsonify(installs_list)
+
+
+@app.route('/fetch_aws_vpcs', methods=[GET])
+def fetch_aws_vpcs():
+    aws_region = request.args.get('aws_region')
+    logger.info(f'A request to fetch available VPCs for {aws_region} region has arrived')
+    aws_vpcs_names = []
+    command = AWS_VPCS_COMMAND + ' ' + aws_region
+    logger.info(f'Running a {command} command')
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    aws_vpcs = json.loads(result.stdout)
+    for key, value in aws_vpcs.items():
+        for vpc in value:
+            aws_vpcs_names.append(vpc['VpcId'])
+        return jsonify(aws_vpcs_names)
 
 
 @app.route('/register', methods=[GET, POST])
@@ -546,6 +583,36 @@ def login():
             return render_template('login.html',
                                    error_message=f'Dear {user_email}, your password was not entered correctly. '
                                                  f'Please try again')
+
+
+@app.route('/build-eks-clusters', methods=[GET, POST])
+def build_eks_clusters():
+    return render_page('build-eks-clusters.html')
+
+
+@app.route('/build-aks-clusters', methods=[GET, POST])
+def build_aks_clusters():
+    return render_page('build-aks-clusters.html')
+
+
+@app.route('/build-gke-clusters', methods=[GET, POST])
+def build_gke_clusters():
+    return render_page('build-gke-clusters.html')
+
+
+@app.route('/manage-eks-clusters', methods=[GET, POST])
+def manage_eks_clusters():
+    return render_page('manage-eks-clusters.html')
+
+
+@app.route('/manage-aks-clusters', methods=[GET, POST])
+def manage_aks_clusters():
+    return render_page('manage-aks-clusters.html')
+
+
+@app.route('/manage-gke-clusters', methods=[GET, POST])
+def manage_gke_clusters():
+    return render_page('manage-gke-clusters.html')
 
 
 @app.route('/logout', methods=[GET, POST])

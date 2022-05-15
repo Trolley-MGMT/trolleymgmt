@@ -28,6 +28,7 @@
             <li class="nav-item d-none d-sm-inline-block">
                 <a href="#" class="nav-link">Home</a>
             </li>
+            </li>
         </ul>
 
         <!-- Right navbar links -->
@@ -73,7 +74,7 @@
                     <img src="static/img/pavel.jpg" class="img-circle elevation-2" alt="User Image">
                 </div>
                 <div class="info">
-                    <a href="#" class="d-block">Pavel</a>
+                    <a href="#" class="d-block">Lior</a>
                 </div>
             </div>
 
@@ -104,15 +105,15 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="build-eks-clusters" class="nav-link">
+                                <a href="build-aks-clusters" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
-                                    <p>EKS Clusters</p>
+                                    <p>AKS Clusters</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="build-aks-clusters" class="nav-link">
+                                <a href="build-eks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
-                                    <p>AKS Clusters</p>
+                                    <p>EKS Clusters</p>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -133,15 +134,15 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="manage-eks-clusters" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>EKS Clusters</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
                                 <a href="manage-aks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="manage-eks-clusters" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>EKS Clusters</p>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -174,9 +175,71 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0">Welcome to Trolley Alpha</h1>
+                        <h1 class="m-0">Build an AKS cluster</h1>
                     </div><!-- /.col -->
                 </div><!-- /.row -->
+                <div class="col-lg-2 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select the amount of nodes</label>
+                        <select class="form-control" id="aks-nodes-amt">
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-2 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select the Kubernetes version</label>
+                        <select class="form-control" id="aks-version">
+                            <option>1.21</option>
+                            <option>1.20</option>
+                            <option>1.19</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <div class="form-group">
+                        <label>Select Location</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" id="aks-locations-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select Helm Installations</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" multiple id="helm-installs-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-2 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select the expiration time</label>
+                        <select class="form-control" id="aks-expiration-time">
+                            <option value="1">1h</option>
+                            <option value="2">2h</option>
+                            <option value="4">4h</option>
+                            <option value="8">8h</option>
+                            <option value="12">12h</option>
+                            <option value="24">24h</option>
+                            <option value="48">2d</option>
+                            <option value="96">4d</option>
+                            <option value="168">7d</option>
+                            <option value="336">14d</option>
+                            <option value="720">30d</option>
+                        </select>
+                    </div>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-info" id="build-cluster-button">Build Cluster!</button>
             </div><!-- /.container-fluid -->
         </div>
         <!-- /.content-header -->
@@ -191,10 +254,10 @@
 
     <!-- Main Footer -->
     <footer class="main-footer">
-        <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
+        <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">trolley</a></strong>
         All rights reserved.
         <div class="float-right d-none d-sm-inline-block">
-            <b>Version</b> 3.2.0-rc
+            <b>Version</b> 0.1
         </div>
     </footer>
 </div>

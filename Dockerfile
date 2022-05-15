@@ -13,7 +13,13 @@ ADD variables.py /
 ADD requirements.txt /
 ADD templates/index.html /
 ADD templates/login.html /
-ADD templates/trigger_kubernetes_deployment.html /
+ADD templates/build_gke_clusters.html /
+ADD templates/build_eks_clusters.html /
+ADD templates/build_aks_clusters.html /
+ADD templates/manage_eks_clusters.html /
+ADD templates/manage_gke_clusters.html /
+ADD templates/manage_aks_clusters.html /
+ADD templates/register.html /
 
 COPY templates/ templates/
 
