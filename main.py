@@ -79,8 +79,9 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
                       user_email: str = '', team_name: str = '') -> bool:
     """"""
 
+    user_name = f'{first_name.lower()}_{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
-    user_object = UserObject(first_name=first_name, last_name=last_name, user_email=user_email,
+    user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
                              team_name=team_name, hashed_password=hashed_password)
     user_object = user_object.to_dict()
     if insert_user(user_object=user_object):
