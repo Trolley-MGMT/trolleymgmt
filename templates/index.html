@@ -14,11 +14,14 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.1/dist/css/adminlte.min.css">
     <link href="static/img/trolley.png" rel="icon">
+    <script>
+      var data = {{ data|tojson }};
+      console.log(data)
+    </script>
 </head>
 
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
 <div class="wrapper">
-
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-dark">
         <!-- Left navbar links -->
@@ -73,10 +76,10 @@
             <!-- Sidebar user panel (optional) -->
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                 <div class="image">
-                    <img src="static/img/lior.jpg" class="img-circle elevation-2" alt="User Image">
+                    <img src="static/img/pavel.jpg" class="img-circle elevation-2" alt="User Image" id="profilePicURL">
                 </div>
                 <div class="info">
-                    <a href="#" class="d-block">Lior</a>
+                    <a href="#" class="d-block" id="userNameLabel"></a>
                 </div>
             </div>
 

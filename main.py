@@ -78,7 +78,7 @@ logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
                       user_email: str = '', team_name: str = '') -> bool:
     """"""
-    
+
     hashed_password = generate_password_hash(password, method='sha256')
     user_object = UserObject(first_name=first_name, last_name=last_name, user_email=user_email,
                              team_name=team_name, hashed_password=hashed_password)
@@ -89,7 +89,7 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
         return False
 
 
-def login_processor(user_email: str = "", password: str = "", new: bool = False):
+def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
     user_agent = request.headers.get('User-Agent')
     logger.info(f'The request comes from {user_agent} user agent')
     if new:
@@ -104,14 +104,14 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             user_email = request.form['user_email']
             password = request.form['user_password']
     logger.info(f'The request is being done with: {user_email} user')
-    user_obj = retrieve_user(user_email)
-    logger.info(f'user_obj is: {user_obj}')
-    if not user_obj:
-        return False, user_email
+    user_object = retrieve_user(user_email)
+    logger.info(f'user_obj is: {user_object}')
+    if not user_object:
+        return '',  {'user_email': user_email}
     session['user_email'] = user_email
     session['user_password'] = password
     try:
-        session['first_name'] = user_obj['first_name'].capitalize()
+        session['first_name'] = user_object['first_name'].capitalize()
     except:
         redirect(url_for('login',
                          failure_message=f'username or password were not found in the system '
@@ -121,11 +121,11 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                                failure_message=f'{user_email} was not found in the system '
                                                f'or you provided a wrong password, please try again')
     try:
-        if check_password_hash(user_obj['hashed_password'], password):
+        if check_password_hash(user_object['hashed_password'], password):
             logger.info(f'The hashed password is correct')
             try:
                 token = jwt.encode(
-                    {'user_id': str(user_obj['_id']),
+                    {'user_id': str(user_object['_id']),
                      'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)},
                     app.config['SECRET_KEY'])
             except:
@@ -134,10 +134,10 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             # decoded_token = token.decode("utf-8")
             session['x-access-token'] = token
             logger.info(f'The decoded token is: {token}')
-            return token, user_email
+            return token, user_object
         else:
             logger.info(f'The hashed password is incorrect')
-            return False, user_email
+            return '', user_object
     except:
         redirect(url_for('login',
                          failure_message=f'username or password were not found in the system '
@@ -284,7 +284,7 @@ def trigger_eks_build_jenkins(
 def trigger_aks_build_jenkins(
         user_id: str = '',
         num_nodes: int = '',
-        kubernetes_version: str = '',
+        version: str = '',
         aks_location: str = '',
         expiration_time: int = '',
         helm_installs: list = ''):
@@ -292,7 +292,7 @@ def trigger_aks_build_jenkins(
 
     @param user_id:
     @param num_nodes:
-    @param kubernetes_version:
+    @param version:
     @param aks_location:
     @param expiration_time:
     @param helm_installs:
@@ -301,8 +301,8 @@ def trigger_aks_build_jenkins(
     if helm_installs:
         helm_installs_string = ','.join(helm_installs)
     else:
-        helm_installs_string = ''
-    aks_version = fetch_aks_version(kubernetes_version=kubernetes_version)
+        helm_installs_string = '.'
+    aks_version = fetch_aks_version(kubernetes_version=version)
     server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
     try:
         job_id = server.build_job(name=JENKINS_AKS_DEPLOYMENT_JOB_NAME, parameters={
@@ -381,11 +381,13 @@ def delete_aks_cluster(cluster_name: str = '', cluster_type: str = ''):
 
 def render_page(page_name: str = ''):
     try:
-        is_login_pass, user_email = login_processor()
+        token, user_object = login_processor()
+        is_login_pass = True
     except:
         is_login_pass = False
     if is_login_pass:
-        return render_template(page_name, **locals())
+        data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name']}
+        return render_template(page_name, data=data)
     else:
         return render_template('login.html')
 
@@ -576,10 +578,12 @@ def login():
     if request.method == 'GET':
         return render_template('login.html', failure_message=message)
     if request.method == 'POST':
-        is_login_pass, user_email = login_processor(new=True)
-        if is_login_pass:
-            return render_template('index.html')
+        token, user_object = login_processor(new=True)
+        if token:
+            data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name']}
+            return render_template('index.html', data=data)
         else:
+            user_email = user_object['user_email']
             return render_template('login.html',
                                    error_message=f'Dear {user_email}, your password was not entered correctly. '
                                                  f'Please try again')
