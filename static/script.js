@@ -1,9 +1,8 @@
 $(document).ready(function() {
-    let boneseye_remote_url = '34.68.173.74'
-    let boneseye_local_url = 'localhost';
-    let boneseye_url = '';
-    let debug = true;
-    let userName = 'pavel'
+    let trolley_remote_url = '34.68.173.74'
+    let trolley_local_url = 'localhost';
+    let trolley_url = '';
+    let debug = false;
     let clusterType = ''
     let pathname = window.location.pathname.split('/');
     let manage_table_header = `<div class="card-body p-0">
@@ -20,14 +19,15 @@ $(document).ready(function() {
     let manage_table_footer = `</tr></tbody></table></div>`
 
     if (debug === true) {
-        boneseye_url = boneseye_local_url;
+        trolley_url = trolley_local_url;
         gitBranch = 'master'
         port = 8081
     } else {
-        boneseye_url = boneseye_remote_url
+        trolley_url = trolley_remote_url
         gitBranch = 'master'
         port = 8081
     }
+
 
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1)) {
         clusterType = 'aks'
@@ -40,10 +40,11 @@ $(document).ready(function() {
         clusterType = 'aks'
     }
 
-
     populate_kubernetes_clusters_objects();
     populate_regions();
     populate_helm_installs();
+    populate_logged_in_assets();
+
 
     $("#build-cluster-button").click(function() {
         let data = ''
@@ -64,7 +65,7 @@ $(document).ready(function() {
         GKEExpirationTime = $('#gke-expiration-time').val();
 
         let trigger_aks_deployment_data = JSON.stringify({
-            "user_id": userName,
+            "user_id": data['user_name'],
             "num_nodes": AKSNodesAmount,
             "version": AKSKubernetesVersion,
             "expiration_time": AKSExpirationTime,
@@ -73,7 +74,7 @@ $(document).ready(function() {
         });
 
         let trigger_eks_deployment_data = JSON.stringify({
-            "user_id": userName,
+            "user_id": data['user_name'],
             "num_nodes": EKSNodesAmount,
             "version": EKSKubernetesVersion,
             "expiration_time": EKSExpirationTime,
@@ -82,19 +83,19 @@ $(document).ready(function() {
         });
 
         if (clusterType === 'aks') {
-            url = "http://" + boneseye_url + ":" + port + "/trigger_aks_deployment";
+            url = "http://" + trolley_url + ":" + port + "/trigger_aks_deployment";
             trigger_data = trigger_aks_deployment_data
             expiration_time = AKSExpirationTime
         } else if (clusterType == 'eks') {
-            url = "http://" + boneseye_url + ":" + port + "/trigger_eks_deployment";
+            url = "http://" + trolley_url + ":" + port + "/trigger_eks_deployment";
             trigger_data = trigger_eks_deployment_data
             expiration_time = EKSExpirationTime
         } else if (clusterType == 'gke') {
-            url = "http://" + boneseye_url + ":" + port + "/trigger_kubernetes_deployment";
+            url = "http://" + trolley_url + ":" + port + "/trigger_kubernetes_deployment";
             trigger_data = trigger_gke_deployment_data
             expiration_time = GKEExpirationTime
         } else {
-            url = "http://" + boneseye_url + ":" + port + "/trigger_kubernetes_deployment";
+            url = "http://" + trolley_url + ":" + port + "/trigger_kubernetes_deployment";
             trigger_data = trigger_gke_deployment
             expiration_time = GKEExpirationTime
         }
@@ -123,7 +124,7 @@ $(document).ready(function() {
     });
 
     function populate_kubernetes_clusters_objects() {
-        url = "http://" + boneseye_url + ":" + port + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + userName;
+        url = "http://" + trolley_url + ":" + port + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'];
         $.ajax({
             type: 'GET',
             url: url,
@@ -165,11 +166,12 @@ $(document).ready(function() {
                     window.localStorage.setItem("kubeconfigs", JSON.stringify(kubeconfigs_array));
                 }
                 full_table = manage_table_header + cluster_data + manage_table_footer
-                console.log(full_table)
                 if (clusterType == 'aks') {
                     $('#aks-clusters-management-table').append(full_table);
                 } else if (clusterType == 'eks') {
                     $('#eks-clusters-management-table').append(full_table);
+                } else if (clusterType == 'gke') {
+                    $('#gke-clusters-management-table').append(full_table);
                 }
 
             },
@@ -185,7 +187,7 @@ $(document).ready(function() {
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-locations-dropdown");
         }
-        url = "http://" + boneseye_url + ":" + port + "/fetch_regions?cluster_type=" + clusterType;
+        url = "http://" + trolley_url + ":" + port + "/fetch_regions?cluster_type=" + clusterType;
         $.ajax({
             type: 'GET',
             url: url,
@@ -210,10 +212,10 @@ $(document).ready(function() {
     function populate_vpcs(selected_location) {
         if (clusterType == 'aks') {
             var $dropdown = $("#aks-locations-dropdown");
-            var url = "http://" + boneseye_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-vpcs-dropdown");
-            var url = "http://" + boneseye_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
         }
         $.ajax({
             type: 'GET',
@@ -232,7 +234,7 @@ $(document).ready(function() {
 
     function populate_helm_installs() {
         var $dropdown = $("#helm-installs-dropdown");
-        url = "http://" + boneseye_url + ":" + port + "/fetch_helm_installs?names=True";
+        url = "http://" + trolley_url + ":" + port + "/fetch_helm_installs?names=True";
         $.ajax({
             type: 'GET',
             url: url,
@@ -257,7 +259,7 @@ $(document).ready(function() {
 
         swal_message = 'A ' + clusterName + ' ' + clusterType + ' cluster was requested for deletion'
 
-        url = "http://" + boneseye_url + ":" + port + "/delete_cluster";
+        url = "http://" + trolley_url + ":" + port + "/delete_cluster";
         const xhr = new XMLHttpRequest();
         xhr.open("DELETE", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -277,6 +279,12 @@ $(document).ready(function() {
         })
 
     }
+
+    function populate_logged_in_assets() {
+        $("#profilePicURL").attr("src", "static/img/" + data['user_name'] + ".jpg");
+        $("#userNameLabel").text(data['first_name']);
+    }
+
 
     $('#eks-locations-dropdown').change(function() {
         var eks_location = $('#eks-locations-dropdown').val();

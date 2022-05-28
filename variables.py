@@ -25,7 +25,6 @@ ZONE_NAME = 'zone_name'
 IMAGE_TYPE = 'IMAGE_TYPE'
 REGION_NAME = 'REGION_NAME'
 APPLICATION_JSON = 'application/json'
-CLUSTER_NAME = 'CLUSTER_NAME'
 AVAILABILITY = 'availability'
 EXPIRATION_TIMESTAMP = 'expiration_timestamp'
 CREATED_TIMESTAMP = 'created_timestamp'
@@ -39,7 +38,6 @@ FIRST_NAME = 'first_name'
 LAST_NAME = 'last_name'
 HASHED_PASSWORD = 'hashed_password'
 TEAM_NAME = 'team_name'
-USER_EMAIL = 'user_email'
 
 
 # EKS
