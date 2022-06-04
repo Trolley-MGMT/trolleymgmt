@@ -488,14 +488,18 @@ def fetch_regions():
     if cluster_type == AKS:
         command = AKS_LOCATIONS_COMMAND
         logger.info(f'Running a {command} command')
+        print(f'Running a {command} command')
     elif cluster_type == GKE:
         command = GKE_ZONES_COMMAND
         logger.info(f'Running a {command} command')
+        print(f'Running a {command} command')
     elif cluster_type == EKS:
         command = EKS_ZONES_COMMAND
         logger.info(f'Running a {command} command')
+        print(f'Running a {command} command')
         result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
         regions_list = json.loads(result.stdout)
+        print(f'regions_list is: {regions_list}')
         for key, value in regions_list.items():
             return jsonify(value)
     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
