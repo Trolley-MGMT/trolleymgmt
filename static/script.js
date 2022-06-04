@@ -4,6 +4,8 @@ $(document).ready(function() {
     let trolley_url = '';
     let debug = false;
     let clusterType = ''
+    let managePage = false;
+    let buildPage = false;
     let pathname = window.location.pathname.split('/');
     let manage_table_header = `<div class="card-body p-0">
     <table class="table table-striped projects" >
