@@ -398,6 +398,7 @@ def get_clusters_data():
     cluster_type = request.args.get(CLUSTER_TYPE)
     user_name = request.args.get(USER_NAME)
     clusters_list = retrieve_available_clusters(cluster_type, user_name)
+    print(f'{clusters_list} was retrieved')
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
