@@ -114,7 +114,6 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
     for cluster in cluster_object:
         del cluster['_id']
         clusters_object.append(cluster)
-    print(f'A {cluster_object} cluster object was retrieved')
     return clusters_object
 
 
