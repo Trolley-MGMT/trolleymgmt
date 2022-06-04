@@ -31,6 +31,9 @@ eks_clusters: Collection = db.eks_clusters
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
 
+print(f'MONGO_USER is: {MONGO_USER}')
+print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
+
 
 def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = None) -> bool:
     """
