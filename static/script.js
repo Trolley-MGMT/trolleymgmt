@@ -28,7 +28,13 @@ $(document).ready(function() {
         port = 8081
     }
 
-
+    if (pathname[1].includes('build')) {
+        buildPage = true;
+        managePage = false;
+    } else if (pathname[1].includes('manage')) {
+        buildPage = false;
+        managePage = true;
+}
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1)) {
         clusterType = 'aks'
     } else if (($.inArray('build-eks-clusters', pathname) > -1) || ($.inArray('manage-eks-clusters', pathname) > -1)) {
@@ -39,11 +45,15 @@ $(document).ready(function() {
     } else {
         clusterType = 'aks'
     }
-
-    populate_kubernetes_clusters_objects();
-    populate_regions();
-    populate_helm_installs();
     populate_logged_in_assets();
+
+    if (buildPage) {
+        populate_regions();
+        populate_helm_installs();
+    }
+    if (managePage) {
+        populate_kubernetes_clusters_objects();
+    }
 
 
     $("#build-cluster-button").click(function() {
@@ -200,10 +210,6 @@ $(document).ready(function() {
                             $dropdown.append($("<option />").val(value.name).text(value.displayName));
                         });
                     } else if (clusterType == 'eks') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value.RegionName).text(value.RegionName));
-                        });
-                    } else if (clusterType == 'gke') {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value.RegionName).text(value.RegionName));
                         });
