@@ -30,6 +30,13 @@ EXPIRATION_TIMESTAMP = 'expiration_timestamp'
 CREATED_TIMESTAMP = 'created_timestamp'
 HUMAN_CREATED_TIMESTAMP = 'human_created_timestamp'
 HUMAN_EXPIRATION_TIMESTAMP = 'human_expiration_timestamp'
+KUBECONFIG = 'kubeconfig'
+NODES_NAMES = 'nodes_names'
+JENKINS_BUILD_URL = 'jenkins_build_url'
+NODES_IPS = 'nodes_IPs'
+PROJECT_NAME = 'project_name'
+RESOURCE_GROUP = 'resource_group'
+PROJECT_ID = 'project_id'
 
 #  USER
 USER_NAME = 'user_name'
