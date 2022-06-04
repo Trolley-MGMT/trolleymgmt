@@ -176,7 +176,7 @@ $(document).ready(function() {
 
             },
             error: function() {
-                console.error('error loading orchestration items')
+                console.log('error loading orchestration items')
             }
         })
     }
