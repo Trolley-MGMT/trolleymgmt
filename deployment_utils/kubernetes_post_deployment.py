@@ -9,8 +9,9 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from subprocess import call, PIPE, run
 
 from variables import GKE, GKE_AUTOPILOT, EKS, AKS
-from mongo_handler import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment
-from mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
+from mongo.mongo_handler import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment
+from mongo.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
+from slack_handler import send_slack_message
 
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/')[:-1])
@@ -22,7 +23,7 @@ JENKINS_USER = config['DEFAULT']['jenkins_user']
 JENKINS_HOME = os.getenv('JENKINS_HOME')
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
-USER_NAME = 'pavel'
+USER_NAME = 'lior.yardeni'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -160,6 +161,7 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
                                           cluster_version=cluster_version)
         gke_deployment_object_dict = gke_deployment_object.to_dict()
         insert_gke_deployment(cluster_type=GKE, gke_deployment_object=gke_deployment_object_dict)
+        send_slack_message(deployment_object=gke_deployment_object)
     elif cluster_type == GKE_AUTOPILOT:
         gke_autopilot_deployment_object = GKEAutopilotObject(
             cluster_name=cluster_name, username=USER_NAME, kubeconfig=kubeconfig, nodes_names=nodes_names,
@@ -197,7 +199,6 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
                                           cluster_version=cluster_version)
         aks_deployment_object_dict = aks_deployment_object.to_dict()
         insert_aks_deployment(aks_deployment_object=aks_deployment_object_dict)
-    # send_slack_message(gke_deployment_object)
 
 
 if __name__ == '__main__':

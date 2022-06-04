@@ -17,12 +17,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from utils import random_string
 
-from mongo_handler import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
+from mongo.mongo_handler import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
     insert_user, retrieve_user
-from mongo_objects import UserObject
+from mongo.mongo_objects import UserObject
 from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, GCP, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES
 
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
