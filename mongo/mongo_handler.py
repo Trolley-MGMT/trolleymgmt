@@ -99,6 +99,7 @@ def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', ava
 
 
 def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
+    print(f'A request to fetch {cluster_type} clusters for {user_name} was received')
     clusters_object = []
     if cluster_type == GKE:
         cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME: user_name})
