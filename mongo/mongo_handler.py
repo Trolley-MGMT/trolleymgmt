@@ -174,6 +174,7 @@ def retrieve_user(user_email: str):
     """
     mongo_query = {USER_EMAIL: user_email}
     user_object = users.find_one(mongo_query)
+    print(f'found user_object is: {user_object}')
     return user_object
 
 
