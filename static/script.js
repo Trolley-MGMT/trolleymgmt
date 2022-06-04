@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    let trolley_remote_url = '34.68.173.74'
+    let trolley_remote_url = '34.123.171.234'
     let trolley_local_url = 'localhost';
     let trolley_url = '';
     let debug = false;

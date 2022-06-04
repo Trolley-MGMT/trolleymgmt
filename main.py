@@ -499,6 +499,7 @@ def fetch_regions():
         print(f'Running a {command} command')
         result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
         regions_list = json.loads(result.stdout)
+        print(f'regions_list is: {regions_list}')
         for key, value in regions_list.items():
             return jsonify(value)
     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
