@@ -203,6 +203,10 @@ $(document).ready(function() {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value.RegionName).text(value.RegionName));
                         });
+                    } else if (clusterType == 'gke') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value.RegionName).text(value.RegionName));
+                        });
                     }
                 }
             }
