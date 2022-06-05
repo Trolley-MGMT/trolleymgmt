@@ -451,7 +451,7 @@ def delete_cluster():
     if content[CLUSTER_TYPE] == GKE:
         del content[CLUSTER_TYPE]
         delete_gke_cluster(**content)
-        set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
+        set_cluster_availability(cluster_type=GKE, cluster_name=content['cluster_name'],
                                  availability=False)
     elif content[CLUSTER_TYPE] == EKS:
         delete_eks_cluster(**content)
