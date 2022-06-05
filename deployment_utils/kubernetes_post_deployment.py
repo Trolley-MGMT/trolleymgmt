@@ -24,7 +24,6 @@ JENKINS_USER = config['DEFAULT']['jenkins_user']
 JENKINS_HOME = os.getenv('JENKINS_HOME')
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
-USER_NAME = 'lior.yardeni'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -44,7 +43,7 @@ if 'Darwin' in platform.system():
     KUBECONFIG_LOCATION = f'/Users/{getpass.getuser()}/.kube/config'
     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
     KUBECTL_COMMAND = 'kubectl'
-    HELM_COMMAND = '/usr/local/bin//helm'
+    HELM_COMMAND = '/opt/homebrew/bin/helm'
 
 else:
     JENKINS_BUILD_URL = os.getenv('BUILD_URL')
@@ -135,11 +134,11 @@ def main(cluster_type: str = '', project_id: str = '', user_name: str = '', clus
             print(f'The result is: {result}')
     elif '.' in helm_installs:
         print(f'No helm charts to install for {cluster_name} cluster')
-    else:
-        command = HELM_COMMAND + ' upgrade --install ' + helm_installs
-        print(f'Running a {command} command')
-        result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-        print(f'The result is: {result}')
+    # else:
+    #     command = HELM_COMMAND + ' upgrade --install ' + helm_installs
+    #     print(f'Running a {command} command')
+    #     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    #     print(f'The result is: {result}')
     nodes_ips = get_nodes_ips()
     nodes_names = get_nodes_names()
     try:
@@ -204,7 +203,7 @@ if __name__ == '__main__':
     parser.add_argument('--project_id', default='boneseye', type=str, help='Name of the project')
     parser.add_argument('--resource_group', default='myResourceGroup', type=str, help='Name of Resource Group for AKS')
     parser.add_argument('--cluster_name', default='latest', type=str, help='Name of the built cluster')
-    parser.add_argument('--user_name', default='pavel_zagalsky', type=str, help='Name of the user who built the cluster')
+    parser.add_argument('--user_name', default='pavelzagalsky', type=str, help='Name of the user who built the cluster')
     parser.add_argument('--region_name', default='us-central1', type=str,
                         help='Name of the region where the cluster was built')
     parser.add_argument('--zone_name', default='us-central1-c', type=str,
@@ -212,7 +211,7 @@ if __name__ == '__main__':
     parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
     parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
     args = parser.parse_args()
-    main(cluster_type=args.cluster_type, project_id=args.project_id, cluster_name=args.cluster_name,
+    main(cluster_type=args.cluster_type, project_id=args.project_id, user_name=args.user_name, cluster_name=args.cluster_name,
          region_name=args.region_name, zone_name=args.zone_name, expiration_time=args.expiration_time,
          helm_installs=args.helm_installs,
          resource_group=args.resource_group)
