@@ -117,6 +117,22 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
     return clusters_object
 
 
+def retrieve_cluster_details(cluster_type: str, cluster_name: str) -> dict:
+    print(f'A request to fetch {cluster_type} details was received')
+    if cluster_type == GKE:
+        cluster_object = gke_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+    elif cluster_type == GKE_AUTOPILOT:
+        cluster_object = gke_autopilot_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+    elif cluster_type == EKS:
+        cluster_object = eks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+    elif cluster_type == AKS:
+        cluster_object = aks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+    else:
+        cluster_object = []
+    del cluster_object['_id']
+    return cluster_object
+
+
 def retrieve_expired_clusters(cluster_type: str) -> list:
     current_time = int(time.time())
     expired_clusters_list = []

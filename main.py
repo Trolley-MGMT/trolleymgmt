@@ -18,7 +18,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from utils import random_string
 
 from mongo.mongo_handler import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
-    insert_user, retrieve_user
+    insert_user, retrieve_user, retrieve_cluster_details
 from mongo.mongo_objects import UserObject
 from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
@@ -317,20 +317,18 @@ def trigger_aks_build_jenkins(
         return 'fail'
 
 
-def delete_gke_cluster(cloud_provider: str = '', cluster_type: str = '', cluster_name: str = '', region: str = ''):
+def delete_gke_cluster(cluster_name: str = ''):
     """
-
-    @param cloud_provider: #why
-    @param cluster_type: GKE/GKE_AUTOPILOT
     @param cluster_name: from built clusters list
-    @param region: from available regions
     @return:
     """
     server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
+    gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name)
+    gke_cluster_zone = gke_cluster_details[REGION_NAME.lower()]
     try:
         job_id = server.build_job(name=JENKINS_DELETE_GKE_JOB, parameters={
             CLUSTER_NAME: cluster_name,
-            REGION_NAME: region,
+            ZONE_NAME: gke_cluster_zone,
         })
         logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_GKE_JOB}')
         return 'OK'
@@ -435,8 +433,7 @@ def delete_expired_clusters(GCP=None):
     content = request.get_json()
     expired_clusters_list = retrieve_expired_clusters(cluster_type=content['cluster_type'])
     for expired_cluster in expired_clusters_list:
-        delete_gke_cluster(cloud_provider=GCP, cluster_name=expired_cluster['cluster_name'],
-                           region=expired_cluster['zone_name'])
+        delete_gke_cluster(cluster_name=expired_cluster['cluster_name'])
         time.sleep(5)
         set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
                                  availability=False)
@@ -449,6 +446,7 @@ def delete_cluster():
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     if content[CLUSTER_TYPE] == GKE:
+        del content[CLUSTER_TYPE]
         delete_gke_cluster(**content)
         set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
                                  availability=False)

@@ -2,8 +2,9 @@
 
 echo "CLUSTER_NAME is $CLUSTER_NAME"
 echo "REGION_NAME is $REGION_NAME"
+echo "ZONE_NAME is ZONE_NAME"
 
-gcloud beta container clusters delete $CLUSTER_NAME --region $REGION_NAME --quiet
+gcloud beta container clusters delete $CLUSTER_NAME --zone $ZONE_NAME --quiet
 
 echo "Adding a PYTHONPATH"
 root_path=$WORKSPACE
