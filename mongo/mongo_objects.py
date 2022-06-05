@@ -14,7 +14,7 @@ class UserObject:
 @dataclass
 class GKEObject:
     cluster_name: str
-    username: str
+    user_name: str
     kubeconfig: str
     nodes_names: list
     nodes_ips: list
@@ -33,7 +33,7 @@ class GKEObject:
 @dataclass
 class GKEAutopilotObject:
     cluster_name: str
-    username: str
+    user_name: str
     kubeconfig: str
     nodes_names: list
     nodes_ips: list
@@ -52,7 +52,7 @@ class GKEAutopilotObject:
 @dataclass
 class EKSObject:
     cluster_name: str
-    username: str
+    user_name: str
     kubeconfig: str
     nodes_names: list
     nodes_ips: list
@@ -70,7 +70,7 @@ class EKSObject:
 @dataclass
 class AKSObject:
     cluster_name: str
-    username: str
+    user_name: str
     kubeconfig: str
     nodes_names: list
     nodes_ips: list
