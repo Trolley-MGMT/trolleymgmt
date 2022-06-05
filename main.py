@@ -194,7 +194,7 @@ def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAM
             ZONE_NAME: gke_zone,
             IMAGE_TYPE: image_type,
             NUM_NODES: num_nodes,
-            HELM_INSTALLS: helm_installs,
+            HELM_INSTALLS: ",".join(helm_installs),
             EXPIRATION_TIME: expiration_time
         })
         logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME}')
