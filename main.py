@@ -187,7 +187,7 @@ def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAM
         job_id = server.build_job(name=JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME, parameters={
             PROJECT_NAME: project_name,
             CLUSTER_NAME: f'{user_name}-gke-{random_string(5)}',
-            USER_ID: user_name,
+            USER_NAME: user_name,
             CLUSTER_VERSION: version,
             REGION_NAME: gke_region,
             ZONE_NAME: gke_zone,
