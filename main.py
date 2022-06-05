@@ -571,7 +571,11 @@ def fetch_gke_image_types():
     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     gke_versions = json.loads(result.stdout)
     image_types = gke_versions['validImageTypes']
-    return jsonify(image_types)
+    available_images = []
+    for image in image_types:
+        if 'WINDOWS' not in image:  # There's a technical issue at the moment supporting Windows based nodes
+            available_images.append(image)
+    return jsonify(available_images)
 
 
 @app.route('/fetch_aws_vpcs', methods=[GET])
@@ -594,36 +598,38 @@ def register():
     if request.method == 'GET':
         return render_template('register.html')
     if request.method == 'POST':
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        user_email = request.form['user_email']
-        team_name = request.form['team_name']
-        password = request.form['password']
-        if not first_name:
-            return render_template('register.html',
-                                   error_message=f'Dear {first_name}, your first name was not entered correctly. '
-                                                 f'Please try again')
-        if not last_name:
-            return render_template('register.html',
-                                   error_message=f'Dear {first_name}, your last name was not entered correctly. '
-                                                 f'Please try again')
-        if not first_name:
-            return render_template('register.html',
-                                   error_message=f'Your first name was not entered correctly. Please try again')
-        if not password:
-            return render_template('register.html',
-                                   error_message=f'Dear {first_name}, your password was not entered correctly. '
-                                                 f'Please try again')
-        else:
-            if not retrieve_user(user_email):
-                user_registration(first_name, last_name, password, user_email, team_name)
-            else:
-                return render_template('register.html',
-                                       error_message=f'Dear {first_name}, your email was already registered. '
-                                                     f'Please try again')
-            return render_template('login.html',
-                                   error_message=f'Dear {first_name}, your password was not entered correctly. '
-                                                 f'Please try again')
+        return render_template('login.html',
+                               error_message='Registration is closed at the moment')
+        # first_name = request.form['first_name']
+        # last_name = request.form['last_name']
+        # user_email = request.form['user_email']
+        # team_name = request.form['team_name']
+        # password = request.form['password']
+        # if not first_name:
+        #     return render_template('register.html',
+        #                            error_message=f'Dear {first_name}, your first name was not entered correctly. '
+        #                                          f'Please try again')
+        # if not last_name:
+        #     return render_template('register.html',
+        #                            error_message=f'Dear {first_name}, your last name was not entered correctly. '
+        #                                          f'Please try again')
+        # if not first_name:
+        #     return render_template('register.html',
+        #                            error_message=f'Your first name was not entered correctly. Please try again')
+        # if not password:
+        #     return render_template('register.html',
+        #                            error_message=f'Dear {first_name}, your password was not entered correctly. '
+        #                                          f'Please try again')
+        # else:
+        #     if not retrieve_user(user_email):
+        #         user_registration(first_name, last_name, password, user_email, team_name)
+        #     else:
+        #         return render_template('register.html',
+        #                                error_message=f'Dear {first_name}, your email was already registered. '
+        #                                              f'Please try again')
+        #     return render_template('login.html',
+        #                            error_message=f'Dear {first_name}, your password was not entered correctly. '
+        #                                          f'Please try again')
 
 
 @app.route('/login', methods=[GET, POST])
