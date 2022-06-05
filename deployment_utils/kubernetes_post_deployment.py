@@ -4,6 +4,7 @@ import logging
 import os
 import platform
 import time
+from dataclasses import asdict
 from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from subprocess import call, PIPE, run
@@ -158,9 +159,8 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
-                                          cluster_version=cluster_version)
-        gke_deployment_object_dict = gke_deployment_object.to_dict()
-        insert_gke_deployment(cluster_type=GKE, gke_deployment_object=gke_deployment_object_dict)
+                                          cluster_version=cluster_version, region_name=region_name)
+        insert_gke_deployment(cluster_type=GKE, gke_deployment_object=asdict(gke_deployment_object))
         send_slack_message(deployment_object=gke_deployment_object)
     elif cluster_type == GKE_AUTOPILOT:
         gke_autopilot_deployment_object = GKEAutopilotObject(
@@ -173,9 +173,8 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
             expiration_timestamp=expiration_timestamp,
             human_expiration_timestamp=human_expiration_timestamp,
             cluster_version=cluster_version)
-        gke_autopilot_deployment_object_dict = gke_autopilot_deployment_object.to_dict()
         insert_gke_deployment(cluster_type=GKE_AUTOPILOT,
-                              gke_deployment_object=gke_autopilot_deployment_object_dict)
+                              gke_deployment_object=asdict(gke_autopilot_deployment_object))
     elif cluster_type == EKS:
         eks_deployment_object = EKSObject(cluster_name=cluster_name, username=USER_NAME, kubeconfig=kubeconfig,
                                           nodes_names=nodes_names, nodes_ips=nodes_ips,
@@ -185,11 +184,10 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version)
-        eks_deployment_object_dict = eks_deployment_object.to_dict()
-        insert_eks_deployment(eks_deployment_object=eks_deployment_object_dict)
+        insert_eks_deployment(eks_deployment_object=asdict(eks_deployment_object))
 
     elif cluster_type == AKS:
-        aks_deployment_object = AKSObject(cluster_name=cluster_name, user_name=USER_NAME, kubeconfig=kubeconfig,
+        aks_deployment_object = AKSObject(cluster_name=cluster_name, username=USER_NAME, kubeconfig=kubeconfig,
                                           nodes_names=nodes_names, nodes_ips=nodes_ips, resource_group=resource_group,
                                           jenkins_build_url=JENKINS_BUILD_URL,
                                           zone_name=zone_name, created_timestamp=timestamp,
@@ -197,8 +195,7 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version)
-        aks_deployment_object_dict = aks_deployment_object.to_dict()
-        insert_aks_deployment(aks_deployment_object=aks_deployment_object_dict)
+        insert_aks_deployment(aks_deployment_object=asdict(aks_deployment_object))
 
 
 if __name__ == '__main__':

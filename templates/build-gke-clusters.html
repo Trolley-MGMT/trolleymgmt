@@ -17,6 +17,8 @@
     <script>
       var data = {{ data|tojson }};
       console.log(data)
+
+
     </script>
 </head>
 
@@ -78,7 +80,8 @@
             <!-- Sidebar user panel (optional) -->
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                 <div class="image">
-                    <img src="static/img/trolley.png" class="img-circle elevation-2" alt="User Image" id="profilePicURL">
+                    <img src="static/img/trolley.png" class="img-circle elevation-2" alt="User Image"
+                         id="profilePicURL">
                 </div>
                 <div class="info">
                     <a href="#" class="d-block" id="userNameLabel"></a>
@@ -129,44 +132,46 @@
                                     <p>GKE Clusters</p>
                                 </a>
                             </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fad fa-wrench"></i>
+                            <p>
+                                Clusters Management
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fad fa-wrench"></i>
-                                    <p>
-                                        Clusters Management
-                                        <i class="fas fa-angle-left right"></i>
-                                    </p>
+                                <a href="manage-aks-clusters" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>AKS Clusters</p>
                                 </a>
-                                <ul class="nav nav-treeview" style="display: none;">
-                                    <li class="nav-item">
-                                        <a href="manage-aks-clusters" class="nav-link">
-                                            <i class="far fa-circle nav-icon"></i>
-                                            <p>AKS Clusters</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="manage-eks-clusters" class="nav-link">
-                                            <i class="far fa-circle nav-icon"></i>
-                                            <p>EKS Clusters</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="manage-gke-clusters" class="nav-link">
-                                            <i class="far fa-circle nav-icon"></i>
-                                            <p>GKE Clusters</p>
-                                        </a>
-                                    </li>
-                                </ul>
                             </li>
                             <li class="nav-item">
-                                <a href="logout" class="nav-link">
-                                    <i class="nav-icon far fa-sign-out"></i>
-                                    <p>
-                                        Log out
-                                    </p>
+                                <a href="manage-eks-clusters" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>EKS Clusters</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="manage-gke-clusters" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>GKE Clusters</p>
                                 </a>
                             </li>
                         </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="logout" class="nav-link">
+                            <i class="nav-icon far fa-sign-out"></i>
+                            <p>
+                                Log out
+                            </p>
+                        </a>
+                    </li>
+                </ul>
             </nav>
             <!-- /.sidebar-menu -->
         </div>
@@ -183,40 +188,115 @@
                         <h1 class="m-0">Build a GKE cluster</h1>
                     </div><!-- /.col -->
                 </div><!-- /.row -->
-            </div><!-- /.container-fluid -->
+
+                <div class="col-lg-2 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select the amount of nodes</label>
+                        <select class="form-control" id="gke-nodes-amt">
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-2 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select the Kubernetes version</label>
+                        <select class="form-control" id="gke-versions-dropdown">
+<!--                            <option>1.21</option>-->
+<!--                            <option>1.20</option>-->
+<!--                            <option>1.19</option>-->
+<!--                            <option>1.18</option>-->
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <div class="form-group">
+                        <label>Select Region</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" id="gke-regions-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <div class="form-group">
+                        <label>Select Zone</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" id="gke-zones-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select Helm Installations</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" multiple id="helm-installs-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-2 align-content-lg-center">
+                    <!-- select -->
+                    <div class="form-group">
+                        <label>Select the expiration time</label>
+                        <select class="form-control" id="eks-expiration-time">
+                            <option value="1">1h</option>
+                            <option value="2">2h</option>
+                            <option value="4">4h</option>
+                            <option value="8">8h</option>
+                            <option value="12">12h</option>
+                            <option value="24">24h</option>
+                            <option value="48">2d</option>
+                            <option value="96">4d</option>
+                            <option value="168">7d</option>
+                            <option value="336">14d</option>
+                            <option value="720">30d</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="eks-expose-cluster">
+                    <label class="custom-control-label" for="eks-expose-cluster">Expose Cluster</label>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-info" id="build-cluster-button">Build Cluster!</button>
+
+                <!-- /.content-header -->
+            </div>
+
+            <aside class="control-sidebar control-sidebar-dark">
+                <!-- Control sidebar content goes here -->
+            </aside>
+            <!-- /.control-sidebar -->
+
+            <!-- Main Footer -->
+            <footer class="main-footer">
+                <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
+                All rights reserved.
+                <div class="float-right d-none d-sm-inline-block">
+                    <b>Version</b> 0.1
+                </div>
+            </footer>
         </div>
-        <!-- /.content-header -->
+        <!-- ./wrapper -->
+
+        <!-- REQUIRED SCRIPTS -->
+        <!-- jQuery -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="static/script.js"></script>
+        <!-- Bootstrap 4 -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+                crossorigin="anonymous"></script>
+        <!-- AdminLTE App -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
     </div>
-    <!-- /.content-wrapper -->
-
-    <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
-        <!-- Control sidebar content goes here -->
-    </aside>
-    <!-- /.control-sidebar -->
-
-    <!-- Main Footer -->
-    <footer class="main-footer">
-        <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
-        All rights reserved.
-        <div class="float-right d-none d-sm-inline-block">
-            <b>Version</b> 0.1
-        </div>
-    </footer>
 </div>
-<!-- ./wrapper -->
-
-<!-- REQUIRED SCRIPTS -->
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="static/script.js"></script>
-<!-- Bootstrap 4 -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-        crossorigin="anonymous"></script>
-<!-- AdminLTE App -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-
 </body>
 </html>

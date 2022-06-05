@@ -7,7 +7,7 @@ import datetime
 import jwt
 import configparser
 import platform
-
+from dataclasses import asdict
 from subprocess import PIPE, run
 from distutils import util
 
@@ -34,16 +34,19 @@ if MACOS in platform.platform():
     HELM_COMMAND = '/opt/homebrew/bin/helm'
     AKS_LOCATIONS_COMMAND = 'az account list-locations'
     GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
+    GKE_REGIONS_COMMAND = 'gcloud compute regions list --format json'
     EKS_ZONES_COMMAND = 'aws ec2 describe-regions'
     AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
+    GKE_VERSIONS_COMMAND = 'gcloud container get-server-config --zone='
 else:
     config.read(f'{CUR_DIR}/config.ini')
     HELM_COMMAND = '/snap/bin/helm'
     AKS_LOCATIONS_COMMAND = 'az account list-locations'
     GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
+    GKE_REGIONS_COMMAND = 'gcloud compute regions list --format json'
     EKS_ZONES_COMMAND = 'aws ec2 describe-regions'
     AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
-
+    GKE_VERSIONS_COMMAND = 'gcloud container get-server-config --zone='
 
 PROJECT_ID = config['DEFAULT']['project_id']
 JENKINS_URL = 'http://' + config['DEFAULT']['jenkins_url'] + ':8080'
@@ -78,13 +81,11 @@ logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
                       user_email: str = '', team_name: str = '') -> bool:
     """"""
-
     user_name = f'{first_name.lower()}_{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
     user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
                              team_name=team_name, hashed_password=hashed_password)
-    user_object = user_object.to_dict()
-    if insert_user(user_object=user_object):
+    if insert_user(asdict(user_object)):
         return True
     else:
         return False
@@ -108,7 +109,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
     user_object = retrieve_user(user_email)
     logger.info(f'user_obj is: {user_object}')
     if not user_object:
-        return '',  {'user_email': user_email}
+        return '', {'user_email': user_email}
     session['user_email'] = user_email
     session['user_password'] = password
     try:
@@ -226,7 +227,6 @@ def trigger_kubernetes_gke_autopilot_build_jenkins(cluster_type: str = '',
 
 
 def get_eks_zones(eks_location: str = '') -> str:
-
     """
     Retrieve EKS zones from server, show them in a list
     @param eks_location:
@@ -250,7 +250,6 @@ def trigger_eks_build_jenkins(
         expiration_time: int = '4',
         eks_location: str = '',
         helm_installs: list = None):
-
     """
 
     @param user_id:
@@ -488,10 +487,20 @@ def fetch_regions():
         command = AKS_LOCATIONS_COMMAND
         logger.info(f'Running a {command} command')
         print(f'Running a {command} command')
+        result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+        regions_list = json.loads(result.stdout)
+        print(f'regions_list is: {regions_list}')
+        return jsonify(regions_list)
     elif cluster_type == GKE:
-        command = GKE_ZONES_COMMAND
+        command = GKE_REGIONS_COMMAND
         logger.info(f'Running a {command} command')
         print(f'Running a {command} command')
+        result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+        regions = json.loads(result.stdout)
+        regions_list = []
+        for region in regions:
+            regions_list.append(region['name'])
+        return jsonify(regions_list)
     elif cluster_type == EKS:
         command = EKS_ZONES_COMMAND
         logger.info(f'Running a {command} command')
@@ -501,10 +510,28 @@ def fetch_regions():
         print(f'regions_list is: {regions_list}')
         for key, value in regions_list.items():
             return jsonify(value)
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    regions_list = json.loads(result.stdout)
-    print(f'regions_list is: {regions_list}')
-    return jsonify(regions_list)
+
+
+@app.route('/fetch_zones', methods=[GET])
+def fetch_zones():
+    cluster_type = request.args.get("cluster_type")
+    region_name = request.args.get("region_name")
+    logger.info(f'A request to fetch zones for {cluster_type} has arrived')
+    if cluster_type == AKS:
+        return jsonify('')
+    elif cluster_type == GKE:
+        command = GKE_ZONES_COMMAND
+        logger.info(f'Running a {command} command')
+        print(f'Running a {command} command')
+        result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+        zones = json.loads(result.stdout)
+        zones_list = []
+        for zone in zones:
+            if region_name == zone['region'].split('/')[-1]:
+                zones_list.append(zone['description'])
+        return jsonify(zones_list)
+    elif cluster_type == EKS:
+        return jsonify('')
 
 
 @app.route('/fetch_helm_installs', methods=[GET, POST])
@@ -522,6 +549,18 @@ def fetch_helm_installs():
         return jsonify(installs_names)
     else:
         return jsonify(installs_list)
+
+
+@app.route('/fetch_gke_versions', methods=[GET])
+def fetch_gke_versions():
+    gcp_zone = request.args.get('gcp_zone')
+    logger.info(f'A request to fetch available GKE versions for {gcp_zone} zone has arrived')
+    command = f'{GKE_VERSIONS_COMMAND}{gcp_zone} --format json'
+    logger.info(f'Running a {command} command')
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    gke_versions = json.loads(result.stdout)
+    stable_gke_version = gke_versions['channels'][2]['validVersions']
+    return jsonify(stable_gke_version)
 
 
 @app.route('/fetch_aws_vpcs', methods=[GET])

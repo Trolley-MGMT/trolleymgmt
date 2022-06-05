@@ -41,7 +41,7 @@ $(document).ready(function() {
         clusterType = 'aks'
     } else if (($.inArray('build-eks-clusters', pathname) > -1) || ($.inArray('manage-eks-clusters', pathname) > -1)) {
         clusterType = 'eks'
-//        populate_vpcs(selected_location = 'eu-north-1')
+        populate_vpcs(selected_location = 'eu-north-1')
     } else if (($.inArray('build-gke-clusters', pathname) > -1) || ($.inArray('manage-gke-clusters', pathname) > -1)) {
         clusterType = 'gke'
     } else {
@@ -198,6 +198,8 @@ $(document).ready(function() {
             var $dropdown = $("#aks-locations-dropdown");
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-locations-dropdown");
+        } else if (clusterType == 'gke') {
+            var $dropdown = $("#gke-regions-dropdown");
         }
         url = "http://" + trolley_url + ":" + port + "/fetch_regions?cluster_type=" + clusterType;
         $.ajax({
@@ -215,11 +217,52 @@ $(document).ready(function() {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value.RegionName).text(value.RegionName));
                         });
+                    } else if (clusterType == 'gke') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+                        });
+                        populate_zones('asia-east1')
                     }
                 }
             }
         }, )
     }
+
+    function populate_zones(region_name) {
+        if (clusterType == 'aks') {
+            var $dropdown = $("#aks-zones-dropdown");
+        } else if (clusterType == 'eks') {
+            var $dropdown = $("#eks-zones-dropdown");
+        } else if (clusterType == 'gke') {
+            var $dropdown = $("#gke-zones-dropdown");
+        }
+        url = "http://" + trolley_url + ":" + port + "/fetch_zones?cluster_type=" + clusterType + "&region_name=" + region_name;
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response) {
+                if (response.status === 'Failure') {
+                    console.log('error')
+                } else {
+                    if (clusterType == 'aks') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value.name).text(value.displayName));
+                        });
+                    } else if (clusterType == 'eks') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value.RegionName).text(value.RegionName));
+                        });
+                    } else if (clusterType == 'gke') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+                        });
+                        populate_kubernetes_versions('asia-east1-b')
+                    }
+                }
+            }
+        }, )
+    }
+
 
     function populate_vpcs(selected_location) {
         if (clusterType == 'aks') {
@@ -247,6 +290,32 @@ $(document).ready(function() {
     function populate_helm_installs() {
         var $dropdown = $("#helm-installs-dropdown");
         url = "http://" + trolley_url + ":" + port + "/fetch_helm_installs?names=True";
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response) {
+                if (response.status === 'Failure') {
+                    console.log('error')
+                } else {
+                    $.each(response, function(key, value) {
+                        $dropdown.append($("<option />").val(value).text(value));
+                    });
+                }
+            }
+        }, )
+    }
+
+    function populate_kubernetes_versions(selected_location) {
+         if (clusterType == 'aks') {
+            var $dropdown = $("#aks-locations-dropdown");
+            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+        } else if (clusterType == 'eks') {
+            var $dropdown = $("#eks-vpcs-dropdown");
+            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+        } else if (clusterType == 'gke') {
+            var $dropdown = $("#gke-versions-dropdown");
+            var url = "http://" + trolley_url + ":" + port + "/fetch_gke_versions?gcp_zone=" + selected_location;
+        }
         $.ajax({
             type: 'GET',
             url: url,
@@ -302,6 +371,18 @@ $(document).ready(function() {
         var eks_location = $('#eks-locations-dropdown').val();
         $("#eks-vpcs-dropdown").empty();
         populate_vpcs(selected_location = eks_location);
+    })
+
+    $('#gke-regions-dropdown').change(function() {
+        var gke_region = $('#gke-regions-dropdown').val();
+        $("#gke-zones-dropdown").empty();
+        populate_zones(gke_region);
+    })
+
+    $('#gke-zones-dropdown').change(function() {
+        var gke_zones = $('#gke-zones-dropdown').val();
+        $("#gke-versions-dropdown").empty();
+        populate_kubernetes_versions(gke_zones);
     })
 
     $(document).on("click", ".btn", function() {
