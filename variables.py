@@ -41,6 +41,7 @@ PROJECT_ID = 'project_id'
 
 #  USER
 USER_NAME = 'USER_NAME'
+USER_ID = 'USER_ID'
 USER_EMAIL = 'user_email'
 FIRST_NAME = 'first_name'
 LAST_NAME = 'last_name'

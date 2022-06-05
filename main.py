@@ -22,7 +22,7 @@ from mongo.mongo_handler import set_cluster_availability, retrieve_expired_clust
 from mongo.mongo_objects import UserObject
 from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES, USER_ID
 
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
@@ -174,6 +174,7 @@ def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAM
     @param project_name: Your project name, change or add a global variable in variables.
     @param user_name:
     @param version: single select scrolldown from realtime generated versions list
+    @param gke_region:
     @param gke_zone:
     @param image_type:
     @param num_nodes:
@@ -186,7 +187,7 @@ def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAM
         job_id = server.build_job(name=JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME, parameters={
             PROJECT_NAME: project_name,
             CLUSTER_NAME: f'{user_name}-gke-{random_string(5)}',
-            USER_NAME: user_name,
+            USER_ID: user_name,
             CLUSTER_VERSION: version,
             REGION_NAME: gke_region,
             ZONE_NAME: gke_zone,
