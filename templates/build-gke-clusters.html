@@ -19,6 +19,7 @@
       console.log(data)
 
 
+
     </script>
 </head>
 
@@ -190,7 +191,6 @@
                 </div><!-- /.row -->
 
                 <div class="col-lg-2 align-content-lg-center">
-                    <!-- select -->
                     <div class="form-group">
                         <label>Select the amount of nodes</label>
                         <select class="form-control" id="gke-nodes-amt">
@@ -203,14 +203,16 @@
                     </div>
                 </div>
                 <div class="col-lg-2 align-content-lg-center">
-                    <!-- select -->
                     <div class="form-group">
                         <label>Select the Kubernetes version</label>
                         <select class="form-control" id="gke-versions-dropdown">
-<!--                            <option>1.21</option>-->
-<!--                            <option>1.20</option>-->
-<!--                            <option>1.19</option>-->
-<!--                            <option>1.18</option>-->
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-2 align-content-lg-center">
+                    <div class="form-group">
+                        <label>Select the Kubernetes Image type</label>
+                        <select class="form-control" id="gke-image-types-dropdown">
                         </select>
                     </div>
                 </div>
@@ -243,7 +245,7 @@
                     <!-- select -->
                     <div class="form-group">
                         <label>Select the expiration time</label>
-                        <select class="form-control" id="eks-expiration-time">
+                        <select class="form-control" id="gke-expiration-time">
                             <option value="1">1h</option>
                             <option value="2">2h</option>
                             <option value="4">4h</option>
@@ -259,8 +261,8 @@
                     </div>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="eks-expose-cluster">
-                    <label class="custom-control-label" for="eks-expose-cluster">Expose Cluster</label>
+                    <input type="checkbox" class="custom-control-input" id="gke-expose-cluster">
+                    <label class="custom-control-label" for="gke-expose-cluster">Expose Cluster</label>
                 </div>
                 <br>
                 <button type="submit" class="btn btn-info" id="build-cluster-button">Build Cluster!</button>

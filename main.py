@@ -160,21 +160,20 @@ def fetch_aks_version(kubernetes_version: str = '') -> str:
     return aks_version
 
 
-def trigger_kubernetes_gke_build_jenkins(cluster_type: str = '',
-                                         project_name: str = TROLLEY_PROJECT_NAME,
+def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAME,
                                          user_id: str = 'lior',
-                                         cluster_version: str = '',
-                                         zone: str = '',
+                                         version: str = '',
+                                         gke_zone: str = '',
                                          image_type: str = '',
                                          num_nodes: int = '',
+                                         helm_installs: list = '',
                                          expiration_time: int = ''):
     """
     this functions trigger jenkins job to build GKE cluster.
-    @param cluster_type: GKE
     @param project_name: Your project name, change or add a global variable in variables.
     @param user_id:
-    @param cluster_version: single select scrolldown from realtime generated versions list
-    @param zone:
+    @param version: single select scrolldown from realtime generated versions list
+    @param gke_zone:
     @param image_type:
     @param num_nodes:
     @param expiration_time: set a default to make sure no cluster is left running.
@@ -186,8 +185,8 @@ def trigger_kubernetes_gke_build_jenkins(cluster_type: str = '',
         job_id = server.build_job(name=JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME, parameters={
             PROJECT_NAME: project_name,
             CLUSTER_NAME: f'{user_id}-gke-{random_string(5)}',
-            CLUSTER_VERSION: cluster_version,
-            ZONE_NAME: zone,
+            CLUSTER_VERSION: version,
+            ZONE_NAME: gke_zone,
             IMAGE_TYPE: image_type,
             NUM_NODES: num_nodes,
             EXPIRATION_TIME: expiration_time
@@ -198,13 +197,11 @@ def trigger_kubernetes_gke_build_jenkins(cluster_type: str = '',
         return 'fail'
 
 
-def trigger_kubernetes_gke_autopilot_build_jenkins(cluster_type: str = '',
-                                                   project_name: str = TROLLEY_PROJECT_NAME,
+def trigger_kubernetes_gke_autopilot_build_jenkins(project_name: str = TROLLEY_PROJECT_NAME,
                                                    user_id: str = 'lior',
                                                    region: str = '', expiration_time: int = ''):
     """
 
-    @param cluster_type:o GKE autpilot
     @param project_name: Your project name, change or add a global variable in variables.
     @param user_id:
     @param region:
@@ -404,10 +401,12 @@ def get_clusters_data():
 def trigger_kubernetes_deployment():
     content = request.get_json()
     if content['cluster_type'] == 'gke':
+        del content['cluster_type']
         trigger_kubernetes_gke_build_jenkins(**content)
         function_name = inspect.stack()[0][3]
         logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     elif content['cluster_type'] == 'gke_autopilot':
+        del content['cluster_type']
         trigger_kubernetes_gke_autopilot_build_jenkins(**content)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
@@ -561,6 +560,18 @@ def fetch_gke_versions():
     gke_versions = json.loads(result.stdout)
     stable_gke_version = gke_versions['channels'][2]['validVersions']
     return jsonify(stable_gke_version)
+
+
+@app.route('/fetch_gke_image_types', methods=[GET])
+def fetch_gke_image_types():
+    gcp_zone = request.args.get('gcp_zone')
+    logger.info(f'A request to fetch available GKE versions for {gcp_zone} zone has arrived')
+    command = f'{GKE_VERSIONS_COMMAND}{gcp_zone} --format json'
+    logger.info(f'Running a {command} command')
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    gke_versions = json.loads(result.stdout)
+    image_types = gke_versions['validImageTypes']
+    return jsonify(image_types)
 
 
 @app.route('/fetch_aws_vpcs', methods=[GET])

@@ -67,10 +67,12 @@ $(document).ready(function() {
         HelmInstalls = $('#helm-installs-dropdown').val();
         AKSLocation = $('#aks-locations-dropdown').val();
         EKSLocation = $('#eks-locations-dropdown').val();
+        GKEZone = $('#gke-zones-dropdown').val();
 
-        AKSKubernetesVersion = $('#aks-version').val();
-        EKSKubernetesVersion = $('#eks-version').val();
-        GKEKubernetesVersion = $('#gke-version').val();
+        AKSKubernetesVersion = $('#aks-versions-dropdown').val();
+        EKSKubernetesVersion = $('#eks-versions-dropdown').val();
+        GKEKubernetesVersion = $('#gke-versions-dropdown').val();
+        GKEImageType = $('#gke-image-types-dropdown').val();
 
         AKSExpirationTime = $('#aks-expiration-time').val();
         EKSExpirationTime = $('#eks-expiration-time').val();
@@ -91,6 +93,17 @@ $(document).ready(function() {
             "version": EKSKubernetesVersion,
             "expiration_time": EKSExpirationTime,
             "eks_location": EKSLocation,
+            "helm_installs": HelmInstalls
+        });
+
+        let trigger_gke_deployment_data = JSON.stringify({
+            "cluster_type": 'gke',
+            "user_id": data['user_name'],
+            "num_nodes": GKENodesAmount,
+            "version": GKEKubernetesVersion,
+            "image_type": GKEImageType,
+            "expiration_time": GKEExpirationTime,
+            "gke_zone": GKEZone,
             "helm_installs": HelmInstalls
         });
 
@@ -257,6 +270,7 @@ $(document).ready(function() {
                             $dropdown.append($("<option />").val(value).text(value));
                         });
                         populate_kubernetes_versions('asia-east1-b')
+                        populate_kubernetes_image_types('asia-east1-b')
                     }
                 }
             }
@@ -331,6 +345,33 @@ $(document).ready(function() {
         }, )
     }
 
+
+    function populate_kubernetes_image_types(selected_location) {
+         if (clusterType == 'aks') {
+            var $dropdown = $("#aks-locations-dropdown");
+            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+        } else if (clusterType == 'eks') {
+            var $dropdown = $("#eks-vpcs-dropdown");
+            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+        } else if (clusterType == 'gke') {
+            var $dropdown = $("#gke-image-types-dropdown");
+            var url = "http://" + trolley_url + ":" + port + "/fetch_gke_image_types?gcp_zone=" + selected_location;
+        }
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response) {
+                if (response.status === 'Failure') {
+                    console.log('error')
+                } else {
+                    $.each(response, function(key, value) {
+                        $dropdown.append($("<option />").val(value).text(value));
+                    });
+                }
+            }
+        }, )
+    }
+
     function delete_cluster(clusterType, clusterName) {
 
         let cluster_deletion_data = JSON.stringify({
@@ -383,6 +424,7 @@ $(document).ready(function() {
         var gke_zones = $('#gke-zones-dropdown').val();
         $("#gke-versions-dropdown").empty();
         populate_kubernetes_versions(gke_zones);
+        populate_kubernetes_image_types(gke_zones);
     })
 
     $(document).on("click", ".btn", function() {
