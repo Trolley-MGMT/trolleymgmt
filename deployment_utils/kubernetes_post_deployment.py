@@ -160,7 +160,7 @@ def main(cluster_type: str = '', project_id: str = '', user_name: str = '', clus
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version, region_name=region_name)
         insert_gke_deployment(cluster_type=GKE, gke_deployment_object=asdict(gke_deployment_object))
-        send_slack_message(deployment_object=gke_deployment_object)
+        # send_slack_message(deployment_object=gke_deployment_object)
     elif cluster_type == GKE_AUTOPILOT:
         gke_autopilot_deployment_object = GKEAutopilotObject(
             cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig, nodes_names=nodes_names,

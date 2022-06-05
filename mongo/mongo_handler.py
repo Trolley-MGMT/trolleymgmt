@@ -42,7 +42,9 @@ def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = 
     """
     if cluster_type == GKE:
         try:
-            gke_clusters.insert_one(gke_deployment_object)
+            mongo_response = gke_clusters.insert_one(gke_deployment_object)
+            print(mongo_response.acknowledged)
+            print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
             print('failure to insert data into gke_clusters table')
