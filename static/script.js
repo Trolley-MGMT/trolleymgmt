@@ -69,6 +69,7 @@ $(document).ready(function() {
         HelmInstalls = $('#helm-installs-dropdown').val();
         AKSLocation = $('#aks-locations-dropdown').val();
         EKSLocation = $('#eks-locations-dropdown').val();
+        GKERegion = $('#gke-regions-dropdown').val();
         GKEZone = $('#gke-zones-dropdown').val();
 
         AKSKubernetesVersion = $('#aks-versions-dropdown').val();
@@ -105,6 +106,7 @@ $(document).ready(function() {
             "version": GKEKubernetesVersion,
             "image_type": GKEImageType,
             "expiration_time": GKEExpirationTime,
+            "gke_region": GKERegion,
             "gke_zone": GKEZone,
             "helm_installs": HelmInstalls
         });

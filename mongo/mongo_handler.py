@@ -102,13 +102,13 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
     print(f'A request to fetch {cluster_type} clusters for {user_name} was received')
     clusters_object = []
     if cluster_type == GKE:
-        cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME: user_name})
+        cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == GKE_AUTOPILOT:
-        cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME: user_name})
+        cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == EKS:
-        cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME: user_name})
+        cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == AKS:
-        cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME: user_name})
+        cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     else:
         cluster_object = []
     for cluster in cluster_object:

@@ -40,7 +40,7 @@ RESOURCE_GROUP = 'resource_group'
 PROJECT_ID = 'project_id'
 
 #  USER
-USER_NAME = 'user_name'
+USER_NAME = 'USER_NAME'
 USER_EMAIL = 'user_email'
 FIRST_NAME = 'first_name'
 LAST_NAME = 'last_name'
