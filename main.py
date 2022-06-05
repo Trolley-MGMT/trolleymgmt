@@ -394,7 +394,7 @@ def render_page(page_name: str = ''):
 @app.route('/get_clusters_data', methods=[GET])
 def get_clusters_data():
     cluster_type = request.args.get(CLUSTER_TYPE)
-    user_name = request.args.get(USER_NAME)
+    user_name = request.args.get(USER_NAME.lower())
     clusters_list = retrieve_available_clusters(cluster_type, user_name)
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
