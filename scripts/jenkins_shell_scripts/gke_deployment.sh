@@ -2,6 +2,7 @@
 
 
 echo "CLUSTER_NAME is $CLUSTER_NAME"
+echo "USER_NAME is $USER_NAME"
 echo "CLUSTER_VERSION is $CLUSTER_VERSION"
 echo "PROJECT_NAME is $PROJECT_NAME"
 echo "ZONE_NAME is $ZONE_NAME"
@@ -37,7 +38,7 @@ echo "Installing projects requirements"
 pip3 install -r $WORKSPACE/requirements.txt
 
 # Running post deployment Kubernetes script
-echo "Running python3 $WORKSPACE/deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id $PROJECT_NAME --cluster_name $CLUSTER_NAME --zone_name $ZONE_NAME --expiration_time $EXPIRATION_TIME"
-python3 $WORKSPACE/deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id $PROJECT_NAME --cluster_name $CLUSTER_NAME --zone_name $ZONE_NAME --expiration_time $EXPIRATION_TIME
+echo "Running python3 $WORKSPACE/deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id $PROJECT_NAME --cluster_name $CLUSTER_NAME --user-name $USER_NAME --zone_name $ZONE_NAME --expiration_time $EXPIRATION_TIME"
+python3 $WORKSPACE/deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id $PROJECT_NAME --cluster_name $CLUSTER_NAME --user-name $USER_NAME --zone_name $ZONE_NAME --expiration_time $EXPIRATION_TIME
 
 rm -R $WORKSPACE/$RANDOM_VENV

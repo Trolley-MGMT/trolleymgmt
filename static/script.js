@@ -1,4 +1,5 @@
 $(document).ready(function() {
+    let user_name = window.localStorage.getItem("user_name");
     let trolley_remote_url = '34.123.171.234'
     let trolley_local_url = 'localhost';
     let trolley_url = '';
@@ -79,7 +80,7 @@ $(document).ready(function() {
         GKEExpirationTime = $('#gke-expiration-time').val();
 
         let trigger_aks_deployment_data = JSON.stringify({
-            "user_id": data['user_name'],
+            "user_name": user_name,
             "num_nodes": AKSNodesAmount,
             "version": AKSKubernetesVersion,
             "expiration_time": AKSExpirationTime,
@@ -88,7 +89,7 @@ $(document).ready(function() {
         });
 
         let trigger_eks_deployment_data = JSON.stringify({
-            "user_id": data['user_name'],
+            "user_name": user_name,
             "num_nodes": EKSNodesAmount,
             "version": EKSKubernetesVersion,
             "expiration_time": EKSExpirationTime,
@@ -98,7 +99,7 @@ $(document).ready(function() {
 
         let trigger_gke_deployment_data = JSON.stringify({
             "cluster_type": 'gke',
-            "user_id": data['user_name'],
+            "user_name": user_name,
             "num_nodes": GKENodesAmount,
             "version": GKEKubernetesVersion,
             "image_type": GKEImageType,

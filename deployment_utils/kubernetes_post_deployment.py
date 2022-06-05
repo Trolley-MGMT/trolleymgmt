@@ -120,7 +120,7 @@ def get_cluster_version() -> str:
     return cluster_version
 
 
-def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', zone_name: str = '',
+def main(cluster_type: str = '', project_id: str = '', user_name: str = '', cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = '', helm_installs: str = '', resource_group=''):
     kubeconfig = generate_kubeconfig(cluster_type=cluster_type, project_id=project_id, cluster_name=cluster_name,
                                      zone_name=zone_name, region_name=region_name, resource_group=resource_group)
@@ -152,7 +152,7 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
     human_expiration_timestamp = datetime.utcfromtimestamp(expiration_timestamp).strftime('%d-%m-%Y %H:%M:%S')
 
     if cluster_type == GKE:
-        gke_deployment_object = GKEObject(cluster_name=cluster_name, username=USER_NAME, kubeconfig=kubeconfig,
+        gke_deployment_object = GKEObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
                                           nodes_names=nodes_names, nodes_ips=nodes_ips,
                                           jenkins_build_url=JENKINS_BUILD_URL, project_id=project_id,
                                           zone_name=zone_name, created_timestamp=timestamp,
@@ -164,7 +164,7 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
         send_slack_message(deployment_object=gke_deployment_object)
     elif cluster_type == GKE_AUTOPILOT:
         gke_autopilot_deployment_object = GKEAutopilotObject(
-            cluster_name=cluster_name, username=USER_NAME, kubeconfig=kubeconfig, nodes_names=nodes_names,
+            cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig, nodes_names=nodes_names,
             nodes_ips=nodes_ips,
             jenkins_build_url=JENKINS_BUILD_URL, project_id=project_id,
             zone_name=zone_name, region_name=region_name,
@@ -176,7 +176,7 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
         insert_gke_deployment(cluster_type=GKE_AUTOPILOT,
                               gke_deployment_object=asdict(gke_autopilot_deployment_object))
     elif cluster_type == EKS:
-        eks_deployment_object = EKSObject(cluster_name=cluster_name, username=USER_NAME, kubeconfig=kubeconfig,
+        eks_deployment_object = EKSObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
                                           nodes_names=nodes_names, nodes_ips=nodes_ips,
                                           jenkins_build_url=JENKINS_BUILD_URL, project_id=project_id,
                                           zone_name=zone_name, created_timestamp=timestamp,
@@ -187,7 +187,7 @@ def main(cluster_type: str = '', project_id: str = '', cluster_name: str = '', z
         insert_eks_deployment(eks_deployment_object=asdict(eks_deployment_object))
 
     elif cluster_type == AKS:
-        aks_deployment_object = AKSObject(cluster_name=cluster_name, username=USER_NAME, kubeconfig=kubeconfig,
+        aks_deployment_object = AKSObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
                                           nodes_names=nodes_names, nodes_ips=nodes_ips, resource_group=resource_group,
                                           jenkins_build_url=JENKINS_BUILD_URL,
                                           zone_name=zone_name, created_timestamp=timestamp,
@@ -204,6 +204,7 @@ if __name__ == '__main__':
     parser.add_argument('--project_id', default='boneseye', type=str, help='Name of the project')
     parser.add_argument('--resource_group', default='myResourceGroup', type=str, help='Name of Resource Group for AKS')
     parser.add_argument('--cluster_name', default='latest', type=str, help='Name of the built cluster')
+    parser.add_argument('--user_name', default='pavel_zagalsky', type=str, help='Name of the user who built the cluster')
     parser.add_argument('--region_name', default='us-central1', type=str,
                         help='Name of the region where the cluster was built')
     parser.add_argument('--zone_name', default='us-central1-c', type=str,

@@ -161,7 +161,7 @@ def fetch_aks_version(kubernetes_version: str = '') -> str:
 
 
 def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAME,
-                                         user_id: str = 'lior',
+                                         user_name: str = '',
                                          version: str = '',
                                          gke_zone: str = '',
                                          image_type: str = '',
@@ -171,7 +171,7 @@ def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAM
     """
     this functions trigger jenkins job to build GKE cluster.
     @param project_name: Your project name, change or add a global variable in variables.
-    @param user_id:
+    @param user_name:
     @param version: single select scrolldown from realtime generated versions list
     @param gke_zone:
     @param image_type:
@@ -184,7 +184,8 @@ def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAM
         from utils import random_string
         job_id = server.build_job(name=JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME, parameters={
             PROJECT_NAME: project_name,
-            CLUSTER_NAME: f'{user_id}-gke-{random_string(5)}',
+            CLUSTER_NAME: f'{user_name}-gke-{random_string(5)}',
+            USER_NAME: user_name,
             CLUSTER_VERSION: version,
             ZONE_NAME: gke_zone,
             IMAGE_TYPE: image_type,
