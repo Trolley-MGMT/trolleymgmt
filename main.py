@@ -81,7 +81,7 @@ logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
                       user_email: str = '', team_name: str = '') -> bool:
     """"""
-    user_name = f'{first_name.lower()}.{last_name.lower()}'
+    user_name = f'{first_name.lower()}{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
     user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
                              team_name=team_name, hashed_password=hashed_password)
@@ -324,7 +324,7 @@ def delete_gke_cluster(cluster_name: str = ''):
     """
     server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
     gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name)
-    gke_cluster_zone = gke_cluster_details[REGION_NAME.lower()]
+    gke_cluster_zone = gke_cluster_details[ZONE_NAME.lower()]
     try:
         job_id = server.build_job(name=JENKINS_DELETE_GKE_JOB, parameters={
             CLUSTER_NAME: cluster_name,
