@@ -33,6 +33,8 @@ users: Collection = db.users
 
 print(f'MONGO_USER is: {MONGO_USER}')
 print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
+print(f'JENKINS_URL is: {JENKINS_URL}')
+print(f'PROJECT_NAME is: {PROJECT_NAME}')
 
 
 def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = None) -> bool:
