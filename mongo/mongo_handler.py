@@ -193,10 +193,9 @@ def insert_gke_cache(gke_caching_object: dict = None) -> bool:
     """
     @param gke_caching_object: The dictionary with all the cluster data.
     """
-    # mongo_query = {}
-    gke_cache.drop()
+    gke_cache.drop() #clear previous data in the collection
     try:
-        mongo_response = gke_cache.insert_one(gke_caching_object)
+        mongo_response = gke_cache.insert_one(gke_caching_object)   #insert updated cache object
         print(mongo_response.acknowledged)
         print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
         return True

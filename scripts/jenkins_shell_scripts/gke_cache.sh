@@ -1,10 +1,5 @@
 #!/bin/bash
 
-echo "Running gcloud compute zones list --format json --zone $ZONE_NAME"
-gcloud compute zones list --format json --zone $ZONE_NAME
-echo "Running gcloud compute regions list --format jaon --region $REGION_NAME"
-gcloud compute regions list --format jaon --region $REGION_NAME
-
 echo "Adding a PYTHONPATH"
 root_path=$WORKSPACE
 export PYTHONPATH=${root_path}
@@ -27,8 +22,8 @@ source $WORKSPACE/$RANDOM_VENV/bin/activate
 echo "Installing projects requirements"
 pip3 install -r $WORKSPACE/requirements.txt
 
-# Running post deployment Kubernetes script
-echo "Running python3 $WORKSPACE/deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id $PROJECT_NAME --cluster_name $CLUSTER_NAME --user_name $USER_NAME --zone_name $ZONE_NAME --helm_installs $HELM_INSTALLS --expiration_time $EXPIRATION_TIME"
-python3 $WORKSPACE/deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id $PROJECT_NAME --cluster_name $CLUSTER_NAME --user_name $USER_NAME --zone_name $ZONE_NAME --helm_installs $HELM_INSTALLS --expiration_time $EXPIRATION_TIME
+# Running gke_cache script
+echo "Running python3 $WORKSPACE/scripts/jenkins_shell_scripts/gke_caching_script.py"
+python3 $WORKSPACE/scripts/jenkins_shell_scripts/gke_caching_script.py
 
 rm -R $WORKSPACE/$RANDOM_VENV
