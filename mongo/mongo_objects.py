@@ -83,3 +83,13 @@ class AKSObject:
     zone_name: str
     cluster_version: str
     availability: bool = True
+
+
+@dataclass
+class GKECacheObject:
+    zones_list: list
+    regions_list: list
+    helm_installs_list: list
+    versions_list: list
+    gke_image_types: list
+    regions_zones_dict: dict

@@ -30,6 +30,7 @@ gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
+gke_cache: Collection = db.gke_cache
 
 print(f'MONGO_USER is: {MONGO_USER}')
 print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
@@ -186,6 +187,22 @@ def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', ava
     else:
         result = gke_clusters.update_one(myquery, newvalues)
     return result.raw_result['updatedExisting']
+
+
+def insert_gke_cache(gke_caching_object: dict = None) -> bool:
+    """
+    @param gke_caching_object: The dictionary with all the cluster data.
+    """
+    # mongo_query = {}
+    gke_cache.drop()
+    try:
+        mongo_response = gke_cache.insert_one(gke_caching_object)
+        print(mongo_response.acknowledged)
+        print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+        return True
+    except:
+        print('failure to insert data into gke_cache table')
+        return False
 
 
 def retrieve_user(user_email: str):
