@@ -18,11 +18,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from utils import random_string
 
 from mongo.mongo_handler import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
-    insert_user, retrieve_user, retrieve_cluster_details
+    insert_user, retrieve_user, retrieve_cluster_details, retrieve_gke_cache
 from mongo.mongo_objects import UserObject
 from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES, USER_ID
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES, USER_ID, REGIONS_LIST, \
+    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES
 
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
@@ -495,15 +496,8 @@ def fetch_regions():
         print(f'regions_list is: {regions_list}')
         return jsonify(regions_list)
     elif cluster_type == GKE:
-        command = GKE_REGIONS_COMMAND
-        logger.info(f'Running a {command} command')
-        print(f'Running a {command} command')
-        result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-        regions = json.loads(result.stdout)
-        regions_list = []
-        for region in regions:
-            regions_list.append(region['name'])
-        return jsonify(regions_list)
+        gke_regions = retrieve_gke_cache(gke_cache_type=REGIONS_LIST)
+        return jsonify(gke_regions)
     elif cluster_type == EKS:
         command = EKS_ZONES_COMMAND
         logger.info(f'Running a {command} command')
@@ -520,18 +514,14 @@ def fetch_zones():
     cluster_type = request.args.get("cluster_type")
     region_name = request.args.get("region_name")
     logger.info(f'A request to fetch zones for {cluster_type} has arrived')
+    zones_list = []
     if cluster_type == AKS:
         return jsonify('')
     elif cluster_type == GKE:
-        command = GKE_ZONES_COMMAND
-        logger.info(f'Running a {command} command')
-        print(f'Running a {command} command')
-        result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-        zones = json.loads(result.stdout)
-        zones_list = []
-        for zone in zones:
-            if region_name == zone['region'].split('/')[-1]:
-                zones_list.append(zone['description'])
+        gke_zones = retrieve_gke_cache(gke_cache_type=ZONES_LIST)
+        for zone in gke_zones:
+            if region_name in zone:
+                zones_list.append(zone)
         return jsonify(zones_list)
     elif cluster_type == EKS:
         return jsonify('')
@@ -541,45 +531,21 @@ def fetch_zones():
 def fetch_helm_installs():
     names = bool(util.strtobool(request.args.get("names")))
     logger.info(f'A request to fetch helm installs for {names} names has arrived')
-    installs_names = []
-    command = HELM_COMMAND + ' search repo stable -o json'
-    logger.info(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    installs_list = json.loads(result.stdout)
-    if names:
-        for install in installs_list:
-            installs_names.append(install['name'])
-        return jsonify(installs_names)
-    else:
-        return jsonify(installs_list)
+    helm_installs_list = retrieve_gke_cache(gke_cache_type=HELM_INSTALLS_LIST)
+    return jsonify(helm_installs_list)
 
 
 @app.route('/fetch_gke_versions', methods=[GET])
 def fetch_gke_versions():
-    gcp_zone = request.args.get('gcp_zone')
-    logger.info(f'A request to fetch available GKE versions for {gcp_zone} zone has arrived')
-    command = f'{GKE_VERSIONS_COMMAND}{gcp_zone} --format json'
-    logger.info(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    gke_versions = json.loads(result.stdout)
-    stable_gke_version = gke_versions['channels'][2]['validVersions']
-    return jsonify(stable_gke_version)
+    gke_versions_list = retrieve_gke_cache(gke_cache_type=GKE_VERSIONS_LIST)
+    return jsonify(gke_versions_list)
 
 
 @app.route('/fetch_gke_image_types', methods=[GET])
 def fetch_gke_image_types():
-    gcp_zone = request.args.get('gcp_zone')
-    logger.info(f'A request to fetch available GKE versions for {gcp_zone} zone has arrived')
-    command = f'{GKE_VERSIONS_COMMAND}{gcp_zone} --format json'
-    logger.info(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    gke_versions = json.loads(result.stdout)
-    image_types = gke_versions['validImageTypes']
-    available_images = []
-    for image in image_types:
-        if 'WINDOWS' not in image:  # There's a technical issue at the moment supporting Windows based nodes
-            available_images.append(image)
-    return jsonify(available_images)
+    logger.info(f'A request to fetch available GKE image types has arrived')
+    gke_image_types_list = retrieve_gke_cache(gke_cache_type=GKE_IMAGE_TYPES)
+    return jsonify(gke_image_types_list)
 
 
 @app.route('/fetch_aws_vpcs', methods=[GET])

@@ -193,15 +193,32 @@ def insert_gke_cache(gke_caching_object: dict = None) -> bool:
     """
     @param gke_caching_object: The dictionary with all the cluster data.
     """
-    gke_cache.drop() #clear previous data in the collection
+    gke_cache.drop()  # clear previous data in the collection
     try:
-        mongo_response = gke_cache.insert_one(gke_caching_object)   #insert updated cache object
+        mongo_response = gke_cache.insert_one(gke_caching_object)  # insert updated cache object
         print(mongo_response.acknowledged)
         print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
         return True
     except:
         print('failure to insert data into gke_cache table')
         return False
+
+
+def retrieve_gke_cache(gke_cache_type: str = '') -> dict:
+    gke_cache_object = gke_cache.find()
+    for object in gke_cache_object:
+        return object[gke_cache_type]
+        # if gke_cache_type == REGIONS_LIST:
+        #     return object[REGIONS_LIST]
+        # elif gke_cache_type == ZONES_LIST:
+        #     return object[ZONES_LIST]
+        # elif gke_cache_type == HELM_INSTALLS_LIST:
+        #     return object[HELM_INSTALLS_LIST]
+        # elif gke_cache_type == VERSIONS_LIST:
+        #     return object[VER]
+        # print(object)
+    print(f'found user_object is: {gke_cache_object}')
+    return gke_cache_object
 
 
 def retrieve_user(user_email: str):

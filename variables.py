@@ -59,3 +59,10 @@ EKS_ZONES = 'eks_zones'
 AKS_VERSION = 'AKS_VERSION'
 AKS_LOCATION = 'AKS_LOCATION'
 AKS = 'aks'
+
+# CACHE TYPES
+REGIONS_LIST = 'regions_list'
+ZONES_LIST = 'zones_list'
+HELM_INSTALLS_LIST = 'helm_installs_list'
+GKE_VERSIONS_LIST = 'versions_list'
+GKE_IMAGE_TYPES = 'gke_image_types'
