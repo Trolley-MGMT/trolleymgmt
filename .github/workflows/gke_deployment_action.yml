@@ -5,3 +5,26 @@ on:
       branch:
         required: true
         description: "Tag/branch to select deployment from"
+
+jobs:
+  testing_actions:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: test env
+        run: echo
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Generate UUID
+        run: |
+          uuidgen > uuid
+          ls -la
+          pwd
+          echo "uuid=$(cat uuid)" >> $GITHUB_ENV
+      - name: Use the value
+        id: step_two
+        run: |
+          echo "${{ env.uuid }}"
