@@ -1,0 +1,7 @@
+name: GKE Deployment
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        required: true
+        description: "Tag/branch to select deployment from"
