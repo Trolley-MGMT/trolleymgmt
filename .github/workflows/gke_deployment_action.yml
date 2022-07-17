@@ -5,6 +5,8 @@ on:
       cluster_name:
         required: true
         description: Enter the name of the cluster
+  repository_dispatch: :
+    types: do-something
 
 jobs:
   testing_actions:
