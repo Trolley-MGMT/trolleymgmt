@@ -38,12 +38,4 @@ jobs:
 #          aws eks --region ${{ github.event.client_payload.region_name }} update-kubeconfig --name  ${{ github.event.client_payload.cluster_name }}
           aws eks create-cluster --region region-code --name my-cluster --kubernetes-version ${{ github.event.client_payload.cluster_version }} --role-arn arn:aws:iam::553159257253:role/pavel-eks-1 --resources-vpc-config subnetIds=subnet-07132d3be05246d54,securityGroupIds=sg-0b6169a4a402dde9d
           cat /home/runner/.kube/config
-#          gcloud beta container --quiet --project boneseye clusters create ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --no-enable-basic-auth --cluster-version ${{ github.event.client_payload.cluster_version }} --release-channel stable --machine-type e2-medium --image-type COS --disk-type pd-standard --disk-size 100 --metadata disable-legacy-endpoints=true --scopes https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --max-pods-per-node 110 --num-nodes ${{ github.event.client_payload.num_nodes }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-ip-alias --network projects/boneseye/global/networks/default --subnetwork projects/boneseye/regions/${{ github.event.client_payload.region_name }}/subnetworks/default --no-enable-intra-node-visibility --default-max-pods-per-node 110 --no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes --node-locations ${{  github.event.client_payload.zone_name }}
 
-
-
-curl -H "Accept: application/vnd.github.everest-preview+json" \
-    -H "Authorization: token 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" \
-    --request POST \
-    --data '{"event_type": "eks-build-api-trigger", "client_payload": { "cluster_name": "pavel-cluster-test", "region_name": "asia-east1"}}' \
-    https://api.github.com/repos/LiorYardeni/trolley/dispatches
