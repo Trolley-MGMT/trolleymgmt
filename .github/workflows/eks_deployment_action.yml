@@ -35,5 +35,5 @@ jobs:
           aws-region: us-east-1
       - name: Update kube config
         run: |
-          aws eks create-cluster --region ${{ github.event.client_payload.region_name }} --name my-cluster --kubernetes-version ${{ github.event.client_payload.cluster_version }} --role-arn arn:aws:iam::553159257253:role/pavel-eks-1 --resources-vpc-config subnetIds=subnet-07132d3be05246d54,securityGroupIds=sg-0b6169a4a402dde9d
+          aws eks create-cluster --region ${{ github.event.client_payload.region_name }} --name my-cluster --kubernetes-version ${{ github.event.client_payload.cluster_version }} --role-arn arn:aws:iam::553159257253:role/pavel-eks-1 --resources-vpc-config subnetIds=${{ github.event.client_payload.subnets }},securityGroupIds=sg-0b6169a4a402dde9d
           cat /home/runner/.kube/config
