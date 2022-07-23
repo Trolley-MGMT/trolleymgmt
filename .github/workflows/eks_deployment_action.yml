@@ -36,4 +36,3 @@ jobs:
       - name: Trigger EKS Build
         run: |
           aws eks create-cluster --region ${{ github.event.client_payload.region_name }} --name my-cluster --kubernetes-version ${{ github.event.client_payload.cluster_version }} --role-arn arn:aws:iam::553159257253:role/pavel-eks-1 --resources-vpc-config subnetIds=${{ github.event.client_payload.subnets }}
-          cat /home/runner/.kube/config
