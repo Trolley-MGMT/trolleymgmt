@@ -36,4 +36,6 @@ jobs:
       - name: Trigger EKS Build
         run: |
           aws sts get-caller-identity
-          aws eks create-cluster --region ${{ github.event.client_payload.region_name }} --name ${{ github.event.client_payload.cluster_name }} --kubernetes-version ${{ github.event.client_payload.cluster_version }} --role-arn arn:aws:iam::553159257253:role/pavel-eks-1 --resources-vpc-config subnetIds=${{ github.event.client_payload.subnets }}
+          brew install eksctl
+          eksctl create cluster --region=${{ github.event.client_payload.region_name }} --zones=${{ github.event.client_payload.zone_names }} --name ${{ github.event.client_payload.cluster_name }} --version ${{ github.event.client_payload.cluster_version }} --nodes 1
+#          aws eks create-cluster --region ${{ github.event.client_payload.region_name }} --name ${{ github.event.client_payload.cluster_name }} --kubernetes-version ${{ github.event.client_payload.cluster_version }} --role-arn arn:aws:iam::553159257253:role/pavel-eks-1 --resources-vpc-config subnetIds=${{ github.event.client_payload.subnets }}
