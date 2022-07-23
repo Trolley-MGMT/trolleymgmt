@@ -9,8 +9,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-      - name: test env
-        run: echo
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
@@ -42,4 +40,5 @@ jobs:
           brew install eksctl
           eksctl create cluster --region=${{ github.event.client_payload.region_name }} --zones=${{ github.event.client_payload.zone_names }} --name ${{ github.event.client_payload.cluster_name }} --version ${{ github.event.client_payload.cluster_version }} --nodes ${{ github.event.client_payload.num_nodes }}
           aws eks --region ${{ github.event.client_payload.region_name }} update-kubeconfig --name ${{ github.event.client_payload.cluster_name }}
+          cat /home/runner/.kube/config
 #          aws eks create-cluster --region ${{ github.event.client_payload.region_name }} --name ${{ github.event.client_payload.cluster_name }} --kubernetes-version ${{ github.event.client_payload.cluster_version }} --role-arn arn:aws:iam::553159257253:role/pavel-eks-1 --resources-vpc-config subnetIds=${{ github.event.client_payload.subnets }}
