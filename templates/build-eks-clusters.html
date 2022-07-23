@@ -17,6 +17,8 @@
     <script>
       var data = {{ data|tojson }};
       console.log(data)
+
+
     </script>
 </head>
 
@@ -78,7 +80,8 @@
             <!-- Sidebar user panel (optional) -->
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                 <div class="image">
-                    <img src="static/img/trolley.png" class="img-circle elevation-2" alt="User Image" id="profilePicURL">
+                    <img src="static/img/trolley.png" class="img-circle elevation-2" alt="User Image"
+                         id="profilePicURL">
                 </div>
                 <div class="info">
                     <a href="#" class="d-block" id="userNameLabel"></a>
@@ -216,6 +219,22 @@
                         <label>Select Location</label>
                         <br>
                         <select class="col-lg-8 align-content-lg-center" id="eks-locations-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <div class="form-group">
+                        <label>Select Zones (Select at least 2)</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" multiple id="eks-zones-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <div class="form-group">
+                        <label>Select Subnets</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" multiple id="eks-subnets-dropdown">
                         </select>
                     </div>
                 </div>

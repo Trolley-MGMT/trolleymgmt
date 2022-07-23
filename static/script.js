@@ -69,6 +69,8 @@ $(document).ready(function() {
         HelmInstalls = $('#helm-installs-dropdown').val();
         AKSLocation = $('#aks-locations-dropdown').val();
         EKSLocation = $('#eks-locations-dropdown').val();
+        EKSZones = $('#eks-zones-dropdown').val();
+        EKSSubnets = $('#eks-subnets-dropdown').val();
         GKERegion = $('#gke-regions-dropdown').val();
         GKEZone = $('#gke-zones-dropdown').val();
 
@@ -96,6 +98,8 @@ $(document).ready(function() {
             "version": EKSKubernetesVersion,
             "expiration_time": EKSExpirationTime,
             "eks_location": EKSLocation,
+            "eks_zones": EKSZones,
+            "eks_subnets": EKSSubnets,
             "helm_installs": HelmInstalls
         });
 
@@ -234,6 +238,7 @@ $(document).ready(function() {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value.RegionName).text(value.RegionName));
                         });
+                        populate_zones('eu-north-1')
                     } else if (clusterType == 'gke') {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
@@ -267,7 +272,7 @@ $(document).ready(function() {
                         });
                     } else if (clusterType == 'eks') {
                         $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value.RegionName).text(value.RegionName));
+                            $dropdown.append($("<option />").val(value).text(value));
                         });
                     } else if (clusterType == 'gke') {
                         $.each(response, function(key, value) {
@@ -281,6 +286,41 @@ $(document).ready(function() {
         }, )
     }
 
+    function populate_subnets(zone_names) {
+        if (clusterType == 'aks') {
+            var $dropdown = $("#aks-subnets-dropdown");
+        } else if (clusterType == 'eks') {
+            var $dropdown = $("#eks-subnets-dropdown");
+        } else if (clusterType == 'gke') {
+            var $dropdown = $("#gke-subnets-dropdown");
+        }
+        url = "http://" + trolley_url + ":" + port + "/fetch_subnets?cluster_type=" + clusterType + "&zone_names=" + zone_names;
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response) {
+                if (response.status === 'Failure') {
+                    console.log('error')
+                } else {
+                    if (clusterType == 'aks') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value.name).text(value.displayName));
+                        });
+                    } else if (clusterType == 'eks') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+                        });
+                    } else if (clusterType == 'gke') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+                        });
+                        populate_kubernetes_versions('asia-east1-b')
+                        populate_kubernetes_image_types('asia-east1-b')
+                    }
+                }
+            }
+        }, )
+    }
 
     function populate_vpcs(selected_location) {
         if (clusterType == 'aks') {
@@ -415,7 +455,16 @@ $(document).ready(function() {
     $('#eks-locations-dropdown').change(function() {
         var eks_location = $('#eks-locations-dropdown').val();
         $("#eks-vpcs-dropdown").empty();
+        $("#eks-zones-dropdown").empty();
+        $("#eks-subnets-dropdown").empty();
         populate_vpcs(selected_location = eks_location);
+        populate_zones(eks_location);
+    })
+
+    $('#eks-zones-dropdown').change(function() {
+        var eks_zones = $('#eks-zones-dropdown').val();
+        $("#eks-subnets-dropdown").empty();
+        populate_subnets(eks_zones);
     })
 
     $('#gke-regions-dropdown').change(function() {

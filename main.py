@@ -11,10 +11,12 @@ from dataclasses import asdict
 from subprocess import PIPE, run
 from distutils import util
 
+import requests
 from jenkins import Jenkins
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from deployment_utils.kubernetes_post_deployment import generate_kubeconfig
 from utils import random_string
 
 from mongo.mongo_handler import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
@@ -30,30 +32,29 @@ PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 config = configparser.ConfigParser()
+
 if MACOS in platform.platform():
     config.read(f'{PROJECT_ROOT}/config.ini')
     HELM_COMMAND = '/opt/homebrew/bin/helm'
-    AKS_LOCATIONS_COMMAND = 'az account list-locations'
-    GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
-    GKE_REGIONS_COMMAND = 'gcloud compute regions list --format json'
-    EKS_ZONES_COMMAND = 'aws ec2 describe-regions'
-    AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
-    GKE_VERSIONS_COMMAND = 'gcloud container get-server-config --zone='
+
 else:
     config.read(f'{CUR_DIR}/config.ini')
     HELM_COMMAND = '/snap/bin/helm'
-    AKS_LOCATIONS_COMMAND = 'az account list-locations'
-    GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
-    GKE_REGIONS_COMMAND = 'gcloud compute regions list --format json'
-    EKS_ZONES_COMMAND = 'aws ec2 describe-regions'
-    AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
-    GKE_VERSIONS_COMMAND = 'gcloud container get-server-config --zone='
+
+AKS_LOCATIONS_COMMAND = 'az account list-locations'
+GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
+GKE_REGIONS_COMMAND = 'gcloud compute regions list --format json'
+EKS_REGIONS_COMMAND = 'aws ec2 describe-regions'
+EKS_AVAILABILITY_ZONES_COMMAND = 'aws ec2 describe-availability-zones'
+EKS_SUBNETS_COMMAND = 'aws ec2 describe-subnets'
+AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
+GKE_VERSIONS_COMMAND = 'gcloud container get-server-config --zone='
 
 PROJECT_ID = config['DEFAULT']['project_id']
 JENKINS_URL = 'http://' + config['DEFAULT']['jenkins_url'] + ':8080'
 JENKINS_USER = config['DEFAULT']['jenkins_user']
-
 JENKINS_PASSWORD = os.getenv('JENKINS_PASSWORD')
+GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')
 JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME = 'gke_deployment'
 JENKINS_KUBERNETES_GKE_AUTOPILOT_DEPLOYMENT_JOB_NAME = 'gke_autopilot_deployment'
 JENKINS_DELETE_GKE_JOB = 'delete_gke_cluster'
@@ -62,6 +63,11 @@ JENKINS_DELETE_EKS_JOB = 'delete_eks_cluster'
 JENKINS_AKS_DEPLOYMENT_JOB_NAME = 'aks_deployment'
 JENKINS_DELETE_AKS_JOB = 'delete_aks_cluster'
 
+GITHUB_ACTION_REQUEST_HEADER = {
+    'Content-type': 'application/json',
+    'Accept': 'application / vnd.github.everest - preview + json',
+    'Authorization': f'token {GITHUB_ACTION_TOKEN}'
+}
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -161,6 +167,59 @@ def fetch_aks_version(kubernetes_version: str = '') -> str:
     return aks_version
 
 
+def retrieve_aws_availability_zones(region_name):
+    command = f'{EKS_AVAILABILITY_ZONES_COMMAND} --region {region_name}'
+    logger.info(f'Running a {command} command')
+    print(f'Running a {command} command')
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    availability_zones = json.loads(result.stdout)
+    print(f'availability_zones list is: {availability_zones}')
+    zones_list = []
+    for zone in availability_zones['AvailabilityZones']:
+        if not zone['ZoneName'] == 'us-east-1e':
+            zones_list.append(zone['ZoneName'])
+    return zones_list
+
+
+def retrieve_aws_subnets(availability_zone: str = ''):
+    command = f'{EKS_SUBNETS_COMMAND} --filters "Name=availability-zone","Values={availability_zone}"'
+    logger.info(f'Running a {command} command')
+    print(f'Running a {command} command')
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    availability_zones = json.loads(result.stdout)
+    print(f'availability_zones list is: {availability_zones}')
+    subnets_list = []
+    if availability_zones['Subnets']:
+        for zone in availability_zones['Subnets']:
+            subnets_list.append(zone['SubnetId'])
+        return subnets_list
+    else:
+        return [f'No subnets were found for {availability_zone} zone']
+
+
+def trigger_gke_build_github_action(user_name: str = '',
+                                    version: str = '',
+                                    gke_region: str = '',
+                                    gke_zone: str = '',
+                                    image_type: str = '',
+                                    num_nodes: int = '',
+                                    helm_installs: list = '',
+                                    expiration_time: int = ''):
+    cluster_name = f'{user_name}-gke-{random_string(5)}'
+    json_data = {
+        "event_type": "gke-build-api-trigger",
+        "client_payload": {"cluster_name": cluster_name,
+                           "cluster_version": version,
+                           "zone_name": gke_zone,
+                           "region_name": gke_region,
+                           "num_nodes": num_nodes}
+    }
+
+    response = requests.post('https://api.github.com/repos/LiorYardeni/trolley/dispatches',
+                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+    print(response)
+
+
 def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAME,
                                          user_name: str = '',
                                          version: str = '',
@@ -245,6 +304,30 @@ def get_eks_zones(eks_location: str = '') -> str:
     for availability_zone in availability_zones:
         zones_list.append(availability_zone['ZoneName'])
     return ','.join(zones_list)
+
+
+def trigger_eks_build_github_action(user_name: str = '',
+                                    version: str = '',
+                                    eks_location: str = '',
+                                    eks_zones: list = None,
+                                    eks_subnets: list = None,
+                                    image_type: str = '',
+                                    num_nodes: int = '',
+                                    helm_installs: list = '',
+                                    expiration_time: int = ''):
+    cluster_name = f'{user_name}-gke-{random_string(5)}'
+    json_data = {
+        "event_type": "eks-build-api-trigger",
+        "client_payload": {"cluster_name": cluster_name,
+                           "cluster_version": version,
+                           "region_name": eks_location,
+                           "zone_names": ",".join(eks_zones),
+                           "num_nodes": num_nodes,
+                           "subnets": ",".join(eks_subnets)}
+    }
+    response = requests.post('https://api.github.com/repos/LiorYardeni/trolley/dispatches',
+                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+    print(response)
 
 
 def trigger_eks_build_jenkins(
@@ -407,7 +490,8 @@ def trigger_kubernetes_deployment():
     content = request.get_json()
     if content['cluster_type'] == 'gke':
         del content['cluster_type']
-        trigger_kubernetes_gke_build_jenkins(**content)
+        trigger_gke_build_github_action(**content)
+        # trigger_kubernetes_gke_build_jenkins(**content)
         function_name = inspect.stack()[0][3]
         logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     elif content['cluster_type'] == 'gke_autopilot':
@@ -421,7 +505,8 @@ def trigger_eks_deployment():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
-    trigger_eks_build_jenkins(**content)
+    trigger_eks_build_github_action(**content)
+    # trigger_eks_build_jenkins(**content)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -499,7 +584,7 @@ def fetch_regions():
         gke_regions = retrieve_gke_cache(gke_cache_type=REGIONS_LIST)
         return jsonify(gke_regions)
     elif cluster_type == EKS:
-        command = EKS_ZONES_COMMAND
+        command = EKS_REGIONS_COMMAND
         logger.info(f'Running a {command} command')
         print(f'Running a {command} command')
         result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
@@ -524,7 +609,22 @@ def fetch_zones():
                 zones_list.append(zone)
         return jsonify(zones_list)
     elif cluster_type == EKS:
+        aws_availability_zones = retrieve_aws_availability_zones(region_name)
+        return jsonify(aws_availability_zones)
+
+
+@app.route('/fetch_subnets', methods=[GET])
+def fetch_subnets():
+    cluster_type = request.args.get("cluster_type")
+    zone_names = request.args.get("zone_names")
+    logger.info(f'A request to fetch zone_names for {cluster_type} has arrived')
+    if cluster_type == AKS:
         return jsonify('')
+    elif cluster_type == GKE:
+        return jsonify('')
+    elif cluster_type == EKS:
+        aws_availability_zones = retrieve_aws_subnets(zone_names)
+        return jsonify(aws_availability_zones)
 
 
 @app.route('/fetch_helm_installs', methods=[GET, POST])
