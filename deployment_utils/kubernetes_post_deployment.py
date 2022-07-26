@@ -11,19 +11,27 @@ from subprocess import call, PIPE, run
 
 from mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment
 from mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
-from variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS
+from variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS, MACOS
 
-CUR_DIR = os.getcwd()
-PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
-print(f'current directory is: {PROJECT_ROOT}')
-config = configparser.ConfigParser()
-config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
-print(f'config ini file location is: {config_ini_file}')
-config.read(config_ini_file)
-PROJECT_ID = config['DEFAULT']['project_id']
-JENKINS_URL = config['DEFAULT']['jenkins_url']
-JENKINS_USER = config['DEFAULT']['jenkins_user']
-JENKINS_HOME = os.getenv('JENKINS_HOME')
+
+if MACOS in platform.platform():
+    CUR_DIR = os.getcwd()
+    PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
+    print(f'current directory is: {PROJECT_ROOT}')
+    config = configparser.ConfigParser()
+    config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
+    print(f'config ini file location is: {config_ini_file}')
+    config.read(config_ini_file)
+    PROJECT_ID = config['DEFAULT']['project_id']
+    JENKINS_URL = config['DEFAULT']['jenkins_url']
+    JENKINS_USER = config['DEFAULT']['jenkins_user']
+    JENKINS_HOME = os.getenv('JENKINS_HOME')
+else:
+    PROJECT_ID = os.environ['PROJECT_ID']
+    JENKINS_URL = os.environ['JENKINS_URL']
+    JENKINS_USER = os.environ['JENKINS_USER']
+    JENKINS_HOME = os.environ['JENKINS_HOME']
+
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
 
