@@ -25,12 +25,10 @@ if MACOS in platform.platform():
     PROJECT_ID = config['DEFAULT']['project_id']
     JENKINS_URL = config['DEFAULT']['jenkins_url']
     JENKINS_USER = config['DEFAULT']['jenkins_user']
-    JENKINS_HOME = os.getenv('JENKINS_HOME')
 else:
     PROJECT_ID = os.environ['PROJECT_ID']
     JENKINS_URL = os.environ['JENKINS_URL']
     JENKINS_USER = os.environ['JENKINS_USER']
-    JENKINS_HOME = os.environ['JENKINS_HOME']
 
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
@@ -59,8 +57,10 @@ else:
     JENKINS_BUILD_URL = os.getenv('BUILD_URL')
     WORKSPACE = os.getenv('WORKSPACE')
     SLACK_USER = os.getenv('BUILD_USER_ID')
-    CLUSTER_NAME_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/cluster_name_file_path'
-    OBJECT_ID_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/object_id'
+    CLUSTER_NAME_FILE_PATH = 'MEH'
+    # CLUSTER_NAME_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/cluster_name_file_path'
+    OBJECT_ID_FILE_PATH = 'MEH2'
+    # OBJECT_ID_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/object_id'
     KUBECONFIG_LOCATION = '/var/lib/jenkins/.kube/config'
     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
     KUBECTL_COMMAND = '/var/lib/jenkins/temp/google-cloud-sdk/bin/kubectl'
