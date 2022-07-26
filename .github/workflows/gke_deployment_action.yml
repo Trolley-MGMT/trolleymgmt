@@ -42,7 +42,9 @@ jobs:
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           JENKINS_URL: ${{ secrets.JENKINS_URL }}
-          
+          JENKINS_USER: ${{ secrets.JENKINS_USER }}
+          JENKINS_URL: ${{ secrets.JENKINS_URL }}
+
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
