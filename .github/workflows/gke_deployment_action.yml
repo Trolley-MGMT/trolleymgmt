@@ -39,6 +39,8 @@ jobs:
       - name: Post Deployment Tasks
         run: |
           pip3 install -r requirements.txt
+          pip install -e mongo_handler/
+          pip install -e variables/
           ls -l
           cd variables
           ls
