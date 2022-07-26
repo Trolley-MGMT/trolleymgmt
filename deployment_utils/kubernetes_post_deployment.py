@@ -15,8 +15,10 @@ from variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS
 
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
+print(f'current directory is: {PROJECT_ROOT}')
 config = configparser.ConfigParser()
 config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
+print(f'config ini file location is: {config_ini_file}')
 config.read(config_ini_file)
 PROJECT_ID = config['DEFAULT']['project_id']
 JENKINS_URL = config['DEFAULT']['jenkins_url']
