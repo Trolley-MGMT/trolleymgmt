@@ -15,10 +15,8 @@ print(f'Current directory is: {CUR_DIR}')
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 print(f'Project root is: {PROJECT_ROOT}')
 config = configparser.ConfigParser()
-if MACOS in platform.platform():
-    config.read(f'{PROJECT_ROOT}/config.ini')
-else:
-    config.read(f'{CUR_DIR}/config.ini')
+config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
+config.read(config_ini_file)
 
 JENKINS_URL = config['DEFAULT']['jenkins_url']
 PROJECT_NAME = config['DEFAULT']['project_id']

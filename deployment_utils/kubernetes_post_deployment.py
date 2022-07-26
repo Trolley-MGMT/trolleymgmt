@@ -14,9 +14,11 @@ from mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject
 from variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS
 
 CUR_DIR = os.getcwd()
-PROJECT_ROOT = "/".join(CUR_DIR.split('/')[:-1])
+PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 config = configparser.ConfigParser()
-config.read(f'{CUR_DIR}/config.ini')
+config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
+config.read(config_ini_file)
+# config.read(f'{CUR_DIR}/config.ini')
 PROJECT_ID = config['DEFAULT']['project_id']
 JENKINS_URL = config['DEFAULT']['jenkins_url']
 JENKINS_USER = config['DEFAULT']['jenkins_user']
