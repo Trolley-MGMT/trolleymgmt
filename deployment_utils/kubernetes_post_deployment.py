@@ -18,7 +18,6 @@ PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 config = configparser.ConfigParser()
 config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
 config.read(config_ini_file)
-# config.read(f'{CUR_DIR}/config.ini')
 PROJECT_ID = config['DEFAULT']['project_id']
 JENKINS_URL = config['DEFAULT']['jenkins_url']
 JENKINS_USER = config['DEFAULT']['jenkins_user']

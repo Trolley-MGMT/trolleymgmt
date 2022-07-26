@@ -4,7 +4,7 @@ $(document).ready(function() {
     let trolley_remote_url = '34.123.171.234'
     let trolley_local_url = 'localhost';
     let trolley_url = '';
-    let debug = false;
+    let debug = true;
     let clusterType = ''
     let managePage = false;
     let buildPage = false;

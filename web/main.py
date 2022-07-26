@@ -26,19 +26,22 @@ from variables.variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES
 
-CUR_DIR = os.getcwd()
-PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+CUR_DIR = os.getcwd()
+PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 config = configparser.ConfigParser()
+config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
+config.read(config_ini_file)
 
-if MACOS in platform.platform():
-    config.read(f'{PROJECT_ROOT}/config.ini')
-    HELM_COMMAND = '/opt/homebrew/bin/helm'
-
-else:
-    config.read(f'{CUR_DIR}/config.ini')
-    HELM_COMMAND = '/snap/bin/helm'
+# if MACOS in platform.platform():
+#     config.read(f'{PROJECT_ROOT}/config.ini')
+#     HELM_COMMAND = '/opt/homebrew/bin/helm'
+#
+# else:
+#     config.read(f'{CUR_DIR}/config.ini')
+#     HELM_COMMAND = '/snap/bin/helm'
 
 AKS_LOCATIONS_COMMAND = 'az account list-locations'
 GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
@@ -70,7 +73,7 @@ GITHUB_ACTION_REQUEST_HEADER = {
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('trolley.log')
+handler = logging.FileHandler('../trolley.log')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
