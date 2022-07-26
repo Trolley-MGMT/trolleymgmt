@@ -18,10 +18,33 @@ config = configparser.ConfigParser()
 config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
 config.read(config_ini_file)
 
-JENKINS_URL = config['DEFAULT']['jenkins_url']
-PROJECT_NAME = config['DEFAULT']['project_id']
-MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
-MONGO_USER = os.getenv('MONGO_USER')
+
+if MACOS in platform.platform():
+    CUR_DIR = os.getcwd()
+    PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
+    print(f'current directory is: {PROJECT_ROOT}')
+    config = configparser.ConfigParser()
+    config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
+    print(f'config ini file location is: {config_ini_file}')
+    config.read(config_ini_file)
+    PROJECT_ID = config['DEFAULT']['project_id']
+    JENKINS_URL = config['DEFAULT']['jenkins_url']
+    JENKINS_USER = config['DEFAULT']['jenkins_user']
+    JENKINS_HOME = os.getenv('JENKINS_HOME')
+    PROJECT_NAME = config['DEFAULT']['project_id']
+    MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
+    MONGO_USER = os.getenv('MONGO_USER')
+else:
+    PROJECT_ID = os.environ['PROJECT_ID']
+    JENKINS_URL = os.environ['JENKINS_URL']
+    JENKINS_USER = os.environ['JENKINS_USER']
+    JENKINS_HOME = os.environ['JENKINS_HOME']
+    PROJECT_NAME = os.environ['PROJECT_NAME']
+    MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
+    MONGO_USER = os.environ['MONGO_PASSWORD']
+
+
+
 
 client = MongoClient(JENKINS_URL, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
 db = client[PROJECT_NAME]
