@@ -43,6 +43,7 @@ jobs:
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           JENKINS_URL: ${{ secrets.JENKINS_URL }}
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
+          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
