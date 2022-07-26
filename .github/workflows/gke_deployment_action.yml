@@ -24,4 +24,4 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Run
         run: |
-          deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id trolley --cluster_name pavelzagalsky-gke-mvjhx --user_name pavelzagalsky --zone_name asia-east1-b --helm_installs 'sasi,keshet' --expiration_time 1
+          python deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id trolley --cluster_name pavelzagalsky-gke-mvjhx --user_name pavelzagalsky --zone_name asia-east1-b --helm_installs 'sasi,keshet' --expiration_time 1
