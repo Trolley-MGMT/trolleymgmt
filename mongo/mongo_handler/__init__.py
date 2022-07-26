@@ -1,3 +1,6 @@
+import sys
+
+sys.path.append("../")
 import configparser
 import os
 import platform
