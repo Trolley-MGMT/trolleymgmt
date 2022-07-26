@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("../")
+
 import configparser
 import getpass
 import logging
