@@ -63,7 +63,7 @@ else:
     # OBJECT_ID_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/object_id'
     KUBECONFIG_LOCATION = '/var/lib/jenkins/.kube/config'
     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
-    KUBECTL_COMMAND = '/var/lib/jenkins/temp/google-cloud-sdk/bin/kubectl'
+    KUBECTL_COMMAND = 'kubectl'
     HELM_COMMAND = 'helm'
 
 
