@@ -27,10 +27,6 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
         run: gcloud info
-      - name: Checking gcloud
-        run: |
-          gcloud container images list
-          gcloud components install beta --quiet
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
