@@ -13,10 +13,9 @@ from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from subprocess import call, PIPE, run
 
-from mongo.mongo_handler import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment
-from mongo.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
-from slack_handler import send_slack_message
-from variables import GKE, GKE_AUTOPILOT, EKS, AKS
+from mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment
+from mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
+from variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS
 
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/')[:-1])

@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("../")
+sys.path.append("/")
 import configparser
 import os
 import platform
@@ -9,7 +9,8 @@ import time
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-from variables import GKE, MACOS, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, USER_NAME, \
+from variables.variables import GKE, MACOS, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
+    USER_NAME, \
     USER_EMAIL
 
 CUR_DIR = os.getcwd()

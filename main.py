@@ -16,15 +16,14 @@ from jenkins import Jenkins
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from deployment_utils.kubernetes_post_deployment import generate_kubeconfig
 from utils import random_string
 
-from mongo.mongo_handler import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
+from mongo_handler.mongo_utils import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
     insert_user, retrieve_user, retrieve_cluster_details, retrieve_gke_cache
-from mongo.mongo_objects import UserObject
-from variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
+from mongo_handler.mongo_objects import UserObject
+from variables.variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES, USER_ID, REGIONS_LIST, \
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES
 
 CUR_DIR = os.getcwd()
