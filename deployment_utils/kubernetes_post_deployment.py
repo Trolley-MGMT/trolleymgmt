@@ -56,12 +56,13 @@ if 'Darwin' in platform.system():
 else:
     JENKINS_BUILD_URL = os.getenv('BUILD_URL')
     WORKSPACE = os.getenv('WORKSPACE')
+    HOME = os.getenv('HOME')
     SLACK_USER = os.getenv('BUILD_USER_ID')
     CLUSTER_NAME_FILE_PATH = 'MEH'
     # CLUSTER_NAME_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/cluster_name_file_path'
     OBJECT_ID_FILE_PATH = 'MEH2'
     # OBJECT_ID_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/object_id'
-    KUBECONFIG_LOCATION = '/var/lib/jenkins/.kube/config'
+    KUBECONFIG_LOCATION = f'{HOME}/.kubeconfig'
     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
     KUBECTL_COMMAND = 'kubectl'
     HELM_COMMAND = 'helm'
