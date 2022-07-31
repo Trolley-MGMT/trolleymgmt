@@ -92,11 +92,12 @@ def generate_kubeconfig(cluster_type: str = '', project_id: str = '', cluster_na
         command = [
             'aws', 'eks', '--region', zone_name, 'update-kubeconfig', '--name', cluster_name
         ]
-    call(command, timeout=None)
+    if 'Darwin' in platform.system():
+        call(command, timeout=None)
 
-    os.environ["KUBECONFIG"] = KUBECONFIG_LOCATION
-    command = [KUBECTL_COMMAND, 'get', 'pods', '--all-namespaces', '--insecure-skip-tls-verify=true']
-    call(command, timeout=None)
+        os.environ["KUBECONFIG"] = KUBECONFIG_LOCATION
+        command = [KUBECTL_COMMAND, 'get', 'pods', '--all-namespaces', '--insecure-skip-tls-verify=true']
+        call(command, timeout=None)
 
     with open(KUBECONFIG_LOCATION, "r") as f:
         kubeconfig_yaml = f.read()
