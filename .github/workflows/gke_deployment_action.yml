@@ -47,6 +47,8 @@ jobs:
 
         run: |
           gcloud container clusters get-credentials ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --project trolley
+          ls ${{ env.home }}
+          cat ${{ env.home }}/.kube/config
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
           ls -l

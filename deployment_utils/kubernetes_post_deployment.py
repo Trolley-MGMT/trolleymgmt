@@ -62,7 +62,7 @@ else:
     # CLUSTER_NAME_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/cluster_name_file_path'
     OBJECT_ID_FILE_PATH = 'MEH2'
     # OBJECT_ID_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/object_id'
-    KUBECONFIG_LOCATION = f'{HOME}/.kubeconfig'
+    KUBECONFIG_LOCATION = f'{HOME}/.kube/config'
     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
     KUBECTL_COMMAND = 'kubectl'
     HELM_COMMAND = 'helm'
