@@ -27,15 +27,15 @@ jobs:
         uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
-#      - name: Set up Cloud SDK
-#        uses: google-github-actions/setup-gcloud@v0
-#      - name: Use gcloud CLI
-#        run: gcloud info
-#      - name: Checking gcloud
-#        run: |
-#          gcloud container images list
-#          gcloud components install beta --quiet
-#          gcloud beta container --quiet --project boneseye clusters create ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --no-enable-basic-auth --cluster-version ${{ github.event.client_payload.cluster_version }} --release-channel stable --machine-type e2-medium --image-type COS --disk-type pd-standard --disk-size 100 --metadata disable-legacy-endpoints=true --scopes https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --max-pods-per-node 110 --num-nodes ${{ github.event.client_payload.num_nodes }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-ip-alias --network projects/boneseye/global/networks/default --subnetwork projects/boneseye/regions/${{ github.event.client_payload.region_name }}/subnetworks/default --no-enable-intra-node-visibility --default-max-pods-per-node 110 --no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes --node-locations ${{  github.event.client_payload.zone_name }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+      - name: Use gcloud CLI
+        run: gcloud info
+      - name: Checking gcloud
+        run: |
+          gcloud container images list
+          gcloud components install beta --quiet
+          gcloud beta container --quiet --project boneseye clusters create ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --no-enable-basic-auth --cluster-version ${{ github.event.client_payload.cluster_version }} --release-channel stable --machine-type e2-medium --image-type COS --disk-type pd-standard --disk-size 100 --metadata disable-legacy-endpoints=true --scopes https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --max-pods-per-node 110 --num-nodes ${{ github.event.client_payload.num_nodes }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-ip-alias --network projects/boneseye/global/networks/default --subnetwork projects/boneseye/regions/${{ github.event.client_payload.region_name }}/subnetworks/default --no-enable-intra-node-visibility --default-max-pods-per-node 110 --no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes --node-locations ${{  github.event.client_payload.zone_name }}
       - name: Post Deployment Tasks
         env:
           MONGO_USER: ${{ secrets.MONGO_USER }}
