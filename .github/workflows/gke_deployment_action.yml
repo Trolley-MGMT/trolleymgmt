@@ -46,6 +46,7 @@ jobs:
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
 
         run: |
+          gcloud container clusters get-credentials ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --project trolley
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
           ls -l
