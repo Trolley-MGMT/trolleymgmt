@@ -44,11 +44,11 @@ jobs:
 
       - name: Checking gcloud2
         run: |
-          gcloud container clusters get-credentials ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --project boneseye
+#          gcloud container clusters get-credentials ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --project boneseye
           ls
           pwd
           ls ${{ env.home }}
-          cat ${{ env.home }}/.kube/config
+          echo $KUBECONFIG
       - name: Post Deployment Tasks
         env:
           MONGO_USER: ${{ secrets.MONGO_USER }}
