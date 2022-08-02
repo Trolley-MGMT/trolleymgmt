@@ -47,7 +47,7 @@ jobs:
           ls
           pwd
           ls ${{ env.home }}
-          echo $KUBECONFIG
+          echo "$($KUBECONFIG)"
       - name: Post Deployment Tasks
         env:
           MONGO_USER: ${{ secrets.MONGO_USER }}
