@@ -73,7 +73,7 @@ def generate_kubeconfig(cluster_type: str = '', project_id: str = '', cluster_na
     This function generates a kubeconfig_yaml for the created GKE cluster
     @return:
     """
-    call(KUBECONFIG_REMOVAL_COMMAND, timeout=None)
+    # call(KUBECONFIG_REMOVAL_COMMAND, timeout=None)
 
     if cluster_type == 'gke':
         command = [
