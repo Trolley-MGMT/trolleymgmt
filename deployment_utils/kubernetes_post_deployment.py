@@ -13,7 +13,6 @@ from mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployme
 from mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
 from variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS, MACOS
 
-
 if MACOS in platform.platform():
     CUR_DIR = os.getcwd()
     PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
@@ -62,8 +61,8 @@ else:
     # CLUSTER_NAME_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/cluster_name_file_path'
     OBJECT_ID_FILE_PATH = 'MEH2'
     # OBJECT_ID_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/object_id'
-    KUBECONFIG_LOCATION = os.getenv('KUBECONFIG')
-    KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
+    # KUBECONFIG_LOCATION = os.getenv('KUBECONFIG')
+    # KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
     KUBECTL_COMMAND = 'kubectl'
     HELM_COMMAND = 'helm'
 
@@ -95,11 +94,11 @@ def generate_kubeconfig(cluster_type: str = '', project_id: str = '', cluster_na
     if 'Darwin' in platform.system():
         call(command, timeout=None)
 
-        os.environ["KUBECONFIG"] = KUBECONFIG_LOCATION
+        # os.environ["KUBECONFIG"] = KUBECONFIG_LOCATION
         command = [KUBECTL_COMMAND, 'get', 'pods', '--all-namespaces', '--insecure-skip-tls-verify=true']
         call(command, timeout=None)
 
-    with open(KUBECONFIG_LOCATION, "r") as f:
+    with open(os.environ["KUBECONFIG"], "r") as f:
         kubeconfig_yaml = f.read()
     return kubeconfig_yaml
 
