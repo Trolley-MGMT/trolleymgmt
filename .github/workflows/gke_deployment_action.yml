@@ -47,6 +47,8 @@ jobs:
           ls
           pwd
           ls ${{ env.home }}
+          cp "$($KUBECONFIG)" /tmp/kubeconfig
+          cat /tmp/kubeconfig
           echo "$($KUBECONFIG)"
       - name: Post Deployment Tasks
         env:
