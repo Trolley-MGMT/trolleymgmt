@@ -214,7 +214,8 @@ def trigger_gke_build_github_action(user_name: str = '',
                            "cluster_version": version,
                            "zone_name": gke_zone,
                            "region_name": gke_region,
-                           "num_nodes": num_nodes}
+                           "num_nodes": num_nodes,
+                           "helm_installs": helm_installs}
     }
 
     response = requests.post('https://api.github.com/repos/LiorYardeni/trolley/dispatches',
