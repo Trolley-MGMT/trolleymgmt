@@ -73,6 +73,11 @@ def generate_kubeconfig(cluster_type: str = '', project_id: str = '', cluster_na
     This function generates a kubeconfig_yaml for the created GKE cluster
     @return:
     """
+    if 'darwin' not in platform.system():
+        with open(KUBECONFIG_LOCATION, "r") as f:
+            kubeconfig_yaml = f.read()
+        return kubeconfig_yaml
+
     # call(KUBECONFIG_REMOVAL_COMMAND, timeout=None)
 
     if cluster_type == 'gke':
