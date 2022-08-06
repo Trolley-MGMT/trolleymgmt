@@ -42,6 +42,14 @@ jobs:
           aws eks --region ${{ github.event.client_payload.region_name }} update-kubeconfig --name ${{ github.event.client_payload.cluster_name }}
           cat /home/runner/.kube/config
       - name: Post Deployment Tasks
+        env:
+          MONGO_USER: ${{ secrets.MONGO_USER }}
+          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+          PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+          JENKINS_URL: ${{ secrets.JENKINS_URL }}
+          JENKINS_USER: ${{ secrets.JENKINS_USER }}
+
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
