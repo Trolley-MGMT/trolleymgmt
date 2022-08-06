@@ -61,10 +61,10 @@ jobs:
           python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id trolley --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name pavelzagalsky --zone_name asia-east1-b --helm_installs  ${{ github.event.client_payload.helm_installs }} --expiration_time 1
 #          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id trolley --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name pavelzagalsky --zone_name ${{ github.event.client_payload.zone_name }} --helm_installs 'sasi,keshet' --expiration_time 1
 
-#      - name: Deleting Cluster
-#        if: always()
-#        run: |
-#          gcloud beta container clusters delete ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --quiet
+      - name: Deleting Cluster
+        if: always()
+        run: |
+          gcloud beta container clusters delete ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --quiet
 
 
 #--project "boneseye" clusters create $CLUSTER_NAME --zone $ZONE_NAME --no-enable-basic-auth --cluster-version $CLUSTER_VERSION --release-channel "stable" --machine-type "e2-medium" --image-type $IMAGE_TYPE --disk-type "pd-standard" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" --max-pods-per-node "110" --num-nodes $NUM_NODES --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-ip-alias --network "projects/boneseye/global/networks/default" --subnetwork "projects/boneseye/regions/$REGION_NAME/subnetworks/default" --no-enable-intra-node-visibility --default-max-pods-per-node "110" --no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes --node-locations $ZONE_NAME
