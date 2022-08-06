@@ -28,6 +28,9 @@ else:
     PROJECT_ID = os.environ['PROJECT_ID']
     JENKINS_URL = os.environ['JENKINS_URL']
     JENKINS_USER = os.environ['JENKINS_USER']
+    PROJECT_NAME = os.environ['PROJECT_NAME']
+    MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
+    MONGO_USER = os.environ['MONGO_PASSWORD']
 
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')

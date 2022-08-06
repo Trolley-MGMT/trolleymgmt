@@ -58,11 +58,6 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
-          ls -l
-          cd variables
-          ls
-          pwd
-          cd ..
           python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id trolley --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name pavelzagalsky --zone_name asia-east1-b --helm_installs  ${{ github.event.client_payload.helm_installs }} --expiration_time 1
 #          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id trolley --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name pavelzagalsky --zone_name ${{ github.event.client_payload.zone_name }} --helm_installs 'sasi,keshet' --expiration_time 1
 
