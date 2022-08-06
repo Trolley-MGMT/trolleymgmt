@@ -18,7 +18,6 @@ class GKEObject:
     kubeconfig: str
     nodes_names: list
     nodes_ips: list
-    jenkins_build_url: str
     created_timestamp: int
     human_created_timestamp: str
     expiration_timestamp: int
@@ -37,7 +36,6 @@ class GKEAutopilotObject:
     kubeconfig: str
     nodes_names: list
     nodes_ips: list
-    jenkins_build_url: str
     created_timestamp: int
     human_created_timestamp: str
     expiration_timestamp: int
@@ -56,7 +54,6 @@ class EKSObject:
     kubeconfig: str
     nodes_names: list
     nodes_ips: list
-    jenkins_build_url: str
     created_timestamp: int
     human_created_timestamp: str
     expiration_timestamp: int
@@ -75,7 +72,6 @@ class AKSObject:
     nodes_names: list
     nodes_ips: list
     resource_group: str
-    jenkins_build_url: str
     created_timestamp: int
     human_created_timestamp: str
     expiration_timestamp: int

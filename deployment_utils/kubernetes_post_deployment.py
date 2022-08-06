@@ -45,25 +45,14 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 if 'Darwin' in platform.system():
-    JENKINS_BUILD_URL = f'{JENKINS_URL}/job/gke_deployment/5/console'
-    WORKSPACE = '/var/lib/jenkins/workspace/gke_deployment'
-    CURRENT_DIR = os.getcwd()
-    CLUSTER_NAME_FILE_PATH = f'{CURRENT_DIR}/cluster_name_file_path'
-    OBJECT_ID_FILE_PATH = f'{CURRENT_DIR}/object_id'
     KUBECONFIG_LOCATION = f'/Users/{getpass.getuser()}/.kube/config'
     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
     KUBECTL_COMMAND = 'kubectl'
     HELM_COMMAND = '/opt/homebrew/bin/helm'
 
 else:
-    JENKINS_BUILD_URL = os.getenv('BUILD_URL')
-    WORKSPACE = os.getenv('WORKSPACE')
     HOME = os.getenv('HOME')
     SLACK_USER = os.getenv('BUILD_USER_ID')
-    CLUSTER_NAME_FILE_PATH = 'MEH'
-    # CLUSTER_NAME_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/cluster_name_file_path'
-    OBJECT_ID_FILE_PATH = 'MEH2'
-    # OBJECT_ID_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/object_id'
     KUBECONFIG_LOCATION = os.environ["KUBECONFIG"]
     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
     KUBECTL_COMMAND = 'kubectl'
@@ -170,8 +159,7 @@ def main(cluster_type: str = '', project_id: str = '', user_name: str = '', clus
 
     if cluster_type == GKE:
         gke_deployment_object = GKEObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
-                                          nodes_names=nodes_names, nodes_ips=nodes_ips,
-                                          jenkins_build_url=JENKINS_BUILD_URL, project_id=project_id,
+                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_id=project_id,
                                           zone_name=zone_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
@@ -182,8 +170,7 @@ def main(cluster_type: str = '', project_id: str = '', user_name: str = '', clus
     elif cluster_type == GKE_AUTOPILOT:
         gke_autopilot_deployment_object = GKEAutopilotObject(
             cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig, nodes_names=nodes_names,
-            nodes_ips=nodes_ips,
-            jenkins_build_url=JENKINS_BUILD_URL, project_id=project_id,
+            nodes_ips=nodes_ips, project_id=project_id,
             zone_name=zone_name, region_name=region_name,
             created_timestamp=timestamp,
             human_created_timestamp=human_created_timestamp,
@@ -194,8 +181,7 @@ def main(cluster_type: str = '', project_id: str = '', user_name: str = '', clus
                               gke_deployment_object=asdict(gke_autopilot_deployment_object))
     elif cluster_type == EKS:
         eks_deployment_object = EKSObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
-                                          nodes_names=nodes_names, nodes_ips=nodes_ips,
-                                          jenkins_build_url=JENKINS_BUILD_URL, project_id=project_id,
+                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_id=project_id,
                                           zone_name=zone_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
@@ -206,7 +192,6 @@ def main(cluster_type: str = '', project_id: str = '', user_name: str = '', clus
     elif cluster_type == AKS:
         aks_deployment_object = AKSObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
                                           nodes_names=nodes_names, nodes_ips=nodes_ips, resource_group=resource_group,
-                                          jenkins_build_url=JENKINS_BUILD_URL,
                                           zone_name=zone_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
