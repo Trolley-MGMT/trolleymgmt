@@ -45,6 +45,9 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
-          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id trolley --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name pavelzagalsky --zone_name asia-east1-b --helm_installs  ${{ github.event.client_payload.helm_installs }} --expiration_time 1
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_id trolley --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name pavelzagalsky --zone_name ${{ github.event.client_payload.zone_names }} --helm_installs  ${{ github.event.client_payload.helm_installs }} --expiration_time 1
 
-#          aws eks create-cluster --region ${{ github.event.client_payload.region_name }} --name ${{ github.event.client_payload.cluster_name }} --kubernetes-version ${{ github.event.client_payload.cluster_version }} --role-arn arn:aws:iam::553159257253:role/pavel-eks-1 --resources-vpc-config subnetIds=${{ github.event.client_payload.subnets }}
+      - name: Deleting Cluster
+        if: always()
+        run: |
+          eksctl delete cluster --region=--zone ${{ github.event.client_payload.zone_name }} --name=${{ github.event.client_payload.cluster_name }}
