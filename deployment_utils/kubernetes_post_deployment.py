@@ -61,7 +61,7 @@ else:
     # CLUSTER_NAME_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/cluster_name_file_path'
     OBJECT_ID_FILE_PATH = 'MEH2'
     # OBJECT_ID_FILE_PATH = f'{JENKINS_HOME}/jobs/{JOB_NAME}/builds/{BUILD_ID}/object_id'
-    KUBECONFIG_LOCATION = '/tmp/kubeconfig'
+    KUBECONFIG_LOCATION = os.environ["KUBECONFIG"]
     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
     KUBECTL_COMMAND = 'kubectl'
     HELM_COMMAND = 'helm'
@@ -73,7 +73,7 @@ def generate_kubeconfig(cluster_type: str = '', project_id: str = '', cluster_na
     This function generates a kubeconfig_yaml for the created GKE cluster
     @return:
     """
-    if 'darwin' not in platform.system():
+    if 'Darwin' not in platform.system():
         with open(KUBECONFIG_LOCATION, "r") as f:
             kubeconfig_yaml = f.read()
         return kubeconfig_yaml
@@ -102,7 +102,7 @@ def generate_kubeconfig(cluster_type: str = '', project_id: str = '', cluster_na
         command = [KUBECTL_COMMAND, 'get', 'pods', '--all-namespaces', '--insecure-skip-tls-verify=true']
         call(command, timeout=None)
 
-    with open(os.environ["KUBECONFIG"], "r") as f:
+    with open(KUBECONFIG_LOCATION, "r") as f:
         kubeconfig_yaml = f.read()
     return kubeconfig_yaml
 

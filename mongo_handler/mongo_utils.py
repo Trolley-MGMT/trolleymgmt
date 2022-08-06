@@ -42,6 +42,7 @@ else:
 
 client = MongoClient(JENKINS_URL, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
 db = client[PROJECT_NAME]
+print(db.list_collection_names())
 gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
