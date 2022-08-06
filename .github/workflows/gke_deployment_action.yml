@@ -27,6 +27,7 @@ jobs:
         uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
+          
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
@@ -40,11 +41,6 @@ jobs:
           gcloud container clusters get-credentials ${{ github.event.client_payload.cluster_name }} --region ${{ github.event.client_payload.zone_name }} --project boneseye
           cat /tmp/kubeconfig
 
-      - id: 'get-credentials'
-        uses: 'google-github-actions/get-gke-credentials@v0'
-        with:
-          cluster_name: ${{ github.event.client_payload.cluster_name }}
-          location: ${{ github.event.client_payload.zone_name }}
 
       - name: Post Deployment Tasks
         env:
