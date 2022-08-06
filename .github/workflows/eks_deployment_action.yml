@@ -36,11 +36,15 @@ jobs:
           aws-region: us-east-1
       - name: Trigger EKS Build
         run: |
-          pip install -e mongo_handler/
-          pip install -e variables/
           aws sts get-caller-identity
           brew install eksctl
           eksctl create cluster --region=${{ github.event.client_payload.region_name }} --zones=${{ github.event.client_payload.zone_names }} --name ${{ github.event.client_payload.cluster_name }} --version ${{ github.event.client_payload.cluster_version }} --nodes ${{ github.event.client_payload.num_nodes }}
           aws eks --region ${{ github.event.client_payload.region_name }} update-kubeconfig --name ${{ github.event.client_payload.cluster_name }}
           cat /home/runner/.kube/config
+      - name: Post Deployment Tasks
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          pip3 install -r requirements.txt
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_id trolley --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name pavelzagalsky --zone_name asia-east1-b --helm_installs  ${{ github.event.client_payload.helm_installs }} --expiration_time 1
+
 #          aws eks create-cluster --region ${{ github.event.client_payload.region_name }} --name ${{ github.event.client_payload.cluster_name }} --kubernetes-version ${{ github.event.client_payload.cluster_version }} --role-arn arn:aws:iam::553159257253:role/pavel-eks-1 --resources-vpc-config subnetIds=${{ github.event.client_payload.subnets }}
