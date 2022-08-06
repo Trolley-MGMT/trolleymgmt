@@ -13,15 +13,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Generate UUID
-        run: |
-          uuidgen > uuid
-          ls -la
-          pwd
-          echo "uuid=$(cat uuid)" >> $GITHUB_ENV
-      - name: Echo the values
-        run: |
-          echo "${{ env.uuid }}"
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
