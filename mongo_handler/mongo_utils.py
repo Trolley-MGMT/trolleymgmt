@@ -38,7 +38,7 @@ else:
     JENKINS_USER = os.environ['JENKINS_USER']
     PROJECT_NAME = os.environ['PROJECT_NAME']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
-    MONGO_USER = os.environ['MONGO_PASSWORD']
+    MONGO_USER = os.environ['MONGO_USER']
 
 client = MongoClient(JENKINS_URL, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
 db = client[PROJECT_NAME]
