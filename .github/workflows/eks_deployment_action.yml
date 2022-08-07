@@ -30,6 +30,7 @@ jobs:
           aws-region: us-east-1
       - name: Trigger EKS Build
         run: |
+          export KUBECONFIG=/home/runner/.kube/config
           aws sts get-caller-identity
           brew install eksctl
           eksctl create cluster --region=${{ github.event.client_payload.region_name }} --zones=${{ github.event.client_payload.zone_names }} --name ${{ github.event.client_payload.cluster_name }} --version ${{ github.event.client_payload.cluster_version }} --nodes ${{ github.event.client_payload.num_nodes }}
