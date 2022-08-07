@@ -59,14 +59,17 @@ else:
     HELM_COMMAND = 'helm'
 
 
-def generate_kubeconfig(cluster_type: str = '', project_id: str = '', cluster_name: str = '', zone_name: str = '',
+def generate_kubeconfig(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = '', cluster_name: str = '', zone_name: str = '',
                         region_name: str = '', resource_group: str = '') -> str:
     """
     This function generates a kubeconfig_yaml for the created GKE cluster
     @return:
     """
+    if not kubeconfig_path:
+        kubeconfig_path = os.getenv(KUBECONFIG_LOCATION)
+    print(f'The kubeconfig path is: {kubeconfig_path}')
     if 'Darwin' not in platform.system():
-        with open(KUBECONFIG_LOCATION, "r") as f:
+        with open(kubeconfig_path, "r") as f:
             kubeconfig_yaml = f.read()
         return kubeconfig_yaml
 
@@ -94,7 +97,7 @@ def generate_kubeconfig(cluster_type: str = '', project_id: str = '', cluster_na
         command = [KUBECTL_COMMAND, 'get', 'pods', '--all-namespaces', '--insecure-skip-tls-verify=true']
         call(command, timeout=None)
 
-    with open(KUBECONFIG_LOCATION, "r") as f:
+    with open(kubeconfig_path, "r") as f:
         kubeconfig_yaml = f.read()
     return kubeconfig_yaml
 
@@ -126,9 +129,10 @@ def get_cluster_version() -> str:
     return cluster_version
 
 
-def main(cluster_type: str = '', project_id: str = '', user_name: str = '', cluster_name: str = '', zone_name: str = '',
+def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = '', user_name: str = '',
+         cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = '', helm_installs: str = '', resource_group=''):
-    kubeconfig = generate_kubeconfig(cluster_type=cluster_type, project_id=project_id, cluster_name=cluster_name,
+    kubeconfig = generate_kubeconfig(kubeconfig_path=kubeconfig_path, cluster_type=cluster_type, project_id=project_id, cluster_name=cluster_name,
                                      zone_name=zone_name, region_name=region_name, resource_group=resource_group)
 
     if ',' in helm_installs:
@@ -214,7 +218,8 @@ if __name__ == '__main__':
     parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
     parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
     args = parser.parse_args()
-    main(cluster_type=args.cluster_type, project_id=args.project_id, user_name=args.user_name,
+    main(kubeconfig_path=args.kubeconfig_path, cluster_type=args.cluster_type, project_id=args.project_id,
+         user_name=args.user_name,
          cluster_name=args.cluster_name,
          region_name=args.region_name, zone_name=args.zone_name, expiration_time=args.expiration_time,
          helm_installs=args.helm_installs,
