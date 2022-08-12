@@ -29,8 +29,8 @@ jobs:
             az aks get-credentials --name ${{ github.event.client_payload.cluster_name }} --overwrite-existing --resource-group myResourceGroup
             cat ~/.kube/config
             export KUBECONFIG=$(cat ~/.kube/config)
-#            cp ~/.kube/config /tmp/kubeconfig
-#            cat /tmp/kubeconfig
+            echo $KUBECONFIG >> $GITHUB_ENV
+
 
       - name: Post Deployment Tasks
         env:
@@ -40,7 +40,7 @@ jobs:
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           JENKINS_URL: ${{ secrets.JENKINS_URL }}
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
-          KUBECONFIG: '/tmp/kubeconfig'
+          KUBECONFIG: $KUBECONFIG
 
         run: |
             echo $KUBECONFIG >> /tmp/kubeconfig
