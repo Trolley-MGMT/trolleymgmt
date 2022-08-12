@@ -1,0 +1,32 @@
+name: EKS Deletion
+on:
+  repository_dispatch:
+    types: eks-build-api-trigger
+
+jobs:
+  delete_eks_build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Echo the values
+        run: |
+          echo "${{ github.event.client_payload.cluster_version }}"
+          echo "${{ github.event.client_payload.region_name }}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deleting Cluster
+        if: always()
+        run: |
+          eksctl delete cluster --region=${{ github.event.client_payload.region_name }} --name=${{ github.event.client_payload.cluster_name }}

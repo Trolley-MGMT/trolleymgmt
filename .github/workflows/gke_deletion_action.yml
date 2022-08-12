@@ -1,0 +1,36 @@
+name: GKE Deployment
+on:
+  repository_dispatch:
+    types: gke-build-api-trigger
+
+jobs:
+  testing_actions:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+
+      - name: Echo the values
+        run: |
+          echo "${{ github.event.client_payload.cluster_name }}"
+          echo "${{ github.event.client_payload.zone_name }}"
+
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+
+
+      - name: Deleting Cluster
+        if: always()
+        run: |
+          gcloud beta container clusters delete ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --quiet
