@@ -24,6 +24,7 @@ if MACOS in platform.platform():
     PROJECT_ID = config['DEFAULT']['project_id']
     JENKINS_URL = config['DEFAULT']['jenkins_url']
     JENKINS_USER = config['DEFAULT']['jenkins_user']
+    HELM_COMMAND = '/opt/homebrew/bin/helm'
 else:
     PROJECT_ID = os.environ['PROJECT_ID']
     JENKINS_URL = os.environ['JENKINS_URL']
@@ -31,9 +32,11 @@ else:
     PROJECT_NAME = os.environ['PROJECT_NAME']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
+    KUBECONFIG = os.environ['KUBECONFIG']
 
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
+KUBECTL_COMMAND = 'kubectl'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -44,29 +47,29 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-if 'Darwin' in platform.system():
-    KUBECONFIG_LOCATION = f'/Users/{getpass.getuser()}/.kube/config'
-    KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
-    KUBECTL_COMMAND = 'kubectl'
-    HELM_COMMAND = '/opt/homebrew/bin/helm'
 
-else:
-    HOME = os.getenv('HOME')
-    SLACK_USER = os.getenv('BUILD_USER_ID')
-    KUBECONFIG_LOCATION = os.environ["KUBECONFIG"]
-    KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
-    KUBECTL_COMMAND = 'kubectl'
-    HELM_COMMAND = 'helm'
+# if 'Darwin' in platform.system():
+#     KUBECONFIG_LOCATION = f'/Users/{getpass.getuser()}/.kube/config'
+#     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
+#     KUBECTL_COMMAND = 'kubectl'
+
+#
+# else:
+#     HOME = os.getenv('HOME')
+#     SLACK_USER = os.getenv('BUILD_USER_ID')
+#     KUBECONFIG_LOCATION = os.environ["KUBECONFIG"]
+#     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
 
 
-def generate_kubeconfig(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = '', cluster_name: str = '', zone_name: str = '',
+def generate_kubeconfig(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = '', cluster_name: str = '',
+                        zone_name: str = '',
                         region_name: str = '', resource_group: str = '') -> str:
     """
     This function generates a kubeconfig_yaml for the created GKE cluster
     @return:
     """
     if not kubeconfig_path:
-        kubeconfig_path = os.getenv(KUBECONFIG_LOCATION)
+        kubeconfig_path = os.environ["KUBECONFIG"]
     print(f'The kubeconfig path is: {kubeconfig_path}')
     if 'Darwin' not in platform.system():
         with open(kubeconfig_path, "r") as f:
@@ -132,7 +135,8 @@ def get_cluster_version() -> str:
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = '', helm_installs: str = '', resource_group=''):
-    kubeconfig = generate_kubeconfig(kubeconfig_path=kubeconfig_path, cluster_type=cluster_type, project_id=project_id, cluster_name=cluster_name,
+    kubeconfig = generate_kubeconfig(kubeconfig_path=kubeconfig_path, cluster_type=cluster_type, project_id=project_id,
+                                     cluster_name=cluster_name,
                                      zone_name=zone_name, region_name=region_name, resource_group=resource_group)
 
     if ',' in helm_installs:
@@ -218,6 +222,7 @@ if __name__ == '__main__':
     parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
     parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
     args = parser.parse_args()
+    print(f'kubeconfig path is: {KUBECONFIG}')
     main(cluster_type=args.cluster_type, project_id=args.project_id,
          user_name=args.user_name,
          cluster_name=args.cluster_name,
