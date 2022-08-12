@@ -31,7 +31,7 @@ jobs:
         run: |
             az aks get-credentials --name ${{ github.event.client_payload.cluster_name }} --overwrite-existing --resource-group myResourceGroup
             cat ~/.kube/config
-            echo "shit=fuck" >> $GITHUB_ENV
+            echo "action_state=yellow" >> $GITHUB_ENV
 
       - name: Post Deployment Tasks
         env:
@@ -44,7 +44,7 @@ jobs:
           KUBECONFIG: $KUBECONFIG
 
         run: |
-            echo "${{ env.shit }}"
+            echo "${{ env.action_state }}"
             export PYTHONPATH=$PYTHONPATH:.
             pip3 install -r requirements.txt
             python3 deployment_utils/kubernetes_post_deployment.py --cluster_type aks --project_id trolley --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name pavelzagalsky --resource_group myResourceGroup --helm_installs  ${{ github.event.client_payload.helm_installs }} --expiration_time ${{ github.event.client_payload.expiration_time }}
