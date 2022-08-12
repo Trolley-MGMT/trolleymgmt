@@ -224,8 +224,12 @@ if __name__ == '__main__':
     parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
     parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
     args = parser.parse_args()
-    print(f'KUBECONFIG_TEXT  is: {KUBECONFIG_TEXT}')
-    print(f'kubeconfig path is: {KUBECONFIG}')
+    with open('/tmp/kubeconfig', "r") as f:
+        kubeconfig_yaml = f.read()
+        print(kubeconfig_yaml)
+
+    # print(f'KUBECONFIG_TEXT  is: {KUBECONFIG_TEXT}')
+    # print(f'kubeconfig path is: {KUBECONFIG}')
     main(cluster_type=args.cluster_type, project_id=args.project_id,
          user_name=args.user_name,
          cluster_name=args.cluster_name,
