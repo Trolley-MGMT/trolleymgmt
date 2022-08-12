@@ -33,7 +33,6 @@ else:
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
     KUBECONFIG = os.environ['KUBECONFIG']
-    KUBECONFIG_TEXT = os.environ['KUBECONFIG_TEXT']
 
 
 JOB_NAME = os.getenv('JOB_NAME')
@@ -228,8 +227,6 @@ if __name__ == '__main__':
         kubeconfig_yaml = f.read()
         print(kubeconfig_yaml)
 
-    # print(f'KUBECONFIG_TEXT  is: {KUBECONFIG_TEXT}')
-    # print(f'kubeconfig path is: {KUBECONFIG}')
     main(cluster_type=args.cluster_type, project_id=args.project_id,
          user_name=args.user_name,
          cluster_name=args.cluster_name,
