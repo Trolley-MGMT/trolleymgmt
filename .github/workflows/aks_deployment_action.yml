@@ -31,7 +31,7 @@ jobs:
         run: |
             az aks get-credentials --name ${{ github.event.client_payload.cluster_name }} --overwrite-existing --resource-group myResourceGroup
             cat ~/.kube/config
-            echo "kubeconfig=~/.kube/config" >> $GITHUB_ENV
+#            echo "kubeconfig=~/.kube/config" >> $GITHUB_ENV
             echo "kubeconfig_content=$(cat ~/.kube/config)" >> $GITHUB_ENV
 
       - name: Post Deployment Tasks
