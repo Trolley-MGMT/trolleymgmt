@@ -44,6 +44,7 @@ config.read(config_ini_file)
 #     config.read(f'{CUR_DIR}/config.ini')
 #     HELM_COMMAND = '/snap/bin/helm'
 
+GITHUB_ACTIONS_API_URL = 'https://api.github.com/repos/LiorYardeni/trolley/dispatches'
 AKS_LOCATIONS_COMMAND = 'az account list-locations'
 GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
 GKE_REGIONS_COMMAND = 'gcloud compute regions list --format json'
@@ -220,7 +221,7 @@ def trigger_gke_build_github_action(user_name: str = '',
                            "expiration_time": expiration_time}
     }
 
-    response = requests.post('https://api.github.com/repos/LiorYardeni/trolley/dispatches',
+    response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
     print(response)
 
@@ -332,7 +333,7 @@ def trigger_eks_build_github_action(user_name: str = '',
                            "expiration_time": expiration_time,
                            "subnets": ",".join(eks_subnets)}
     }
-    response = requests.post('https://api.github.com/repos/LiorYardeni/trolley/dispatches',
+    response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
     print(response)
 
@@ -430,7 +431,7 @@ def trigger_aks_build_github_action(user_name: str = '',
                            "helm_installs": helm_installs,
                            "expiration_time": expiration_time}
     }
-    response = requests.post('https://api.github.com/repos/LiorYardeni/trolley/dispatches',
+    response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
     print(response)
 
@@ -440,18 +441,17 @@ def delete_gke_cluster(cluster_name: str = ''):
     @param cluster_name: from built clusters list
     @return:
     """
-    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
     gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name)
     gke_cluster_zone = gke_cluster_details[ZONE_NAME.lower()]
-    try:
-        job_id = server.build_job(name=JENKINS_DELETE_GKE_JOB, parameters={
-            CLUSTER_NAME: cluster_name,
-            ZONE_NAME: gke_cluster_zone,
-        })
-        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_GKE_JOB}')
-        return 'OK'
-    except:
-        return 'fail'
+
+    json_data = {
+        "event_type": "gke-delete-api-trigger",
+        "client_payload": {"cluster_name": cluster_name,
+                           "zone_names": gke_cluster_zone}
+    }
+    response = requests.post(GITHUB_ACTIONS_API_URL,
+                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+    print(response)
 
 
 def delete_eks_cluster(cluster_name: str = '', region: str = '', cloud_provider: str = '', cluster_type: str = ''):
@@ -482,15 +482,13 @@ def delete_aks_cluster(cluster_name: str = '', cluster_type: str = ''):
     @param cluster_type: required param for deletion command
     @return:
     """
-    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
-    try:
-        job_id = server.build_job(name=JENKINS_DELETE_AKS_JOB, parameters={
-            CLUSTER_NAME: cluster_name,
-        })
-        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_AKS_JOB}')
-        return 'OK'
-    except:
-        return 'fail'
+    json_data = {
+        "event_type": "aks-delete-api-trigger",
+        "client_payload": {"cluster_name": cluster_name}
+    }
+    response = requests.post(GITHUB_ACTIONS_API_URL,
+                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+    print(response)
 
 
 def render_page(page_name: str = ''):
