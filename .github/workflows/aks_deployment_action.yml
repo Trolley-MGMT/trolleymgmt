@@ -26,7 +26,7 @@ jobs:
           inlineScript: |
             az account show
             az aks create --resource-group myResourceGroup --location ${{ github.event.client_payload.aks_location }} --name ${{ github.event.client_payload.cluster_name }} --node-count ${{ github.event.client_payload.num_nodes }} --enable-addons monitoring --generate-ssh-keys --kubernetes-version 1.24.0
-            az aks get-credentials kubeconfig
+            az aks get-credentials --name ${{ github.event.client_payload.cluster_name }} --overwrite-existing --resource-group myResourceGroup
             export KUBECONFIG=~/.kube/config
             cat ~/.kube/config
 
