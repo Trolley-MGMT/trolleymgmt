@@ -413,6 +413,28 @@ def trigger_aks_build_jenkins(
         return 'fail'
 
 
+def trigger_aks_build_github_action(user_name: str = '',
+                                    version: str = '',
+                                    eks_location: str = '',
+                                    aks_location: str = None,
+                                    num_nodes: int = '',
+                                    helm_installs: list = '',
+                                    expiration_time: int = ''):
+    cluster_name = f'{user_name}-aks-{random_string(5)}'
+    json_data = {
+        "event_type": "aks-build-api-trigger",
+        "client_payload": {"cluster_name": cluster_name,
+                           "cluster_version": version,
+                           "aks_location": aks_location,
+                           "num_nodes": num_nodes,
+                           "helm_installs": helm_installs,
+                           "expiration_time": expiration_time}
+    }
+    response = requests.post('https://api.github.com/repos/LiorYardeni/trolley/dispatches',
+                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+    print(response)
+
+
 def delete_gke_cluster(cluster_name: str = ''):
     """
     @param cluster_name: from built clusters list
@@ -521,7 +543,8 @@ def trigger_aks_deployment():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
-    trigger_aks_build_jenkins(**content)
+    trigger_aks_build_github_action(**content)
+    # trigger_aks_build_jenkins(**content)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
