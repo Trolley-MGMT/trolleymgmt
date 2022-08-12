@@ -33,6 +33,8 @@ else:
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
     KUBECONFIG = os.environ['KUBECONFIG']
+    KUBECONFIG_TEXT = os.environ['KUBECONFIG_TEXT']
+
 
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
@@ -222,6 +224,7 @@ if __name__ == '__main__':
     parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
     parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
     args = parser.parse_args()
+    print(f'KUBECONFIG_TEXT  is: {KUBECONFIG_TEXT}')
     print(f'kubeconfig path is: {KUBECONFIG}')
     main(cluster_type=args.cluster_type, project_id=args.project_id,
          user_name=args.user_name,
