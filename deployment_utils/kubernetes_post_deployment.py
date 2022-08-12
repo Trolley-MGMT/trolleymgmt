@@ -226,7 +226,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open('/tmp/kubeconfig', "r") as f:
         kubeconfig_yaml = f.read()
-        print(kubeconfig_yaml)
+        print(f'The kubeconfig content is: {kubeconfig_yaml}')
 
     main(cluster_type=args.cluster_type, project_id=args.project_id,
          user_name=args.user_name,
