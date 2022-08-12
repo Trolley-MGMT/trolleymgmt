@@ -1,6 +1,6 @@
 .idea
 .DS_Store
-config.ini
 trolley.log
 docker-compose.yml
 Dockerfile
+*.ini

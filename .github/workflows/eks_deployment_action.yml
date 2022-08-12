@@ -45,7 +45,7 @@ jobs:
           JENKINS_URL: ${{ secrets.JENKINS_URL }}
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
           KUBECONFIG: /home/runner/.kube/config
-          
+
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
