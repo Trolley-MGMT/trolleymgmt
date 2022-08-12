@@ -21,7 +21,8 @@ from utils import random_string
 from mongo_handler.mongo_utils import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
     insert_user, retrieve_user, retrieve_cluster_details, retrieve_gke_cache
 from mongo_handler.mongo_objects import UserObject
-from variables.variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, IMAGE_TYPE, \
+from variables.variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, \
+    IMAGE_TYPE, \
     NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES
@@ -215,7 +216,8 @@ def trigger_gke_build_github_action(user_name: str = '',
                            "zone_name": gke_zone,
                            "region_name": gke_region,
                            "num_nodes": num_nodes,
-                           "helm_installs": helm_installs}
+                           "helm_installs": helm_installs,
+                           "expiration_time": expiration_time}
     }
 
     response = requests.post('https://api.github.com/repos/LiorYardeni/trolley/dispatches',
@@ -326,6 +328,8 @@ def trigger_eks_build_github_action(user_name: str = '',
                            "region_name": eks_location,
                            "zone_names": ",".join(eks_zones),
                            "num_nodes": num_nodes,
+                           "helm_installs": helm_installs,
+                           "expiration_time": expiration_time,
                            "subnets": ",".join(eks_subnets)}
     }
     response = requests.post('https://api.github.com/repos/LiorYardeni/trolley/dispatches',
@@ -509,7 +513,6 @@ def trigger_eks_deployment():
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     trigger_eks_build_github_action(**content)
-    # trigger_eks_build_jenkins(**content)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
