@@ -44,7 +44,7 @@ jobs:
           KUBECONFIG: $KUBECONFIG
 
         run: |
-            echo "${{ env.kubeconfig }}"
+            cat "${{ env.kubeconfig }}"
             echo ${{ env.kubeconfig }} >> /tmp/kubeconfig
             cat  /tmp/kubeconfig
             export PYTHONPATH=$PYTHONPATH:.
