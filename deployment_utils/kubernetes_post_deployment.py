@@ -75,6 +75,7 @@ def generate_kubeconfig(kubeconfig_path: str = '', cluster_type: str = '', proje
     if 'Darwin' not in platform.system():
         with open(kubeconfig_path, "r") as f:
             kubeconfig_yaml = f.read()
+            print(f'The kubeconfig content is: {kubeconfig_yaml}')
         return kubeconfig_yaml
 
     # call(KUBECONFIG_REMOVAL_COMMAND, timeout=None)
