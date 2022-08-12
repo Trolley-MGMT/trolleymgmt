@@ -218,7 +218,7 @@ if __name__ == '__main__':
     parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
     parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
     args = parser.parse_args()
-    main(kubeconfig_path=args.kubeconfig_path, cluster_type=args.cluster_type, project_id=args.project_id,
+    main(cluster_type=args.cluster_type, project_id=args.project_id,
          user_name=args.user_name,
          cluster_name=args.cluster_name,
          region_name=args.region_name, zone_name=args.zone_name, expiration_time=args.expiration_time,
