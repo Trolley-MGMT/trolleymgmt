@@ -39,7 +39,7 @@ jobs:
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           JENKINS_URL: ${{ secrets.JENKINS_URL }}
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
-          KUBECONFIG: '/tmp/kubeconfig'
+          KUBECONFIG_TEXT: $(cat /tmp/kubeconfig)
 
         run: |
             export PYTHONPATH=$PYTHONPATH:.
