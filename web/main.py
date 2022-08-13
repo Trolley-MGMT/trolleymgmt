@@ -442,12 +442,12 @@ def delete_gke_cluster(cluster_name: str = ''):
     @return:
     """
     gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name)
-    gke_cluster_zone = gke_cluster_details[ZONE_NAME.lower()]
+    gke_cluster_region = gke_cluster_details[REGION_NAME.lower()]
 
     json_data = {
         "event_type": "gke-delete-api-trigger",
         "client_payload": {"cluster_name": cluster_name,
-                           "zone_names": gke_cluster_zone}
+                           "region_name": gke_cluster_region}
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
@@ -541,7 +541,6 @@ def trigger_aks_deployment():
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     trigger_aks_build_github_action(**content)
-    # trigger_aks_build_jenkins(**content)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 

@@ -24,6 +24,6 @@ pip3 install -r $WORKSPACE/requirements.txt
 
 # Running gke_cache script
 echo "Running python3 $WORKSPACE/scripts/gke_caching_script.py"
-python3 $WORKSPACE/scripts/gke_caching_script.py
+python3 $WORKSPACE/web/scripts/gke_caching_script.py
 
 rm -R $WORKSPACE/$RANDOM_VENV
