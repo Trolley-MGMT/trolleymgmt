@@ -18,7 +18,7 @@ jobs:
       - name: Echo the values
         run: |
           echo "${{ github.event.client_payload.cluster_name }}"
-          echo "${{ github.event.client_payload.zone_name }}"
+          echo "${{ github.event.client_payload.region_name }}"
 
 
       - id: 'auth'
@@ -34,4 +34,4 @@ jobs:
         if: always()
         run: |
           gcloud components install beta --quiet
-          gcloud beta container clusters delete ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --quiet
+          gcloud beta container clusters delete ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.region_name }} --quiet
