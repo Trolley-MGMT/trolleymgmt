@@ -36,7 +36,7 @@ else:
     PROJECT_ID = 'boneseye'
     JENKINS_URL = os.environ['JENKINS_URL']
     JENKINS_USER = 'api-user'
-    PROJECT_NAME = os.environ['PROJECT_NAME']
+    PROJECT_NAME = 'boneseye'
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
 
