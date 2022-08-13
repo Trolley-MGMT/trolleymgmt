@@ -417,7 +417,6 @@ def trigger_aks_build_jenkins(
 
 def trigger_aks_build_github_action(user_name: str = '',
                                     version: str = '',
-                                    eks_location: str = '',
                                     aks_location: str = None,
                                     num_nodes: int = '',
                                     helm_installs: list = '',
