@@ -69,9 +69,9 @@ def generate_kubeconfig(kubeconfig_path: str = '', cluster_type: str = '', proje
     This function generates a kubeconfig_yaml for the created GKE cluster
     @return:
     """
-    # if not kubeconfig_path:
-    #     kubeconfig_path = os.environ["KUBECONFIG"]
-    # print(f'The kubeconfig path is: {kubeconfig_path}')
+    if not kubeconfig_path:
+        kubeconfig_path = os.environ["KUBECONFIG"]
+    print(f'The kubeconfig path is: {kubeconfig_path}')
     if 'Darwin' not in platform.system():
         with open(kubeconfig_path, "r") as f:
             kubeconfig_yaml = f.read()
