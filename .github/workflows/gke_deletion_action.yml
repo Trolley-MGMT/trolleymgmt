@@ -1,4 +1,4 @@
-name: GKE Deployment
+name: GKE Deletion
 on:
   repository_dispatch:
     types: gke-delete-api-trigger
