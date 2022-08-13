@@ -4,7 +4,7 @@ on:
     types: aks-build-api-trigger
 
 jobs:
-  testing_actions:
+  deploy-aks-cluster:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout Code
