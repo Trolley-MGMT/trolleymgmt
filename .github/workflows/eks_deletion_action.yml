@@ -4,7 +4,7 @@ on:
     types: eks-delete-api-trigger
 
 jobs:
-  delete_eks_build:
+  delete-eks-cluster:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout Code

@@ -4,7 +4,7 @@ on:
     types: gke-delete-api-trigger
 
 jobs:
-  testing_actions:
+  delete-gke-cluster:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout Code
@@ -33,4 +33,5 @@ jobs:
       - name: Deleting Cluster
         if: always()
         run: |
+          gcloud components install beta --quiet
           gcloud beta container clusters delete ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --quiet

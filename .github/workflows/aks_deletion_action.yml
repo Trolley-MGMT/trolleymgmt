@@ -4,7 +4,7 @@ on:
     types: aks-delete-api-trigger
 
 jobs:
-  testing_actions:
+  delete-aks-cluster:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout Code
