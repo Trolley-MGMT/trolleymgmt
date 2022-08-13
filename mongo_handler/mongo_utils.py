@@ -33,7 +33,7 @@ if MACOS in platform.platform():
     MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
     MONGO_USER = os.getenv('MONGO_USER')
 else:
-    PROJECT_ID = os.environ['PROJECT_ID']
+    PROJECT_ID = 'boneseye'
     JENKINS_URL = os.environ['JENKINS_URL']
     JENKINS_USER = os.environ['JENKINS_USER']
     PROJECT_NAME = os.environ['PROJECT_NAME']
