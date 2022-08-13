@@ -16,11 +16,12 @@ jobs:
 
       - name: Echo the values
         run: |
-          echo "${{ github.event.client_payload.cluster_name }}"
-          echo "${{ github.event.client_payload.cluster_version }}"
-          echo "${{ github.event.client_payload.zone_name }}"
-          echo "{{ github.event.client_payload.image_type }}"
-
+          echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
+          echo "cluster_version is: ${{ github.event.client_payload.cluster_version }}"
+          echo "zone_name is: ${{ github.event.client_payload.zone_name }}"
+          echo "image_type is: ${{ github.event.client_payload.image_type }}"
+          echo "helm_installs are: ${{ github.event.client_payload.helm_installs }}"
+          echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
