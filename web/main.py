@@ -442,12 +442,12 @@ def delete_gke_cluster(cluster_name: str = ''):
     @return:
     """
     gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name)
-    gke_cluster_region = gke_cluster_details[REGION_NAME.lower()]
+    gke_zone_name = gke_cluster_details[ZONE_NAME.lower()]
 
     json_data = {
         "event_type": "gke-delete-api-trigger",
         "client_payload": {"cluster_name": cluster_name,
-                           "region_name": gke_cluster_region}
+                           "zone_name": gke_zone_name}
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
