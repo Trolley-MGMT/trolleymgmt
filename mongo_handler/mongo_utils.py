@@ -35,7 +35,7 @@ if MACOS in platform.platform():
 else:
     PROJECT_ID = 'boneseye'
     JENKINS_URL = os.environ['JENKINS_URL']
-    JENKINS_USER = os.environ['JENKINS_USER']
+    JENKINS_USER = 'api-user'
     PROJECT_NAME = os.environ['PROJECT_NAME']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
