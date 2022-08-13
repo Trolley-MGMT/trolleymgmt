@@ -1,7 +1,7 @@
 name: GKE Deployment
 on:
   repository_dispatch:
-    types: gke-build-api-trigger
+    types: gke-delete-api-trigger
 
 jobs:
   testing_actions:

@@ -1,7 +1,7 @@
 name: EKS Deletion
 on:
   repository_dispatch:
-    types: eks-build-api-trigger
+    types: eks-delete-api-trigger
 
 jobs:
   delete_eks_build:

@@ -463,16 +463,15 @@ def delete_eks_cluster(cluster_name: str = '', region: str = '', cloud_provider:
     @param cluster_type:
     @return:
     """
-    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
-    try:
-        job_id = server.build_job(name=JENKINS_DELETE_EKS_JOB, parameters={
-            CLUSTER_NAME: cluster_name,
-            REGION_NAME: region,
-        })
-        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_DELETE_EKS_JOB}')
-        return 'OK'
-    except:
-        return 'fail'
+    eks_cluster_details = retrieve_cluster_details(cluster_type=EKS, cluster_name=cluster_name)
+    eks_cluster_region_name = eks_cluster_details[REGION_NAME.lower()]
+    json_data = {
+        "event_type": "eks-delete-api-trigger",
+        "client_payload": {"cluster_name": cluster_name, 'region_name': eks_cluster_region_name}
+    }
+    response = requests.post(GITHUB_ACTIONS_API_URL,
+                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+    print(response)
 
 
 def delete_aks_cluster(cluster_name: str = '', cluster_type: str = ''):
