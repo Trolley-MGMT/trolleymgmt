@@ -40,11 +40,11 @@ jobs:
 #          gcloud container clusters get-credentials ${{ github.event.client_payload.cluster_name }} --region ${{ github.event.client_payload.zone_name }} --project boneseye
 #          cat /tmp/kubeconfig
 
-      - id: 'get-credentials'
-        uses: 'google-github-actions/get-gke-credentials@v0'
-        with:
-          cluster_name: ${{ github.event.client_payload.cluster_name }}
-          location: ${{ github.event.client_payload.zone_name }}
+#      - id: 'get-credentials'
+#        uses: 'google-github-actions/get-gke-credentials@v0'
+#        with:
+#          cluster_name: ${{ github.event.client_payload.cluster_name }}
+#          location: ${{ github.event.client_payload.zone_name }}
 
       - name: Post Deployment Tasks
         env:
