@@ -3,7 +3,9 @@ import logging
 import os
 import platform
 import json
+
 from dataclasses import asdict
+import getpass as gt
 from subprocess import PIPE, run
 
 from mongo_handler.mongo_utils import insert_gke_cache
@@ -23,17 +25,18 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-if 'Darwin' in platform.system():
-    HELM_COMMAND = '/opt/homebrew/bin/helm'
-    GKE_VERSIONS_COMMAND = 'gcloud container get-server-config --zone='
-    GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
-    GKE_REGIONS_COMMAND = 'gcloud compute regions list --format json'
+LOCAL_USER = gt.getuser()
 
+if 'Darwin' in platform.system():
+    LOCAL_GCLOUD = f'/Users/{LOCAL_USER}/Downloads/google-cloud-sdk/bin/gcloud'
+    HELM_COMMAND = '/opt/homebrew/bin/helm'
 else:
+    LOCAL_GCLOUD = 'gcloud'
     HELM_COMMAND = 'helm'
-    GKE_VERSIONS_COMMAND = 'gcloud container get-server-config --zone='
-    GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
-    GKE_REGIONS_COMMAND = 'gcloud compute regions list --format json'
+
+GKE_VERSIONS_COMMAND = f'{LOCAL_GCLOUD} container get-server-config --zone='
+GKE_ZONES_COMMAND = f'{LOCAL_GCLOUD} compute zones list --format json'
+GKE_REGIONS_COMMAND = f'{LOCAL_GCLOUD} compute regions list --format json'
 
 
 def fetch_zones():
