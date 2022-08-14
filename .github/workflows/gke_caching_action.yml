@@ -1,7 +1,7 @@
 name: GKE Caching
 on:
-  workflow_dispatch:
-    types: gke-caching
+  schedule:
+    - cron: '* * * * *'
 
 jobs:
   gke-caching:
