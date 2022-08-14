@@ -1,6 +1,6 @@
 name: GKE Caching
 on:
-  repository_dispatch:
+  workflow_dispatch:
     types: gke-caching
 
 jobs:
