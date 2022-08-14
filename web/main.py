@@ -221,10 +221,13 @@ def trigger_gke_build_github_action(user_name: str = '',
                            "helm_installs": helm_installs,
                            "expiration_time": expiration_time}
     }
-
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
+    try:
+        r = requests.post(GITHUB_ACTIONS_API_URL,
+                          headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+        r.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(err)
+        raise SystemExit(err)
 
 
 def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAME,

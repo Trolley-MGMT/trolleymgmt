@@ -80,7 +80,7 @@ def fetch_gke_image_types(zones_list):
     image_types = result_jsond['validImageTypes']
     available_images = []
     for image in image_types:
-        if 'WINDOWS' not in image:  # There's a technical issue at the moment supporting Windows based nodes
+        if 'WINDOWS' or 'COS' not in image:  # There's a technical issue at the moment supporting Windows based nodes
             available_images.append(image)
     return available_images
 
