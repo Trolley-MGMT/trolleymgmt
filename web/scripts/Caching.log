@@ -1,0 +1,24 @@
+2022-08-14 08:38:38,146 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:38:38,147 - __main__ - INFO - Running a gcloud compute zones list --format json command
+2022-08-14 08:38:58,228 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:38:58,927 - __main__ - INFO - Running a gcloud compute zones list --format json command
+2022-08-14 08:39:10,085 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:40:40,639 - __main__ - INFO - Running a gcloud compute zones list --format json command
+2022-08-14 08:45:01,088 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:45:01,089 - __main__ - INFO - Running a gcloud compute zones list --format json command
+2022-08-14 08:49:24,996 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:49:24,996 - __main__ - INFO - Running a gcloud compute zones list --format json command
+2022-08-14 08:49:41,773 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:49:41,773 - __main__ - INFO - Running a gcloud compute zones list --format json command
+2022-08-14 08:50:18,336 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:50:18,336 - __main__ - INFO - Running a gcloud compute zones list --format json command
+2022-08-14 08:52:32,378 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:52:32,378 - __main__ - INFO - Running a /Users/pavelzagalsky/Downloads/google-cloud-sdk/bin/gcloud command
+2022-08-14 08:55:52,224 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:55:52,225 - __main__ - INFO - Running a /Users/pavelzagalsky/Downloads/google-cloud-sdk/bin/gcloud compute zones list --format json command
+2022-08-14 08:56:14,133 - __main__ - INFO - A request to fetch zones has arrived
+2022-08-14 08:56:14,133 - __main__ - INFO - Running a /Users/pavelzagalsky/Downloads/google-cloud-sdk/bin/gcloud compute regions list --format json command
+2022-08-14 08:56:16,620 - __main__ - INFO - A request to fetch helm installs
+2022-08-14 08:56:16,620 - __main__ - INFO - Running a /opt/homebrew/bin/helm search repo stable -o json command
+2022-08-14 08:56:18,446 - __main__ - INFO - Running a /Users/pavelzagalsky/Downloads/google-cloud-sdk/bin/gcloud container get-server-config --zone=us-west4-c --format json command
+2022-08-14 08:56:20,268 - __main__ - INFO - Running a /Users/pavelzagalsky/Downloads/google-cloud-sdk/bin/gcloud container get-server-config --zone=us-west4-c --format json command

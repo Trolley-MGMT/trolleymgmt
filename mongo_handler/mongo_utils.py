@@ -25,7 +25,7 @@ gke_cache: Collection = db.gke_cache
 
 print(f'MONGO_USER is: {MONGO_USER}')
 print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
-print(f'JENKINS_URL is: {MONGO_URL}')
+print(f'MONGO_URL is: {MONGO_URL}')
 print(f'PROJECT_NAME is: {PROJECT_NAME}')
 
 

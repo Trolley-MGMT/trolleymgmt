@@ -42,7 +42,7 @@ jobs:
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-          JENKINS_URL: ${{ secrets.JENKINS_URL }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
           KUBECONFIG: '/home/runner/.kube/config'
 

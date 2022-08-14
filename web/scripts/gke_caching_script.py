@@ -1,6 +1,4 @@
-import configparser
 import logging
-import os
 import platform
 import json
 
@@ -10,11 +8,6 @@ from subprocess import PIPE, run
 
 from mongo_handler.mongo_utils import insert_gke_cache
 from mongo_handler.mongo_objects import GKECacheObject
-
-CUR_DIR = os.getcwd()
-PROJECT_ROOT = "/".join(CUR_DIR.split('/')[:-1])
-config = configparser.ConfigParser()
-config.read(f'{CUR_DIR}/config.ini')
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

@@ -1,0 +1,29 @@
+name: GKE Caching
+on:
+  repository_dispatch:
+    types: gke-caching
+
+jobs:
+  deploy-aks-cluster:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Post Deployment Tasks
+        env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          MONGO_USER: ${{ secrets.MONGO_USER }}
+          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+          PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          pip3 install -r requirements.txt
+          python3 web/scripts/gke_caching_script.py
+

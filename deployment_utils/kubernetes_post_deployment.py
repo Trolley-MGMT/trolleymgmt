@@ -22,12 +22,12 @@ if MACOS in platform.platform():
     print(f'config ini file location is: {config_ini_file}')
     config.read(config_ini_file)
     PROJECT_ID = config['DEFAULT']['project_id']
-    JENKINS_URL = config['DEFAULT']['jenkins_url']
+    MONGO_URL = config['DEFAULT']['jenkins_url']
     JENKINS_USER = config['DEFAULT']['jenkins_user']
     HELM_COMMAND = '/opt/homebrew/bin/helm'
 else:
     PROJECT_ID = os.environ['PROJECT_ID']
-    JENKINS_URL = os.environ['JENKINS_URL']
+    MONGO_URL = os.environ['MONGO_URL']
     JENKINS_USER = os.environ['JENKINS_USER']
     PROJECT_NAME = os.environ['PROJECT_NAME']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
