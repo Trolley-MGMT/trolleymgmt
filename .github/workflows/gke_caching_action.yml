@@ -26,4 +26,3 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
           python3 web/scripts/gke_caching_script.py
-
