@@ -51,4 +51,5 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
+          echo ${{ env.google_creds_content }}
           python3 web/scripts/gke_caching_script.py --credentials ${{ env.google_creds_content }}
