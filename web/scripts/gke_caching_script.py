@@ -144,8 +144,8 @@ if __name__ == '__main__':
     with open('/tmp/google_credentials', "r") as f:
         google_creds = f.read()
         print(f'The google_creds content is: {google_creds}')
-        os.environ
-        GOOGLE_APPLICATION_CREDENTIALS
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/tmp/google_credentials'
+
     # result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     # print(f'Checking the command {result}')
     main()
