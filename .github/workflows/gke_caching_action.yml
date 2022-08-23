@@ -29,7 +29,6 @@ jobs:
           gcloud components install beta --quiet
           cat $GOOGLE_APPLICATION_CREDENTIALS
           export GOOGLE_CREDS_CONTENT=$(cat $GOOGLE_APPLICATION_CREDENTIALS)
-          echo $GOOGLE_CREDS_CONTENT
           echo $GOOGLE_CREDS_CONTENT >> /tmp/google_credentials
           echo "google_creds_content=$(cat $GOOGLE_APPLICATION_CREDENTIALS)" >> $GITHUB_ENV
 
@@ -52,5 +51,4 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
-#          echo ${{ env.google_creds_content }}
           python3 web/scripts/gke_caching_script.py
