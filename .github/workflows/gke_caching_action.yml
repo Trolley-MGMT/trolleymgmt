@@ -22,7 +22,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
         run: gcloud info
-      - name: Installing GKE Cluster
+      - name: Installing GCloud
         run: |
           export KUBECONFIG=/tmp/kubeconfig
           gcloud container images list
@@ -30,6 +30,8 @@ jobs:
           cat $GOOGLE_APPLICATION_CREDENTIALS
           export GOOGLE_CREDS_CONTENT=$(cat $GOOGLE_APPLICATION_CREDENTIALS)
           echo $GOOGLE_CREDS_CONTENT
+          echo "google_creds_content=$(cat $GOOGLE_APPLICATION_CREDENTIALS)" >> $GITHUB_ENV
+
 
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -49,4 +51,4 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
-          python3 web/scripts/gke_caching_script.py
+          python3 web/scripts/gke_caching_script.py --credentials ${{ env.google_creds_content }}
