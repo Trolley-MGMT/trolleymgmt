@@ -12,13 +12,16 @@ jobs:
   gke-caching:
     runs-on: ubuntu-20.04
     steps:
+      steps:
+        # actions/checkout MUST come before auth
+      - uses: 'actions/checkout@v3'
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
       - id: 'get-credentials'
         uses: 'google-github-actions/get-gke-credentials@v0'
-        
+
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
