@@ -135,15 +135,15 @@ def main():
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('--credentials', default='', type=str, help='Google credentials')
-    args = parser.parse_args()
+    # parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
+    # parser.add_argument('--credentials', default='', type=str, help='Google credentials')
+    # args = parser.parse_args()
     # command = '/usr/lib/google-cloud-sdk/bin/gcloud compute zones list'
     # google_creds = os.environ['GOOGLE_CREDS_CONTENT']
-    print(f'This is the content for google creds file: {args.credentials}')
-    # with open(google_creds_json_path, "r") as f:
-    #     google_creds = f.read()
-    #     print(f'The google_creds content is: {google_creds}')
+    # print(f'This is the content for google creds file: {args.credentials}')
+    with open('/tmp/google_credentials', "r") as f:
+        google_creds = f.read()
+        print(f'The google_creds content is: {google_creds}')
     # result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     # print(f'Checking the command {result}')
     main()

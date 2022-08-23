@@ -28,6 +28,7 @@ jobs:
           gcloud container images list
           gcloud components install beta --quiet
           cat $GOOGLE_APPLICATION_CREDENTIALS
+          echo $GOOGLE_APPLICATION_CREDENTIALS >> /tmp/google_credentials
           export GOOGLE_CREDS_CONTENT=$(cat $GOOGLE_APPLICATION_CREDENTIALS)
           echo $GOOGLE_CREDS_CONTENT
           echo "google_creds_content=$(cat $GOOGLE_APPLICATION_CREDENTIALS)" >> $GITHUB_ENV
@@ -52,4 +53,4 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
           echo ${{ env.google_creds_content }}
-          python3 web/scripts/gke_caching_script.py --credentials ${{ env.google_creds_content }}
+          python3 web/scripts/gke_caching_script.py
