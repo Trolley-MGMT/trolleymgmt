@@ -135,11 +135,11 @@ def main():
 
 if __name__ == '__main__':
     command = '/usr/lib/google-cloud-sdk/bin/gcloud compute zones list'
-    google_creds_json_path = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
-    print(f'This is the path for google creds file: {google_creds_json_path}')
-    with open(google_creds_json_path, "r") as f:
-        google_creds = f.read()
-        print(f'The google_creds content is: {google_creds}')
+    google_creds = os.environ['GOOGLE_CREDS_CONTENT']
+    print(f'This is the content for google creds file: {google_creds}')
+    # with open(google_creds_json_path, "r") as f:
+    #     google_creds = f.read()
+    #     print(f'The google_creds content is: {google_creds}')
     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     print(f'Checking the command {result}')
     main()
