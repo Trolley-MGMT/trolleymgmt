@@ -24,7 +24,7 @@ if 'Darwin' in platform.system():
     LOCAL_GCLOUD = f'/Users/{LOCAL_USER}/Downloads/google-cloud-sdk/bin/gcloud'
     HELM_COMMAND = '/opt/homebrew/bin/helm'
 else:
-    LOCAL_GCLOUD = 'gcloud'
+    LOCAL_GCLOUD = '/usr/lib/google-cloud-sdk/bin/gcloud'
     HELM_COMMAND = 'helm'
 
 GKE_VERSIONS_COMMAND = f'{LOCAL_GCLOUD} container get-server-config --zone='
