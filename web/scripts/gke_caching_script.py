@@ -133,4 +133,7 @@ def main():
 
 
 if __name__ == '__main__':
+    command = '/usr/lib/google-cloud-sdk/bin/gcloud compute zones list'
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    print(f'Checking the command {result}')
     main()
