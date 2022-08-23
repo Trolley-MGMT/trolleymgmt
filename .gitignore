@@ -4,3 +4,4 @@ trolley.log
 docker-compose.yml
 Dockerfile
 *.ini
+config.ini
