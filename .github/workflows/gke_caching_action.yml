@@ -45,6 +45,6 @@ jobs:
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          export GOOGLE_CREDS_CONTENT=$(echo $GOOGLE_APPLICATION_CREDENTIALS)
+          export GOOGLE_CREDS_CONTENT=$(cat $GOOGLE_APPLICATION_CREDENTIALS)
           pip3 install -r requirements.txt
           python3 web/scripts/gke_caching_script.py
