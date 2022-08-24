@@ -2,7 +2,6 @@ import logging
 import os
 import platform
 import json
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 from dataclasses import asdict
 import getpass as gt
@@ -10,6 +9,10 @@ from subprocess import PIPE, run
 
 from mongo_handler.mongo_utils import insert_gke_cache
 from mongo_handler.mongo_objects import GKECacheObject
+
+from google.cloud.compute import ZonesClient
+from google.oauth2 import service_account
+from googleapiclient import discovery
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -25,66 +28,68 @@ LOCAL_USER = gt.getuser()
 if 'Darwin' in platform.system():
     LOCAL_GCLOUD = f'/Users/{LOCAL_USER}/Downloads/google-cloud-sdk/bin/gcloud'
     HELM_COMMAND = '/opt/homebrew/bin/helm'
+    CREDENTIALS_PATH = '/Users/pavelzagalsky/Documents/trolley/creds.json'
 else:
     LOCAL_GCLOUD = '/usr/lib/google-cloud-sdk/bin/gcloud'
     HELM_COMMAND = 'helm'
+    CREDENTIALS_PATH = '/tmp/google_credentials'
 
+PROJECT_NAME = os.environ['PROJECT_NAME']
 GKE_VERSIONS_COMMAND = f'{LOCAL_GCLOUD} container get-server-config --zone='
 GKE_ZONES_COMMAND = f'{LOCAL_GCLOUD} compute zones list --format json'
 GKE_REGIONS_COMMAND = f'{LOCAL_GCLOUD} compute regions list --format json'
 
+credentials = service_account.Credentials.from_service_account_file(
+    CREDENTIALS_PATH)
+# credentials = GoogleCredentials.get_application_default()
+service = discovery.build('container', 'v1', credentials=credentials)
 
-def fetch_zones():
+
+def fetch_zones() -> list:
     logger.info(f'A request to fetch zones has arrived')
-    command = GKE_ZONES_COMMAND
-    logger.info(f'Running a {command} command')
-    print(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    compute_zones_client = ZonesClient(credentials=credentials)
+    zones_object = compute_zones_client.list(project=PROJECT_NAME)
     zones_list = []
-    full_zones_list = json.loads(result.stdout)
-    for zone in full_zones_list:
-        zone_name = zone['name']
-        # region_name = zone['region'].split('/')[-1]
-        zones_list.append(zone_name)
+    for zone in zones_object:
+        print(zone)
+        zones_list.append(zone.name)
     return zones_list
 
 
-def fetch_regions():
-    logger.info(f'A request to fetch zones has arrived')
-    command = GKE_REGIONS_COMMAND
-    logger.info(f'Running a {command} command')
-    print(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+def fetch_regions() -> list:
+    logger.info(f'A request to fetch regions has arrived')
+    compute_zones_client = ZonesClient(credentials=credentials)
+    zones_object = compute_zones_client.list(project=PROJECT_NAME)
     regions_list = []
-    regions = json.loads(result.stdout)
-    for region in regions:
-        region_name = region['name']
-        regions_list.append(region_name)
+    for zone_object in zones_object:
+        zone_object_url = zone_object.region
+        region_name = zone_object_url.split('/')[-1]
+        if region_name not in regions_list:
+            regions_list.append(region_name)
     return regions_list
 
 
 def fetch_versions(zones_list):
     for zone in zones_list:
-        command = f'{GKE_VERSIONS_COMMAND}{zone} --format json'
-    logger.info(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    gke_versions = json.loads(result.stdout)
-    stable_gke_versions = gke_versions['channels'][2]['validVersions']
-    return stable_gke_versions
+        name = f'projects/{PROJECT_NAME}/locations/{zone}'
+        request = service.projects().locations().getServerConfig(name=name)
+        response = request.execute()
+        available_gke_versions = []
+        for stable_gke_version in response['channels'][2]['validVersions']:
+            available_gke_versions.append(stable_gke_version)
+        return available_gke_versions
 
 
 def fetch_gke_image_types(zones_list):
     for zone in zones_list:
-        command = f'{GKE_VERSIONS_COMMAND}{zone} --format json'
-    logger.info(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    result_jsond = json.loads(result.stdout)
-    image_types = result_jsond['validImageTypes']
-    available_images = []
-    for image in image_types:
-        if 'WINDOWS' not in image and image != 'COS':  # There's a technical issue at the moment supporting Windows based nodes
-            available_images.append(image)
-    return available_images
+        name = f'projects/{PROJECT_NAME}/locations/{zone}'
+        request = service.projects().locations().getServerConfig(name=name)
+        response = request.execute()
+        available_images = []
+        for image in response['validImageTypes']:
+            if 'WINDOWS' not in image and image != 'COS':  # There's a technical issue at the moment supporting Windows based nodes
+                available_images.append(image)
+        return available_images
 
 
 def fetch_helm_installs():
@@ -135,17 +140,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
-    # parser.add_argument('--credentials', default='', type=str, help='Google credentials')
-    # args = parser.parse_args()
-    # command = '/usr/lib/google-cloud-sdk/bin/gcloud compute zones list'
-    # google_creds = os.environ['GOOGLE_CREDS_CONTENT']
-    # print(f'This is the content for google creds file: {args.credentials}')
-    with open('/tmp/google_credentials', "r") as f:
-        google_creds = f.read()
-        print(f'The google_creds content is: {google_creds}')
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/tmp/google_credentials'
-    test_command = f'{LOCAL_GCLOUD} info'
-    result = run(test_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    print(f'Checking the command {result}')
     main()
