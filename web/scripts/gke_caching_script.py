@@ -119,7 +119,8 @@ def create_regions_and_zones_dict(regions_list, zones_list):
 def main():
     zones_list = fetch_zones()
     regions_list = fetch_regions()
-    helm_installs_list = fetch_helm_installs()
+    helm_installs_list = []
+    # helm_installs_list = fetch_helm_installs()
     gke_image_types = fetch_gke_image_types(zones_list=zones_list)
     versions_list = fetch_versions(zones_list=zones_list)
     zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
