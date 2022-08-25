@@ -33,7 +33,8 @@ else:
     LOCAL_GCLOUD = '/usr/lib/google-cloud-sdk/bin/gcloud'
     HELM_PATH = '/tmp/helm_path'
     with open(HELM_PATH, "r") as f:
-        HELM_COMMAND = f.read()
+        HELM_COMMAND_ = f.read()
+        HELM_COMMAND = HELM_COMMAND_.strip()
         print(f'The helm command is: {HELM_COMMAND}')
     CREDENTIALS_PATH = '/tmp/google_credentials'
 
