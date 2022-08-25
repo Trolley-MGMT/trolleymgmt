@@ -25,4 +25,4 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
-          python3 web/scripts/gke_caching_script.py --cluster_type gke
+          python3 web/scripts/expired_clusters_deletion.py --cluster_type gke
