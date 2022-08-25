@@ -100,17 +100,13 @@ def fetch_gke_image_types(zones_list):
 
 
 def fetch_helm_installs():
-    brew_command = 'brew install helm'
-    print(f'Running a {brew_command} command')
-    result = run(brew_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    print(result)
     print(f'A request to fetch helm installs')
     helm_installs_list = []
-    update_helm_command = HELM_COMMAND + ' repo add stable https://charts.helm.sh/stable'
+    update_helm_command = f'{HELM_COMMAND} repo add stable https://charts.helm.sh/stable'
     print(f'Running a {update_helm_command} command')
     result = run(update_helm_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     print(result)
-    helm_charts_fetch_command = HELM_COMMAND + ' search repo stable -o json'
+    helm_charts_fetch_command = f'{HELM_COMMAND} search repo stable -o json'
     print(f'Running a {helm_charts_fetch_command} command')
     result = run(helm_charts_fetch_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     print(result)
