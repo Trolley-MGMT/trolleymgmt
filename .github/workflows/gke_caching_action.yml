@@ -1,12 +1,13 @@
 name: GKE Caching
 on:
-  workflow_dispatch:
-    inputs:
-      tags:
-        description: 'Test scenario tags'
-        required: false
-        type: boolean
-#    - cron: '* * * * *'
+  schedule:
+    - cron: '* * * * *'
+#  workflow_dispatch:
+#    inputs:
+#      tags:
+#        description: 'Test scenario tags'
+#        required: false
+#        type: boolean
 
 jobs:
   gke-caching:
@@ -25,7 +26,6 @@ jobs:
       - name: Installing GCloud and Helm
         run: |
           brew install helm
-          helm repo add stable https://charts.helm.sh/stable
           which helm >> /tmp/helm_path
           export KUBECONFIG=/tmp/kubeconfig
           gcloud container images list
