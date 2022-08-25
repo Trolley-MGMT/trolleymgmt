@@ -37,6 +37,11 @@ else:
         print(f'The helm command is: {HELM_COMMAND}')
     CREDENTIALS_PATH = '/tmp/google_credentials'
 
+command = HELM_COMMAND + ' search repo stable -o json'
+logger.info(f'Running a {command} command')
+result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+print(result)
+
 PROJECT_NAME = os.environ['PROJECT_NAME']
 GKE_VERSIONS_COMMAND = f'{LOCAL_GCLOUD} container get-server-config --zone='
 GKE_ZONES_COMMAND = f'{LOCAL_GCLOUD} compute zones list --format json'
