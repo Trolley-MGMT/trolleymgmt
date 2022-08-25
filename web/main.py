@@ -58,14 +58,16 @@ if MACOS in platform.platform():
     MONGO_URL = config['DEFAULT']['jenkins_url']
     JENKINS_USER = config['DEFAULT']['jenkins_user']
     HELM_COMMAND = '/opt/homebrew/bin/helm'
+    JENKINS_URL = 'http://' + config['DEFAULT']['jenkins_url'] + ':8080'
 else:
     MONGO_URL = os.environ['MONGO_URL']
     JENKINS_USER = os.environ['JENKINS_USER']
     PROJECT_NAME = os.environ['PROJECT_NAME']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
+    JENKINS_URL = ''
 
-JENKINS_URL = 'http://' + config['DEFAULT']['jenkins_url'] + ':8080'
+
 JENKINS_PASSWORD = os.getenv('JENKINS_PASSWORD')
 GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')
 JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME = 'gke_deployment'
