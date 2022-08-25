@@ -548,7 +548,7 @@ def trigger_aks_deployment():
 
 
 @app.route('/delete_expired_clusters', methods=[DELETE])
-def delete_expired_clusters(GCP=None):
+def delete_expired_clusters():
     content = request.get_json()
     expired_clusters_list = retrieve_expired_clusters(cluster_type=content['cluster_type'])
     for expired_cluster in expired_clusters_list:
