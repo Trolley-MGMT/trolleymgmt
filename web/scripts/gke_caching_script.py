@@ -33,15 +33,10 @@ else:
     LOCAL_GCLOUD = '/usr/lib/google-cloud-sdk/bin/gcloud'
     HELM_PATH = '/tmp/helm_path'
     with open(HELM_PATH, "r") as f:
-        HELM_COMMAND_ = f.read()
-        HELM_COMMAND = HELM_COMMAND_.strip()
+        HELM_COMMAND = f.read().strip()
         print(f'The helm command is: {HELM_COMMAND}')
     CREDENTIALS_PATH = '/tmp/google_credentials'
 
-# command = HELM_COMMAND + ' search repo stable -o json'
-# logger.info(f'Running a {command} command')
-# result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-# print(result)
 
 PROJECT_NAME = os.environ['PROJECT_NAME']
 GKE_VERSIONS_COMMAND = f'{LOCAL_GCLOUD} container get-server-config --zone='
@@ -50,7 +45,6 @@ GKE_REGIONS_COMMAND = f'{LOCAL_GCLOUD} compute regions list --format json'
 
 credentials = service_account.Credentials.from_service_account_file(
     CREDENTIALS_PATH)
-# credentials = GoogleCredentials.get_application_default()
 service = discovery.build('container', 'v1', credentials=credentials)
 
 
@@ -95,7 +89,8 @@ def fetch_gke_image_types(zones_list):
         response = request.execute()
         available_images = []
         for image in response['validImageTypes']:
-            if 'WINDOWS' not in image and image != 'COS':  # There's a technical issue at the moment supporting Windows based nodes
+            if 'WINDOWS' not in image and image != 'COS':  # There's a technical issue at the moment supporting
+                # Windows based nodes
                 available_images.append(image)
         return available_images
 
@@ -104,13 +99,9 @@ def fetch_helm_installs():
     print(f'A request to fetch helm installs')
     helm_installs_list = []
     update_helm_command = f'{HELM_COMMAND} repo add stable https://charts.helm.sh/stable'
-    print(f'Running a {update_helm_command} command')
-    result = run(update_helm_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    print(result)
+    run(update_helm_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     helm_charts_fetch_command = f'{HELM_COMMAND} search repo stable -o json'
-    print(f'Running a {helm_charts_fetch_command} command')
     result = run(helm_charts_fetch_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    print(result)
     installs = json.loads(result.stdout)
     for install in installs:
         helm_installs_list.append(install['name'])
@@ -132,17 +123,10 @@ def create_regions_and_zones_dict(regions_list, zones_list):
 def main():
     zones_list = fetch_zones()
     regions_list = fetch_regions()
-    # helm_installs_list = []
-    print(f'A request to fetch helm installs')
     helm_installs_list = fetch_helm_installs()
     gke_image_types = fetch_gke_image_types(zones_list=zones_list)
     versions_list = fetch_versions(zones_list=zones_list)
     zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
-    # print(regions_list)
-    # print(helm_installs_list)
-    # print(versions_list)
-    # print(gke_image_types)
-    # print(zones_regions_dict)
 
     gke_caching_object = GKECacheObject(
         zones_list=zones_list,
