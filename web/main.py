@@ -64,7 +64,6 @@ else:
     PROJECT_NAME = os.environ['PROJECT_NAME']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
-    KUBECONFIG = os.environ['KUBECONFIG']
 
 JENKINS_URL = 'http://' + config['DEFAULT']['jenkins_url'] + ':8080'
 JENKINS_PASSWORD = os.getenv('JENKINS_PASSWORD')
