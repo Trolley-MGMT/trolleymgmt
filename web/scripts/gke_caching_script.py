@@ -59,7 +59,6 @@ def fetch_zones() -> list:
     zones_object = compute_zones_client.list(project=PROJECT_NAME)
     zones_list = []
     for zone in zones_object:
-        print(zone)
         zones_list.append(zone.name)
     return zones_list
 
@@ -101,6 +100,10 @@ def fetch_gke_image_types(zones_list):
 
 
 def fetch_helm_installs():
+    brew_command = 'brew install helm'
+    print(f'Running a {brew_command} command')
+    result = run(brew_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    print(result)
     print(f'A request to fetch helm installs')
     helm_installs_list = []
     update_helm_command = HELM_COMMAND + 'repo add stable https://charts.helm.sh/stable'
