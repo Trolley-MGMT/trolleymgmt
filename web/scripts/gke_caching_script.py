@@ -103,9 +103,13 @@ def fetch_gke_image_types(zones_list):
 def fetch_helm_installs():
     print(f'A request to fetch helm installs')
     helm_installs_list = []
-    command = HELM_COMMAND + ' search repo stable -o json'
-    print(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    update_helm_command = HELM_COMMAND + 'repo add stable https://charts.helm.sh/stable'
+    print(f'Running a {update_helm_command} command')
+    result = run(update_helm_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    print(result)
+    helm_charts_fetch_command = HELM_COMMAND + ' search repo stable -o json'
+    print(f'Running a {helm_charts_fetch_command} command')
+    result = run(helm_charts_fetch_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     print(result)
     installs = json.loads(result.stdout)
     for install in installs:
@@ -134,11 +138,11 @@ def main():
     gke_image_types = fetch_gke_image_types(zones_list=zones_list)
     versions_list = fetch_versions(zones_list=zones_list)
     zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
-    print(regions_list)
-    print(helm_installs_list)
-    print(versions_list)
-    print(gke_image_types)
-    print(zones_regions_dict)
+    # print(regions_list)
+    # print(helm_installs_list)
+    # print(versions_list)
+    # print(gke_image_types)
+    # print(zones_regions_dict)
 
     gke_caching_object = GKECacheObject(
         zones_list=zones_list,
