@@ -37,10 +37,10 @@ else:
         print(f'The helm command is: {HELM_COMMAND}')
     CREDENTIALS_PATH = '/tmp/google_credentials'
 
-command = HELM_COMMAND + ' search repo stable -o json'
-logger.info(f'Running a {command} command')
-result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-print(result)
+# command = HELM_COMMAND + ' search repo stable -o json'
+# logger.info(f'Running a {command} command')
+# result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+# print(result)
 
 PROJECT_NAME = os.environ['PROJECT_NAME']
 GKE_VERSIONS_COMMAND = f'{LOCAL_GCLOUD} container get-server-config --zone='
@@ -101,11 +101,12 @@ def fetch_gke_image_types(zones_list):
 
 
 def fetch_helm_installs():
-    logger.info(f'A request to fetch helm installs')
+    print(f'A request to fetch helm installs')
     helm_installs_list = []
     command = HELM_COMMAND + ' search repo stable -o json'
-    logger.info(f'Running a {command} command')
+    print(f'Running a {command} command')
     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    print(result)
     installs = json.loads(result.stdout)
     for install in installs:
         helm_installs_list.append(install['name'])
@@ -128,6 +129,7 @@ def main():
     zones_list = fetch_zones()
     regions_list = fetch_regions()
     # helm_installs_list = []
+    print(f'A request to fetch helm installs')
     helm_installs_list = fetch_helm_installs()
     gke_image_types = fetch_gke_image_types(zones_list=zones_list)
     versions_list = fetch_versions(zones_list=zones_list)
