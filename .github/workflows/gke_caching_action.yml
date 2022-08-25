@@ -22,8 +22,10 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
         run: gcloud info
-      - name: Installing GCloud
+      - name: Installing GCloud and Helm
         run: |
+          brew install helm
+          which helm >> /tmp/helm_path
           export KUBECONFIG=/tmp/kubeconfig
           gcloud container images list
           gcloud components install beta --quiet

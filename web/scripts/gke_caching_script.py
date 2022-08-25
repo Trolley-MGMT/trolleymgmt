@@ -31,7 +31,10 @@ if 'Darwin' in platform.system():
     CREDENTIALS_PATH = '/Users/pavelzagalsky/Documents/trolley/creds.json'
 else:
     LOCAL_GCLOUD = '/usr/lib/google-cloud-sdk/bin/gcloud'
-    HELM_COMMAND = 'helm'
+    HELM_PATH = '/tmp/helm_path'
+    with open(HELM_PATH, "r") as f:
+        HELM_COMMAND = f.read()
+        print(f'The helm command is: {HELM_COMMAND}')
     CREDENTIALS_PATH = '/tmp/google_credentials'
 
 PROJECT_NAME = os.environ['PROJECT_NAME']
@@ -119,8 +122,8 @@ def create_regions_and_zones_dict(regions_list, zones_list):
 def main():
     zones_list = fetch_zones()
     regions_list = fetch_regions()
-    helm_installs_list = []
-    # helm_installs_list = fetch_helm_installs()
+    # helm_installs_list = []
+    helm_installs_list = fetch_helm_installs()
     gke_image_types = fetch_gke_image_types(zones_list=zones_list)
     versions_list = fetch_versions(zones_list=zones_list)
     zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
