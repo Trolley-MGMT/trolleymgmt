@@ -36,13 +36,6 @@ config = configparser.ConfigParser()
 config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
 config.read(config_ini_file)
 
-# if MACOS in platform.platform():
-#     config.read(f'{PROJECT_ROOT}/config.ini')
-#     HELM_COMMAND = '/opt/homebrew/bin/helm'
-#
-# else:
-#     config.read(f'{CUR_DIR}/config.ini')
-#     HELM_COMMAND = '/snap/bin/helm'
 
 GITHUB_ACTIONS_API_URL = 'https://api.github.com/repos/LiorYardeni/trolley/dispatches'
 AKS_LOCATIONS_COMMAND = 'az account list-locations'
@@ -54,9 +47,26 @@ EKS_SUBNETS_COMMAND = 'aws ec2 describe-subnets'
 AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
 GKE_VERSIONS_COMMAND = 'gcloud container get-server-config --zone='
 
-PROJECT_ID = config['DEFAULT']['project_id']
+if MACOS in platform.platform():
+    CUR_DIR = os.getcwd()
+    PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
+    print(f'current directory is: {PROJECT_ROOT}')
+    config = configparser.ConfigParser()
+    config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
+    print(f'config ini file location is: {config_ini_file}')
+    config.read(config_ini_file)
+    MONGO_URL = config['DEFAULT']['jenkins_url']
+    JENKINS_USER = config['DEFAULT']['jenkins_user']
+    HELM_COMMAND = '/opt/homebrew/bin/helm'
+else:
+    MONGO_URL = os.environ['MONGO_URL']
+    JENKINS_USER = os.environ['JENKINS_USER']
+    PROJECT_NAME = os.environ['PROJECT_NAME']
+    MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
+    MONGO_USER = os.environ['MONGO_USER']
+    KUBECONFIG = os.environ['KUBECONFIG']
+
 JENKINS_URL = 'http://' + config['DEFAULT']['jenkins_url'] + ':8080'
-JENKINS_USER = config['DEFAULT']['jenkins_user']
 JENKINS_PASSWORD = os.getenv('JENKINS_PASSWORD')
 GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')
 JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME = 'gke_deployment'
@@ -81,7 +91,6 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-logger.info(f'The selected project_id is: {PROJECT_ID}')
 logger.info(f'The selected jenkins_url is: {JENKINS_URL}')
 logger.info(f'The selected jenkins_user is: {JENKINS_USER}')
 logger.info(f'The selected jenkins_password is: {JENKINS_PASSWORD}')
