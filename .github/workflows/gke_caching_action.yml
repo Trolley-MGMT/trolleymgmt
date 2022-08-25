@@ -2,12 +2,6 @@ name: GKE Caching
 on:
   schedule:
     - cron: "*/5 * * * *"
-#  workflow_dispatch:
-#    inputs:
-#      tags:
-#        description: 'Test scenario tags'
-#        required: false
-#        type: boolean
 
 jobs:
   cron:
