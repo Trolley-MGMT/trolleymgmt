@@ -106,7 +106,7 @@ def fetch_helm_installs():
     print(result)
     print(f'A request to fetch helm installs')
     helm_installs_list = []
-    update_helm_command = HELM_COMMAND + 'repo add stable https://charts.helm.sh/stable'
+    update_helm_command = HELM_COMMAND + ' repo add stable https://charts.helm.sh/stable'
     print(f'Running a {update_helm_command} command')
     result = run(update_helm_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     print(result)
