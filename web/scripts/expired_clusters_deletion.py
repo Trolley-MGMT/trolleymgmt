@@ -2,7 +2,7 @@ import time
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 from mongo_handler.mongo_utils import retrieve_expired_clusters, set_cluster_availability
-from web.main import delete_gke_cluster
+from web.cluster_operations import delete_gke_cluster
 
 
 def delete_clusters(cluster_type: str):

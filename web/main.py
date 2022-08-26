@@ -11,21 +11,17 @@ from dataclasses import asdict
 from subprocess import PIPE, run
 from distutils import util
 
-import requests
-from jenkins import Jenkins
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from utils import random_string
-
 from mongo_handler.mongo_utils import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
-    insert_user, retrieve_user, retrieve_cluster_details, retrieve_gke_cache
+    insert_user, retrieve_user, retrieve_gke_cache
 from mongo_handler.mongo_objects import UserObject
-from variables.variables import TROLLEY_PROJECT_NAME, PROJECT_NAME, CLUSTER_NAME, CLUSTER_VERSION, ZONE_NAME, \
-    IMAGE_TYPE, \
-    NUM_NODES, EXPIRATION_TIME, REGION_NAME, POST, GET, VERSION, AKS_LOCATION, AKS_VERSION, HELM_INSTALLS, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, EKS_LOCATION, EKS_ZONES, REGIONS_LIST, \
+from variables.variables import POST, GET, EKS, \
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES
+from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
+    trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
 
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -36,16 +32,11 @@ config = configparser.ConfigParser()
 config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
 config.read(config_ini_file)
 
-
-GITHUB_ACTIONS_API_URL = 'https://api.github.com/repos/LiorYardeni/trolley/dispatches'
 AKS_LOCATIONS_COMMAND = 'az account list-locations'
-GKE_ZONES_COMMAND = 'gcloud compute zones list --format json'
-GKE_REGIONS_COMMAND = 'gcloud compute regions list --format json'
 EKS_REGIONS_COMMAND = 'aws ec2 describe-regions'
 EKS_AVAILABILITY_ZONES_COMMAND = 'aws ec2 describe-availability-zones'
 EKS_SUBNETS_COMMAND = 'aws ec2 describe-subnets'
 AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
-GKE_VERSIONS_COMMAND = 'gcloud container get-server-config --zone='
 
 if MACOS in platform.platform():
     CUR_DIR = os.getcwd()
@@ -67,22 +58,12 @@ else:
     MONGO_USER = os.environ['MONGO_USER']
     JENKINS_URL = ''
 
-
 JENKINS_PASSWORD = os.getenv('JENKINS_PASSWORD')
-GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')
 JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME = 'gke_deployment'
 JENKINS_KUBERNETES_GKE_AUTOPILOT_DEPLOYMENT_JOB_NAME = 'gke_autopilot_deployment'
-JENKINS_DELETE_GKE_JOB = 'delete_gke_cluster'
 JENKINS_EKS_DEPLOYMENT_JOB_NAME = 'eks_deployment'
-JENKINS_DELETE_EKS_JOB = 'delete_eks_cluster'
 JENKINS_AKS_DEPLOYMENT_JOB_NAME = 'aks_deployment'
-JENKINS_DELETE_AKS_JOB = 'delete_aks_cluster'
 
-GITHUB_ACTION_REQUEST_HEADER = {
-    'Content-type': 'application/json',
-    'Accept': 'application / vnd.github.everest - preview + json',
-    'Authorization': f'token {GITHUB_ACTION_TOKEN}'
-}
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -211,104 +192,6 @@ def retrieve_aws_subnets(availability_zone: str = ''):
         return [f'No subnets were found for {availability_zone} zone']
 
 
-def trigger_gke_build_github_action(user_name: str = '',
-                                    version: str = '',
-                                    gke_region: str = '',
-                                    gke_zone: str = '',
-                                    image_type: str = '',
-                                    num_nodes: int = '',
-                                    helm_installs: list = '',
-                                    expiration_time: int = ''):
-    cluster_name = f'{user_name}-gke-{random_string(5)}'
-    json_data = {
-        "event_type": "gke-build-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "cluster_version": version,
-                           "zone_name": gke_zone,
-                           "image_type": image_type,
-                           "region_name": gke_region,
-                           "num_nodes": num_nodes,
-                           "helm_installs": helm_installs,
-                           "expiration_time": expiration_time}
-    }
-    try:
-        r = requests.post(GITHUB_ACTIONS_API_URL,
-                          headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-        r.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        print(err)
-        raise SystemExit(err)
-
-
-def trigger_kubernetes_gke_build_jenkins(project_name: str = TROLLEY_PROJECT_NAME,
-                                         user_name: str = '',
-                                         version: str = '',
-                                         gke_region: str = '',
-                                         gke_zone: str = '',
-                                         image_type: str = '',
-                                         num_nodes: int = '',
-                                         helm_installs: list = '',
-                                         expiration_time: int = ''):
-    """
-    this functions trigger jenkins job to build GKE cluster.
-    @param project_name: Your project name, change or add a global variable in variables.
-    @param user_name:
-    @param version: single select scrolldown from realtime generated versions list
-    @param gke_region:
-    @param gke_zone:
-    @param image_type:
-    @param num_nodes:
-    @param helm_installs:
-    @param expiration_time: set a default to make sure no cluster is left running.
-    @return:
-    """
-    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
-    try:
-        from utils import random_string
-        job_id = server.build_job(name=JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME, parameters={
-            PROJECT_NAME: project_name,
-            CLUSTER_NAME: f'{user_name}-gke-{random_string(5)}',
-            USER_NAME: user_name,
-            CLUSTER_VERSION: version,
-            REGION_NAME: gke_region,
-            ZONE_NAME: gke_zone,
-            IMAGE_TYPE: image_type,
-            NUM_NODES: num_nodes,
-            HELM_INSTALLS: ",".join(helm_installs),
-            EXPIRATION_TIME: expiration_time
-        })
-        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME}')
-        return 'OK'
-    except:
-        return 'fail'
-
-
-def trigger_kubernetes_gke_autopilot_build_jenkins(project_name: str = TROLLEY_PROJECT_NAME,
-                                                   user_id: str = 'lior',
-                                                   region: str = '', expiration_time: int = ''):
-    """
-
-    @param project_name: Your project name, change or add a global variable in variables.
-    @param user_id:
-    @param region:
-    @param expiration_time:
-    @return:
-    """
-    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
-    try:
-        job_id = server.build_job(name=JENKINS_KUBERNETES_GKE_AUTOPILOT_DEPLOYMENT_JOB_NAME, parameters={
-            PROJECT_NAME: project_name,
-            CLUSTER_NAME: f'{user_id}-gke-{random_string(5)}',
-            REGION_NAME: region,
-            EXPIRATION_TIME: expiration_time
-        })
-        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_KUBERNETES_GKE_AUTOPILOT_DEPLOYMENT_JOB_NAME}')
-
-        return 'OK'
-    except:
-        return 'fail'
-
-
 def get_eks_zones(eks_location: str = '') -> str:
     """
     Retrieve EKS zones from server, show them in a list
@@ -324,183 +207,6 @@ def get_eks_zones(eks_location: str = '') -> str:
     for availability_zone in availability_zones:
         zones_list.append(availability_zone['ZoneName'])
     return ','.join(zones_list)
-
-
-def trigger_eks_build_github_action(user_name: str = '',
-                                    version: str = '',
-                                    eks_location: str = '',
-                                    eks_zones: list = None,
-                                    eks_subnets: list = None,
-                                    image_type: str = '',
-                                    num_nodes: int = '',
-                                    helm_installs: list = '',
-                                    expiration_time: int = ''):
-    cluster_name = f'{user_name}-gke-{random_string(5)}'
-    json_data = {
-        "event_type": "eks-build-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "cluster_version": version,
-                           "region_name": eks_location,
-                           "zone_names": ",".join(eks_zones),
-                           "num_nodes": num_nodes,
-                           "helm_installs": helm_installs,
-                           "expiration_time": expiration_time,
-                           "subnets": ",".join(eks_subnets)}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
-
-
-def trigger_eks_build_jenkins(
-        user_id: str = '',
-        version: str = '',
-        num_nodes: int = '',
-        expiration_time: int = '4',
-        eks_location: str = '',
-        helm_installs: list = None):
-    """
-
-    @param user_id:
-    @param version: single select scrolldown from realtime generated versions list
-    @param num_nodes:
-    @param expiration_time: set a default to make sure no cluster is left running.
-    @param eks_location:
-    @param helm_installs:
-    @return:
-    """
-    if not helm_installs:
-        helm_installs = '.'
-    eks_zones = get_eks_zones(eks_location)
-    print(f'The list of retrieved eks_zones is: {eks_zones}')
-    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
-    try:
-        job_id = server.build_job(name=JENKINS_EKS_DEPLOYMENT_JOB_NAME, parameters={
-            CLUSTER_NAME: f'{user_id}-{EKS}-{random_string(5)}',
-            VERSION: version,
-            NUM_NODES: num_nodes,
-            EXPIRATION_TIME: expiration_time,
-            HELM_INSTALLS: helm_installs,
-            EKS_LOCATION: eks_location,
-            EKS_ZONES: eks_zones
-        })
-        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_EKS_DEPLOYMENT_JOB_NAME}')
-        return 'OK'
-    except:
-        return 'fail'
-
-
-def trigger_aks_build_jenkins(
-        user_id: str = '',
-        num_nodes: int = '',
-        version: str = '',
-        aks_location: str = '',
-        expiration_time: int = '',
-        helm_installs: list = ''):
-    """
-
-    @param user_id:
-    @param num_nodes:
-    @param version:
-    @param aks_location:
-    @param expiration_time:
-    @param helm_installs:
-    @return:
-    """
-    if helm_installs:
-        helm_installs_string = ','.join(helm_installs)
-    else:
-        helm_installs_string = '.'
-    aks_version = fetch_aks_version(kubernetes_version=version)
-    server = Jenkins(url=JENKINS_URL, username=JENKINS_USER, password=JENKINS_PASSWORD)
-    try:
-        job_id = server.build_job(name=JENKINS_AKS_DEPLOYMENT_JOB_NAME, parameters={
-            CLUSTER_NAME: f'{user_id}-aks-{random_string(5)}',
-            NUM_NODES: num_nodes,
-            AKS_VERSION: aks_version,
-            AKS_LOCATION: aks_location,
-            EXPIRATION_TIME: expiration_time,
-            HELM_INSTALLS: helm_installs_string
-        })
-        logger.info(f'Job number {job_id - 1} was triggered on {JENKINS_AKS_DEPLOYMENT_JOB_NAME}')
-        return 'OK'
-    except:
-        return 'fail'
-
-
-def trigger_aks_build_github_action(user_name: str = '',
-                                    version: str = '',
-                                    aks_location: str = None,
-                                    num_nodes: int = '',
-                                    helm_installs: list = '',
-                                    expiration_time: int = ''):
-    cluster_name = f'{user_name}-aks-{random_string(5)}'
-    json_data = {
-        "event_type": "aks-build-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "cluster_version": version,
-                           "aks_location": aks_location,
-                           "num_nodes": num_nodes,
-                           "helm_installs": helm_installs,
-                           "expiration_time": expiration_time}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
-
-
-def delete_gke_cluster(cluster_name: str = ''):
-    """
-    @param cluster_name: from built clusters list
-    @return:
-    """
-    gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name)
-    gke_zone_name = gke_cluster_details[ZONE_NAME.lower()]
-
-    json_data = {
-        "event_type": "gke-delete-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "zone_name": gke_zone_name}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
-
-
-def delete_eks_cluster(cluster_name: str = '', region: str = '', cloud_provider: str = '', cluster_type: str = ''):
-    """
-
-    @param cluster_name: from built clusters list
-    @param region: required param for deletion command
-    @param cloud_provider: GCP/Azure/AWS #why
-    @param cluster_type:
-    @return:
-    """
-    eks_cluster_details = retrieve_cluster_details(cluster_type=EKS, cluster_name=cluster_name)
-    eks_cluster_region_name = eks_cluster_details[REGION_NAME.lower()]
-    json_data = {
-        "event_type": "eks-delete-api-trigger",
-        "client_payload": {"cluster_name": cluster_name, 'region_name': eks_cluster_region_name}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
-
-
-def delete_aks_cluster(cluster_name: str = '', cluster_type: str = ''):
-    """
-
-    @param cluster_name: from built clusters list
-    @param cluster_type: required param for deletion command
-    @return:
-    """
-    json_data = {
-        "event_type": "aks-delete-api-trigger",
-        "client_payload": {"cluster_name": cluster_name}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
 
 
 def render_page(page_name: str = ''):
@@ -530,12 +236,11 @@ def trigger_kubernetes_deployment():
     if content['cluster_type'] == 'gke':
         del content['cluster_type']
         trigger_gke_build_github_action(**content)
-        # trigger_kubernetes_gke_build_jenkins(**content)
         function_name = inspect.stack()[0][3]
         logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     elif content['cluster_type'] == 'gke_autopilot':
         del content['cluster_type']
-        trigger_kubernetes_gke_autopilot_build_jenkins(**content)
+        # trigger_gke_autopilot_build_github_action(**content) # TBA
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
