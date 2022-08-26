@@ -148,20 +148,6 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                                          f' please try again'))
 
 
-def fetch_aks_version(kubernetes_version: str = '') -> str:
-    if kubernetes_version == '1.22':
-        aks_version = '1.22.4'
-    elif kubernetes_version == '1.21':
-        aks_version = '1.21.7'
-    elif kubernetes_version == '1.20':
-        aks_version = '1.20.13'
-    elif kubernetes_version == '1.19':
-        aks_version = '1.19.13'
-    else:
-        aks_version = '1.22.4'
-    return aks_version
-
-
 def retrieve_aws_availability_zones(region_name):
     command = f'{EKS_AVAILABILITY_ZONES_COMMAND} --region {region_name}'
     logger.info(f'Running a {command} command')
