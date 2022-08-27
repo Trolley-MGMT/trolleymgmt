@@ -23,6 +23,7 @@ from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
 
 app = Flask(__name__, template_folder='templates')
+print(os.getenv('SECRET_KEY'))
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 CUR_DIR = os.getcwd()
