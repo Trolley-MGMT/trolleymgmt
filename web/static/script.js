@@ -172,7 +172,7 @@ $(document).ready(function() {
                     $.each(response, function(key, value) {
                         cluster_data += '<tr id="tr_' + value.cluster_name + '">';
                         cluster_data += '<td class="text-center"><a>' + value.cluster_name + '</a></td>';
-                        cluster_data += '<td class="text-center"><a>' + value.zone_name + '</a></td>';
+                        cluster_data += '<td class="text-center"><a>' + value.region_name + '</a></td>';
                         cluster_data += '<td class="text-center"><a>' + value.cluster_version + '</a></td>';
                         cluster_data += '<td class="text-center"><a>' + value.nodes_ips + '</a></td>';
                         cluster_data += '<td class="text-center"><a>' + value.human_expiration_timestamp + '</a></td>';
