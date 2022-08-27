@@ -112,6 +112,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                                failure_message=f'{user_email} was not found in the system '
                                                f'or you provided a wrong password, please try again')
     try:
+        logger.info(f'checking the password for {user_object}')
         if check_password_hash(user_object['hashed_password'], password):
             logger.info(f'The hashed password is correct')
             try:
