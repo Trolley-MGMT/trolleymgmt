@@ -118,6 +118,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
         print(f'checking the password for user_object')
         if check_password_hash(user_object['hashed_password'], password):
             logger.info(f'The hashed password is correct')
+            print('The hashed password is correct')
             try:
                 token = jwt.encode(
                     {'user_id': str(user_object['_id']),
@@ -131,6 +132,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             logger.info(f'The decoded token is: {token}')
             return token, user_object
         else:
+            print('The hashed password is incorrect')
             logger.info(f'The hashed password is incorrect')
             return '', user_object
     except:
