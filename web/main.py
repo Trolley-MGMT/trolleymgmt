@@ -97,6 +97,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
     logger.info(f'The request is being done with: {user_email} user')
     user_object = mongo_handler.mongo_utils.retrieve_user(user_email)
     print('test')
+    print(user_object)
     logger.info(f'user_obj is: {user_object}')
     if not user_object:
         return '', {'user_email': user_email}
