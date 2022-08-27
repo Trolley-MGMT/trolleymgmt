@@ -192,7 +192,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = ''
     elif cluster_type == EKS:
         eks_deployment_object = EKSObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
                                           nodes_names=nodes_names, nodes_ips=nodes_ips, project_id=project_id,
-                                          zone_name=zone_name, created_timestamp=timestamp,
+                                          zone_name=zone_name, region_name=region_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,

@@ -243,22 +243,28 @@ def delete_expired_clusters():
 
 @app.route('/delete_cluster', methods=[DELETE])
 def delete_cluster():
+    """
+    This request deletes the requested cluster
+    """
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     if content[CLUSTER_TYPE] == GKE:
         del content[CLUSTER_TYPE]
         delete_gke_cluster(**content)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=GKE, cluster_name=content['cluster_name'],
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=GKE,
+                                                           cluster_name=content['cluster_name'],
                                                            availability=False)
     elif content[CLUSTER_TYPE] == EKS:
+        del content[CLUSTER_TYPE]
         delete_eks_cluster(**content)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'],
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=EKS,
                                                            cluster_name=content['cluster_name'],
                                                            availability=False)
     elif content[CLUSTER_TYPE] == AKS:
+        del content[CLUSTER_TYPE]
         delete_aks_cluster(**content)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'],
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=AKS,
                                                            cluster_name=content['cluster_name'],
                                                            availability=False)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)

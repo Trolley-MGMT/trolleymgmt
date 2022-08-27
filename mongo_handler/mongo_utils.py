@@ -157,29 +157,6 @@ def retrieve_expired_clusters(cluster_type: str) -> list:
     return expired_clusters_list
 
 
-def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', availability: bool = False):
-    """
-    @param cluster_type:
-    @param cluster_name:
-    @param availability:
-    @return:
-    """
-
-    myquery = {CLUSTER_NAME.lower(): cluster_name}
-    newvalues = {"$set": {AVAILABILITY: availability}}
-    if cluster_type == GKE:
-        result = gke_clusters.update_one(myquery, newvalues)
-    elif cluster_type == GKE_AUTOPILOT:
-        result = gke_autopilot_clusters.update_one(myquery, newvalues)
-    elif cluster_type == EKS:
-        result = eks_clusters.update_one(myquery, newvalues)
-    elif cluster_type == AKS:
-        result = aks_clusters.update_one(myquery, newvalues)
-    else:
-        result = gke_clusters.update_one(myquery, newvalues)
-    return result.raw_result['updatedExisting']
-
-
 def insert_gke_cache(gke_caching_object: dict = None) -> bool:
     """
     @param gke_caching_object: The dictionary with all the cluster data.

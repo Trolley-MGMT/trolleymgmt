@@ -60,6 +60,7 @@ class EKSObject:
     human_expiration_timestamp: str
     project_id: str
     zone_name: str
+    region_name: str
     cluster_version: str
     availability: bool = True
 
