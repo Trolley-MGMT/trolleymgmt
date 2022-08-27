@@ -130,6 +130,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             logger.info(f'The hashed password is incorrect')
             return '', user_object
     except:
+        logger.info(f'The hashed password is incorrect')
         redirect(url_for('login',
                          failure_message=f'username or password were not found in the system '
                                          f' please try again'))
