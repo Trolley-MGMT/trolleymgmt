@@ -5,7 +5,6 @@ import os
 import time
 import datetime
 import jwt
-import configparser
 import platform
 from dataclasses import asdict
 from subprocess import PIPE, run
@@ -29,9 +28,6 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
-config = configparser.ConfigParser()
-config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
-config.read(config_ini_file)
 
 AKS_LOCATIONS_COMMAND = 'az account list-locations'
 EKS_REGIONS_COMMAND = 'aws ec2 describe-regions'
@@ -43,10 +39,6 @@ if MACOS in platform.platform():
     CUR_DIR = os.getcwd()
     PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
     print(f'current directory is: {PROJECT_ROOT}')
-    config = configparser.ConfigParser()
-    config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
-    print(f'config ini file location is: {config_ini_file}')
-    config.read(config_ini_file)
     MONGO_URL = os.environ['MONGO_URL']
     HELM_COMMAND = '/opt/homebrew/bin/helm'
 else:
@@ -97,8 +89,6 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             password = request.form['user_password']
     logger.info(f'The request is being done with: {user_email} user')
     user_object = mongo_handler.mongo_utils.retrieve_user(user_email)
-    print('test')
-    print(user_object)
     logger.info(f'user_obj is: {user_object}')
     if not user_object:
         return '', {'user_email': user_email}
@@ -116,18 +106,14 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                                                f'or you provided a wrong password, please try again')
     try:
         logger.info(f'checking the password for {user_object}')
-        print(f'checking the password for user_object')
         if check_password_hash(user_object['hashed_password'], password):
             logger.info(f'The hashed password is correct')
-            print('The hashed password is correct')
             try:
                 token = jwt.encode(
                     {'user_id': str(user_object['_id']),
                      'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)},
                     app.config['SECRET_KEY'])
-                print('succeeded to create a token')
             except InvalidTokenError as error:
-                print('failed to create a token')
                 print(error)
                 logger.info(f'Failed to create a token')
                 token = ''
@@ -149,10 +135,8 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
 def retrieve_aws_availability_zones(region_name):
     command = f'{EKS_AVAILABILITY_ZONES_COMMAND} --region {region_name}'
     logger.info(f'Running a {command} command')
-    print(f'Running a {command} command')
     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     availability_zones = json.loads(result.stdout)
-    print(f'availability_zones list is: {availability_zones}')
     zones_list = []
     for zone in availability_zones['AvailabilityZones']:
         if not zone['ZoneName'] == 'us-east-1e':
@@ -163,10 +147,8 @@ def retrieve_aws_availability_zones(region_name):
 def retrieve_aws_subnets(availability_zone: str = ''):
     command = f'{EKS_SUBNETS_COMMAND} --filters "Name=availability-zone","Values={availability_zone}"'
     logger.info(f'Running a {command} command')
-    print(f'Running a {command} command')
     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     availability_zones = json.loads(result.stdout)
-    print(f'availability_zones list is: {availability_zones}')
     subnets_list = []
     if availability_zones['Subnets']:
         for zone in availability_zones['Subnets']:
