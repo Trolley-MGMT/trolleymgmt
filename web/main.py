@@ -14,8 +14,7 @@ from distutils import util
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from mongo_handler.mongo_utils import set_cluster_availability, retrieve_expired_clusters, retrieve_available_clusters, \
-    insert_user, retrieve_user, retrieve_gke_cache
+import mongo_handler.mongo_utils
 from mongo_handler.mongo_objects import UserObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
@@ -87,7 +86,7 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
     hashed_password = generate_password_hash(password, method='sha256')
     user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
                              team_name=team_name, hashed_password=hashed_password)
-    if insert_user(asdict(user_object)):
+    if mongo_handler.mongo_utils.insert_user(asdict(user_object)):
         return True
     else:
         return False
@@ -108,7 +107,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             user_email = request.form['user_email']
             password = request.form['user_password']
     logger.info(f'The request is being done with: {user_email} user')
-    user_object = retrieve_user(user_email)
+    user_object = mongo_handler.mongo_utils.retrieve_user(user_email)
     logger.info(f'user_obj is: {user_object}')
     if not user_object:
         return '', {'user_email': user_email}
@@ -212,7 +211,7 @@ def render_page(page_name: str = ''):
 def get_clusters_data():
     cluster_type = request.args.get(CLUSTER_TYPE)
     user_name = request.args.get(USER_NAME.lower())
-    clusters_list = retrieve_available_clusters(cluster_type, user_name)
+    clusters_list = mongo_handler.mongo_utils.retrieve_available_clusters(cluster_type, user_name)
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -251,11 +250,11 @@ def trigger_aks_deployment():
 @app.route('/delete_expired_clusters', methods=[DELETE])
 def delete_expired_clusters():
     content = request.get_json()
-    expired_clusters_list = retrieve_expired_clusters(cluster_type=content['cluster_type'])
+    expired_clusters_list = mongo_handler.mongo_utils.retrieve_expired_clusters(cluster_type=content['cluster_type'])
     for expired_cluster in expired_clusters_list:
         delete_gke_cluster(cluster_name=expired_cluster['cluster_name'])
         time.sleep(5)
-        set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
                                  availability=False)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
@@ -268,15 +267,15 @@ def delete_cluster():
     if content[CLUSTER_TYPE] == GKE:
         del content[CLUSTER_TYPE]
         delete_gke_cluster(**content)
-        set_cluster_availability(cluster_type=GKE, cluster_name=content['cluster_name'],
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=GKE, cluster_name=content['cluster_name'],
                                  availability=False)
     elif content[CLUSTER_TYPE] == EKS:
         delete_eks_cluster(**content)
-        set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
                                  availability=False)
     elif content[CLUSTER_TYPE] == AKS:
         delete_aks_cluster(**content)
-        set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
                                  availability=False)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
@@ -310,7 +309,7 @@ def fetch_regions():
         print(f'regions_list is: {regions_list}')
         return jsonify(regions_list)
     elif cluster_type == GKE:
-        gke_regions = retrieve_gke_cache(gke_cache_type=REGIONS_LIST)
+        gke_regions = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=REGIONS_LIST)
         return jsonify(gke_regions)
     elif cluster_type == EKS:
         command = EKS_REGIONS_COMMAND
@@ -332,7 +331,7 @@ def fetch_zones():
     if cluster_type == AKS:
         return jsonify('')
     elif cluster_type == GKE:
-        gke_zones = retrieve_gke_cache(gke_cache_type=ZONES_LIST)
+        gke_zones = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=ZONES_LIST)
         for zone in gke_zones:
             if region_name in zone:
                 zones_list.append(zone)
@@ -360,20 +359,20 @@ def fetch_subnets():
 def fetch_helm_installs():
     names = bool(util.strtobool(request.args.get("names")))
     logger.info(f'A request to fetch helm installs for {names} names has arrived')
-    helm_installs_list = retrieve_gke_cache(gke_cache_type=HELM_INSTALLS_LIST)
+    helm_installs_list = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=HELM_INSTALLS_LIST)
     return jsonify(helm_installs_list)
 
 
 @app.route('/fetch_gke_versions', methods=[GET])
 def fetch_gke_versions():
-    gke_versions_list = retrieve_gke_cache(gke_cache_type=GKE_VERSIONS_LIST)
+    gke_versions_list = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=GKE_VERSIONS_LIST)
     return jsonify(gke_versions_list)
 
 
 @app.route('/fetch_gke_image_types', methods=[GET])
 def fetch_gke_image_types():
     logger.info(f'A request to fetch available GKE image types has arrived')
-    gke_image_types_list = retrieve_gke_cache(gke_cache_type=GKE_IMAGE_TYPES)
+    gke_image_types_list = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=GKE_IMAGE_TYPES)
     return jsonify(gke_image_types_list)
 
 
