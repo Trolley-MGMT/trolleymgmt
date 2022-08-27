@@ -115,6 +115,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                                                f'or you provided a wrong password, please try again')
     try:
         logger.info(f'checking the password for {user_object}')
+        print(f'checking the password for user_object')
         if check_password_hash(user_object['hashed_password'], password):
             logger.info(f'The hashed password is correct')
             try:
