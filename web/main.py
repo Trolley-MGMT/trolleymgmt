@@ -12,6 +12,7 @@ from subprocess import PIPE, run
 from distutils import util
 
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
+from jwt import InvalidTokenError
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import mongo_handler.mongo_utils
@@ -53,7 +54,6 @@ else:
     MONGO_URL = os.environ['MONGO_URL']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -126,8 +126,9 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                      'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)},
                     app.config['SECRET_KEY'])
                 print('succeeded to create a token')
-            except:
+            except InvalidTokenError as error:
                 print('failed to create a token')
+                print(error)
                 logger.info(f'Failed to create a token')
                 token = ''
             # decoded_token = token.decode("utf-8")
@@ -252,8 +253,9 @@ def delete_expired_clusters():
     for expired_cluster in expired_clusters_list:
         delete_gke_cluster(cluster_name=expired_cluster['cluster_name'])
         time.sleep(5)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
-                                 availability=False)
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'],
+                                                           cluster_name=content['cluster_name'],
+                                                           availability=False)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -266,15 +268,17 @@ def delete_cluster():
         del content[CLUSTER_TYPE]
         delete_gke_cluster(**content)
         mongo_handler.mongo_utils.set_cluster_availability(cluster_type=GKE, cluster_name=content['cluster_name'],
-                                 availability=False)
+                                                           availability=False)
     elif content[CLUSTER_TYPE] == EKS:
         delete_eks_cluster(**content)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
-                                 availability=False)
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'],
+                                                           cluster_name=content['cluster_name'],
+                                                           availability=False)
     elif content[CLUSTER_TYPE] == AKS:
         delete_aks_cluster(**content)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'], cluster_name=content['cluster_name'],
-                                 availability=False)
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'],
+                                                           cluster_name=content['cluster_name'],
+                                                           availability=False)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -329,7 +333,7 @@ def fetch_zones():
     if cluster_type == AKS:
         return jsonify('')
     elif cluster_type == GKE:
-        gke_zones = mongo_handler.mongo_utils.\
+        gke_zones = mongo_handler.mongo_utils. \
             retrieve_gke_cache(gke_cache_type=ZONES_LIST)
         for zone in gke_zones:
             if region_name in zone:
