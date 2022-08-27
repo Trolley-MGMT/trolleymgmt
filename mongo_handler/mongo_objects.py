@@ -78,6 +78,7 @@ class AKSObject:
     expiration_timestamp: int
     human_expiration_timestamp: str
     zone_name: str
+    region_name: str
     cluster_version: str
     availability: bool = True
 

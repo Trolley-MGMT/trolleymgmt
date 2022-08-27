@@ -14,27 +14,23 @@ from mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject
 from variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS, MACOS
 
 if MACOS in platform.platform():
-    CUR_DIR = os.getcwd()
-    PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
-    print(f'current directory is: {PROJECT_ROOT}')
-    config = configparser.ConfigParser()
-    config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
-    print(f'config ini file location is: {config_ini_file}')
-    config.read(config_ini_file)
-    PROJECT_ID = config['DEFAULT']['project_id']
-    MONGO_URL = config['DEFAULT']['jenkins_url']
-    JENKINS_USER = config['DEFAULT']['jenkins_user']
     HELM_COMMAND = '/opt/homebrew/bin/helm'
+    KUBECONFIG_PATH = os.environ['KUBECONFIG']
 else:
-    PROJECT_ID = os.environ['PROJECT_ID']
-    MONGO_URL = os.environ['MONGO_URL']
+    HELM_PATH = '/tmp/helm_path'
+    with open(HELM_PATH, "r") as f:
+        HELM_COMMAND = f.read().strip()
+        print(f'The helm command is: {HELM_COMMAND}')
     JENKINS_USER = os.environ['JENKINS_USER']
     PROJECT_NAME = os.environ['PROJECT_NAME']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
-    KUBECONFIG = os.environ['KUBECONFIG']
+    KUBECONFIC_PATH = os.environ['KUBECONFIG']
 
-
+MONGO_URL = os.environ['MONGO_URL']
+PROJECT_NAME = os.environ['PROJECT_NAME']
+MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
+MONGO_USER = os.environ['MONGO_USER']
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
 KUBECTL_COMMAND = 'kubectl'
@@ -202,7 +198,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = ''
     elif cluster_type == AKS:
         aks_deployment_object = AKSObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
                                           nodes_names=nodes_names, nodes_ips=nodes_ips, resource_group=resource_group,
-                                          zone_name=zone_name, created_timestamp=timestamp,
+                                          zone_name=zone_name, region_name=region_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
@@ -224,7 +220,7 @@ if __name__ == '__main__':
     parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
     parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
     args = parser.parse_args()
-    with open(KUBECONFIG, "r") as f:
+    with open(KUBECONFIG_PATH, "r") as f:
         kubeconfig_yaml = f.read()
         print(f'The kubeconfig content is: {kubeconfig_yaml}')
 
