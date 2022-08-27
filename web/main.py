@@ -124,7 +124,9 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                     {'user_id': str(user_object['_id']),
                      'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)},
                     app.config['SECRET_KEY'])
+                print('succeeded to create a token')
             except:
+                print('failed to create a token')
                 logger.info(f'Failed to create a token')
                 token = ''
             # decoded_token = token.decode("utf-8")
