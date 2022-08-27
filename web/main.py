@@ -45,23 +45,14 @@ if MACOS in platform.platform():
     config_ini_file = "/".join(PROJECT_ROOT.split("/")[:-1]) + "/config.ini"
     print(f'config ini file location is: {config_ini_file}')
     config.read(config_ini_file)
-    MONGO_URL = config['DEFAULT']['jenkins_url']
-    JENKINS_USER = config['DEFAULT']['jenkins_user']
-    HELM_COMMAND = '/opt/homebrew/bin/helm'
-    JENKINS_URL = 'http://' + config['DEFAULT']['jenkins_url'] + ':8080'
-else:
     MONGO_URL = os.environ['MONGO_URL']
-    JENKINS_USER = os.environ['JENKINS_USER']
+    HELM_COMMAND = '/opt/homebrew/bin/helm'
+else:
     PROJECT_NAME = os.environ['PROJECT_NAME']
+    MONGO_URL = os.environ['MONGO_URL']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
-    JENKINS_URL = ''
 
-JENKINS_PASSWORD = os.getenv('JENKINS_PASSWORD')
-JENKINS_KUBERNETES_GKE_DEPLOYMENT_JOB_NAME = 'gke_deployment'
-JENKINS_KUBERNETES_GKE_AUTOPILOT_DEPLOYMENT_JOB_NAME = 'gke_autopilot_deployment'
-JENKINS_EKS_DEPLOYMENT_JOB_NAME = 'eks_deployment'
-JENKINS_AKS_DEPLOYMENT_JOB_NAME = 'aks_deployment'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -72,9 +63,6 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-logger.info(f'The selected jenkins_url is: {JENKINS_URL}')
-logger.info(f'The selected jenkins_user is: {JENKINS_USER}')
-logger.info(f'The selected jenkins_password is: {JENKINS_PASSWORD}')
 logger.info(f'The current directory is: {CUR_DIR}')
 logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 
