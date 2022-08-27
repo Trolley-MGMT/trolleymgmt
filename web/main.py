@@ -331,7 +331,8 @@ def fetch_zones():
     if cluster_type == AKS:
         return jsonify('')
     elif cluster_type == GKE:
-        gke_zones = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=ZONES_LIST)
+        gke_zones = mongo_handler.mongo_utils.\
+            retrieve_gke_cache(gke_cache_type=ZONES_LIST)
         for zone in gke_zones:
             if region_name in zone:
                 zones_list.append(zone)
