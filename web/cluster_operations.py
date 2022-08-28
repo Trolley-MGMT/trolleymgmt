@@ -6,8 +6,7 @@ from mongo_handler.mongo_utils import retrieve_cluster_details
 from utils import random_string
 from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
 
-GITHUB_ACTION_TOKEN = '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'
-# GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
+GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 print(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
 GITHUB_ACTIONS_API_URL = 'https://api.github.com/repos/LiorYardeni/trolley/dispatches'
 GITHUB_ACTION_REQUEST_HEADER = {
