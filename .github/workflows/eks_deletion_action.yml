@@ -32,6 +32,12 @@ jobs:
 
       - name: Deleting Cluster
         if: always()
+        env:
+          MONGO_USER: ${{ secrets.MONGO_USER }}
+          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+          PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt

@@ -21,7 +21,6 @@ jobs:
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
-          JENKINS_USER: ${{ secrets.JENKINS_USER }}
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
