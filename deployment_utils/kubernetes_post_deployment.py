@@ -45,62 +45,12 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-# if 'Darwin' in platform.system():
-#     KUBECONFIG_LOCATION = f'/Users/{getpass.getuser()}/.kube/config'
-#     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
-#     KUBECTL_COMMAND = 'kubectl'
-
-#
-# else:
-#     HOME = os.getenv('HOME')
-#     SLACK_USER = os.getenv('BUILD_USER_ID')
-#     KUBECONFIG_LOCATION = os.environ["KUBECONFIG"]
-#     KUBECONFIG_REMOVAL_COMMAND = ['rm', KUBECONFIG_LOCATION]
-
-
-def generate_kubeconfig(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = '', cluster_name: str = '',
-                        zone_name: str = '',
-                        region_name: str = '', resource_group: str = '') -> str:
+def generate_kubeconfig(kubeconfig_path: str = '') -> str:
     """
     This function generates a kubeconfig_yaml for the created GKE cluster
     @return:
     """
-    if not kubeconfig_path:
-        kubeconfig_path = KUBECONFIG_PATH
-    print(f'The kubeconfig path is: {kubeconfig_path}')
-    if 'Darwin' not in platform.system():
-        with open(kubeconfig_path, "r") as f:
-            kubeconfig_yaml = f.read()
-            print(f'The kubeconfig content is: {kubeconfig_yaml}')
-        return kubeconfig_yaml
 
-    # call(KUBECONFIG_REMOVAL_COMMAND, timeout=None)
-
-    if cluster_type == 'gke':
-        command = [
-            'gcloud', 'container', 'clusters', 'get-credentials',
-            cluster_name, '--zone', zone_name, '--project', project_id]
-    elif cluster_type == 'gke_autopilot':
-        command = [
-            'gcloud', 'container', 'clusters', 'get-credentials', cluster_name, '--region', region_name, '--project',
-            project_id]
-    elif cluster_type == 'aks':
-        command = [
-            'az', 'aks', 'get-credentials', '--resource-group', resource_group, '--name', cluster_name
-        ]
-    elif cluster_type == 'eks':
-        command = [
-            'aws', 'eks', '--region', zone_name, 'update-kubeconfig', '--name', cluster_name
-        ]
-    if 'Darwin' in platform.system():
-        call(command, timeout=None)
-
-        command = [KUBECTL_COMMAND, 'get', 'pods', '--all-namespaces', '--insecure-skip-tls-verify=true']
-        call(command, timeout=None)
-
-    with open(kubeconfig_path, "r") as f:
-        kubeconfig_yaml = f.read()
-    return kubeconfig_yaml
 
 
 def get_nodes_ips() -> list:
@@ -133,9 +83,13 @@ def get_cluster_version() -> str:
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = '', helm_installs: str = '', resource_group=''):
-    kubeconfig = generate_kubeconfig(kubeconfig_path=kubeconfig_path, cluster_type=cluster_type, project_id=project_id,
-                                     cluster_name=cluster_name,
-                                     zone_name=zone_name, region_name=region_name, resource_group=resource_group)
+    if not kubeconfig_path:
+        kubeconfig_path = KUBECONFIG_PATH
+    print(f'The kubeconfig path is: {kubeconfig_path}')
+    if 'Darwin' not in platform.system():
+        with open(kubeconfig_path, "r") as f:
+            kubeconfig = f.read()
+            print(f'The kubeconfig content is: {kubeconfig}')
 
     if ',' in helm_installs:
         helm_installs_list = helm_installs.split(',')
@@ -147,11 +101,6 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = ''
             print(f'The result is: {result}')
     elif '.' in helm_installs:
         print(f'No helm charts to install for {cluster_name} cluster')
-    # else:
-    #     command = HELM_COMMAND + ' upgrade --install ' + helm_installs
-    #     print(f'Running a {command} command')
-    #     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    #     print(f'The result is: {result}')
     nodes_ips = get_nodes_ips()
     nodes_names = get_nodes_names()
     try:
