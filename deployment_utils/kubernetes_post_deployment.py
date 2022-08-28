@@ -25,7 +25,7 @@ else:
     PROJECT_NAME = os.environ['PROJECT_NAME']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
-    KUBECONFIC_PATH = os.environ['KUBECONFIG']
+    KUBECONFIG_PATH = os.environ['KUBECONFIG']
 
 MONGO_URL = os.environ['MONGO_URL']
 PROJECT_NAME = os.environ['PROJECT_NAME']
@@ -66,7 +66,7 @@ def generate_kubeconfig(kubeconfig_path: str = '', cluster_type: str = '', proje
     @return:
     """
     if not kubeconfig_path:
-        kubeconfig_path = os.environ["KUBECONFIG"]
+        kubeconfig_path = os.environ["KUBECONFIG_PATH"]
     print(f'The kubeconfig path is: {kubeconfig_path}')
     if 'Darwin' not in platform.system():
         with open(kubeconfig_path, "r") as f:
