@@ -66,7 +66,7 @@ def generate_kubeconfig(kubeconfig_path: str = '', cluster_type: str = '', proje
     @return:
     """
     if not kubeconfig_path:
-        kubeconfig_path = os.environ["KUBECONFIG_PATH"]
+        kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
     if 'Darwin' not in platform.system():
         with open(kubeconfig_path, "r") as f:
