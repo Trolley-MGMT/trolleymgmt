@@ -47,6 +47,8 @@ jobs:
           KUBECONFIG: '/home/runner/.kube/config'
 
         run: |
+          brew install helm
+          which helm >> /tmp/helm_path
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
           python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_id trolley --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name pavelzagalsky --zone_name ${{ github.event.client_payload.zone_names }} --region_name ${{ github.event.client_payload.region_name }} --helm_installs  ${{ github.event.client_payload.helm_installs }} --expiration_time ${{ github.event.client_payload.expiration_time }}
