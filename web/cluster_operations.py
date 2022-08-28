@@ -28,7 +28,7 @@ def trigger_aks_build_github_action(user_name: str = '',
                            "cluster_version": version,
                            "aks_location": aks_location,
                            "num_nodes": num_nodes,
-                           "helm_installs": helm_installs,
+                           "helm_installs": ','.join(helm_installs),
                            "expiration_time": expiration_time}
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
@@ -53,7 +53,7 @@ def trigger_gke_build_github_action(user_name: str = '',
                            "image_type": image_type,
                            "region_name": gke_region,
                            "num_nodes": num_nodes,
-                           "helm_installs": helm_installs,
+                           "helm_installs": ','.join(helm_installs),
                            "expiration_time": expiration_time}
     }
     try:
@@ -82,7 +82,7 @@ def trigger_eks_build_github_action(user_name: str = '',
                            "region_name": eks_location,
                            "zone_names": ",".join(eks_zones),
                            "num_nodes": num_nodes,
-                           "helm_installs": helm_installs,
+                           "helm_installs": ','.join(helm_installs),
                            "expiration_time": expiration_time,
                            "subnets": ",".join(eks_subnets)}
     }
