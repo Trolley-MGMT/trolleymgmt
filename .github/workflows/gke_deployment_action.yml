@@ -33,7 +33,7 @@ jobs:
         run: gcloud info
       - name: Installing GKE Cluster
         run: |
-          export KUBECONFIG_PATH=/tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
           brew install helm
           which helm >> /tmp/helm_path
           gcloud container images list
@@ -57,7 +57,7 @@ jobs:
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
-          KUBECONFIG_PATH: $KUBECONFIG_PATH
+          KUBECONFIG: $KUBECONFIG
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
