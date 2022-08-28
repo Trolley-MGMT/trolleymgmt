@@ -57,7 +57,7 @@ jobs:
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
-          KUBECONFIG: $KUBECONFIG
+          KUBECONFIG: /tmp/kubeconfig
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
