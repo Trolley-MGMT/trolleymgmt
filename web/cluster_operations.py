@@ -74,7 +74,7 @@ def trigger_eks_build_github_action(user_name: str = '',
                                     num_nodes: int = '',
                                     helm_installs: list = '',
                                     expiration_time: int = ''):
-    cluster_name = f'{user_name}-gke-{random_string(5)}'
+    cluster_name = f'{user_name}-eks-{random_string(5)}'
     json_data = {
         "event_type": "eks-build-api-trigger",
         "client_payload": {"cluster_name": cluster_name,

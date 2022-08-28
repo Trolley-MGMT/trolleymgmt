@@ -52,7 +52,6 @@ def generate_kubeconfig(kubeconfig_path: str = '') -> str:
     """
 
 
-
 def get_nodes_ips() -> list:
     command = KUBECTL_COMMAND + ' get nodes -o wide | awk \'{print $6}\''
     print(f'Running a {command} command')
