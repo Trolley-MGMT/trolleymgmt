@@ -73,9 +73,9 @@ def insert_aks_deployment(aks_deployment_object: dict = None) -> bool:
 def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', availability: bool = False):
     """
 
-    @param cluster_type:
-    @param cluster_name:
-    @param availability:
+    @param cluster_type: The type of the cluster to change the availability of
+    @param cluster_name: The name of the cluster to set the availability of
+    @param availability: Availability True/False
     @return:
     """
 
