@@ -9,6 +9,10 @@ if __name__ == '__main__':
     parser.add_argument('--cluster_name', default='gke', type=str, help='Name of the cluster to delete')
     parser.add_argument('--availability', choices=('True', 'False'), help='Select cluster\'s availability')
     args = parser.parse_args()
+    if args.availability == 'True':
+        availability = True
+    else:
+        availability = False
     print(f'Settings {args.cluster_name} cluster on {args.cluster_type} cloud to {args.availability} availability')
     set_cluster_availability(cluster_type=args.cluster_type, cluster_name=args.cluster_name,
-                             availability=args.availability)
+                             availability=availability)
