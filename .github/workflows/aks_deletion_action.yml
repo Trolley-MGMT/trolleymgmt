@@ -26,7 +26,7 @@ jobs:
       - name: Deleting Cluster
         if: always()
         run: |
-          az aks delete --name=${{ github.event.client_payload.cluster_name }} --resource-group=MyResourceGroup --yes
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
           python3 deployment_utils/set_cluster_availability.py --cluster_type aks --cluster_name ${{ github.event.client_payload.cluster_name }} --availability False
+          az aks delete --name=${{ github.event.client_payload.cluster_name }} --resource-group=MyResourceGroup --yes

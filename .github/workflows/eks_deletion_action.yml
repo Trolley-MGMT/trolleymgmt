@@ -33,7 +33,7 @@ jobs:
       - name: Deleting Cluster
         if: always()
         run: |
-          eksctl delete cluster --region=${{ github.event.client_payload.region_name }} --name=${{ github.event.client_payload.cluster_name }}
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r requirements.txt
           python3 deployment_utils/set_cluster_availability.py --cluster_type eks --cluster_name ${{ github.event.client_payload.cluster_name }} --availability False
+          eksctl delete cluster --region=${{ github.event.client_payload.region_name }} --name=${{ github.event.client_payload.cluster_name }}
