@@ -7,6 +7,7 @@ from utils import random_string
 from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
 
 GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
+print(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
 GITHUB_ACTIONS_API_URL = 'https://api.github.com/repos/LiorYardeni/trolley/dispatches'
 GITHUB_ACTION_REQUEST_HEADER = {
     'Content-type': 'application/json',
