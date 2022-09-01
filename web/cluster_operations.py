@@ -1,4 +1,5 @@
 import os
+from subprocess import run, PIPE
 
 import requests
 
@@ -59,20 +60,25 @@ def trigger_gke_build_github_action(user_name: str = '',
                            "expiration_time": expiration_time}
     }
     print(f'Sending out the {json_data} json_data')
-    try:
-        r = requests.post(GITHUB_ACTIONS_API_URL,
-                          headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-        print(f'The content of the response:')
-        print(f':{GITHUB_ACTIONS_API_URL}')
-        print(f':{GITHUB_ACTION_REQUEST_HEADER}')
-        print(f':{r.content}')
-        print(f':{r.status_code}')
-        print(f':{r.text}')
-        print(f':{r.ok}')
-        r.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        print(err)
-        raise SystemExit(err)
+    # try:
+    github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' -H \'Accept-Encoding: gzip, deflate\' -H \'Authorization: token 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\' -H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' -d \'{"event_type": "gke-build-api-trigger", "client_payload": {"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", "zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", "region_name": "' + gke_region + '", "num_nodes": "' + str(
+        num_nodes) + '", "helm_installs": "' + ','.join(helm_installs) + '", "expiration_time": "' + str(
+        expiration_time) + '"}}\' https://api.github.com/repos/LiorYardeni/trolley/dispatches'
+    run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+
+        # r = requests.post(GITHUB_ACTIONS_API_URL,
+        #                   headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+        # print(f'The content of the response:')
+        # print(f':{GITHUB_ACTIONS_API_URL}')
+        # print(f':{GITHUB_ACTION_REQUEST_HEADER}')
+        # print(f':{r.content}')
+        # print(f':{r.status_code}')
+        # print(f':{r.text}')
+        # print(f':{r.ok}')
+        # r.raise_for_status()
+    # except requests.exceptions.HTTPError as err:
+    #     print(err)
+    #     raise SystemExit(err)
 
 
 def trigger_eks_build_github_action(user_name: str = '',
