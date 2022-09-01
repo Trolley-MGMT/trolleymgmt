@@ -57,9 +57,15 @@ def trigger_gke_build_github_action(user_name: str = '',
                            "helm_installs": ','.join(helm_installs),
                            "expiration_time": expiration_time}
     }
+    print(f'Sending out the {json_data} json_data')
     try:
         r = requests.post(GITHUB_ACTIONS_API_URL,
                           headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+        print(f'The content of the response:')
+        print(f':{r.content}')
+        print(f':{r.status_code}')
+        print(f':{r.text}')
+        print(f':{r.ok}')
         r.raise_for_status()
     except requests.exceptions.HTTPError as err:
         print(err)
