@@ -1,7 +1,7 @@
 import time
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-from mongo_handler.mongo_utils import retrieve_expired_clusters, set_cluster_availability
+from web.mongo_handler.mongo_utils import retrieve_expired_clusters, set_cluster_availability
 from web.cluster_operations import delete_gke_cluster
 
 

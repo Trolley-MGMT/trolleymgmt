@@ -7,12 +7,14 @@ from dataclasses import asdict
 import getpass as gt
 from subprocess import PIPE, run
 
-from mongo_handler.mongo_utils import insert_gke_cache
-from mongo_handler.mongo_objects import GKECacheObject
+from web.mongo_handler.mongo_utils import insert_cache_object
+from web.mongo_handler.mongo_objects import GKECacheObject
 
 from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
 from googleapiclient import discovery
+
+from web.variables.variables import GKE
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -26,11 +28,9 @@ logger.addHandler(handler)
 LOCAL_USER = gt.getuser()
 
 if 'Darwin' in platform.system():
-    LOCAL_GCLOUD = f'/Users/{LOCAL_USER}/Downloads/google-cloud-sdk/bin/gcloud'
     HELM_COMMAND = '/opt/homebrew/bin/helm'
     CREDENTIALS_PATH = '/Users/pavelzagalsky/Documents/trolley/creds.json'
 else:
-    LOCAL_GCLOUD = '/usr/lib/google-cloud-sdk/bin/gcloud'
     HELM_PATH = '/tmp/helm_path'
     with open(HELM_PATH, "r") as f:
         HELM_COMMAND = f.read().strip()
@@ -39,9 +39,6 @@ else:
 
 
 PROJECT_NAME = os.environ['PROJECT_NAME']
-GKE_VERSIONS_COMMAND = f'{LOCAL_GCLOUD} container get-server-config --zone='
-GKE_ZONES_COMMAND = f'{LOCAL_GCLOUD} compute zones list --format json'
-GKE_REGIONS_COMMAND = f'{LOCAL_GCLOUD} compute regions list --format json'
 
 credentials = service_account.Credentials.from_service_account_file(
     CREDENTIALS_PATH)
@@ -135,7 +132,7 @@ def main():
         gke_image_types=gke_image_types,
         helm_installs_list=helm_installs_list,
         regions_zones_dict=zones_regions_dict)
-    insert_gke_cache(gke_caching_object=asdict(gke_caching_object))
+    insert_cache_object(caching_object=asdict(gke_caching_object), provider=GKE)
 
 
 if __name__ == '__main__':

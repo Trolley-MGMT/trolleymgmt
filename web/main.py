@@ -19,7 +19,7 @@ from mongo_handler.mongo_objects import UserObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES
-from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
+from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
 
 app = Flask(__name__, template_folder='templates')
@@ -30,22 +30,13 @@ CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 
 AKS_LOCATIONS_COMMAND = 'az account list-locations'
-EKS_REGIONS_COMMAND = 'aws ec2 describe-regions'
-EKS_AVAILABILITY_ZONES_COMMAND = 'aws ec2 describe-availability-zones'
-EKS_SUBNETS_COMMAND = 'aws ec2 describe-subnets'
-AWS_VPCS_COMMAND = 'aws ec2 describe-vpcs --region'
 
 if MACOS in platform.platform():
     CUR_DIR = os.getcwd()
     PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
     print(f'current directory is: {PROJECT_ROOT}')
-    MONGO_URL = os.environ['MONGO_URL']
-    HELM_COMMAND = '/opt/homebrew/bin/helm'
 else:
     PROJECT_NAME = os.environ['PROJECT_NAME']
-    MONGO_URL = os.environ['MONGO_URL']
-    MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
-    MONGO_USER = os.environ['MONGO_USER']
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -132,49 +123,6 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                                          f' please try again'))
 
 
-def retrieve_aws_availability_zones(region_name):
-    command = f'{EKS_AVAILABILITY_ZONES_COMMAND} --region {region_name}'
-    logger.info(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    availability_zones = json.loads(result.stdout)
-    zones_list = []
-    for zone in availability_zones['AvailabilityZones']:
-        if not zone['ZoneName'] == 'us-east-1e':
-            zones_list.append(zone['ZoneName'])
-    return zones_list
-
-
-def retrieve_aws_subnets(availability_zone: str = ''):
-    command = f'{EKS_SUBNETS_COMMAND} --filters "Name=availability-zone","Values={availability_zone}"'
-    logger.info(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    availability_zones = json.loads(result.stdout)
-    subnets_list = []
-    if availability_zones['Subnets']:
-        for zone in availability_zones['Subnets']:
-            subnets_list.append(zone['SubnetId'])
-        return subnets_list
-    else:
-        return [f'No subnets were found for {availability_zone} zone']
-
-
-def get_eks_zones(eks_location: str = '') -> str:
-    """
-    Retrieve EKS zones from server, show them in a list
-    @param eks_location:
-    @return:
-    """
-    zones_list = []
-    command = f'aws ec2 describe-availability-zones --region {eks_location}'
-    logger.info(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    result_parsed = json.loads(result.stdout)
-    availability_zones = result_parsed['AvailabilityZones']
-    for availability_zone in availability_zones:
-        zones_list.append(availability_zone['ZoneName'])
-    return ','.join(zones_list)
-
-
 def render_page(page_name: str = ''):
     try:
         token, user_object = login_processor()
@@ -244,7 +192,7 @@ def delete_expired_clusters():
 @app.route('/delete_cluster', methods=[DELETE])
 def delete_cluster():
     """
-    This request deletes the requested cluster
+    This request deletes
     """
     content = request.get_json()
     function_name = inspect.stack()[0][3]
@@ -299,17 +247,10 @@ def fetch_regions():
         print(f'regions_list is: {regions_list}')
         return jsonify(regions_list)
     elif cluster_type == GKE:
-        gke_regions = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=REGIONS_LIST)
-        return jsonify(gke_regions)
+        regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=GKE)
     elif cluster_type == EKS:
-        command = EKS_REGIONS_COMMAND
-        logger.info(f'Running a {command} command')
-        print(f'Running a {command} command')
-        result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-        regions_list = json.loads(result.stdout)
-        print(f'regions_list is: {regions_list}')
-        for key, value in regions_list.items():
-            return jsonify(value)
+        regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=EKS)
+    return jsonify(regions)
 
 
 @app.route('/fetch_zones', methods=[GET])
@@ -321,15 +262,18 @@ def fetch_zones():
     if cluster_type == AKS:
         return jsonify('')
     elif cluster_type == GKE:
-        gke_zones = mongo_handler.mongo_utils. \
-            retrieve_gke_cache(gke_cache_type=ZONES_LIST)
+        gke_zones = mongo_handler.mongo_utils.retrieve_cache(cache_type=ZONES_LIST, provider=GKE)
         for zone in gke_zones:
             if region_name in zone:
                 zones_list.append(zone)
         return jsonify(zones_list)
     elif cluster_type == EKS:
-        aws_availability_zones = retrieve_aws_availability_zones(region_name)
-        return jsonify(aws_availability_zones)
+        eks_zones = mongo_handler.mongo_utils.retrieve_cache(cache_type=ZONES_LIST, provider=EKS)
+        available_eks_zones = []
+        for eks_zone in eks_zones:
+            if region_name in eks_zone:
+                available_eks_zones.append(eks_zone)
+        return jsonify(available_eks_zones)
 
 
 @app.route('/fetch_subnets', methods=[GET])
@@ -342,44 +286,36 @@ def fetch_subnets():
     elif cluster_type == GKE:
         return jsonify('')
     elif cluster_type == EKS:
-        aws_availability_zones = retrieve_aws_subnets(zone_names)
-        return jsonify(aws_availability_zones)
+        subnets = []
+        subnets_dict = mongo_handler.mongo_utils.retrieve_cache(cache_type='subnets_dict', provider=EKS)
+        for subnet in subnets_dict:
+            if subnet in zone_names:
+                subnets.append(subnets_dict[subnet])
+        if len(subnets[0]) < 1:
+            return jsonify([f'No subnets were found for {zone_names} zones'])
+        else:
+            return jsonify(subnets)
 
 
 @app.route('/fetch_helm_installs', methods=[GET, POST])
 def fetch_helm_installs():
     names = bool(util.strtobool(request.args.get("names")))
     logger.info(f'A request to fetch helm installs for {names} names has arrived')
-    helm_installs_list = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=HELM_INSTALLS_LIST)
+    helm_installs_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=HELM_INSTALLS_LIST, provider=GKE)
     return jsonify(helm_installs_list)
 
 
 @app.route('/fetch_gke_versions', methods=[GET])
 def fetch_gke_versions():
-    gke_versions_list = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=GKE_VERSIONS_LIST)
+    gke_versions_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_VERSIONS_LIST, provider=GKE)
     return jsonify(gke_versions_list)
 
 
 @app.route('/fetch_gke_image_types', methods=[GET])
 def fetch_gke_image_types():
     logger.info(f'A request to fetch available GKE image types has arrived')
-    gke_image_types_list = mongo_handler.mongo_utils.retrieve_gke_cache(gke_cache_type=GKE_IMAGE_TYPES)
+    gke_image_types_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_IMAGE_TYPES, provider=GKE)
     return jsonify(gke_image_types_list)
-
-
-@app.route('/fetch_aws_vpcs', methods=[GET])
-def fetch_aws_vpcs():
-    aws_region = request.args.get('aws_region')
-    logger.info(f'A request to fetch available VPCs for {aws_region} region has arrived')
-    aws_vpcs_names = []
-    command = AWS_VPCS_COMMAND + ' ' + aws_region
-    logger.info(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    aws_vpcs = json.loads(result.stdout)
-    for key, value in aws_vpcs.items():
-        for vpc in value:
-            aws_vpcs_names.append(vpc['VpcId'])
-        return jsonify(aws_vpcs_names)
 
 
 @app.route('/register', methods=[GET, POST])
@@ -479,4 +415,4 @@ def logout():
 
 
 app.run(host='0.0.0.0', port=8081, debug=True)
-# app.run(host='0.0.0.0', port=8081, debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'))
+# web.run(host='0.0.0.0', port=8081, debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'))

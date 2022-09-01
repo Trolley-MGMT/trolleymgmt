@@ -91,3 +91,11 @@ class GKECacheObject:
     versions_list: list
     gke_image_types: list
     regions_zones_dict: dict
+
+
+@dataclass
+class EKSCacheObject:
+    zones_list: list
+    regions_list: list
+    subnets_dict: dict
+    regions_zones_dict: dict

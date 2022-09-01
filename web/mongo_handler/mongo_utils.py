@@ -4,7 +4,7 @@ import time
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
+from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
     USER_NAME, \
     USER_EMAIL
 
@@ -22,6 +22,8 @@ eks_clusters: Collection = db.eks_clusters
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
 gke_cache: Collection = db.gke_cache
+eks_cache: Collection = db.eks_cache
+aks_cache: Collection = db.aks_cache
 
 print(f'MONGO_USER is: {MONGO_USER}')
 print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
@@ -157,36 +159,41 @@ def retrieve_expired_clusters(cluster_type: str) -> list:
     return expired_clusters_list
 
 
-def insert_gke_cache(gke_caching_object: dict = None) -> bool:
+def insert_cache_object(caching_object: dict = None, provider: str = None) -> bool:
     """
-    @param gke_caching_object: The dictionary with all the cluster data.
+    @param caching_object: The dictionary with all the cluster data.
+    @param provider: The dictionary with all the cluster data.
     """
-    gke_cache.drop()  # clear previous data in the collection
-    try:
-        mongo_response = gke_cache.insert_one(gke_caching_object)  # insert updated cache object
-        print(mongo_response.acknowledged)
-        print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
-        return True
-    except:
-        print('failure to insert data into gke_cache table')
-        return False
+    if provider == GKE:
+        gke_cache.drop()  # clear previous data in the collection
+        try:
+            mongo_response = gke_cache.insert_one(caching_object)
+            print(mongo_response.acknowledged)
+            print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            return True
+        except:
+            print('failure to insert data into gke_cache table')
+            return False
+    elif provider == EKS:
+        eks_cache.drop()  # clear previous data in the collection
+        try:
+            mongo_response = eks_cache.insert_one(caching_object)
+            print(mongo_response.acknowledged)
+            print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            return True
+        except:
+            print('failure to insert data into eks_cache table')
+            return False
 
 
-def retrieve_gke_cache(gke_cache_type: str = '') -> dict:
-    gke_cache_object = gke_cache.find()
-    for object in gke_cache_object:
-        return object[gke_cache_type]
-        # if gke_cache_type == REGIONS_LIST:
-        #     return object[REGIONS_LIST]
-        # elif gke_cache_type == ZONES_LIST:
-        #     return object[ZONES_LIST]
-        # elif gke_cache_type == HELM_INSTALLS_LIST:
-        #     return object[HELM_INSTALLS_LIST]
-        # elif gke_cache_type == VERSIONS_LIST:
-        #     return object[VER]
-        # print(object)
-    print(f'found user_object is: {gke_cache_object}')
-    return gke_cache_object
+def retrieve_cache(cache_type: str = '', provider: str = '') -> dict:
+    if provider == GKE:
+        cache_object = gke_cache.find()[0]
+    elif provider == EKS:
+        cache_object = eks_cache.find()[0]
+    elif provider == AKS:
+        cache_object = aks_cache.find()[0]
+    return cache_object[cache_type]
 
 
 def retrieve_user(user_email: str):

@@ -232,18 +232,18 @@ $(document).ready(function() {
                 } else {
                     if (clusterType == 'aks') {
                         $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value.name).text(value.displayName));
+                            $dropdown.append($("<option />").val(value).text(value));
                         });
                     } else if (clusterType == 'eks') {
                         $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value.RegionName).text(value.RegionName));
+                            $dropdown.append($("<option />").val(value).text(value));
                         });
                         populate_zones('eu-north-1')
                     } else if (clusterType == 'gke') {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
                         });
-                        populate_zones('asia-east1')
+                        populate_zones('us-east1')
                     }
                 }
             }
