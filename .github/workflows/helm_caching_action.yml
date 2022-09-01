@@ -1,4 +1,4 @@
-name: GKE Caching
+name: Helm Caching
 on:
   workflow_dispatch
 

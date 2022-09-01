@@ -1,6 +1,7 @@
 name: EKS Caching
 on:
-  workflow_dispatch
+  schedule:
+    - cron: "0 1 * * *"
 
 jobs:
   gke_caching:
