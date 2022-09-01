@@ -146,8 +146,10 @@ def get_clusters_data():
 @app.route('/trigger_kubernetes_deployment', methods=[POST])
 def trigger_kubernetes_deployment():
     print('triggering kubernetes')
+    logger.info('triggering kubernetes')
     content = request.get_json()
     print(f'received content is: {content}')
+    logger.info(f'received content is: {content}')
     if content['cluster_type'] == 'gke':
         del content['cluster_type']
         trigger_gke_build_github_action(**content)
