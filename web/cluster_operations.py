@@ -62,6 +62,8 @@ def trigger_gke_build_github_action(user_name: str = '',
         r = requests.post(GITHUB_ACTIONS_API_URL,
                           headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
         print(f'The content of the response:')
+        print(f':{GITHUB_ACTIONS_API_URL}')
+        print(f':{GITHUB_ACTION_REQUEST_HEADER}')
         print(f':{r.content}')
         print(f':{r.status_code}')
         print(f':{r.text}')
