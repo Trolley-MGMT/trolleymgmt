@@ -11,7 +11,8 @@ print(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
 GITHUB_ACTIONS_API_URL = 'https://api.github.com/repos/LiorYardeni/trolley/dispatches'
 GITHUB_ACTION_REQUEST_HEADER = {
     'Content-type': 'application/json',
-    'Accept': 'application / vnd.github.everest - preview + json',
+    'Accept': 'application/vnd.github+json',
+    # 'Accept': 'application / vnd.github.everest - preview + json',
     'Authorization': f'token {GITHUB_ACTION_TOKEN}'
 }
 
