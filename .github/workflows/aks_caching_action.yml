@@ -1,4 +1,4 @@
-name: Helm Caching
+name: AKS Caching
 on:
   workflow_dispatch
 
