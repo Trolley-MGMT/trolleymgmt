@@ -3,7 +3,7 @@ on:
   workflow_dispatch
 
 jobs:
-  gke_caching:
+  helm_caching:
     runs-on: ubuntu-20.04
     steps:
       - uses: 'actions/checkout@v3'

@@ -3,15 +3,10 @@ on:
   workflow_dispatch
 
 jobs:
-  gke_caching:
+  aks_caching:
     runs-on: ubuntu-20.04
     steps:
       - uses: 'actions/checkout@v3'
-
-      - name: Installing Helm
-        run: |
-          brew install helm
-          which helm >> /tmp/helm_path
 
       - name: Checkout Code
         uses: actions/checkout@v2
