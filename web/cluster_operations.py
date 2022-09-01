@@ -1,3 +1,4 @@
+import logging
 import os
 from subprocess import run, PIPE
 
@@ -16,6 +17,16 @@ GITHUB_ACTION_REQUEST_HEADER = {
     # 'Accept': 'application / vnd.github.everest - preview + json',
     'Authorization': f'token {GITHUB_ACTION_TOKEN}'
 }
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.FileHandler('../cluster_operations.log')
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 def trigger_aks_build_github_action(user_name: str = '',
@@ -60,13 +71,16 @@ def trigger_gke_build_github_action(user_name: str = '',
                            "expiration_time": expiration_time}
     }
     print(f'Sending out the {json_data} json_data')
+    logger.info(f'Sending out the {json_data} json_data')
     # try:
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' -H \'Accept-Encoding: gzip, deflate\' -H \'Authorization: token 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\' -H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' -d \'{"event_type": "gke-build-api-trigger", "client_payload": {"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", "zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", "region_name": "' + gke_region + '", "num_nodes": "' + str(
         num_nodes) + '", "helm_installs": "' + ','.join(helm_installs) + '", "expiration_time": "' + str(
         expiration_time) + '"}}\' https://api.github.com/repos/LiorYardeni/trolley/dispatches'
     print(f'running the github trigger command: {github_command}')
+    logger.info(f'running the github trigger command: {github_command}')
     response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     print(f'printing out the response: {response}')
+    logger.info(f'printing out the response: {response}')
 
         # r = requests.post(GITHUB_ACTIONS_API_URL,
         #                   headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
