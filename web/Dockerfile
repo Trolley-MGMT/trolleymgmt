@@ -12,5 +12,10 @@ WORKDIR /app
 RUN pip install -r requirements.txt
 
 COPY . /app
+COPY main.py /app
+COPY templates /app/templates
+COPY mongo_handler /app/mongo_handler
+COPY variables /app/variables
 
-CMD ["python3",  "web/main.py" ]
+#CMD ["ls" ]
+CMD ["python3",  "main.py" ]

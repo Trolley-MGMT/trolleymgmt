@@ -1,13 +1,17 @@
 import os
+import platform
 import time
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-    USER_NAME, \
-    USER_EMAIL, HELM
-
+# horrible hack to solve the Dockerfile issues. Please find a better solution
+if 'Darwin' in platform.system():
+    from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
+        USER_NAME, USER_EMAIL, HELM
+else:
+    from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
+        USER_NAME, USER_EMAIL, HELM
 MONGO_URL = os.environ['MONGO_URL']
 PROJECT_NAME = os.environ['PROJECT_NAME']
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']

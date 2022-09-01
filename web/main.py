@@ -7,7 +7,6 @@ import datetime
 import jwt
 import platform
 from dataclasses import asdict
-from subprocess import PIPE, run
 from distutils import util
 
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
