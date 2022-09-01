@@ -28,13 +28,8 @@ logger.addHandler(handler)
 LOCAL_USER = gt.getuser()
 
 if 'Darwin' in platform.system():
-    HELM_COMMAND = '/opt/homebrew/bin/helm'
     CREDENTIALS_PATH = '/Users/pavelzagalsky/Documents/trolley/creds.json'
 else:
-    HELM_PATH = '/tmp/helm_path'
-    with open(HELM_PATH, "r") as f:
-        HELM_COMMAND = f.read().strip()
-        print(f'The helm command is: {HELM_COMMAND}')
     CREDENTIALS_PATH = '/tmp/google_credentials'
 
 
@@ -92,19 +87,6 @@ def fetch_gke_image_types(zones_list):
         return available_images
 
 
-def fetch_helm_installs():
-    print(f'A request to fetch helm installs')
-    helm_installs_list = []
-    update_helm_command = f'{HELM_COMMAND} repo add stable https://charts.helm.sh/stable'
-    run(update_helm_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    helm_charts_fetch_command = f'{HELM_COMMAND} search repo stable -o json'
-    result = run(helm_charts_fetch_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    installs = json.loads(result.stdout)
-    for install in installs:
-        helm_installs_list.append(install['name'])
-    return helm_installs_list
-
-
 def create_regions_and_zones_dict(regions_list, zones_list):
     zones_regions_dict = {}
     for region in regions_list:
@@ -120,7 +102,6 @@ def create_regions_and_zones_dict(regions_list, zones_list):
 def main():
     zones_list = fetch_zones()
     regions_list = fetch_regions()
-    helm_installs_list = fetch_helm_installs()
     gke_image_types = fetch_gke_image_types(zones_list=zones_list)
     versions_list = fetch_versions(zones_list=zones_list)
     zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
@@ -130,7 +111,6 @@ def main():
         versions_list=versions_list,
         regions_list=regions_list,
         gke_image_types=gke_image_types,
-        helm_installs_list=helm_installs_list,
         regions_zones_dict=zones_regions_dict)
     insert_cache_object(caching_object=asdict(gke_caching_object), provider=GKE)
 

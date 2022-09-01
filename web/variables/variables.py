@@ -19,6 +19,7 @@ TROLLEY_PROJECT_NAME = 'trolley'
 GCP = 'gcp'
 
 # GENERAL
+HELM = 'helm'
 HELM_INSTALLS = 'HELM_INSTALLS'
 PROJECT_NAME = 'PROJECT_NAME'
 CLUSTER_NAME = 'CLUSTER_NAME'
@@ -66,6 +67,7 @@ AKS = 'aks'
 
 # CACHE TYPES
 REGIONS_LIST = 'regions_list'
+LOCATIONS_LIST = 'locations_list'
 ZONES_LIST = 'zones_list'
 HELM_INSTALLS_LIST = 'helm_installs_list'
 GKE_VERSIONS_LIST = 'versions_list'

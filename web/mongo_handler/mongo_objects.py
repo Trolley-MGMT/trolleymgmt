@@ -87,7 +87,6 @@ class AKSObject:
 class GKECacheObject:
     zones_list: list
     regions_list: list
-    helm_installs_list: list
     versions_list: list
     gke_image_types: list
     regions_zones_dict: dict
@@ -99,3 +98,13 @@ class EKSCacheObject:
     regions_list: list
     subnets_dict: dict
     regions_zones_dict: dict
+
+
+@dataclass
+class AKSCacheObject:
+    locations_list: list
+
+
+@dataclass
+class HelmCacheObject:
+    helms_installs: list

@@ -1,21 +1,25 @@
+import json
 from dataclasses import asdict
 import logging
+from subprocess import PIPE, run
+
+from flask import jsonify
 
 from web.mongo_handler.mongo_utils import insert_cache_object
-from web.mongo_handler.mongo_objects import EKSCacheObject
-from web.variables.variables import EKS
+from web.mongo_handler.mongo_objects import AKSCacheObject
+from web.variables.variables import AKS
 
-import boto3
-ec2 = boto3.client('ec2')
+# from azure.servicemanagement import *
 
-from azure.servicemanagement import *
-subscription_id = 'd8902b79-0bbb-4e38-bd5c-007bfc5ff1b8'
-certificate_path = 'mycert.pem'
-sms = ServiceManagementService(subscription_id, certificate_path)
+AKS_LOCATIONS_COMMAND = 'az account list-locations'
 
-result = sms.list_locations()
-for location in result:
-    print(location.name)
+# subscription_id = ''
+# certificate_path = 'mycert.pem'
+# sms = ServiceManagementService(subscription_id, certificate_path)
+
+# result = sms.list_locations()
+# for location in result:
+#     print(location.name)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -27,69 +31,26 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def fetch_regions():
+def fetch_locations():
     logger.info(f'A request to fetch regions has arrived')
-    response = ec2.describe_regions()
+    command = AKS_LOCATIONS_COMMAND
+    logger.info(f'Running a {command} command')
+    print(f'Running a {command} command')
+    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    regions_list_response = json.loads(result.stdout)
     regions_list = []
-    for region_response in response['Regions']:
-        regions_list.append(region_response['RegionName'])
+    for region in regions_list_response:
+        regions_list.append(region['displayName'])
+    print(f'regions_list is: {regions_list}')
     return regions_list
 
 
-def fetch_zones() -> list:
-    logger.info(f'A request to fetch zones has arrived')
-    aws_regions = ec2.describe_regions()
-    zones_list = []
-    for region in aws_regions['Regions']:
-        my_region_name = region['RegionName']
-        ec2_region = boto3.client('ec2', region_name=my_region_name)
-        my_region = [{'Name': 'region-name', 'Values': [my_region_name]}]
-        aws_azs = ec2_region.describe_availability_zones(Filters=my_region)
-        for az in aws_azs['AvailabilityZones']:
-            zone = az['ZoneName']
-            zones_list.append(zone)
-    return zones_list
-
-
-def fetch_subnets(zones_list: list) -> dict:
-    subnets_dict = {}
-    for zone_name in zones_list:
-        response = ec2.describe_subnets(
-            Filters=[
-                {
-                    'Name': 'availability-zone',
-                    'Values': [
-                        zone_name,
-                    ]
-                },
-            ]
-        )
-        subnets_list = []
-        for subnet in response['Subnets']:
-            subnets_list.append(subnet['SubnetId'])
-        subnets_dict[zone_name] = subnets_list
-    return subnets_dict
-
-
 def main():
-    regions_list = fetch_regions()
-    zones_list = fetch_zones()
-    regions_zones_dict = {}
-    for region in regions_list:
-        for zone in zones_list:
-            if region in zone:
-                if region in regions_zones_dict.keys():
-                    regions_zones_dict[region].insert(0, zone)
-                else:
-                    regions_zones_dict[region] = [zone]
-    subnets_dict = fetch_subnets(zones_list)
-    eks_caching_object = EKSCacheObject(
-        zones_list=zones_list,
-        regions_list=regions_list,
-        subnets_dict=subnets_dict,
-        regions_zones_dict=regions_zones_dict
+    locations_list = fetch_locations()
+    aks_caching_object = AKSCacheObject(
+        locations_list=locations_list
     )
-    insert_cache_object(caching_object=asdict(eks_caching_object), provider=EKS)
+    insert_cache_object(caching_object=asdict(aks_caching_object), provider=AKS)
 
 
 if __name__ == '__main__':

@@ -43,7 +43,7 @@ $(document).ready(function() {
         clusterType = 'aks'
     } else if (($.inArray('build-eks-clusters', pathname) > -1) || ($.inArray('manage-eks-clusters', pathname) > -1)) {
         clusterType = 'eks'
-        populate_vpcs(selected_location = 'eu-north-1')
+//        populate_vpcs(selected_location = 'eu-north-1')
     } else if (($.inArray('build-gke-clusters', pathname) > -1) || ($.inArray('manage-gke-clusters', pathname) > -1)) {
         clusterType = 'gke'
     } else {
@@ -457,7 +457,7 @@ $(document).ready(function() {
         $("#eks-vpcs-dropdown").empty();
         $("#eks-zones-dropdown").empty();
         $("#eks-subnets-dropdown").empty();
-        populate_vpcs(selected_location = eks_location);
+//        populate_vpcs(selected_location = eks_location);
         populate_zones(eks_location);
     })
 
