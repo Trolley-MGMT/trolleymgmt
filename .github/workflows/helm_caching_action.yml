@@ -31,5 +31,5 @@ jobs:
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          pip3 install -r requirements.txt
+          pip3 install -r web/requirements.txt
           python3 web/scripts/helm_caching_script.py

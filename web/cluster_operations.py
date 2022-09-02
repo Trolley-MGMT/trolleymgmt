@@ -73,13 +73,15 @@ def trigger_gke_build_github_action(user_name: str = '',
     print(f'Sending out the {json_data} json_data')
     logger.info(f'Sending out the {json_data} json_data')
     # try:
-    github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' -H \'Accept-Encoding: gzip, deflate\' -H \'Authorization: token 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\' -H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' -d \'{"event_type": "gke-build-api-trigger", "client_payload": {"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", "zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", "region_name": "' + gke_region + '", "num_nodes": "' + str(
+    github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
+                     '-H \'Accept-Encoding: gzip, deflate\' ' \
+                     '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
+                     '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
+                     '-d \'{"event_type": "gke-build-api-trigger", "client_payload": ' \
+                     '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", "zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", "region_name": "' + gke_region + '", "num_nodes": "' + str(
         num_nodes) + '", "helm_installs": "' + ','.join(helm_installs) + '", "expiration_time": "' + str(
         expiration_time) + '"}}\' https://api.github.com/repos/LiorYardeni/trolley/dispatches'
-    print(f'running the github trigger command: {github_command}')
-    logger.info(f'running the github trigger command: {github_command}')
     response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    print(f'printing out the response: {response}')
     logger.info(f'printing out the response: {response}')
 
         # r = requests.post(GITHUB_ACTIONS_API_URL,

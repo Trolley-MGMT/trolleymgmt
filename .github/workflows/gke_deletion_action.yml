@@ -40,6 +40,6 @@ jobs:
         run: |
           gcloud components install beta --quiet
           export PYTHONPATH=$PYTHONPATH:.
-          pip3 install -r requirements.txt
+          pip3 install -r web/requirements.txt
           python3 deployment_utils/set_cluster_availability.py --cluster_type gke --cluster_name ${{ github.event.client_payload.cluster_name }} --availability False
           gcloud beta container clusters delete ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --quiet

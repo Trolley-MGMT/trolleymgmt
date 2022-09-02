@@ -40,6 +40,6 @@ jobs:
           MONGO_URL: ${{ secrets.MONGO_URL }}
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          pip3 install -r requirements.txt
+          pip3 install -r web/requirements.txt
           python3 deployment_utils/set_cluster_availability.py --cluster_type eks --cluster_name ${{ github.event.client_payload.cluster_name }} --availability False
           eksctl delete cluster --region=${{ github.event.client_payload.region_name }} --name=${{ github.event.client_payload.cluster_name }}
