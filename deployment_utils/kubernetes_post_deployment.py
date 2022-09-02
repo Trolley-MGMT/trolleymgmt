@@ -1,5 +1,3 @@
-import configparser
-import getpass
 import logging
 import os
 import platform
@@ -9,9 +7,9 @@ from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from subprocess import call, PIPE, run
 
-from mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment
-from mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
-from variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS, MACOS
+from web.mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment
+from web.mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
+from web.variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS, MACOS
 
 if MACOS in platform.platform():
     HELM_COMMAND = '/opt/homebrew/bin/helm'

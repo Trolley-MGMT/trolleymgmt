@@ -5,6 +5,7 @@ import time
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
+print(platform.system())
 # horrible hack to solve the Dockerfile issues. Please find a better solution
 if 'Darwin' in platform.system():
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
