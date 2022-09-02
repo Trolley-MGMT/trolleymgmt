@@ -1,7 +1,6 @@
 name: Helm Caching
 on:
-  schedule:
-    - cron: "0 1 * * *"
+  workflow_dispatch
 
 jobs:
   helm_caching:
