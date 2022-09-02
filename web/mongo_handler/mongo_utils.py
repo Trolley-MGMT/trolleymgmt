@@ -5,15 +5,26 @@ import time
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-if os.getenv('GITHUB_ENV'):
-    print('this runs on github')
 # horrible hack to solve the Dockerfile issues. Please find a better solution
-if 'Darwin' in platform.system():
+run_env = 'not_github'
+try:
+    github_env_something = os.getenv('GITHUB_ENV')
+    print(github_env_something)
+    if github_env_something is not None:
+        run_env = 'github'
+        print('this runs on github')
+except:
+    run_env = 'not github'
+    print('this does not run on github')
+
+
+if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM
+
 MONGO_URL = os.environ['MONGO_URL']
 PROJECT_NAME = os.environ['PROJECT_NAME']
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
