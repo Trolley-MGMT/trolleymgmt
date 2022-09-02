@@ -9,8 +9,9 @@ from utils import random_string
 from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
 
 GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
+GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
 print(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
-GITHUB_ACTIONS_API_URL = 'https://api.github.com/repos/LiorYardeni/trolley/dispatches'
+GITHUB_ACTIONS_API_URL = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/dispatches'
 GITHUB_ACTION_REQUEST_HEADER = {
     'Content-type': 'application/json',
     'Accept': 'application/vnd.github+json',
@@ -72,7 +73,8 @@ def trigger_gke_build_github_action(user_name: str = '',
     }
     print(f'Sending out the {json_data} json_data')
     logger.info(f'Sending out the {json_data} json_data')
-    # try:
+    if len(helm_installs) < 1:
+        helm_installs = ["."]
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
                      '-H \'Accept-Encoding: gzip, deflate\' ' \
                      '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
@@ -80,23 +82,9 @@ def trigger_gke_build_github_action(user_name: str = '',
                      '-d \'{"event_type": "gke-build-api-trigger", "client_payload": ' \
                      '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", "zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", "region_name": "' + gke_region + '", "num_nodes": "' + str(
         num_nodes) + '", "helm_installs": "' + ','.join(helm_installs) + '", "expiration_time": "' + str(
-        expiration_time) + '"}}\' https://api.github.com/repos/LiorYardeni/trolley/dispatches'
+        expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
     response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     logger.info(f'printing out the response: {response}')
-
-        # r = requests.post(GITHUB_ACTIONS_API_URL,
-        #                   headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-        # print(f'The content of the response:')
-        # print(f':{GITHUB_ACTIONS_API_URL}')
-        # print(f':{GITHUB_ACTION_REQUEST_HEADER}')
-        # print(f':{r.content}')
-        # print(f':{r.status_code}')
-        # print(f':{r.text}')
-        # print(f':{r.ok}')
-        # r.raise_for_status()
-    # except requests.exceptions.HTTPError as err:
-    #     print(err)
-    #     raise SystemExit(err)
 
 
 def trigger_eks_build_github_action(user_name: str = '',
