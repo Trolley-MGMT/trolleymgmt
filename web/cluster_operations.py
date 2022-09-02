@@ -12,13 +12,9 @@ GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
 print(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
 GITHUB_ACTIONS_API_URL = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/dispatches'
-GITHUB_ACTION_REQUEST_HEADER = {
-    'Content-type': 'application/json',
-    'Accept': 'application/vnd.github+json',
-    # 'Accept': 'application / vnd.github.everest - preview + json',
-    'Authorization': f'token {GITHUB_ACTION_TOKEN}'
-}
-
+GITHUB_ACTION_REQUEST_HEADER = """curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
+                     '-H \'Accept-Encoding: gzip, deflate\' ' \
+                     """
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -37,18 +33,19 @@ def trigger_aks_build_github_action(user_name: str = '',
                                     helm_installs: list = '',
                                     expiration_time: int = ''):
     cluster_name = f'{user_name}-aks-{random_string(5)}'
-    json_data = {
-        "event_type": "aks-build-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "cluster_version": version,
-                           "aks_location": aks_location,
-                           "num_nodes": num_nodes,
-                           "helm_installs": ','.join(helm_installs),
-                           "expiration_time": expiration_time}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
+    if len(helm_installs) < 1:
+        helm_installs = ["."]
+    github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
+                     '-H \'Accept-Encoding: gzip, deflate\' ' \
+                     '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
+                     '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
+                     '-d \'{"event_type": "aks-build-api-trigger", "client_payload": ' \
+                     '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", ' \
+                     '"num_nodes": "' + str(num_nodes) + '", "aks_location": "' + aks_location + '",  ' \
+                     '"helm_installs": "' + ','.join(helm_installs) + '", ' \
+                     '"expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
+    response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    logger.info(f'printing out the response: {response}')
 
 
 def trigger_gke_build_github_action(user_name: str = '',
@@ -60,19 +57,6 @@ def trigger_gke_build_github_action(user_name: str = '',
                                     helm_installs: list = '',
                                     expiration_time: int = ''):
     cluster_name = f'{user_name}-gke-{random_string(5)}'
-    json_data = {
-        "event_type": "gke-build-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "cluster_version": version,
-                           "zone_name": gke_zone,
-                           "image_type": image_type,
-                           "region_name": gke_region,
-                           "num_nodes": num_nodes,
-                           "helm_installs": ','.join(helm_installs),
-                           "expiration_time": expiration_time}
-    }
-    print(f'Sending out the {json_data} json_data')
-    logger.info(f'Sending out the {json_data} json_data')
     if len(helm_installs) < 1:
         helm_installs = ["."]
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
@@ -80,9 +64,11 @@ def trigger_gke_build_github_action(user_name: str = '',
                      '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
                      '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
                      '-d \'{"event_type": "gke-build-api-trigger", "client_payload": ' \
-                     '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", "zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", "region_name": "' + gke_region + '", "num_nodes": "' + str(
-        num_nodes) + '", "helm_installs": "' + ','.join(helm_installs) + '", "expiration_time": "' + str(
-        expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
+                     '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '",' \
+                     '"zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", ' \
+                     '"region_name": "' + gke_region + '", "num_nodes": "' + str(num_nodes) + '", ' \
+                     '"helm_installs": "' + ','.join(helm_installs) + \
+                     '", "expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
     response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     logger.info(f'printing out the response: {response}')
 
@@ -97,27 +83,26 @@ def trigger_eks_build_github_action(user_name: str = '',
                                     helm_installs: list = '',
                                     expiration_time: int = ''):
     cluster_name = f'{user_name}-eks-{random_string(5)}'
-    json_data = {
-        "event_type": "eks-build-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "cluster_version": version,
-                           "region_name": eks_location,
-                           "zone_names": ",".join(eks_zones),
-                           "num_nodes": num_nodes,
-                           "helm_installs": ','.join(helm_installs),
-                           "expiration_time": expiration_time,
-                           "subnets": ",".join(eks_subnets)}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
+    if len(helm_installs) < 1:
+        helm_installs = ["."]
+    github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
+                     '-H \'Accept-Encoding: gzip, deflate\' ' \
+                     '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
+                     '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
+                     '-d \'{"event_type": "eks-build-api-trigger", "client_payload": ' \
+                     '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", ' \
+                     '"zone_names": "' + ",".join(eks_zones) + '", "subnets": "' + ",".join(eks_subnets) + '", ' \
+                     '"num_nodes": "' + str(num_nodes) + '", "region_name": "' + eks_location + '",  ' \
+                     '"helm_installs": "' + ','.join(helm_installs) + '", ' \
+                     '"expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
+    response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    logger.info(f'printing out the response: {response}')
 
 
 def delete_aks_cluster(cluster_name: str = ''):
     """
 
     @param cluster_name: from built clusters list
-    @param cluster_type: required param for deletion command
     @return:
     """
     json_data = {

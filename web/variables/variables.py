@@ -67,6 +67,7 @@ AKS = 'aks'
 
 # CACHE TYPES
 REGIONS_LIST = 'regions_list'
+LOCATIONS_DICT = 'locations_dict'
 LOCATIONS_LIST = 'locations_list'
 ZONES_LIST = 'zones_list'
 HELM_INSTALLS_LIST = 'helm_installs_list'

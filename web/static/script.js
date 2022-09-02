@@ -4,7 +4,7 @@ $(document).ready(function() {
     let trolley_remote_url = '34.123.171.234'
     let trolley_local_url = 'localhost';
     let trolley_url = '';
-    let debug = true;
+    let debug = false;
     let clusterType = ''
     let managePage = false;
     let buildPage = false;
@@ -232,7 +232,7 @@ $(document).ready(function() {
                 } else {
                     if (clusterType == 'aks') {
                         $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value).text(value));
+                            $dropdown.append($("<option />").val(value).text(key));
                         });
                     } else if (clusterType == 'eks') {
                         $.each(response, function(key, value) {

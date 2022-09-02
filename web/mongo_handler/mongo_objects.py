@@ -102,7 +102,7 @@ class EKSCacheObject:
 
 @dataclass
 class AKSCacheObject:
-    locations_list: list
+    locations_dict: dict
 
 
 @dataclass

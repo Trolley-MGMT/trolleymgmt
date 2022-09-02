@@ -3,24 +3,20 @@ from dataclasses import asdict
 import logging
 from subprocess import PIPE, run
 
-from flask import jsonify
 
 from web.mongo_handler.mongo_utils import insert_cache_object
 from web.mongo_handler.mongo_objects import AKSCacheObject
 from web.variables.variables import AKS
 
-# from azure.servicemanagement import *
-
 AKS_LOCATIONS_COMMAND = 'az account list-locations'
-
-# subscription_id = ''
-# certificate_path = 'mycert.pem'
-# sms = ServiceManagementService(subscription_id, certificate_path)
-
-# result = sms.list_locations()
-# for location in result:
-#     print(location.name)
-
+CURRENTLY_ALLOWED_LOCATIONS = 'australiacentral,australiacentral2,australiaeast,australiasoutheast,brazilsouth,' \
+                              'brazilsoutheast,canadacentral,canadaeast,centralindia,centralus,eastasia,eastus,' \
+                              'eastus2,francecentral,francesouth,germanynorth,germanywestcentral,japaneast,japanwest,' \
+                              'jioindiacentral,jioindiawest,koreacentral,koreasouth,northcentralus,northeurope,' \
+                              'norwayeast,norwaywest,qatarcentral,southafricanorth,southcentralus,southeastasia,' \
+                              'southindia,swedencentral,switzerlandnorth,switzerlandwest,uaecentral,uaenorth,uksouth,' \
+                              'ukwest,westcentralus,westeurope,westus,westus2,westus3'
+CURRENTLY_ALLOWED_LOCATIONS = CURRENTLY_ALLOWED_LOCATIONS.split(',')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -31,24 +27,23 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def fetch_locations():
+def fetch_locations() -> dict:
     logger.info(f'A request to fetch regions has arrived')
     command = AKS_LOCATIONS_COMMAND
     logger.info(f'Running a {command} command')
-    print(f'Running a {command} command')
     result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     regions_list_response = json.loads(result.stdout)
-    regions_list = []
+    regions_dict = {}
     for region in regions_list_response:
-        regions_list.append(region['displayName'])
-    print(f'regions_list is: {regions_list}')
-    return regions_list
+        if region['name'] in CURRENTLY_ALLOWED_LOCATIONS:
+            regions_dict[region['displayName']] = region['name']
+    return regions_dict
 
 
 def main():
-    locations_list = fetch_locations()
+    locations_dict = fetch_locations()
     aks_caching_object = AKSCacheObject(
-        locations_list=locations_list
+        locations_dict=locations_dict
     )
     insert_cache_object(caching_object=asdict(aks_caching_object), provider=AKS)
 

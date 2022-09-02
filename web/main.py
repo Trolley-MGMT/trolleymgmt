@@ -17,7 +17,7 @@ import mongo_handler.mongo_utils
 from mongo_handler.mongo_objects import UserObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
-    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_LIST, HELM
+    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_LIST, HELM, LOCATIONS_DICT
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
 
@@ -242,7 +242,7 @@ def fetch_regions():
     cluster_type = request.args.get("cluster_type")
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
     if cluster_type == AKS:
-        regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=LOCATIONS_LIST, provider=AKS)
+        regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=LOCATIONS_DICT, provider=AKS)
     elif cluster_type == GKE:
         regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=GKE)
     elif cluster_type == EKS:
