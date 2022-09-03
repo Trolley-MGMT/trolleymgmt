@@ -86,6 +86,7 @@ class AKSObject:
 @dataclass
 class GKECacheObject:
     zones_list: list
+    machine_types_dict: dict
     regions_list: list
     versions_list: list
     gke_image_types: list

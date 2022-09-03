@@ -32,12 +32,30 @@ if 'Darwin' in platform.system():
 else:
     CREDENTIALS_PATH = '/tmp/google_credentials'
 
-
 PROJECT_NAME = os.environ['PROJECT_NAME']
 
 credentials = service_account.Credentials.from_service_account_file(
     CREDENTIALS_PATH)
 service = discovery.build('container', 'v1', credentials=credentials)
+
+
+def fetch_machine_types(zones_list) -> dict:
+    logger.info(f'A request to fetch machine types has arrived')
+    service = discovery.build('compute', 'beta', credentials=credentials)
+    machine_types_dict = {}
+    for zone in zones_list:
+        request = service.machineTypes().list(project=PROJECT_NAME, zone=zone)
+        while request is not None:
+            response = request.execute()
+            for machine_type in response['items']:
+                if zone not in machine_types_dict.keys():
+                    machine_types_dict[zone] = [machine_type['name']]
+                else:
+                    machine_types_dict[zone].append(machine_type['name'])
+                print(machine_type['description'])
+
+            request = service.machineTypes().list_next(previous_request=request, previous_response=response)
+    return machine_types_dict
 
 
 def fetch_zones() -> list:
@@ -101,6 +119,7 @@ def create_regions_and_zones_dict(regions_list, zones_list):
 
 def main():
     zones_list = fetch_zones()
+    machine_types_dict = fetch_machine_types(zones_list)
     regions_list = fetch_regions()
     gke_image_types = fetch_gke_image_types(zones_list=zones_list)
     versions_list = fetch_versions(zones_list=zones_list)
@@ -108,6 +127,7 @@ def main():
 
     gke_caching_object = GKECacheObject(
         zones_list=zones_list,
+        machine_types_dict=machine_types_dict,
         versions_list=versions_list,
         regions_list=regions_list,
         gke_image_types=gke_image_types,

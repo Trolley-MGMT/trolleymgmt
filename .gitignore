@@ -1,5 +1,6 @@
 .idea
 .DS_Store
+*.log
 trolley.log
 docker-compose.yml
 Dockerfile

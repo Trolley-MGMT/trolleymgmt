@@ -12,10 +12,14 @@ GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
 print(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
 GITHUB_ACTIONS_API_URL = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/dispatches'
-GITHUB_ACTION_REQUEST_HEADER = """curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
+GITHUB_ACTION_REQUEST_HEADER_DOCKER = """curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
                      '-H \'Accept-Encoding: gzip, deflate\' ' \
                      """
-
+GITHUB_ACTION_REQUEST_HEADER = {
+    'Content-type': 'application/json',
+    'Accept': 'application/vnd.github+json',
+    'Authorization': f'token {GITHUB_ACTION_TOKEN}'
+}
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
