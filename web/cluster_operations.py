@@ -4,9 +4,9 @@ from subprocess import run, PIPE
 
 import requests
 
-from mongo_handler.mongo_utils import retrieve_cluster_details
-from utils import random_string
-from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+from web.mongo_handler.mongo_utils import retrieve_cluster_details
+from web.utils import random_string
+from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
 
 GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
