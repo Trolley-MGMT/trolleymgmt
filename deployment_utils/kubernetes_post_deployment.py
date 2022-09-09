@@ -154,10 +154,10 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = ''
 if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--cluster_type', default='gke', type=str, help='Type of the cluster built')
-    parser.add_argument('--project_id', default='boneseye', type=str, help='Name of the project')
+    parser.add_argument('--project_id', default='trolley', type=str, help='Name of the project')
     parser.add_argument('--resource_group', default='myResourceGroup', type=str, help='Name of Resource Group for AKS')
     parser.add_argument('--cluster_name', default='latest', type=str, help='Name of the built cluster')
-    parser.add_argument('--user_name', default='pavelzagalsky', type=str, help='Name of the user who built the cluster')
+    parser.add_argument('--user_name', default='lioryardeni', type=str, help='Name of the user who built the cluster')
     parser.add_argument('--region_name', default='us-central1', type=str,
                         help='Name of the region where the cluster was built')
     parser.add_argument('--zone_name', default='us-central1-c', type=str,

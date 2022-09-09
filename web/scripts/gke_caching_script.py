@@ -1,11 +1,9 @@
 import logging
 import os
 import platform
-import json
 
 from dataclasses import asdict
 import getpass as gt
-from subprocess import PIPE, run
 
 from web.mongo_handler.mongo_utils import insert_cache_object
 from web.mongo_handler.mongo_objects import GKECacheObject
@@ -28,11 +26,11 @@ logger.addHandler(handler)
 LOCAL_USER = gt.getuser()
 
 if 'Darwin' in platform.system():
-    CREDENTIALS_PATH = '/Users/pavelzagalsky/Documents/trolley/creds.json'
+    CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/Documents/trolley/trolley-creds.json' # path to the GCP credentials
 else:
     CREDENTIALS_PATH = '/tmp/google_credentials'
 
-PROJECT_NAME = os.environ['PROJECT_NAME']
+GCP_PROJECT_ID = os.environ['GCP_PROJECT_ID']
 
 credentials = service_account.Credentials.from_service_account_file(
     CREDENTIALS_PATH)
@@ -44,7 +42,7 @@ def fetch_machine_types(zones_list) -> dict:
     service = discovery.build('compute', 'beta', credentials=credentials)
     machine_types_dict = {}
     for zone in zones_list:
-        request = service.machineTypes().list(project=PROJECT_NAME, zone=zone)
+        request = service.machineTypes().list(project=GCP_PROJECT_ID, zone=zone)
         while request is not None:
             response = request.execute()
             for machine_type in response['items']:
@@ -61,7 +59,7 @@ def fetch_machine_types(zones_list) -> dict:
 def fetch_zones() -> list:
     logger.info(f'A request to fetch zones has arrived')
     compute_zones_client = ZonesClient(credentials=credentials)
-    zones_object = compute_zones_client.list(project=PROJECT_NAME)
+    zones_object = compute_zones_client.list(project=GCP_PROJECT_ID)
     zones_list = []
     for zone in zones_object:
         zones_list.append(zone.name)
@@ -71,7 +69,7 @@ def fetch_zones() -> list:
 def fetch_regions() -> list:
     logger.info(f'A request to fetch regions has arrived')
     compute_zones_client = ZonesClient(credentials=credentials)
-    zones_object = compute_zones_client.list(project=PROJECT_NAME)
+    zones_object = compute_zones_client.list(project=GCP_PROJECT_ID)
     regions_list = []
     for zone_object in zones_object:
         zone_object_url = zone_object.region
@@ -83,7 +81,7 @@ def fetch_regions() -> list:
 
 def fetch_versions(zones_list):
     for zone in zones_list:
-        name = f'projects/{PROJECT_NAME}/locations/{zone}'
+        name = f'projects/{GCP_PROJECT_ID}/locations/{zone}'
         request = service.projects().locations().getServerConfig(name=name)
         response = request.execute()
         available_gke_versions = []
@@ -94,7 +92,7 @@ def fetch_versions(zones_list):
 
 def fetch_gke_image_types(zones_list):
     for zone in zones_list:
-        name = f'projects/{PROJECT_NAME}/locations/{zone}'
+        name = f'projects/{GCP_PROJECT_ID}/locations/{zone}'
         request = service.projects().locations().getServerConfig(name=name)
         response = request.execute()
         available_images = []

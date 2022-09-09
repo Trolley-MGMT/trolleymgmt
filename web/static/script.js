@@ -1,7 +1,7 @@
 $(document).ready(function() {
     window.localStorage.setItem("user_name", data['user_name']);
     let user_name = window.localStorage.getItem("user_name");
-    let trolley_remote_url = '34.123.171.234'
+    let trolley_remote_url = ''
     let trolley_local_url = 'localhost';
     let trolley_url = '';
     let debug = false;

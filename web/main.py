@@ -21,6 +21,8 @@ from variables.variables import POST, GET, EKS, \
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
 
+PROJECT_NAME = os.getenv('PROJECT_NAME')
+
 app = Flask(__name__, template_folder='templates')
 print(os.getenv('SECRET_KEY'))
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -322,38 +324,43 @@ def register():
     if request.method == 'GET':
         return render_template('register.html')
     if request.method == 'POST':
-        return render_template('login.html',
-                               error_message='Registration is closed at the moment')
-        # first_name = request.form['first_name']
-        # last_name = request.form['last_name']
-        # user_email = request.form['user_email']
-        # team_name = request.form['team_name']
-        # password = request.form['password']
-        # if not first_name:
-        #     return render_template('register.html',
-        #                            error_message=f'Dear {first_name}, your first name was not entered correctly. '
-        #                                          f'Please try again')
-        # if not last_name:
-        #     return render_template('register.html',
-        #                            error_message=f'Dear {first_name}, your last name was not entered correctly. '
-        #                                          f'Please try again')
-        # if not first_name:
-        #     return render_template('register.html',
-        #                            error_message=f'Your first name was not entered correctly. Please try again')
-        # if not password:
-        #     return render_template('register.html',
-        #                            error_message=f'Dear {first_name}, your password was not entered correctly. '
-        #                                          f'Please try again')
-        # else:
-        #     if not retrieve_user(user_email):
-        #         user_registration(first_name, last_name, password, user_email, team_name)
-        #     else:
-        #         return render_template('register.html',
-        #                                error_message=f'Dear {first_name}, your email was already registered. '
-        #                                              f'Please try again')
-        #     return render_template('login.html',
-        #                            error_message=f'Dear {first_name}, your password was not entered correctly. '
-        #                                          f'Please try again')
+        # return render_template('login.html',
+        #                        error_message='Registration is closed at the moment')
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        user_email = request.form['user_email']
+        team_name = request.form['team_name']
+        password = request.form['password']
+        if not first_name:
+            return render_template('register.html',
+                                   error_message=f'Dear {first_name}, your first name was not entered correctly. '
+                                                 f'Please try again')
+        if not last_name:
+            return render_template('register.html',
+                                   error_message=f'Dear {first_name}, your last name was not entered correctly. '
+                                                 f'Please try again')
+        if not first_name:
+            return render_template('register.html',
+                                   error_message=f'Your first name was not entered correctly. Please try again')
+        if not password:
+            return render_template('register.html',
+                                   error_message=f'Dear {first_name}, your password was not entered correctly. '
+                                                 f'Please try again')
+        else:
+            if not mongo_handler.mongo_utils.retrieve_user(user_email):
+                if user_registration(first_name, last_name, password, user_email, team_name):
+                    return render_template('login.html',
+                                           error_message=f'Dear {first_name.capitalize()}, '
+                                                         f'Welcome to {PROJECT_NAME.capitalize()}!')
+                else:
+                    return render_template('login.html',
+                                           error_message=f'Dear {first_name.capitalize()}, '
+                                                         f'your password was not entered correctly. '
+                                                         f'Please try again')
+            else:
+                return render_template('register.html',
+                                       error_message=f'Dear {first_name}, your email was already registered. '
+                                                     f'Please try again')
 
 
 @app.route('/login', methods=[GET, POST])
