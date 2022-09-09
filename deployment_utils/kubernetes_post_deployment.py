@@ -76,7 +76,7 @@ def get_cluster_version() -> str:
     return cluster_version
 
 
-def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = '', user_name: str = '',
+def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = '', helm_installs: str = '', resource_group=''):
     if not kubeconfig_path:
@@ -110,7 +110,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = ''
 
     if cluster_type == GKE:
         gke_deployment_object = GKEObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
-                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_id=project_id,
+                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_name=project_name,
                                           zone_name=zone_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
@@ -121,7 +121,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = ''
     elif cluster_type == GKE_AUTOPILOT:
         gke_autopilot_deployment_object = GKEAutopilotObject(
             cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig, nodes_names=nodes_names,
-            nodes_ips=nodes_ips, project_id=project_id,
+            nodes_ips=nodes_ips, project_name=project_name,
             zone_name=zone_name, region_name=region_name,
             created_timestamp=timestamp,
             human_created_timestamp=human_created_timestamp,
@@ -132,7 +132,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = ''
                               gke_deployment_object=asdict(gke_autopilot_deployment_object))
     elif cluster_type == EKS:
         eks_deployment_object = EKSObject(cluster_name=cluster_name, user_name=user_name, kubeconfig=kubeconfig,
-                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_id=project_id,
+                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_name=project_name,
                                           zone_name=zone_name, region_name=region_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
@@ -154,7 +154,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_id: str = ''
 if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--cluster_type', default='gke', type=str, help='Type of the cluster built')
-    parser.add_argument('--project_id', default='trolley', type=str, help='Name of the project')
+    parser.add_argument('--project_name', default='trolley', type=str, help='Name of the project')
     parser.add_argument('--resource_group', default='myResourceGroup', type=str, help='Name of Resource Group for AKS')
     parser.add_argument('--cluster_name', default='latest', type=str, help='Name of the built cluster')
     parser.add_argument('--user_name', default='lioryardeni', type=str, help='Name of the user who built the cluster')
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         kubeconfig_yaml = f.read()
         print(f'The kubeconfig content is: {kubeconfig_yaml}')
 
-    main(cluster_type=args.cluster_type, project_id=args.project_id,
+    main(cluster_type=args.cluster_type, project_name=args.project_name,
          user_name=args.user_name,
          cluster_name=args.cluster_name,
          region_name=args.region_name, zone_name=args.zone_name, expiration_time=args.expiration_time,

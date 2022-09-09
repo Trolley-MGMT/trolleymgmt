@@ -22,7 +22,7 @@ class GKEObject:
     human_created_timestamp: str
     expiration_timestamp: int
     human_expiration_timestamp: str
-    project_id: str
+    project_name: str
     zone_name: str
     cluster_version: str
     region_name: str
@@ -40,7 +40,7 @@ class GKEAutopilotObject:
     human_created_timestamp: str
     expiration_timestamp: int
     human_expiration_timestamp: str
-    project_id: str
+    project_name: str
     zone_name: str
     cluster_version: str
     region_name: str
@@ -58,7 +58,7 @@ class EKSObject:
     human_created_timestamp: str
     expiration_timestamp: int
     human_expiration_timestamp: str
-    project_id: str
+    project_name: str
     zone_name: str
     region_name: str
     cluster_version: str
