@@ -21,23 +21,8 @@ from variables.variables import POST, GET, EKS, \
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
 
-PROJECT_NAME = os.getenv('PROJECT_NAME')
-
-app = Flask(__name__, template_folder='templates')
-print(os.getenv('SECRET_KEY'))
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
-
-AKS_LOCATIONS_COMMAND = 'az account list-locations'
-
-if MACOS in platform.platform():
-    CUR_DIR = os.getcwd()
-    PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
-    print(f'current directory is: {PROJECT_ROOT}')
-else:
-    PROJECT_NAME = os.environ['PROJECT_NAME']
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -50,6 +35,19 @@ logger.addHandler(handler)
 
 logger.info(f'The current directory is: {CUR_DIR}')
 logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
+
+PROJECT_NAME = os.getenv('PROJECT_NAME')
+
+app = Flask(__name__, template_folder='templates')
+logger.info(os.getenv('SECRET_KEY'))
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+if MACOS in platform.platform():
+    CUR_DIR = os.getcwd()
+    PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
+    logger.info(f'current directory is: {PROJECT_ROOT}')
+else:
+    PROJECT_NAME = os.environ['PROJECT_NAME']
 
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
@@ -106,7 +104,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                      'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)},
                     app.config['SECRET_KEY'])
             except InvalidTokenError as error:
-                print(error)
+                logger.error(error)
                 logger.info(f'Failed to create a token')
                 token = ''
             # decoded_token = token.decode("utf-8")
@@ -114,7 +112,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             logger.info(f'The decoded token is: {token}')
             return token, user_object
         else:
-            print('The hashed password is incorrect')
+            logger.info('The hashed password is incorrect')
             logger.info(f'The hashed password is incorrect')
             return '', user_object
     except:
@@ -147,17 +145,15 @@ def get_clusters_data():
 
 @app.route('/trigger_kubernetes_deployment', methods=[POST])
 def trigger_kubernetes_deployment():
-    print('triggering kubernetes')
+    logger.info('triggering kubernetes')
     logger.info('triggering kubernetes')
     content = request.get_json()
-    print(f'received content is: {content}')
     logger.info(f'received content is: {content}')
     if content['cluster_type'] == 'gke':
         del content['cluster_type']
         trigger_gke_build_github_action(**content)
         function_name = inspect.stack()[0][3]
         logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
-        print(f'A request for {function_name} was requested with the following parameters: {content}')
     elif content['cluster_type'] == 'gke_autopilot':
         del content['cluster_type']
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)

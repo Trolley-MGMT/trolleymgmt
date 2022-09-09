@@ -5,7 +5,7 @@ import time
 from dataclasses import asdict
 from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
-from subprocess import call, PIPE, run
+from subprocess import PIPE, run
 
 from web.mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment
 from web.mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject

@@ -1,22 +1,33 @@
 import logging
 import os
 import platform
+import subprocess
 from subprocess import run, PIPE
 
 import requests
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.FileHandler('../cluster_operations.log')
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 # horrible hack to solve the Dockerfile issues. Please find a better solution
 run_env = 'not_github'
 try:
     github_env_something = os.getenv('GITHUB_ENV')
-    print(github_env_something)
+    logger.info(github_env_something)
     if github_env_something is not None:
         run_env = 'github'
-        print('this runs on github')
+        logger.info('this runs on github')
+    else:
+        logger.info('this does not run on github')
 except:
     run_env = 'not github'
-    print('this does not run on github')
+    logger.error('this does not run on github')
 
 
 if 'Darwin' in platform.system() or run_env == 'github':
@@ -31,7 +42,6 @@ else:
 
 GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
-print(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
 GITHUB_ACTIONS_API_URL = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/dispatches'
 GITHUB_ACTION_REQUEST_HEADER_DOCKER = """curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
                      '-H \'Accept-Encoding: gzip, deflate\' ' \
@@ -41,14 +51,11 @@ GITHUB_ACTION_REQUEST_HEADER = {
     'Accept': 'application/vnd.github+json',
     'Authorization': f'token {GITHUB_ACTION_TOKEN}'
 }
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('../cluster_operations.log')
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger.info(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
+logger.info(f'GitHub Repository is: {GITHUB_REPOSITORY}')
+logger.info(f'GITHUB_ACTIONS_API_URL is: {GITHUB_ACTIONS_API_URL}')
+logger.info(f'GITHUB_ACTION_REQUEST_HEADER_DOCKER is: {GITHUB_ACTION_REQUEST_HEADER_DOCKER}')
 
 
 def trigger_aks_build_github_action(user_name: str = '',
@@ -69,7 +76,12 @@ def trigger_aks_build_github_action(user_name: str = '',
                      '"num_nodes": "' + str(num_nodes) + '", "aks_location": "' + aks_location + '",  ' \
                      '"helm_installs": "' + ','.join(helm_installs) + '", ' \
                      '"expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
-    response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    logger.info(f'Running the aks build command: {github_command}')
+    try:
+        response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    except subprocess.SubprocessError as e:
+        logger.error(f'The request failed with the following error: {e}')
+
     logger.info(f'printing out the response: {response}')
 
 
@@ -94,7 +106,11 @@ def trigger_gke_build_github_action(user_name: str = '',
                      '"region_name": "' + gke_region + '", "num_nodes": "' + str(num_nodes) + '", ' \
                      '"helm_installs": "' + ','.join(helm_installs) + \
                      '", "expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
-    response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    logger.info(f'Running the gke build command: {github_command}')
+    try:
+        response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    except subprocess.SubprocessError as e:
+        logger.error(f'The request failed with the following error: {e}')
     logger.info(f'printing out the response: {response}')
 
 
@@ -120,7 +136,11 @@ def trigger_eks_build_github_action(user_name: str = '',
                      '"num_nodes": "' + str(num_nodes) + '", "region_name": "' + eks_location + '",  ' \
                      '"helm_installs": "' + ','.join(helm_installs) + '", ' \
                      '"expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
-    response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    logger.info(f'Running the eks build command: {github_command}')
+    try:
+        response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    except subprocess.SubprocessError as e:
+        logger.error(f'The request failed with the following error: {e}')
     logger.info(f'printing out the response: {response}')
 
 
@@ -136,7 +156,7 @@ def delete_aks_cluster(cluster_name: str = ''):
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
+    logger.info(response)
 
 
 def delete_gke_cluster(cluster_name: str = ''):
@@ -154,7 +174,7 @@ def delete_gke_cluster(cluster_name: str = ''):
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
+    logger.info(response)
 
 
 def delete_eks_cluster(cluster_name: str = ''):
@@ -171,4 +191,4 @@ def delete_eks_cluster(cluster_name: str = ''):
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
+    logger.info(response)

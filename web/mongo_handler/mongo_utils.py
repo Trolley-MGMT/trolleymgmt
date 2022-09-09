@@ -1,3 +1,4 @@
+import logging
 import os
 import platform
 import time
@@ -5,17 +6,27 @@ import time
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.FileHandler('../mongo_utils.log')
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 # horrible hack to solve the Dockerfile issues. Please find a better solution
 run_env = 'not_github'
 try:
     github_env_something = os.getenv('GITHUB_ENV')
-    print(github_env_something)
     if github_env_something is not None:
         run_env = 'github'
-        print('this runs on github')
+        logger.info('this runs on github')
+    else:
+        logger.error('this does not run on github')
 except:
     run_env = 'not github'
-    print('this does not run on github')
+    logger.info('this does not run on github')
 
 
 if 'Darwin' in platform.system() or run_env == 'github':
@@ -32,7 +43,7 @@ MONGO_USER = os.environ['MONGO_USER']
 
 client = MongoClient(MONGO_URL, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
 db = client[PROJECT_NAME]
-print(db.list_collection_names())
+logger.info(db.list_collection_names())
 gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
@@ -43,10 +54,10 @@ gke_cache: Collection = db.gke_cache
 helm_cache: Collection = db.helm_cache
 eks_cache: Collection = db.eks_cache
 
-print(f'MONGO_USER is: {MONGO_USER}')
-print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
-print(f'MONGO_URL is: {MONGO_URL}')
-print(f'PROJECT_NAME is: {PROJECT_NAME}')
+logger.info(f'MONGO_USER is: {MONGO_USER}')
+logger.info(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
+logger.info(f'MONGO_URL is: {MONGO_URL}')
+logger.info(f'PROJECT_NAME is: {PROJECT_NAME}')
 
 
 def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = None) -> bool:
@@ -57,18 +68,18 @@ def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = 
     if cluster_type == GKE:
         try:
             mongo_response = gke_clusters.insert_one(gke_deployment_object)
-            print(mongo_response.acknowledged)
-            print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            logger.info(mongo_response.acknowledged)
+            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            print('failure to insert data into gke_clusters table')
+            logger.error('failure to insert data into gke_clusters table')
             return False
     elif cluster_type == GKE_AUTOPILOT:
         try:
             gke_autopilot_clusters.insert_one(gke_deployment_object)
             return True
         except:
-            print('failure to insert data into gke_autopilot_clusters table')
+            logger.error('failure to insert data into gke_autopilot_clusters table')
             return False
 
 
@@ -115,7 +126,7 @@ def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', ava
 
 
 def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
-    print(f'A request to fetch {cluster_type} clusters for {user_name} was received')
+    logger.info(f'A request to fetch {cluster_type} clusters for {user_name} was received')
     clusters_object = []
     if cluster_type == GKE:
         cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
@@ -134,7 +145,7 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
 
 
 def retrieve_cluster_details(cluster_type: str, cluster_name: str) -> dict:
-    print(f'A request to fetch {cluster_type} details was received')
+    logger.info(f'A request to fetch {cluster_type} details was received')
     if cluster_type == GKE:
         cluster_object = gke_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     elif cluster_type == GKE_AUTOPILOT:
@@ -158,22 +169,22 @@ def retrieve_expired_clusters(cluster_type: str) -> list:
         clusters_objects = gke_clusters.find(mongo_query)
         for object in clusters_objects:
             expired_clusters_list.append(object)
-            print(expired_clusters_list)
+            logger.info(expired_clusters_list)
     elif cluster_type == GKE_AUTOPILOT:
         autopilot_clusters_objects = gke_autopilot_clusters.find(mongo_query)
         for object in autopilot_clusters_objects:
             expired_clusters_list.append(object)
-            print(expired_clusters_list)
+            logger.info(expired_clusters_list)
     elif cluster_type == EKS:
         eks_clusters_objects = eks_clusters.find(mongo_query)
         for object in eks_clusters_objects:
             expired_clusters_list.append(object)
-            print(expired_clusters_list)
+            logger.info(expired_clusters_list)
     elif cluster_type == AKS:
         aks_clusters_objects = aks_clusters.find(mongo_query)
         for object in aks_clusters_objects:
             expired_clusters_list.append(object)
-            print(expired_clusters_list)
+            logger.info(expired_clusters_list)
     return expired_clusters_list
 
 
@@ -186,41 +197,41 @@ def insert_cache_object(caching_object: dict = None, provider: str = None) -> bo
         gke_cache.drop()
         try:
             mongo_response = gke_cache.insert_one(caching_object)
-            print(mongo_response.acknowledged)
-            print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            logger.info(mongo_response.acknowledged)
+            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            print('failure to insert data into gke_cache table')
+            logger.error('failure to insert data into gke_cache table')
             return False
     elif provider == EKS:
         eks_cache.drop()
         try:
             mongo_response = eks_cache.insert_one(caching_object)
-            print(mongo_response.acknowledged)
-            print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            logger.info(mongo_response.acknowledged)
+            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            print('failure to insert data into eks_cache table')
+            logger.error('failure to insert data into eks_cache table')
             return False
     elif provider == AKS:
         aks_cache.drop()
         try:
             mongo_response = aks_cache.insert_one(caching_object)
-            print(mongo_response.acknowledged)
-            print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            logger.info(mongo_response.acknowledged)
+            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            print('failure to insert data into aks_cache table')
+            logger.error('failure to insert data into aks_cache table')
             return False
     elif provider == HELM:
         helm_cache.drop()
         try:
             mongo_response = helm_cache.insert_one(caching_object)
-            print(mongo_response.acknowledged)
-            print(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            logger.info(mongo_response.acknowledged)
+            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            print('failure to insert data into helm_cache table')
+            logger.error('failure to insert data into helm_cache table')
             return False
 
 
@@ -245,7 +256,7 @@ def retrieve_user(user_email: str):
     """
     mongo_query = {USER_EMAIL: user_email}
     user_object = users.find_one(mongo_query)
-    print(f'found user_object is: {user_object}')
+    logger.info(f'found user_object is: {user_object}')
     return user_object
 
 
