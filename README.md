@@ -62,7 +62,23 @@ Set your Environment Variables menu the following:
     -e ACTION_TOKEN='<github_token>' \
     -e MONGO_URL='<mongo_url>' \
     -e PROJECT_NAME='trolley' \
-    -e KUBECONFIG='.config' \
+     -d -p 8081:8081  trolley/latest
+     ```
+
+### Docker run the latest stable from dockerhub
+1. There's another, safer option to pull the image from the dockerhub repository where we'll hast the latest stable version:
+    ```
+    docker pull pavelzagalsky/trolley
+    ```
+2. Run the image:
+     ```
+    docker run \
+    -e SECRET_KEY='s3cr3t_k3y' \
+    -e MONGO_USER='<mongo_user>' \
+    -e MONGO_PASSWORD='<mongo_password>' \
+    -e ACTION_TOKEN='<github_token>' \
+    -e MONGO_URL='<mongo_url>' \
+    -e PROJECT_NAME='trolley' \
      -d -p 8081:8081  trolley/latest
      ```
 
@@ -71,8 +87,13 @@ In order to build the clusters we will need to pass AWS/GCP/Azure/Mongo related 
 Here are the parameters:
 
 ## UI Overview
-The UI currently consists of the following flows 
-
+The UI currently consists of the following flows [tba]
+![](documentation/register.png)
+![](documentation/login.png)
+![](documentation/build_eks.png)
+![](documentation/build_gke.png)
+![](documentation/manage_eks.png)
+![](documentation/menu.png)
 ### Registration
 The registration menu will allow the user to register a user that will allow it to build/delete and edit the builds online.
 
