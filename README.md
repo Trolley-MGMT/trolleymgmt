@@ -45,6 +45,27 @@ Set your Environment Variables menu the following:
 
 7. To run the app in your IDE just set the script path to web/main.py and it should work from there
 
+
+### Docker image build and deployment.
+1. In order to work with the Docker image the following steps must be taken.
+2. Assuming the repository was forked and cloned:
+3. Build the docker and tag it as the latest using the following command:
+    ```
+     docker build -t trolley/latest -f Dockerfile .
+     ```
+4. Run the image using this command:
+     ```
+    docker run \
+    -e SECRET_KEY='s3cr3t_k3y' \
+    -e MONGO_USER='<mongo_user>' \
+    -e MONGO_PASSWORD='<mongo_password>' \
+    -e ACTION_TOKEN='<github_token>' \
+    -e MONGO_URL='<mongo_url>' \
+    -e PROJECT_NAME='trolley' \
+    -e KUBECONFIG='.config' \
+     -d -p 8081:8081  trolley/latest
+     ```
+
 ## GitHub Actions parameters
 In order to build the clusters we will need to pass AWS/GCP/Azure/Mongo related parameters.
 Here are the parameters:

@@ -1,12 +1,33 @@
 import logging
 import os
+import platform
 from subprocess import run, PIPE
 
 import requests
 
-from web.mongo_handler.mongo_utils import retrieve_cluster_details
-from web.utils import random_string
-from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+
+# horrible hack to solve the Dockerfile issues. Please find a better solution
+run_env = 'not_github'
+try:
+    github_env_something = os.getenv('GITHUB_ENV')
+    print(github_env_something)
+    if github_env_something is not None:
+        run_env = 'github'
+        print('this runs on github')
+except:
+    run_env = 'not github'
+    print('this does not run on github')
+
+
+if 'Darwin' in platform.system() or run_env == 'github':
+    from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+    from web.mongo_handler.mongo_utils import retrieve_cluster_details
+    from web.utils import random_string
+else:
+    from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+    from mongo_handler.mongo_utils import retrieve_cluster_details
+    from utils import random_string
+
 
 GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
