@@ -104,7 +104,7 @@ def trigger_gke_build_github_action(user_name: str = '',
                      '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '",' \
                      '"zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", ' \
                      '"region_name": "' + gke_region + '", "num_nodes": "' + str(num_nodes) + '", ' \
-                     '"helm_installs": "' + ','.join(helm_installs) + \
+                     '"user_name": "' + user_name + '", "helm_installs": "' + ','.join(helm_installs) +  \
                      '", "expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
     logger.info(f'Running the gke build command: {github_command}')
     try:
