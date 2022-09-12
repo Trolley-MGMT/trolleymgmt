@@ -21,6 +21,7 @@ from variables.variables import POST, GET, EKS, \
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
 
+REGISTRATION = False
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 
@@ -320,8 +321,9 @@ def register():
     if request.method == 'GET':
         return render_template('register.html')
     if request.method == 'POST':
-        # return render_template('login.html',
-        #                        error_message='Registration is closed at the moment')
+        if not REGISTRATION:
+            return render_template('login.html',
+                                   error_message='Registration is closed at the moment')
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         user_email = request.form['user_email']
