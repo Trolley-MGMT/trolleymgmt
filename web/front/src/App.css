@@ -1,0 +1,130 @@
+body {
+  /* background-color: #EDEDF1 !important; */
+  background-color: #454545 !important;
+}
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 10vmin;
+  width: 10vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    /* animation: App-logo-spin infinite 20s linear; */
+  }
+}
+
+h2 {
+  color: darkgray;
+}
+.sidebar {
+  background: #F17153;
+  /* For browsers that do not support gradients */
+  background: -webkit-linear-gradient(#F17153, #F58D63, #f1ab53);
+  /* background: -webkit-linear-gradient(#4ab185,#88c452); */
+  /* For Safari 5.1 to 6.0 */
+  background: -o-linear-gradient(#F17153, #F58D63, #f1ab53);
+  /* background: -o-linear-gradient(#4ab185, #88c452); */
+  /* For Opera 11.1 to 12.0 */
+  background: -moz-linear-gradient(#F17153, #F58D63, #f1ab53);
+  /* background: -moz-linear-gradient(#4ab185, #88c452); */
+  /* For Firefox 3.6 to 15 */
+  background: linear-gradient(#F17153, #F58D63, #f1ab53);
+  /* background: linear-gradient(#4ab185, #88c452); */
+  /* Standard syntax */
+  padding: 0px;
+  min-height: 100%;
+}
+.logo {
+  max-height: 130px;
+  text-align: center;
+  padding-right: 20px;
+  font-weight: bold;
+  color: slategray;
+  text-shadow: 1px 1px rgba(255, 255, 255, 0.5);
+}
+.logo img {
+  margin-top: 30px;
+  padding: 3px;
+  /* border: 3px solid white;
+  border-radius: 100%; */
+}
+.user {
+  color: rgba(255, 255, 255, 0.5);
+  padding: 5px 0px 5px 20px
+}
+.list {
+  color: #fff;
+  list-style: none;
+  padding-left: 0px;
+}
+.list::first-line {
+  color: rgba(255, 255, 255, 0.5);
+}
+.list> li{
+  cursor: pointer;
+}
+h5 {
+  font-size: 1rem !important;
+}
+.list> li, h5 {
+  padding: 5px 0px 5px 20px;
+}
+.list>li:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-left: 5px solid white;
+  color: white;
+  font-weight: bolder;
+  padding-left: 35px;
+}.main-content{
+  text-align: center;
+}
+.input-color {
+  background-image: linear-gradient(#F17153, #F58D63, #f1ab53);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+.btn-outline-light {
+  transition: color 0.15s ease-in-out, background-image 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.btn-outline-light:hover {
+  background-image: linear-gradient(#F17153, #F58D63, #f1ab53);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+.btn-outline-light:focus {
+  background-image: linear-gradient(#F17153, #F58D63, #f1ab53);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+/* th {
+  font-size: 1vw;
+} */
+td {
+  font-size: 1vw;
+}
+
+/* Login */
+.login-header {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  color: black;
+  text-decoration: none;
+}
+.card-outline {
+  border-top: 3px solid #007bff !important;
+  margin-top: 5vh !important;
+}
+.remember-text {
+  font-weight: bold;
+}
+.btn-block {
+  width: 100%;
+}
