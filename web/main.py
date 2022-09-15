@@ -346,9 +346,9 @@ def register():
             file_path = f'{first_name}{last_name}.{image_extension}'
             FileStorage(profile_image.save(os.path.join(app.config['UPLOAD_FOLDER'], file_path)))
 
-        # if not REGISTRATION:
-        #     return render_template('login.html',
-        #                            error_message='Registration is closed at the moment')
+        if not REGISTRATION:
+            return render_template('login.html',
+                                   error_message='Registration is closed at the moment')
         if not first_name:
             return render_template('register.html',
                                    error_message=f'Dear {first_name}, your first name was not entered correctly. '
