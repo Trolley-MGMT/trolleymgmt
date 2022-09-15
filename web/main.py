@@ -38,7 +38,7 @@ logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 
 PROJECT_NAME = os.getenv('PROJECT_NAME')
 
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__, static_folder='front/build/static', template_folder='front/build')
 logger.info(os.getenv('SECRET_KEY'))
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
@@ -87,13 +87,13 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
     try:
         session['first_name'] = user_object['first_name'].capitalize()
     except:
-        redirect(url_for('login',
+        return redirect(url_for('login',
                          failure_message=f'username or password were not found in the system '
                                          f' please try again'))
     if not user_email or not password:
-        return render_template('login.html',
-                               failure_message=f'{user_email} was not found in the system '
-                                               f'or you provided a wrong password, please try again')
+        return redirect(url_for('login',
+                         failure_message=f'{user_email} was not found in the system '
+                                         f'or you provided a wrong password, please try again')
     try:
         logger.info(f'checking the password for {user_object}')
         if check_password_hash(user_object['hashed_password'], password):
@@ -130,9 +130,9 @@ def render_page(page_name: str = ''):
         is_login_pass = False
     if is_login_pass:
         data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name']}
-        return render_template(page_name, data=data)
+        return render_template('index.html', data=data)
     else:
-        return render_template('login.html')
+        return redirect(url_for('login'))
 
 
 @app.route('/get_clusters_data', methods=[GET])
@@ -318,9 +318,9 @@ def fetch_gke_image_types():
 @app.route('/register', methods=[GET, POST])
 def register():
     if request.method == 'GET':
-        return render_template('register.html')
+        return render_template('index.html')
     if request.method == 'POST':
-        # return render_template('login.html',
+        # return render_template('index.html',
         #                        error_message='Registration is closed at the moment')
         first_name = request.form['first_name']
         last_name = request.form['last_name']
@@ -328,52 +328,51 @@ def register():
         team_name = request.form['team_name']
         password = request.form['password']
         if not first_name:
-            return render_template('register.html',
+            return render_template('index.html',
                                    error_message=f'Dear {first_name}, your first name was not entered correctly. '
                                                  f'Please try again')
         if not last_name:
-            return render_template('register.html',
+            return render_template('index.html',
                                    error_message=f'Dear {first_name}, your last name was not entered correctly. '
                                                  f'Please try again')
         if not first_name:
-            return render_template('register.html',
+            return render_template('index.html',
                                    error_message=f'Your first name was not entered correctly. Please try again')
         if not password:
-            return render_template('register.html',
+            return render_template('index.html',
                                    error_message=f'Dear {first_name}, your password was not entered correctly. '
                                                  f'Please try again')
         else:
             if not mongo_handler.mongo_utils.retrieve_user(user_email):
                 if user_registration(first_name, last_name, password, user_email, team_name):
-                    return render_template('login.html',
-                                           error_message=f'Dear {first_name.capitalize()}, '
-                                                         f'Welcome to {PROJECT_NAME.capitalize()}!')
+                    return redirect(url_for('login',
+                                           failure_message=f'Dear {first_name.capitalize()}, '
+                                                         f'Welcome to {PROJECT_NAME.capitalize()}!'))
                 else:
-                    return render_template('login.html',
-                                           error_message=f'Dear {first_name.capitalize()}, '
+                    return redirect(url_for('login',
+                                           failure_message=f'Dear {first_name.capitalize()}, '
                                                          f'your password was not entered correctly. '
-                                                         f'Please try again')
+                                                         f'Please try again'))
             else:
-                return render_template('register.html',
+                return render_template('index.html',
                                        error_message=f'Dear {first_name}, your email was already registered. '
                                                      f'Please try again')
 
 
 @app.route('/login', methods=[GET, POST])
 def login():
-    message = request.args.get('message')
+    message = request.args.get('failure_message')
     if message is None:
         message = ''
     if request.method == 'GET':
-        return render_template('login.html', failure_message=message)
+        return render_template('index.html', error_message=message)
     if request.method == 'POST':
         token, user_object = login_processor(new=True)
         if token:
-            data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name']}
-            return render_template('index.html', data=data)
+            return redirect(url_for('root'))
         else:
             user_email = user_object['user_email']
-            return render_template('login.html',
+            return render_template('index.html',
                                    error_message=f'Dear {user_email}, your password was not entered correctly. '
                                                  f'Please try again')
 
