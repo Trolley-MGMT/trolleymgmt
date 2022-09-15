@@ -17,6 +17,9 @@
     <script>
       var data = {{ data|tojson }};
       console.log(data)
+
+
+
     </script>
 </head>
 
@@ -76,7 +79,8 @@
             <!-- Sidebar user panel (optional) -->
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                 <div class="image">
-                    <img src="static/img/trolley.png" class="img-circle elevation-2" alt="User Image" id="profilePicURL">
+                    <img src="data:image/png;base64,{{image}}" class="img-circle elevation-2" alt="User Image"
+                         id="profilePicURL">
                 </div>
                 <div class="info">
                     <a href="#" class="d-block" id="userNameLabel"></a>

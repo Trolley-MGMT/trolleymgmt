@@ -3,6 +3,8 @@ import os
 import platform
 import time
 
+import gridfs
+from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
@@ -28,7 +30,6 @@ except:
     run_env = 'not github'
     logger.info('this does not run on github')
 
-
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM
@@ -53,6 +54,8 @@ aks_cache: Collection = db.aks_cache
 gke_cache: Collection = db.gke_cache
 helm_cache: Collection = db.helm_cache
 eks_cache: Collection = db.eks_cache
+fs = gridfs.GridFS(db)
+
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
 logger.info(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
@@ -257,6 +260,11 @@ def retrieve_user(user_email: str):
     mongo_query = {USER_EMAIL: user_email}
     user_object = users.find_one(mongo_query)
     logger.info(f'found user_object is: {user_object}')
+    if not user_object:
+        return None
+    profile_image_id = user_object['profile_image_id']
+    file = fs.find_one({"_id": profile_image_id})
+    user_object['profile_image'] = file
     return user_object
 
 
@@ -266,3 +274,15 @@ def insert_user(user_object: dict = None) -> bool:
     """
     users.insert_one(user_object)
     return True
+
+
+def insert_file(profile_image_filename: str = '') -> ObjectId:
+    """
+    @param profile_image_filename: The filename of the image to save
+    """
+    # Open the image in read-only format.
+    with open(profile_image_filename, 'rb') as f:
+        contents = f.read()
+
+    # Now store/put the image via GridFs object.
+    return fs.put(contents, filename=profile_image_filename)

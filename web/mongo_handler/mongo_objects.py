@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from bson import ObjectId
 
 
 @dataclass
@@ -9,6 +10,7 @@ class UserObject:
     hashed_password: str
     team_name: str
     user_email: str
+    profile_image_id: ObjectId = ObjectId()
 
 
 @dataclass

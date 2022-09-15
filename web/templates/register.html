@@ -25,7 +25,7 @@
             <div id="error-registration-message" style="text-align: center;"> {{error_message}}
             </div>
 
-            <form action="register" method="post">
+            <form novalidate="novalidate" enctype=multipart/form-data action="register" method="POST">
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="First Name" name="first_name">
                     <div class="input-group-append">
@@ -63,6 +63,18 @@
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="imageFile">Select your profile photo</label>
+                    <div class="input-group">
+                        <div class="custom-file">
+                            <input type="file" id="imageFile" name="file" accept="image/*">
+                            <label class="custom-file-label" for="imageFile">Choose file</label>
+                        </div>
+                        <div class="input-group-append">
+                            <span class="input-group-text">Upload</span>
                         </div>
                     </div>
                 </div>

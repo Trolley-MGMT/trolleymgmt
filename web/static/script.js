@@ -447,8 +447,13 @@ $(document).ready(function() {
     }
 
     function populate_logged_in_assets() {
-        $("#profilePicURL").attr("src", "static/img/" + data['user_name'] + ".jpg");
-        $("#userNameLabel").text(data['first_name']);
+        Object.defineProperty(String.prototype, 'capitalize', {
+        value: function() {
+            return this.charAt(0).toUpperCase() + this.slice(1);
+        },
+        enumerable: false
+    });
+        $("#userNameLabel").text(data['first_name'].capitalize());
     }
 
 
@@ -457,7 +462,6 @@ $(document).ready(function() {
         $("#eks-vpcs-dropdown").empty();
         $("#eks-zones-dropdown").empty();
         $("#eks-subnets-dropdown").empty();
-//        populate_vpcs(selected_location = eks_location);
         populate_zones(eks_location);
     })
 

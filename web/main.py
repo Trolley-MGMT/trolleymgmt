@@ -1,3 +1,4 @@
+import codecs
 import inspect
 import json
 import logging
@@ -11,6 +12,7 @@ from distutils import util
 
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
 from jwt import InvalidTokenError
+from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import mongo_handler.mongo_utils
@@ -42,6 +44,7 @@ PROJECT_NAME = os.getenv('PROJECT_NAME')
 app = Flask(__name__, template_folder='templates')
 logger.info(os.getenv('SECRET_KEY'))
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['UPLOAD_FOLDER'] = ''
 
 if MACOS in platform.platform():
     CUR_DIR = os.getcwd()
@@ -52,13 +55,20 @@ else:
 
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
-                      user_email: str = '', team_name: str = '') -> bool:
-    """"""
+                      user_email: str = '', team_name: str = '', profile_image_filename: str = '') -> bool:
+    """
+    This function registers a new user into the DB
+    """
     user_name = f'{first_name.lower()}{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
+    profile_image_id = mongo_handler.mongo_utils.insert_file(profile_image_filename)
     user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
-                             team_name=team_name, hashed_password=hashed_password)
+                             team_name=team_name, hashed_password=hashed_password, profile_image_id=profile_image_id)
     if mongo_handler.mongo_utils.insert_user(asdict(user_object)):
+        if 'trolley' in profile_image_filename:
+            return True
+        if os.path.exists(profile_image_filename):
+            os.remove(profile_image_filename)
         return True
     else:
         return False
@@ -321,14 +331,22 @@ def register():
     if request.method == 'GET':
         return render_template('register.html')
     if request.method == 'POST':
-        if not REGISTRATION:
-            return render_template('login.html',
-                                   error_message='Registration is closed at the moment')
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
+        first_name = request.form['first_name'].lower()
+        last_name = request.form['last_name'].lower()
         user_email = request.form['user_email']
         team_name = request.form['team_name']
         password = request.form['password']
+        if 'image' not in request.files['file'].mimetype:
+            file_path = 'trolley_small.png'
+        else:
+            profile_image = request.files['file']
+            image_extension = profile_image.mimetype.split('/')[1]
+            file_path = f'{first_name}{last_name}.{image_extension}'
+            FileStorage(profile_image.save(os.path.join(app.config['UPLOAD_FOLDER'], file_path)))
+
+        # if not REGISTRATION:
+        #     return render_template('login.html',
+        #                            error_message='Registration is closed at the moment')
         if not first_name:
             return render_template('register.html',
                                    error_message=f'Dear {first_name}, your first name was not entered correctly. '
@@ -346,7 +364,7 @@ def register():
                                                  f'Please try again')
         else:
             if not mongo_handler.mongo_utils.retrieve_user(user_email):
-                if user_registration(first_name, last_name, password, user_email, team_name):
+                if user_registration(first_name, last_name, password, user_email, team_name, file_path):
                     return render_template('login.html',
                                            error_message=f'Dear {first_name.capitalize()}, '
                                                          f'Welcome to {PROJECT_NAME.capitalize()}!')
@@ -370,9 +388,12 @@ def login():
         return render_template('login.html', failure_message=message)
     if request.method == 'POST':
         token, user_object = login_processor(new=True)
+        base64_data = codecs.encode(user_object['profile_image'].read(), 'base64')
+        profile_image = base64_data.decode('utf-8')
         if token:
             data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name']}
-            return render_template('index.html', data=data)
+            image = profile_image
+            return render_template('index.html', data=data, image=image)
         else:
             user_email = user_object['user_email']
             return render_template('login.html',
@@ -420,4 +441,3 @@ def logout():
 
 app.run(host='0.0.0.0', port=8081, debug=True)
 # web.run(host='0.0.0.0', port=8081, debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'))
-
