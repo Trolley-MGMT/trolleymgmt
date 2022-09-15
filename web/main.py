@@ -136,12 +136,14 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
 def render_page(page_name: str = ''):
     try:
         token, user_object = login_processor()
+        base64_data = codecs.encode(user_object['profile_image'].read(), 'base64')
         is_login_pass = True
     except:
         is_login_pass = False
     if is_login_pass:
         data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name']}
-        return render_template(page_name, data=data)
+        profile_image = base64_data.decode('utf-8')
+        return render_template(page_name, data=data, image=profile_image)
     else:
         return render_template('login.html')
 
@@ -392,8 +394,7 @@ def login():
         profile_image = base64_data.decode('utf-8')
         if token:
             data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name']}
-            image = profile_image
-            return render_template('index.html', data=data, image=image)
+            return render_template('index.html', data=data, image=profile_image)
         else:
             user_email = user_object['user_email']
             return render_template('login.html',
