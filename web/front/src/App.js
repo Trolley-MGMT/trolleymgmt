@@ -41,9 +41,9 @@ class App extends Component {
               <Route path="/build-aks-clusters" element={<BuildAKSCluster appData={data} />} />
               <Route path="/build-eks-clusters" element={<BuildAKSCluster appData={data} />} />
               <Route path="/build-gke-clusters" element={<BuildAKSCluster appData={data} />} />
-              <Route path="/manage-aks-clusters" element={<ShowClusters appData={data} />} />
-              <Route path="/manage-eks-clusters" element={<ShowClusters appData={data} />} />
-              <Route path="/manage-gke-clusters" element={<ShowClusters appData={data} />} />
+              <Route path="/manage-aks-clusters" element={<ShowClusters appData={data} type="aks" />} />
+              <Route path="/manage-eks-clusters" element={<ShowClusters appData={data} type="eks" />} />
+              <Route path="/manage-gke-clusters" element={<ShowClusters appData={data} type="gke" />} />
             </Route>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
