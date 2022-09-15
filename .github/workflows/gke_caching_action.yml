@@ -42,7 +42,7 @@ jobs:
           MONGO_URL: ${{ secrets.MONGO_URL }}
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-          PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
 
         run: |
