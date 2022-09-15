@@ -5,7 +5,7 @@ import AppLayout from './components/appLayout';
 import Sidebar from './components/sidebar';
 import ShowClusters from './components/showClusters';
 import BuildAKSCluster from './components/buildAKSCluster';
-import BuildCluster from './components/buildCluster';
+import PickCluster from './components/pickCluster';
 import Login from './components/login';
 import Register from './components/Register';
 
@@ -36,8 +36,8 @@ class App extends Component {
         <Router>
           <Routes>
             <Route element={<AppLayout appData={data} />}>
-              <Route path="/" element={<BuildCluster appData={data} />} />
-              <Route path="/index" element={<BuildCluster appData={data} />} />
+              <Route path="/" element={<PickCluster appData={data} />} />
+              <Route path="/index" element={<PickCluster appData={data} />} />
               <Route path="/build-aks-clusters" element={<BuildAKSCluster appData={data} />} />
               <Route path="/build-eks-clusters" element={<BuildAKSCluster appData={data} />} />
               <Route path="/build-gke-clusters" element={<BuildAKSCluster appData={data} />} />
