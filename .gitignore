@@ -6,3 +6,19 @@ docker-compose.yml
 Dockerfile
 *.ini
 config.ini
+
+# front
+web/front/node_modules
+web/front/.pnp
+web/front/.pnp.js
+web/front/build
+web/front/.DS_Store
+web/front/.env.local
+web/front/.env.development.local
+web/front/.env.test.local
+web/front/.env.production.local
+web/front/npm-debug.log*
+web/front/yarn-debug.log*
+web/front/yarn-error.log*
+web/test.py
+web/front/src/components/mockdata.json
