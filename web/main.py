@@ -93,7 +93,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
     if not user_email or not password:
         return redirect(url_for('login',
                          failure_message=f'{user_email} was not found in the system '
-                                         f'or you provided a wrong password, please try again')
+                                         f'or you provided a wrong password, please try again'))
     try:
         logger.info(f'checking the password for {user_object}')
         if check_password_hash(user_object['hashed_password'], password):
@@ -326,7 +326,7 @@ def register():
         last_name = request.form['last_name']
         user_email = request.form['user_email']
         team_name = request.form['team_name']
-        password = request.form['password']
+        password = request.form['user_password']
         if not first_name:
             return render_template('index.html',
                                    error_message=f'Dear {first_name}, your first name was not entered correctly. '
