@@ -22,3 +22,5 @@ web/front/yarn-debug.log*
 web/front/yarn-error.log*
 web/test.py
 web/front/src/components/mockdata.json
+.config
+deployment_utils/.config

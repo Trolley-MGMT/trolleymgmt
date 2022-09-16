@@ -58,13 +58,13 @@ logger.info(f'GITHUB_ACTIONS_API_URL is: {GITHUB_ACTIONS_API_URL}')
 logger.info(f'GITHUB_ACTION_REQUEST_HEADER_DOCKER is: {GITHUB_ACTION_REQUEST_HEADER_DOCKER}')
 
 
-def trigger_aks_build_github_action(user_name: str = '',
+def trigger_aks_build_github_action(cluster_name: str = '',
+                                    cluster_type: str = '',
                                     version: str = '',
                                     aks_location: str = None,
                                     num_nodes: int = '',
                                     helm_installs: list = '',
                                     expiration_time: int = ''):
-    cluster_name = f'{user_name}-aks-{random_string(5)}'
     if len(helm_installs) < 1:
         helm_installs = ["."]
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
@@ -86,6 +86,8 @@ def trigger_aks_build_github_action(user_name: str = '',
 
 
 def trigger_gke_build_github_action(user_name: str = '',
+                                    cluster_name: str = '',
+                                    cluster_type: str = '',
                                     version: str = '',
                                     gke_region: str = '',
                                     gke_zone: str = '',
@@ -94,7 +96,6 @@ def trigger_gke_build_github_action(user_name: str = '',
                                     helm_installs: list = '',
                                     expiration_time: int = '',
                                     deployment_yaml: str = ''):
-    cluster_name = f'{user_name}-gke-{random_string(5)}'
     if len(helm_installs) < 1:
         helm_installs = ["."]
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
@@ -116,7 +117,8 @@ def trigger_gke_build_github_action(user_name: str = '',
     logger.info(f'printing out the response: {response}')
 
 
-def trigger_eks_build_github_action(user_name: str = '',
+def trigger_eks_build_github_action(cluster_name: str = '',
+                                    cluster_type: str = '',
                                     version: str = '',
                                     eks_location: str = '',
                                     eks_zones: list = None,
@@ -125,7 +127,6 @@ def trigger_eks_build_github_action(user_name: str = '',
                                     num_nodes: int = '',
                                     helm_installs: list = '',
                                     expiration_time: int = ''):
-    cluster_name = f'{user_name}-eks-{random_string(5)}'
     if len(helm_installs) < 1:
         helm_installs = ["."]
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \

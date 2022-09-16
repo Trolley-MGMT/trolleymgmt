@@ -10,18 +10,20 @@ import platform
 from dataclasses import asdict
 from distutils import util
 
+import yaml
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
 from jwt import InvalidTokenError
 from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import mongo_handler.mongo_utils
-from mongo_handler.mongo_objects import UserObject
+from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_LIST, HELM, LOCATIONS_DICT
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
+from web.utils import random_string
 
 REGISTRATION = True
 CUR_DIR = os.getcwd()
@@ -52,6 +54,19 @@ if MACOS in platform.platform():
     logger.info(f'current directory is: {PROJECT_ROOT}')
 else:
     PROJECT_NAME = os.environ['PROJECT_NAME']
+
+
+def deployment_yaml_handling(content) -> DeploymentYAMLObject:
+    full_deployment_yaml = content['deployment_yaml']
+    deployment_yaml_dict = []
+    if '---' in full_deployment_yaml:
+        deployments_list = full_deployment_yaml.split('---')
+        for deployment in deployments_list:
+            single_deployment = yaml.safe_load(deployment)
+            deployment_yaml_dict.append(single_deployment)
+    else:
+        deployment_yaml_dict = yaml.safe_load(full_deployment_yaml)
+    return DeploymentYAMLObject(content['cluster_type'], content['cluster_name'], deployment_yaml_dict)
 
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
@@ -156,17 +171,52 @@ def get_clusters_data():
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
+# @app.route('/trigger_cluster_deployment', methods=[POST])
+# def trigger_cluster_deployment():
+#     content = request.get_json()
+#     function_name = inspect.stack()[0][3]
+#     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+#     user_name = content['user_name']
+#     cluster_type = content['cluster_type']
+#     cluster_name = f'{user_name}-{cluster_type}-{random_string(8)}'
+#     content['cluster_name'] = cluster_name
+#     full_deployment_yaml = content['deployment_yaml']
+#     deployment_yaml_dict = []
+#     if '---' in full_deployment_yaml:
+#         deployments_list = full_deployment_yaml.split('---')
+#         for deployment in deployments_list:
+#             single_deployment = yaml.safe_load(deployment)
+#             deployment_yaml_dict.append(single_deployment)
+#     else:
+#         deployment_yaml_dict = full_deployment_yaml
+#     del content['deployment_yaml']
+#     if cluster_type == GKE:
+#         trigger_gke_build_github_action(**content)
+#     elif cluster_type == EKS:
+#         trigger_eks_build_github_action(**content)
+#     elif cluster_type == AKS:
+#         trigger_eks_build_github_action(**content)
+#     deployment_yaml_object = DeploymentYAMLObject(cluster_name, deployment_yaml_dict)
+#     if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+#         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+#     else:
+#         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+
+
 @app.route('/trigger_gke_deployment', methods=[POST])
 def trigger_gke_deployment():
-    logger.info('triggering kubernetes')
-    logger.info('triggering kubernetes')
     content = request.get_json()
-    logger.info(f'received content is: {content}')
-    del content['cluster_type']
-    trigger_gke_build_github_action(**content)
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
-    return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    user_name = content['user_name']
+    cluster_name = f'{user_name}-{GKE}-{random_string(8)}'
+    content['cluster_name'] = cluster_name
+    trigger_gke_build_github_action(**content)
+    deployment_yaml_object = deployment_yaml_handling(content)
+    if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+        return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
 @app.route('/trigger_eks_deployment', methods=[POST])
@@ -174,8 +224,15 @@ def trigger_eks_deployment():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+    user_name = content['user_name']
+    cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
+    content['cluster_name'] = cluster_name
     trigger_eks_build_github_action(**content)
-    return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    deployment_yaml_object = deployment_yaml_handling(content)
+    if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+        return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
 @app.route('/trigger_aks_deployment', methods=[POST])
@@ -183,8 +240,15 @@ def trigger_aks_deployment():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+    user_name = content['user_name']
+    cluster_name = f'{user_name}-{AKS}-{random_string(8)}'
+    content['cluster_name'] = cluster_name
     trigger_aks_build_github_action(**content)
-    return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    deployment_yaml_object = deployment_yaml_handling(content)
+    if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+        return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
 @app.route('/delete_expired_clusters', methods=[DELETE])

@@ -32,7 +32,7 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM
+        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM
@@ -50,12 +50,12 @@ gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
+deployment_yamls: Collection = db.deployment_yamls
 aks_cache: Collection = db.aks_cache
 gke_cache: Collection = db.gke_cache
 helm_cache: Collection = db.helm_cache
 eks_cache: Collection = db.eks_cache
 fs = gridfs.GridFS(db)
-
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
 logger.info(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
@@ -268,6 +268,21 @@ def retrieve_user(user_email: str):
     return user_object
 
 
+def retrieve_deployment_yaml(cluster_type: str, cluster_name: str) -> dict:
+    """
+    @param cluster_type:
+    @param cluster_name:
+    @return:
+    """
+    mongo_query = {CLUSTER_TYPE: cluster_type, CLUSTER_NAME.lower(): cluster_name}
+    deployment_yaml_object = deployment_yamls.find_one(mongo_query)
+    logger.info(f'found user_object is: {deployment_yaml_object}')
+    if not deployment_yaml_object:
+        return {}
+    else:
+        return deployment_yaml_object['deployment_yaml_dict']
+
+
 def insert_user(user_object: dict = None) -> bool:
     """
     @param user_object: The dictionary with all the user data.
@@ -280,9 +295,15 @@ def insert_file(profile_image_filename: str = '') -> ObjectId:
     """
     @param profile_image_filename: The filename of the image to save
     """
-    # Open the image in read-only format.
     with open(profile_image_filename, 'rb') as f:
         contents = f.read()
 
-    # Now store/put the image via GridFs object.
     return fs.put(contents, filename=profile_image_filename)
+
+
+def insert_deployment_yaml(deployment_yaml_object: dict):
+    try:
+        deployment_yamls.insert_one(deployment_yaml_object)
+        return True
+    except:
+        return False
