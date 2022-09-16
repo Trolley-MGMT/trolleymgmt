@@ -17,15 +17,15 @@ class App extends Component {
     firstName: '',
     trolleyRemoteUrl: '34.123.171.234',
     trolleyLocalUrl: 'localhost',
-    debug: false,
+    debug: true,
     content: 'buildCluster'
   };
 
   componentDidMount(){
-    //const data = JSON.parse(document.getElementById('data').textContent);
+    const data = JSON.parse(document.getElementById('data').textContent);
     // debug
     //const data = {first_name: 'Mike', user_name: 'miketyson'};
-    const data = {first_name: 'Einat', user_name: 'einatsoferman'};
+    //const data = {first_name: 'Einat', user_name: 'einatsoferman'};
     this.setState({ userName: data.user_name, firstName: data.first_name });
     console.log(this.state);
   }
