@@ -83,13 +83,16 @@ $(document).ready(function() {
         EKSExpirationTime = $('#eks-expiration-time').val();
         GKEExpirationTime = $('#gke-expiration-time').val();
 
+        DeploymentYAML = $('#deployment-yaml').val();
+
         let trigger_aks_deployment_data = JSON.stringify({
             "user_name": user_name,
             "num_nodes": AKSNodesAmount,
             "version": AKSKubernetesVersion,
             "expiration_time": AKSExpirationTime,
             "aks_location": AKSLocation,
-            "helm_installs": HelmInstalls
+            "helm_installs": HelmInstalls,
+            "deployment_yaml": DeploymentYAML
         });
 
         let trigger_eks_deployment_data = JSON.stringify({
@@ -100,7 +103,8 @@ $(document).ready(function() {
             "eks_location": EKSLocation,
             "eks_zones": EKSZones,
             "eks_subnets": EKSSubnets,
-            "helm_installs": HelmInstalls
+            "helm_installs": HelmInstalls,
+            "deployment_yaml": DeploymentYAML
         });
 
         let trigger_gke_deployment_data = JSON.stringify({
@@ -112,7 +116,8 @@ $(document).ready(function() {
             "expiration_time": GKEExpirationTime,
             "gke_region": GKERegion,
             "gke_zone": GKEZone,
-            "helm_installs": HelmInstalls
+            "helm_installs": HelmInstalls,
+            "deployment_yaml": DeploymentYAML
         });
 
         if (clusterType === 'aks') {
@@ -124,7 +129,7 @@ $(document).ready(function() {
             trigger_data = trigger_eks_deployment_data
             expiration_time = EKSExpirationTime
         } else if (clusterType == 'gke') {
-            url = "http://" + trolley_url + ":" + port + "/trigger_kubernetes_deployment";
+            url = "http://" + trolley_url + ":" + port + "/trigger_gke_deployment";
             trigger_data = trigger_gke_deployment_data
             expiration_time = GKEExpirationTime
         } else {

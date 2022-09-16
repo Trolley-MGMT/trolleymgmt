@@ -156,19 +156,16 @@ def get_clusters_data():
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
-@app.route('/trigger_kubernetes_deployment', methods=[POST])
-def trigger_kubernetes_deployment():
+@app.route('/trigger_gke_deployment', methods=[POST])
+def trigger_gke_deployment():
     logger.info('triggering kubernetes')
     logger.info('triggering kubernetes')
     content = request.get_json()
     logger.info(f'received content is: {content}')
-    if content['cluster_type'] == 'gke':
-        del content['cluster_type']
-        trigger_gke_build_github_action(**content)
-        function_name = inspect.stack()[0][3]
-        logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
-    elif content['cluster_type'] == 'gke_autopilot':
-        del content['cluster_type']
+    del content['cluster_type']
+    trigger_gke_build_github_action(**content)
+    function_name = inspect.stack()[0][3]
+    logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 

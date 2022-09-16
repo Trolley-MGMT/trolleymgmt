@@ -92,7 +92,8 @@ def trigger_gke_build_github_action(user_name: str = '',
                                     image_type: str = '',
                                     num_nodes: int = '',
                                     helm_installs: list = '',
-                                    expiration_time: int = ''):
+                                    expiration_time: int = '',
+                                    deployment_yaml: str = ''):
     cluster_name = f'{user_name}-gke-{random_string(5)}'
     if len(helm_installs) < 1:
         helm_installs = ["."]
@@ -105,7 +106,8 @@ def trigger_gke_build_github_action(user_name: str = '',
                      '"zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", ' \
                      '"region_name": "' + gke_region + '", "num_nodes": "' + str(num_nodes) + '", ' \
                      '"user_name": "' + user_name + '", "helm_installs": "' + ','.join(helm_installs) +  \
-                     '", "expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
+                     '", "expiration_time": "' + str(expiration_time) + '", ' \
+                     '"deployment_yaml": "' + deployment_yaml + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
     logger.info(f'Running the gke build command: {github_command}')
     try:
         response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
