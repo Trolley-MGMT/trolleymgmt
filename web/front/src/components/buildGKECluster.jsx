@@ -10,16 +10,21 @@ class CreateCluster extends Component {
       // data
       trolleyUrl: debug ? trolleyLocalUrl : trolleyRemoteUrl,
       port: 8081,
-      clusterType: 'aks',
+      clusterType: 'gke',
       toastMessage: '',
       // selected
       nodesAmt: '1',
-      version: '1.24.0',
+      version: '',
+      imageType: '',
       location: '',
+      zone: '',
       helmInstall: [],
       expirationTime: '1',
       // needs to be populated
       locations: [],
+      versions: [],
+      imageTypes: [],
+      zones: [],
       helmInstalls: [],
     }
   }
@@ -27,15 +32,16 @@ class CreateCluster extends Component {
   async componentDidMount(){
     const { trolleyUrl, port, clusterType } = this.state;
     // Get locations/regions
-    const url = `http://${trolleyUrl}:${port}/fetch_regions?clusters_type=${clusterType}`;
+    const url_locations = `http://${trolleyUrl}:${port}/fetch_regions?cluster_type=${clusterType}`;
     try {
-      const response = await fetch(url);
+      const response = await fetch(url_locations);
       if (!response.ok){
         const error = response.statusText;
         throw new Error(error);
       }
       const locations = await response.json();
       this.setState({ locations, location: locations[0] });
+      await this.getZones(locations[1]);
     } catch(error) {
       throw new Error(error);
     }      
@@ -50,13 +56,87 @@ class CreateCluster extends Component {
       const helmInstalls = await response.json();
       this.setState({ helmInstalls });
     } catch(error) {
-      throw new Error(error);
+      console.log(error);
     }      
+  }
+
+  async getZones(location) {
+    const { trolleyUrl, port, clusterType } = this.state;
+    const url_zones = `http://${trolleyUrl}:${port}/fetch_zones?cluster_type=${clusterType}&region_name=${location}`;
+    try {
+      const response = await fetch(url_zones);
+      if (!response.ok){
+        const error = response.statusText;
+        throw new Error(error);
+      }
+      const zones = await response.json();
+      this.setState({ zones, zone: zones[0] });
+      await this.getVersions(zones[0]);
+      await this.getImageTypes(zones[0]);
+    } catch(error) {
+      throw new Error(error);
+    }
+  }
+
+  async getVersions(zone) {
+    const { trolleyUrl, port } = this.state;
+    const url = `http://${trolleyUrl}:${port}/fetch_gke_versions?gcp_zone=${zone}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok){
+        const error = response.statusText;
+        throw new Error(error);
+      }
+      const versions = await response.json();
+      this.setState({ versions, version: versions[0] });
+    } catch(error) {
+      throw new Error(error);
+    }
+  }
+
+  async getImageTypes(zone) {
+    const { trolleyUrl, port } = this.state;
+    const url = `http://${trolleyUrl}:${port}/fetch_gke_image_types?gcp_zone=${zone}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok){
+        const error = response.statusText;
+        throw new Error(error);
+      }
+      const imageTypes = await response.json();
+      this.setState({ imageTypes, imageType: imageTypes[0] });
+    } catch(error) {
+      throw new Error(error);
+    }
+  }
+
+  populateVersions() {
+    return(
+      this.state.versions.map((item) => (
+        <option value={item}>{item}</option>
+      ))
+    );
+  }
+
+  populateImageTypes() {
+    return(
+      this.state.imageTypes.map((item) => (
+        <option value={item}>{item}</option>
+      ))
+    );
   }
 
   populateLocations() {
     return(
       this.state.locations.map((item) => (
+        <option value={item}>{item}</option>
+      ))
+    );
+  }
+
+  populateZones() {
+    return(
+      this.state.zones.map((item) => (
         <option value={item}>{item}</option>
       ))
     );
@@ -78,8 +158,17 @@ class CreateCluster extends Component {
     this.setState({ version: e.target.value });
   }
 
+  handleImageTypeChange = (e) => {
+    this.setState({ imageType: e.target.value });
+  }
+
   handleLocationChange = (e) => {
     this.setState({ location: e.target.value });
+    this.getZones(e.target.value);
+  }
+
+  handleZonesChange = (e) => {
+    this.setState({ zone: e.target.value });
   }
 
   handleHelmInstallsChange = (e) => {
@@ -91,19 +180,22 @@ class CreateCluster extends Component {
   }
 
   async buildCluster() {
-    const { nodesAmt, version, expirationTime, location, helmInstall, trolleyUrl, port, clusterType } = this.state;
+    const { nodesAmt, version, imageType, expirationTime, location, zone, helmInstall, trolleyUrl, port, clusterType } = this.state;
 
     const triggerData = JSON.stringify({
+      "cluster_type": 'gke',
       "user_name": this.props.appData.userName,
       "num_nodes": nodesAmt,
       "version": version,
+      "image_type": imageType,
       "expiration_time": expirationTime,
-      "aks_location": location,
+      "gke_region": location,
+      "gke_zone": zone,
       "helm_installs": helmInstall
     });
     console.log(triggerData);
 
-    const url = `http://${trolleyUrl}:${port}/trigger_aks_deployment`;
+    const url = `http://${trolleyUrl}:${port}/trigger_kubernetes_deployment`;
     const toastMessage = `An ${clusterType} deployment was requested for ${version} kubernetes version with ${expirationTime} expiration time`;
     this.setState({ toastMessage });
     const options = {
@@ -123,7 +215,7 @@ class CreateCluster extends Component {
       const toast = new Toast(toastEl);
       toast.show();
     } catch(error) {
-      throw new Error(error);
+      console.log(error);
     }
   }
 
@@ -134,7 +226,7 @@ class CreateCluster extends Component {
   render() {
     return (
       <div className="col-lg-10 col-8 text-center">
-        <h2 className="mt-4 mb-4">Build an AKS cluster</h2>
+        <h2 className="mt-4 mb-4">Build a GKE cluster</h2>
         <div className="row justify-content-md-center">
           <div className="form col-lg-6">
             <div className="input-group mt-3 mb-3">
@@ -160,14 +252,22 @@ class CreateCluster extends Component {
                 onChange={this.handleVersionChange}
                 id="versions-dropdown"
               >
-                <option value="1.24.0">1.24.0</option>
-                <option value="1.23.8">1.23.8</option>
-                <option value="1.22.11">1.22.11</option>
-                <option value="1.21.14">1.21.14</option>
+                { this.populateVersions() }
               </select>
             </div>
             <div className="input-group mt-3 mb-3">
-              <label className="input-group-text input-color" htmlFor="locations" style={{ paddingRight: '118px' }}>Select location</label>
+              <label className="input-group-text input-color" htmlFor="image-types-dropdown">Select Kubernetes Image type</label>
+              <select
+                className="form-select"
+                value={this.state.imageType}
+                onChange={this.handleImageTypeChange}
+                id="image-types-dropdown"
+              >
+                { this.populateImageTypes() }
+              </select>
+            </div>
+            <div className="input-group mt-3 mb-3">
+              <label className="input-group-text input-color" htmlFor="locations" style={{ paddingRight: '125px' }}>Select Region</label>
               <select
                 className="form-select"
                 value={this.state.location}
@@ -175,6 +275,17 @@ class CreateCluster extends Component {
                 id="locations"
               >
                 { this.populateLocations() }
+              </select>
+            </div>
+            <div className="input-group mt-3 mb-3">
+              <label className="input-group-text input-color" htmlFor="zones" style={{ paddingRight: '138px' }}>Select Zone</label>
+              <select
+                className="form-select"
+                value={this.state.zone}
+                onChange={this.handleZonesChange}
+                id="zones"
+              >
+                { this.populateZones() }
               </select>
             </div>
             <div className="input-group mt-3 mb-3">

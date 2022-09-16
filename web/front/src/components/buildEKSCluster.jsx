@@ -10,16 +10,20 @@ class CreateCluster extends Component {
       // data
       trolleyUrl: debug ? trolleyLocalUrl : trolleyRemoteUrl,
       port: 8081,
-      clusterType: 'aks',
+      clusterType: 'eks',
       toastMessage: '',
       // selected
       nodesAmt: '1',
-      version: '1.24.0',
+      version: '1.21',
       location: '',
+      zone: [],
+      subnet: [],
       helmInstall: [],
       expirationTime: '1',
       // needs to be populated
       locations: [],
+      zones: [],
+      subnets: [],
       helmInstalls: [],
     }
   }
@@ -27,22 +31,23 @@ class CreateCluster extends Component {
   async componentDidMount(){
     const { trolleyUrl, port, clusterType } = this.state;
     // Get locations/regions
-    const url = `http://${trolleyUrl}:${port}/fetch_regions?clusters_type=${clusterType}`;
+    const url_locations = `http://${trolleyUrl}:${port}/fetch_regions?cluster_type=${clusterType}`;
     try {
-      const response = await fetch(url);
+      const response = await fetch(url_locations);
       if (!response.ok){
         const error = response.statusText;
         throw new Error(error);
       }
       const locations = await response.json();
-      this.setState({ locations, location: locations[0] });
+      this.setState({ locations, location: locations[1] });
+      await this.getZones(locations[1]);
     } catch(error) {
       throw new Error(error);
-    }      
+    }
     // Get helm installs
-    const url2 = `http://${trolleyUrl}:${port}/fetch_helm_installs?names=True`;
+    const url_helm = `http://${trolleyUrl}:${port}/fetch_helm_installs?names=True`;
     try {
-      const response = await fetch(url2);
+      const response = await fetch(url_helm);
       if (!response.ok){
         const err = await response.text();
         throw new Error(err);
@@ -54,9 +59,57 @@ class CreateCluster extends Component {
     }      
   }
 
+  async getZones(location) {
+    const { trolleyUrl, port, clusterType } = this.state;
+    const url_zones = `http://${trolleyUrl}:${port}/fetch_zones?cluster_type=${clusterType}&region_name=${location}`;
+    try {
+      const response = await fetch(url_zones);
+      if (!response.ok){
+        const error = response.statusText;
+        throw new Error(error);
+      }
+      const zones = await response.json();
+      this.setState({ zones });
+    } catch(error) {
+      throw new Error(error);
+    }
+  }
+
+  async getSubnets(zones) {
+    const { trolleyUrl, port, clusterType } = this.state;
+    const url_subnets = `http://${trolleyUrl}:${port}/fetch_subnets?cluster_type=${clusterType}&zone_names=${zones}`;
+    try {
+      const response = await fetch(url_subnets);
+      if (!response.ok){
+        const error = response.statusText;
+        throw new Error(error);
+      }
+      const subnets = await response.json();
+      this.setState({ subnets });
+    } catch(error) {
+      throw new Error(error);
+    }    
+  }
+
   populateLocations() {
     return(
       this.state.locations.map((item) => (
+        <option value={item}>{item}</option>
+      ))
+    );
+  }
+
+  populateZones() {
+    return(
+      this.state.zones.map((item) => (
+        <option value={item}>{item}</option>
+      ))
+    );
+  }
+
+  populateSubnets() {
+    return(
+      this.state.subnets.map((item) => (
         <option value={item}>{item}</option>
       ))
     );
@@ -80,6 +133,16 @@ class CreateCluster extends Component {
 
   handleLocationChange = (e) => {
     this.setState({ location: e.target.value });
+    this.getZones(e.target.value);
+  }
+
+  handleZonesChange = (e) => {
+    this.setState({ zone: [...e.target.selectedOptions].map(opt => opt.value) });
+    this.getSubnets([...e.target.selectedOptions].map(opt => opt.value));
+  }
+
+  handleSubnetsChange = (e) => {
+    this.setState({ subnet: [...e.target.selectedOptions].map(opt => opt.value) });
   }
 
   handleHelmInstallsChange = (e) => {
@@ -91,19 +154,21 @@ class CreateCluster extends Component {
   }
 
   async buildCluster() {
-    const { nodesAmt, version, expirationTime, location, helmInstall, trolleyUrl, port, clusterType } = this.state;
+    const { nodesAmt, version, expirationTime, location, zone, subnet, helmInstall, trolleyUrl, port, clusterType } = this.state;
 
     const triggerData = JSON.stringify({
       "user_name": this.props.appData.userName,
       "num_nodes": nodesAmt,
       "version": version,
       "expiration_time": expirationTime,
-      "aks_location": location,
+      "eks_location": location,
+      "eks_zones": zone,
+      "eks_subnets": subnet,
       "helm_installs": helmInstall
     });
     console.log(triggerData);
 
-    const url = `http://${trolleyUrl}:${port}/trigger_aks_deployment`;
+    const url = `http://${trolleyUrl}:${port}/trigger_eks_deployment`;
     const toastMessage = `An ${clusterType} deployment was requested for ${version} kubernetes version with ${expirationTime} expiration time`;
     this.setState({ toastMessage });
     const options = {
@@ -134,7 +199,7 @@ class CreateCluster extends Component {
   render() {
     return (
       <div className="col-lg-10 col-8 text-center">
-        <h2 className="mt-4 mb-4">Build an AKS cluster</h2>
+        <h2 className="mt-4 mb-4">Build an EKS cluster</h2>
         <div className="row justify-content-md-center">
           <div className="form col-lg-6">
             <div className="input-group mt-3 mb-3">
@@ -160,10 +225,10 @@ class CreateCluster extends Component {
                 onChange={this.handleVersionChange}
                 id="versions-dropdown"
               >
-                <option value="1.24.0">1.24.0</option>
-                <option value="1.23.8">1.23.8</option>
-                <option value="1.22.11">1.22.11</option>
-                <option value="1.21.14">1.21.14</option>
+                <option value="1.21">1.21</option>
+                <option value="1.20">1.20</option>
+                <option value="1.19">1.19</option>
+                <option value="1.18">1.18</option>
               </select>
             </div>
             <div className="input-group mt-3 mb-3">
@@ -175,6 +240,28 @@ class CreateCluster extends Component {
                 id="locations"
               >
                 { this.populateLocations() }
+              </select>
+            </div>
+            <div className="input-group mt-3 mb-3">
+              <label className="input-group-text input-color" htmlFor="zones" style={{ paddingRight: '7px' }}>Select Zones (Select at least 2)</label>
+              <select multiple
+                className="form-select"
+                value={this.state.zone}
+                onChange={this.handleZonesChange}
+                id="zones"
+              >
+                { this.populateZones() }
+              </select>
+            </div>
+            <div className="input-group mt-3 mb-3">
+              <label className="input-group-text input-color" htmlFor="subnets" style={{ paddingRight: '118px' }}>Select Subnets</label>
+              <select multiple
+                className="form-select"
+                value={this.state.subnet}
+                onChange={this.handleSubnetsChange}
+                id="subnets"
+              >
+                { this.populateSubnets() }
               </select>
             </div>
             <div className="input-group mt-3 mb-3">

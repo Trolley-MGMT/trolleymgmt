@@ -2,9 +2,10 @@ import './App.css';
 import React, { Component } from "react";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AppLayout from './components/appLayout';
-import Sidebar from './components/sidebar';
 import ShowClusters from './components/showClusters';
 import BuildAKSCluster from './components/buildAKSCluster';
+import BuildEKSCluster from './components/buildEKSCluster';
+import BuildGKECluster from './components/buildGKECluster';
 import PickCluster from './components/pickCluster';
 import Login from './components/login';
 import Register from './components/Register';
@@ -39,8 +40,8 @@ class App extends Component {
               <Route path="/" element={<PickCluster appData={data} />} />
               <Route path="/index" element={<PickCluster appData={data} />} />
               <Route path="/build-aks-clusters" element={<BuildAKSCluster appData={data} />} />
-              <Route path="/build-eks-clusters" element={<BuildAKSCluster appData={data} />} />
-              <Route path="/build-gke-clusters" element={<BuildAKSCluster appData={data} />} />
+              <Route path="/build-eks-clusters" element={<BuildEKSCluster appData={data} />} />
+              <Route path="/build-gke-clusters" element={<BuildGKECluster appData={data} />} />
               <Route path="/manage-aks-clusters" element={<ShowClusters appData={data} type="aks" />} />
               <Route path="/manage-eks-clusters" element={<ShowClusters appData={data} type="eks" />} />
               <Route path="/manage-gke-clusters" element={<ShowClusters appData={data} type="gke" />} />
