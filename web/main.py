@@ -23,7 +23,7 @@ from variables.variables import POST, GET, EKS, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_LIST, HELM, LOCATIONS_DICT
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
-from web.utils import random_string
+from utils import random_string
 
 REGISTRATION = True
 CUR_DIR = os.getcwd()
