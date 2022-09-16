@@ -23,7 +23,7 @@ from variables.variables import POST, GET, EKS, \
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
 
-REGISTRATION = False
+REGISTRATION = True
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 
