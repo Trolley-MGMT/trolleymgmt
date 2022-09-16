@@ -12,22 +12,27 @@ import Register from './components/Register';
 
 class App extends Component {
 
-  state = {
-    userName: '',
-    firstName: '',
-    trolleyRemoteUrl: '34.123.171.234',
-    trolleyLocalUrl: 'localhost',
-    debug: true,
-    content: 'buildCluster'
-  };
-
-  componentDidMount(){
-    const data = JSON.parse(document.getElementById('data').textContent);
-    // debug
-    //const data = {first_name: 'Mike', user_name: 'miketyson'};
-    //const data = {first_name: 'Einat', user_name: 'einatsoferman'};
-    this.setState({ userName: data.user_name, firstName: data.first_name });
-    console.log(this.state);
+  constructor() {
+    super();
+    let data = {};
+    let debug = true;
+    if (document.getElementById('data').textContent == "{{ data|default({})|tojson }}") {
+      // remote server, data can't pass through render_template
+      data = {first_name: 'Einat', user_name: 'einatsoferman'};
+      //data = {first_name: 'Mike', user_name: 'miketyson'};
+      debug = false;
+    } else {
+      // local server
+      data = JSON.parse(document.getElementById('data').textContent);
+    }    
+    this.state = {
+      userName: data.user_name,
+      firstName: data.first_name,
+      trolleyRemoteUrl: '34.123.171.234',
+      trolleyLocalUrl: 'localhost',
+      debug: debug,
+      content: 'buildCluster'
+    };
   }
 
   render() {
