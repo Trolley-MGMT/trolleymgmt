@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trolley-deployment
+  labels:
+    app: trolley
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trolley
+  template:
+    metadata:
+      labels:
+        app: trolley
+    spec:
+      containers:
+      - name: trolley-server
+        image: pavelzagalsky/trolley:latest
+        ports:
+        - containerPort: 8081
+        env:
+        - name: SECRET_KEY
+          value: "value"
+        - name: MONGO_USER
+          value: "value"
+        - name: MONGO_PASSWORD
+          value: "value"
+        - name: MONGO_URL
+          value: "value"
+        - name: ACTION_TOKEN
+          value: "value"
+        - name: PROJECT_NAME
+          value: "value"
+        - name: GITHUB_REPOSITORY
+          value: "value"

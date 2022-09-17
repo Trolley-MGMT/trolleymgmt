@@ -7,7 +7,11 @@ from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from subprocess import PIPE, run
 
-from web.mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment
+from kubernetes import client, config, utils
+from kubernetes.client import ApiException
+
+from web.mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment, \
+    retrieve_deployment_yaml
 from web.mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
 from web.variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS, MACOS
 
@@ -41,12 +45,9 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-
-def generate_kubeconfig(kubeconfig_path: str = '') -> str:
-    """
-    This function generates a kubeconfig_yaml for the created GKE cluster
-    @return:
-    """
+# config.load_kube_config('~/.kube/config')
+config.load_kube_config(KUBECONFIG_PATH)
+k8s_client = client.ApiClient()
 
 
 def get_nodes_ips() -> list:
@@ -76,9 +77,30 @@ def get_cluster_version() -> str:
     return cluster_version
 
 
+def apply_yaml(deployment_yaml_dict: dict):
+    if len(deployment_yaml_dict) == 1:
+        deployment_name = deployment_yaml_dict['metadata']['name']
+        try:
+            utils.create_from_yaml(k8s_client, yaml_objects=[deployment_yaml_dict])
+            logger.info(f'Deployment for {deployment_name} was successful')
+        except ApiException as error:
+            logger.error(f'Deployment of {deployment_name} failed. An error occurred: {error}')
+    else:
+        for deployment_yaml in deployment_yaml_dict:
+            deployment_name = deployment_yaml['metadata']['name']
+            try:
+                utils.create_from_yaml(k8s_client, yaml_objects=[deployment_yaml])
+                logger.info(f'Deployment for {deployment_name} was successful')
+            except:
+                logger.error(f'Deployment of {deployment_name} failed')
+
+
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = '', helm_installs: str = '', resource_group=''):
+    deployment_yaml_dict = retrieve_deployment_yaml(cluster_type, cluster_name)
+    if deployment_yaml_dict:
+        apply_yaml(deployment_yaml_dict)
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')

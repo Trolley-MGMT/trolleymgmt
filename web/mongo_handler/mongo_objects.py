@@ -111,3 +111,10 @@ class AKSCacheObject:
 @dataclass
 class HelmCacheObject:
     helms_installs: list
+
+
+@dataclass
+class DeploymentYAMLObject:
+    cluster_type: str
+    cluster_name: str
+    deployment_yaml_dict: dict
