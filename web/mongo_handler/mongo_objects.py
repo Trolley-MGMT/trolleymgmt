@@ -27,6 +27,8 @@ class GKEObject:
     project_name: str
     zone_name: str
     cluster_version: str
+    runtime_version: str
+    os_image: str
     region_name: str
     availability: bool = True
 

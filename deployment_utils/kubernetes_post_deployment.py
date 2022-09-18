@@ -8,7 +8,7 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from subprocess import PIPE, run
 
 from kubernetes import client, config, utils
-from kubernetes.client import ApiException
+from kubernetes.client import ApiException, V1NodeList
 
 from web.mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment, \
     retrieve_deployment_yaml
@@ -45,36 +45,44 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# config.load_kube_config('~/.kube/config')
 config.load_kube_config(KUBECONFIG_PATH)
 k8s_client = client.ApiClient()
+k8s_api = client.CoreV1Api()
 
 
-def get_nodes_ips() -> list:
-    command = KUBECTL_COMMAND + ' get nodes -o wide | awk \'{print $6}\''
-    print(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    print(f'The result is: {result}')
-    nodes_ips = result.stdout.split('\n')[1:-1]
+def get_nodes_ips(node_info: V1NodeList) -> list:
+    nodes_ips = []
+    if len(node_info.items) > 1:
+        for node in node_info.items:
+            internal_address = node.status.addresses[0].address
+            external_address = node.status.addresses[1].address
+            nodes_ips.append(internal_address)
     return nodes_ips
 
 
-def get_nodes_names() -> list:
-    command = KUBECTL_COMMAND + ' get nodes -o wide | awk \'{print $1}\''
-    print(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    print(f'The result is: {result}')
-    nodes_names = result.stdout.split('\n')[1:-1]
-    return nodes_names
+def get_nodes_names(node_info: V1NodeList) -> list:
+    nodes_items = node_info.items
+    nodes_names = []
+    if len(nodes_items) > 1:
+        for node in nodes_items:
+            node_name = node.metadata.name
+            nodes_names.append(node_name)
+        return nodes_names
+    else:
+        return nodes_items.metadata.name
 
 
-def get_cluster_version() -> str:
-    command = KUBECTL_COMMAND + ' get nodes -o wide | awk \'{print $5}\''
-    print(f'Running a {command} command')
-    result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    print(f'The result is: {result}')
-    cluster_version = result.stdout.split('\n')[1:-1][0]
-    return cluster_version
+def get_cluster_parameters(node_info: V1NodeList) -> tuple:
+    nodes_items = node_info.items
+    if len(nodes_items) > 1:
+        for node in nodes_items:
+            return node.status.node_info.kubelet_version, \
+                   node.status.node_info.container_runtime_version, \
+                   node.status.node_info.os_image
+    else:
+        return nodes_items.status.node_info.kubelet_version, \
+               nodes_items.status.node_info.container_runtime_version, \
+               nodes_items.status.node_info.os_image
 
 
 def apply_yaml(deployment_yaml_dict: dict):
@@ -104,10 +112,9 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
-    if 'Darwin' not in platform.system():
-        with open(kubeconfig_path, "r") as f:
-            kubeconfig = f.read()
-            print(f'The kubeconfig content is: {kubeconfig}')
+    with open(kubeconfig_path, "r") as f:
+        kubeconfig = f.read()
+        print(f'The kubeconfig content is: {kubeconfig}')
 
     if ',' in helm_installs:
         helm_installs_list = helm_installs.split(',')
@@ -119,12 +126,10 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
             print(f'The result is: {result}')
     elif '.' in helm_installs:
         print(f'No helm charts to install for {cluster_name} cluster')
-    nodes_ips = get_nodes_ips()
-    nodes_names = get_nodes_names()
-    try:
-        cluster_version = get_cluster_version()
-    except:
-        cluster_version = ''
+    node_info = k8s_api.list_node()
+    nodes_ips = get_nodes_ips(node_info)
+    nodes_names = get_nodes_names(node_info)
+    cluster_version, runtime_version, os_image = get_cluster_parameters(node_info)
     timestamp = int(time.time())
     human_created_timestamp = datetime.utcfromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
     expiration_timestamp = expiration_time * 60 * 60 + timestamp
@@ -137,7 +142,8 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
-                                          cluster_version=cluster_version, region_name=region_name)
+                                          cluster_version=cluster_version, runtime_version=runtime_version,
+                                          os_image=os_image, region_name=region_name)
         insert_gke_deployment(cluster_type=GKE, gke_deployment_object=asdict(gke_deployment_object))
         # send_slack_message(deployment_object=gke_deployment_object)
     elif cluster_type == GKE_AUTOPILOT:
