@@ -108,12 +108,6 @@ def get_cluster_parameters(node_info: V1NodeList) -> tuple:
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = '', helm_installs: str = '', resource_group=''):
-    try:
-        deployment_yaml_dict = retrieve_deployment_yaml(cluster_type, cluster_name)
-    except:
-        deployment_yaml_dict = {}
-    if deployment_yaml_dict:
-        apply_yaml(cluster_type, cluster_name)
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
@@ -182,6 +176,12 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version)
         insert_aks_deployment(aks_deployment_object=asdict(aks_deployment_object))
+    try:
+        deployment_yaml_dict = retrieve_deployment_yaml(cluster_type, cluster_name)
+    except:
+        deployment_yaml_dict = {}
+    if deployment_yaml_dict:
+        apply_yaml(cluster_type, cluster_name)
     remove_deployment_yaml(cluster_type, cluster_name)
 
 
