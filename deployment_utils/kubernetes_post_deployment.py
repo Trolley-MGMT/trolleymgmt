@@ -57,7 +57,8 @@ def get_nodes_ips(node_info: V1NodeList) -> list:
             internal_address = node.status.addresses[0].address
             external_address = node.status.addresses[1].address
             nodes_ips.append(internal_address)
-    return nodes_ips
+    else:
+        return node_info.items[0].status.addresses[0].address
 
 
 def get_nodes_names(node_info: V1NodeList) -> list:
@@ -69,7 +70,7 @@ def get_nodes_names(node_info: V1NodeList) -> list:
             nodes_names.append(node_name)
         return nodes_names
     else:
-        return nodes_items.metadata.name
+        return nodes_items[0].metadata.name
 
 
 def get_cluster_parameters(node_info: V1NodeList) -> tuple:
@@ -80,13 +81,13 @@ def get_cluster_parameters(node_info: V1NodeList) -> tuple:
                    node.status.node_info.container_runtime_version, \
                    node.status.node_info.os_image
     else:
-        return nodes_items.status.node_info.kubelet_version, \
-               nodes_items.status.node_info.container_runtime_version, \
-               nodes_items.status.node_info.os_image
+        return nodes_items[0].status.node_info.kubelet_version, \
+               nodes_items[0].status.node_info.container_runtime_version, \
+               nodes_items[0].status.node_info.os_image
 
 
 def apply_yaml(deployment_yaml_dict: dict):
-    if len(deployment_yaml_dict) == 1:
+    if isinstance(deployment_yaml_dict, dict):
         deployment_name = deployment_yaml_dict['metadata']['name']
         try:
             utils.create_from_yaml(k8s_client, yaml_objects=[deployment_yaml_dict])
@@ -106,7 +107,10 @@ def apply_yaml(deployment_yaml_dict: dict):
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = '', helm_installs: str = '', resource_group=''):
-    deployment_yaml_dict = retrieve_deployment_yaml(cluster_type, cluster_name)
+    try:
+        deployment_yaml_dict = retrieve_deployment_yaml(cluster_type, cluster_name)
+    except:
+        deployment_yaml_dict = {}
     if deployment_yaml_dict:
         apply_yaml(deployment_yaml_dict)
     if not kubeconfig_path:
