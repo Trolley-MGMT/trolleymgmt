@@ -7,17 +7,18 @@ from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from subprocess import PIPE, run
 
-from kubernetes import client, config, utils
-from kubernetes.client import ApiException, V1NodeList
+from kubernetes import client, config
+from kubernetes.client import V1NodeList
 
 from web.mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_deployment, insert_aks_deployment, \
-    retrieve_deployment_yaml
+    retrieve_deployment_yaml, remove_deployment_yaml
 from web.mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
+from web.utils import apply_yaml
 from web.variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS, MACOS
 
 if MACOS in platform.platform():
     HELM_COMMAND = '/opt/homebrew/bin/helm'
-    KUBECONFIG_PATH = os.environ['KUBECONFIG']
+
 else:
     HELM_PATH = '/tmp/helm_path'
     with open(HELM_PATH, "r") as f:
@@ -26,8 +27,8 @@ else:
     PROJECT_NAME = os.environ['PROJECT_NAME']
     MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
     MONGO_USER = os.environ['MONGO_USER']
-    KUBECONFIG_PATH = os.environ['KUBECONFIG']
 
+KUBECONFIG_PATH = os.environ['KUBECONFIG']
 MONGO_URL = os.environ['MONGO_URL']
 PROJECT_NAME = os.environ['PROJECT_NAME']
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
@@ -86,22 +87,22 @@ def get_cluster_parameters(node_info: V1NodeList) -> tuple:
                nodes_items[0].status.node_info.os_image
 
 
-def apply_yaml(deployment_yaml_dict: dict):
-    if isinstance(deployment_yaml_dict, dict):
-        deployment_name = deployment_yaml_dict['metadata']['name']
-        try:
-            utils.create_from_yaml(k8s_client, yaml_objects=[deployment_yaml_dict])
-            logger.info(f'Deployment for {deployment_name} was successful')
-        except ApiException as error:
-            logger.error(f'Deployment of {deployment_name} failed. An error occurred: {error}')
-    else:
-        for deployment_yaml in deployment_yaml_dict:
-            deployment_name = deployment_yaml['metadata']['name']
-            try:
-                utils.create_from_yaml(k8s_client, yaml_objects=[deployment_yaml])
-                logger.info(f'Deployment for {deployment_name} was successful')
-            except:
-                logger.error(f'Deployment of {deployment_name} failed')
+# def apply_yaml(deployment_yaml_dict: dict):
+#     if isinstance(deployment_yaml_dict, dict):
+#         deployment_name = deployment_yaml_dict['metadata']['name']
+#         try:
+#             utils.create_from_yaml(k8s_client, yaml_objects=[deployment_yaml_dict])
+#             logger.info(f'Deployment for {deployment_name} was successful')
+#         except ApiException as error:
+#             logger.error(f'Deployment of {deployment_name} failed. An error occurred: {error}')
+#     else:
+#         for deployment_yaml in deployment_yaml_dict:
+#             deployment_name = deployment_yaml['metadata']['name']
+#             try:
+#                 utils.create_from_yaml(k8s_client, yaml_objects=[deployment_yaml])
+#                 logger.info(f'Deployment for {deployment_name} was successful')
+#             except:
+#                 logger.error(f'Deployment of {deployment_name} failed')
 
 
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
@@ -112,7 +113,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
     except:
         deployment_yaml_dict = {}
     if deployment_yaml_dict:
-        apply_yaml(deployment_yaml_dict)
+        apply_yaml(cluster_type, cluster_name)
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
@@ -181,6 +182,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version)
         insert_aks_deployment(aks_deployment_object=asdict(aks_deployment_object))
+    remove_deployment_yaml(cluster_type, cluster_name)
 
 
 if __name__ == '__main__':

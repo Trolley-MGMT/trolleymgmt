@@ -33,11 +33,9 @@ except:
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
     from web.mongo_handler.mongo_utils import retrieve_cluster_details
-    from web.utils import random_string
 else:
     from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
     from mongo_handler.mongo_utils import retrieve_cluster_details
-    from utils import random_string
 
 
 GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')

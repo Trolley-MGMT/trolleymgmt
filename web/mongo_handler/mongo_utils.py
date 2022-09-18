@@ -283,6 +283,21 @@ def retrieve_deployment_yaml(cluster_type: str, cluster_name: str) -> dict:
         return deployment_yaml_object['deployment_yaml_dict']
 
 
+def remove_deployment_yaml(cluster_type: str, cluster_name: str) -> bool:
+    """
+    @param cluster_type:
+    @param cluster_name:
+    @return:
+    """
+    mongo_query = {CLUSTER_TYPE: cluster_type, CLUSTER_NAME.lower(): cluster_name}
+    deployment_yaml_object = deployment_yamls.delete_one(mongo_query)
+    logger.info(f'found user_object is: {deployment_yaml_object}')
+    if not deployment_yaml_object:
+        return False
+    else:
+        return True
+
+
 def insert_user(user_object: dict = None) -> bool:
     """
     @param user_object: The dictionary with all the user data.

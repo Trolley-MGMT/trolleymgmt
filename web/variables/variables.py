@@ -43,7 +43,7 @@ NODES_IPS = 'nodes_IPs'
 PROJECT_NAME = 'project_name'
 RESOURCE_GROUP = 'resource_group'
 PROJECT_ID = 'project_id'
-
+CLUSTER_DEPLOYMENT_YAML = 'cluster_deployment_yaml'
 #  USER
 USER_NAME = 'USER_NAME'
 USER_ID = 'USER_ID'
