@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 import {faGoogle } from '@fortawesome/free-brands-svg-icons';
-import logo from './trolley.png';
+import logo from './images/trolley.png';
 
 class Register extends Component {
   render() {

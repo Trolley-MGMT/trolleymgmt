@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-import AKSLogo from './aks.png';
-import EKSLogo from './eks.png';
-import GKELogo from './gke.png';
+import AKSLogo from './images/aks.png';
+import EKSLogo from './images/eks.png';
+import GKELogo from './images/gke.png';
 
 class Main extends Component {
 

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import logo from './trolley.png';
+import logo from './images/trolley.png';
 
 class Sidebar extends Component {
 
@@ -20,7 +20,6 @@ class Sidebar extends Component {
         <div className="sidebar-navigation">
           <ul className="list">
             <h5><strong>Build Clusters</strong></h5>
-            <li onClick={() => window.location.href="/index"}>Build a cluster</li>
             <li onClick={() => window.location.href="/build-aks-clusters"}>AKS Clusters</li>
             <li onClick={() => window.location.href="/build-eks-clusters"}>EKS Clusters</li>
             <li onClick={() => window.location.href="/build-gke-clusters"}>GKE Clusters</li>
