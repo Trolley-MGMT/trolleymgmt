@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import YamlEditor from './yamlEditor';
+import { oneDark } from "@codemirror/theme-one-dark";
 import { Toast } from 'bootstrap/dist/js/bootstrap';
 
 class CreateCluster extends Component {
@@ -20,6 +22,7 @@ class CreateCluster extends Component {
       subnet: [],
       helmInstall: [],
       expirationTime: '1',
+      deploymentYAML: '',
       // needs to be populated
       locations: [],
       zones: [],
@@ -153,8 +156,32 @@ class CreateCluster extends Component {
     this.setState({ expirationTime: e.target.value });
   }
 
+  handleYamlChange = ({ json, text }) => {
+    this.setState({ deploymentYAML: text });
+    console.log(this.state.deploymentYAML);
+  }
+
+  handleYamlError = (error) => {
+    console.log(error);
+  }
+
+  uploadYamlFile = (file) => {
+    let fileReader = new FileReader();
+    fileReader.onloadend = this.handleYamlUpload;
+    fileReader.readAsText(file)
+  }
+
+  handleYamlUpload = (e) => {
+    const content = e.target.result;
+    const toastMessage = `Yaml file successfully uploaded`;
+    this.setState({ deploymentYAML: content, toastMessage });
+    const toastEl = document.getElementById('toast');
+    const toast = new Toast(toastEl);
+    toast.show();
+  }
+
   async buildCluster() {
-    const { nodesAmt, version, expirationTime, location, zone, subnet, helmInstall, trolleyUrl, port, clusterType } = this.state;
+    const { nodesAmt, version, expirationTime, location, zone, subnet, helmInstall, trolleyUrl, port, clusterType, deploymentYAML } = this.state;
 
     const triggerData = JSON.stringify({
       "user_name": this.props.appData.userName,
@@ -164,7 +191,8 @@ class CreateCluster extends Component {
       "eks_location": location,
       "eks_zones": zone,
       "eks_subnets": subnet,
-      "helm_installs": helmInstall
+      "helm_installs": helmInstall,
+      "deployment_yaml": deploymentYAML
     });
     console.log(triggerData);
 
@@ -296,7 +324,19 @@ class CreateCluster extends Component {
                 <option value="720">30d</option>
               </select>
             </div>
-            <button onClick={() => this.buildCluster()} className="btn btn-outline-light mb-2" id="build-cluster-button">Build Cluster!</button>
+            <button data-bs-toggle="collapse" data-bs-target="#yml" className="btn btn-color me-2 mb-2">Yaml editor</button>
+            <label htmlFor="fileUpload" class="btn btn-color mb-2">Upload Yaml file</label>
+            <input type="file" accept=".yaml,.yml" onChange={(e) => this.uploadYamlFile(e.target.files[0])} id="fileUpload" style={{display: 'none'}} />
+            <br />
+            <div id="yml" class="collapse">
+              <div style={{backgroundColor: 'white', textAlign: 'left', width: '100%' }}>
+                <YamlEditor text={this.state.deploymentYAML} onChange={this.handleYamlChange} onError={this.handleYamlError} />
+                {/* <YamlEditor text={this.state.deploymentYAML} onChange={this.handleYamlChange} theme={oneDark} /> */}
+              </div>
+              {/* <button className="btn btn-color mt-1">Save yaml file</button> */}
+            </div>
+
+            <button onClick={() => this.buildCluster()} className="btn btn-outline-light mb-2 mt-2" id="build-cluster-button">Build Cluster!</button>
           </div>
         </div>
         <div className="toast-container position-absolute top-0 end-0 p-3">

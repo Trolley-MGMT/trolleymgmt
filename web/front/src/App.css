@@ -104,6 +104,13 @@ h5 {
   background-position: center;
   background-attachment: fixed;
 }
+
+.btn-color {
+  background-image: linear-gradient(#F17153, #F58D63, #f1ab53);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
 /* th {
   font-size: 1vw;
 } */

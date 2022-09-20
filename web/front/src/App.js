@@ -30,8 +30,7 @@ class App extends Component {
       firstName: data.first_name,
       trolleyRemoteUrl: '34.123.171.234',
       trolleyLocalUrl: 'localhost',
-      debug: debug,
-      content: 'buildCluster'
+      debug: debug
     };
   }
 
