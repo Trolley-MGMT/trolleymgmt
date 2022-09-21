@@ -8,7 +8,7 @@ import BuildEKSCluster from './components/buildEKSCluster';
 import BuildGKECluster from './components/buildGKECluster';
 import PickCluster from './components/pickCluster';
 import Login from './components/login';
-import Register from './components/Register';
+import Register from './components/register';
 
 class App extends Component {
 

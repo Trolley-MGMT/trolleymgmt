@@ -247,10 +247,6 @@ class CreateCluster extends Component {
     }
   }
 
-  renderToast(message) {
-
-  }
-
   render() {
     return (
       <div className="col-lg-10 col-8 text-center">
