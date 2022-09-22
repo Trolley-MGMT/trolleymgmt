@@ -1,6 +1,7 @@
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
-import React from 'react';
+import YamlEditor from './yamlEditor';
 
 export default function Table({ data, deleteCluster, copyKubeConfig }) {
 
@@ -32,14 +33,35 @@ export default function Table({ data, deleteCluster, copyKubeConfig }) {
               <td>
                 <div className="btn-group">
                   <button type="button" title="More" data-bs-toggle="collapse" data-bs-target={`#${item.cluster_name}`} className="btn btn-outline-secondary"><FontAwesomeIcon icon={faFolder} /></button>
-                  <button type="button" title="Edit" className="btn btn-outline-secondary"><FontAwesomeIcon icon={faPencil} /></button>
+                  <button type="button" title="Edit" className="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal"><FontAwesomeIcon icon={faPencil} /></button>
                   <button type="button" title="Delete" onClick={() => deleteCluster(item.cluster_name)} className="btn btn-outline-secondary"><FontAwesomeIcon icon={faTrash} /></button>
                 </div>
+                {/* Modal */}
+                <div className="modal fade" id="editModal">
+                  <div className="modal-dialog" style={{ maxWidth: '100%' }}>
+                    <div className="modal-content">
+                      {/* Modal Header */}
+                      {/* <div className="modal-header">
+                        <h4 className="modal-title">Modal Heading</h4>
+                        <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+                      </div> */}
+                      {/* Modal body */}
+                      <div className="modal-body" style={{ textAlign: 'left', color: 'black' }}>
+                        <YamlEditor text={item.kubeconfig} />
+                      </div>
+                      {/* Modal footer */}
+                      <div className="modal-footer">
+                        <button type="button" className="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* End of Modal */}
               </td>
             </tr>
             <tr key={`${i}-more`}>
               <td colSpan={6} style={{textAlign: 'left'}}> {/*style={{padding: '0px'}}*/}
-                <div id={item.cluster_name} class="collapse">
+                <div id={item.cluster_name} className="collapse">
                   <button type="button" onClick={() => copyKubeConfig(item.kubeconfig)} className="btn btn-outline-secondary float-end mb-3">Copy Kubeconfig</button>
                   More info about {item.cluster_name} cluster....
                 </div>
