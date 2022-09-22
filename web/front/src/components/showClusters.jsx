@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Table from "./table";
 import { Toast } from 'bootstrap/dist/js/bootstrap';
+import mockData from './mockdata.json';
 
 class ShowClusters extends Component {
 
@@ -20,6 +21,9 @@ class ShowClusters extends Component {
 
   async componentDidMount() {
     const { trolleyUrl, port, clusterType, userName } = this.state;
+    let data = mockData;
+    this.setState({data, loading: false});
+    return
     let url = `http://${trolleyUrl}:${port}/get_clusters_data?cluster_type=${clusterType}&user_name=${userName}`;
     //let url = `http://${trolleyUrl}:${port}/get_clusters_data?cluster_type=${clusterType}&user_name=einatsoferman`;
     try {
@@ -124,7 +128,7 @@ class ShowClusters extends Component {
   
   render() {
     return(
-      <div className="col-lg-10 col-8 text-center">
+      <div className="col text-center"  style={{minWidth: '0px'}}>
         <br />
         <h2>Manage {this.state.clusterType.toUpperCase()} clusters</h2>
         <br />

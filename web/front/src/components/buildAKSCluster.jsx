@@ -157,10 +157,10 @@ class CreateCluster extends Component {
 
   render() {
     return (
-      <div className="col-lg-10 col-8 text-center">
+      <div className="col text-center">
         <h2 className="mt-4 mb-4">Build an AKS cluster</h2>
         <div className="row justify-content-md-center">
-          <div className="form col-lg-6">
+          <div className="form col-lg-6 col-md-8">
             <div className="input-group mt-3 mb-3">
               <label className="input-group-text input-color" htmlFor="nodes-amt" style={{ paddingRight: '26px' }}>Select the amount of nodes</label>
               <select
@@ -234,10 +234,10 @@ class CreateCluster extends Component {
               </select>
             </div>
             <button data-bs-toggle="collapse" data-bs-target="#yml" className="btn btn-color me-2 mb-2">Yaml editor</button>
-            <label htmlFor="fileUpload" class="btn btn-color mb-2">Upload Yaml file</label>
+            <label htmlFor="fileUpload" className="btn btn-color mb-2">Upload Yaml file</label>
             <input type="file" accept=".yaml,.yml" onChange={(e) => this.uploadYamlFile(e.target.files[0])} id="fileUpload" style={{display: 'none'}} />
             <br />
-            <div id="yml" class="collapse">
+            <div id="yml" className="collapse">
               <div style={{backgroundColor: 'white', textAlign: 'left', width: '100%' }}>
                 <YamlEditor text={this.state.deploymentYAML} onChange={this.handleYamlChange} onError={this.handleYamlError} />
                 {/* <YamlEditor text={this.state.deploymentYAML} onChange={this.handleYamlChange} theme={oneDark} /> */}

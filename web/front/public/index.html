@@ -30,6 +30,7 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <script id="data" type="application/json">{{ data|default({})|tojson }}</script>
+    <script id="image" type="application/json">{{ image|default("")|tojson }}</script>
     <script id="error" type="application/json">{{ error_message|default("")|tojson }}</script>
     <!--
       This HTML file is a template.
