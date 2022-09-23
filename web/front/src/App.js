@@ -24,13 +24,15 @@ class App extends Component {
     } else {
       // local server
       data = JSON.parse(document.getElementById('data').textContent);
-    }    
+    }
+    const trolleyRemoteUrl = '34.123.171.234';
+    const trolleyLocalUrl = 'localhost';
+    
     this.state = {
       userName: data.user_name,
       firstName: data.first_name,
-      trolleyRemoteUrl: '34.123.171.234',
-      trolleyLocalUrl: 'localhost',
-      debug: debug
+      trolleyUrl: debug ? trolleyLocalUrl : trolleyRemoteUrl,
+      port: 8081
     };
   }
 

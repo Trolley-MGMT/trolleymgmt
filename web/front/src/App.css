@@ -48,7 +48,7 @@ h2 {
   padding-right: 10px;
   font-weight: bold;
   color: slategray;
-  text-shadow: 1px 1px rgba(255, 255, 255, 0.5);
+  text-shadow: 1px 1px rgba(255, 255, 255, 0.25);
 }
 .logo img {
   margin-top: 10px;
@@ -136,6 +136,7 @@ h5 {
 
 .input-color {
   background-image: linear-gradient(#F17153, #F58D63, #f1ab53);
+  /* background-image: linear-gradient(#4ab185, #88c452); */
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -150,13 +151,6 @@ h5 {
   background-attachment: fixed;
 }
 .btn-outline-light:focus {
-  background-image: linear-gradient(#F17153, #F58D63, #f1ab53);
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-}
-
-.btn-color {
   background-image: linear-gradient(#F17153, #F58D63, #f1ab53);
   background-size: cover;
   background-position: center;

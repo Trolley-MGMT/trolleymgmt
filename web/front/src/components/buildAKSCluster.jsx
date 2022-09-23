@@ -7,12 +7,7 @@ class CreateCluster extends Component {
 
   constructor(props) {
     super(props);
-    const { trolleyRemoteUrl, trolleyLocalUrl, debug } = this.props.appData;
     this.state = {
-      // data
-      trolleyUrl: debug ? trolleyLocalUrl : trolleyRemoteUrl,
-      port: 8081,
-      clusterType: 'aks',
       toastMessage: '',
       // selected
       nodesAmt: '1',
@@ -28,9 +23,9 @@ class CreateCluster extends Component {
   }
 
   async componentDidMount(){
-    const { trolleyUrl, port, clusterType } = this.state;
+    const { trolleyUrl, port } = this.props.appData;
     // Get locations/regions
-    const url = `http://${trolleyUrl}:${port}/fetch_regions?clusters_type=${clusterType}`;
+    const url = `http://${trolleyUrl}:${port}/fetch_regions?clusters_type=aks`;
     try {
       const response = await fetch(url);
       if (!response.ok){
@@ -95,7 +90,6 @@ class CreateCluster extends Component {
 
   handleYamlChange = ({ json, text }) => {
     this.setState({ deploymentYAML: text });
-    console.log(this.state.deploymentYAML);
   }
 
   handleYamlError = (error) => {
@@ -118,10 +112,11 @@ class CreateCluster extends Component {
   }
 
   async buildCluster() {
-    const { nodesAmt, version, expirationTime, location, helmInstall, trolleyUrl, port, clusterType, deploymentYAML } = this.state;
+    const { nodesAmt, version, expirationTime, location, helmInstall, deploymentYAML } = this.state;
+    const { trolleyUrl, port, userName } = this.props.appData;
 
     const triggerData = JSON.stringify({
-      "user_name": this.props.appData.userName,
+      "user_name": userName,
       "num_nodes": nodesAmt,
       "version": version,
       "expiration_time": expirationTime,
@@ -132,7 +127,7 @@ class CreateCluster extends Component {
     console.log(triggerData);
 
     const url = `http://${trolleyUrl}:${port}/trigger_aks_deployment`;
-    const toastMessage = `An ${clusterType} deployment was requested for ${version} kubernetes version with ${expirationTime} expiration time`;
+    const toastMessage = `An AKS deployment was requested for ${version} kubernetes version with ${expirationTime} expiration time`;
     this.setState({ toastMessage });
     const options = {
       method: 'POST',
@@ -233,8 +228,8 @@ class CreateCluster extends Component {
                 <option value="720">30d</option>
               </select>
             </div>
-            <button data-bs-toggle="collapse" data-bs-target="#yml" className="btn btn-color me-2 mb-2">Yaml editor</button>
-            <label htmlFor="fileUpload" className="btn btn-color mb-2">Upload Yaml file</label>
+            <button data-bs-toggle="collapse" data-bs-target="#yml" className="btn input-color me-2 mb-2">Yaml editor</button>
+            <label htmlFor="fileUpload" className="btn input-color mb-2">Upload Yaml file</label>
             <input type="file" accept=".yaml,.yml" onChange={(e) => this.uploadYamlFile(e.target.files[0])} id="fileUpload" style={{display: 'none'}} />
             <br />
             <div id="yml" className="collapse">
@@ -242,7 +237,7 @@ class CreateCluster extends Component {
                 <YamlEditor text={this.state.deploymentYAML} onChange={this.handleYamlChange} onError={this.handleYamlError} />
                 {/* <YamlEditor text={this.state.deploymentYAML} onChange={this.handleYamlChange} theme={oneDark} /> */}
               </div>
-              {/* <button className="btn btn-color mt-1">Save yaml file</button> */}
+              {/* <button className="btn input-color mt-1">Save yaml file</button> */}
             </div>
             
             <button onClick={() => this.buildCluster()} className="btn btn-outline-light mb-2 mt-2" id="build-cluster-button">Build Cluster!</button>

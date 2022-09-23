@@ -7,12 +7,7 @@ class CreateCluster extends Component {
 
   constructor(props) {
     super(props);
-    const { trolleyRemoteUrl, trolleyLocalUrl, debug } = this.props.appData;
     this.state = {
-      // data
-      trolleyUrl: debug ? trolleyLocalUrl : trolleyRemoteUrl,
-      port: 8081,
-      clusterType: 'gke',
       toastMessage: '',
       // selected
       nodesAmt: '1',
@@ -33,9 +28,9 @@ class CreateCluster extends Component {
   }
 
   async componentDidMount(){
-    const { trolleyUrl, port, clusterType } = this.state;
+    const { trolleyUrl, port } = this.props.appData;
     // Get locations/regions
-    const url_locations = `http://${trolleyUrl}:${port}/fetch_regions?cluster_type=${clusterType}`;
+    const url_locations = `http://${trolleyUrl}:${port}/fetch_regions?cluster_type=gke`;
     try {
       const response = await fetch(url_locations);
       if (!response.ok){
@@ -64,8 +59,8 @@ class CreateCluster extends Component {
   }
 
   async getZones(location) {
-    const { trolleyUrl, port, clusterType } = this.state;
-    const url_zones = `http://${trolleyUrl}:${port}/fetch_zones?cluster_type=${clusterType}&region_name=${location}`;
+    const { trolleyUrl, port } = this.props.appData;
+    const url_zones = `http://${trolleyUrl}:${port}/fetch_zones?cluster_type=gke&region_name=${location}`;
     try {
       const response = await fetch(url_zones);
       if (!response.ok){
@@ -82,7 +77,7 @@ class CreateCluster extends Component {
   }
 
   async getVersions(zone) {
-    const { trolleyUrl, port } = this.state;
+    const { trolleyUrl, port } = this.props.appData;
     const url = `http://${trolleyUrl}:${port}/fetch_gke_versions?gcp_zone=${zone}`;
     try {
       const response = await fetch(url);
@@ -98,7 +93,7 @@ class CreateCluster extends Component {
   }
 
   async getImageTypes(zone) {
-    const { trolleyUrl, port } = this.state;
+    const { trolleyUrl, port } = this.props.appData;
     const url = `http://${trolleyUrl}:${port}/fetch_gke_image_types?gcp_zone=${zone}`;
     try {
       const response = await fetch(url);
@@ -184,7 +179,6 @@ class CreateCluster extends Component {
 
   handleYamlChange = ({ json, text }) => {
     this.setState({ deploymentYAML: text });
-    console.log(this.state.deploymentYAML);
   }
 
   handleYamlError = (error) => {
@@ -207,11 +201,12 @@ class CreateCluster extends Component {
   }
 
   async buildCluster() {
-    const { nodesAmt, version, imageType, expirationTime, location, zone, helmInstall, trolleyUrl, port, clusterType, deploymentYAML } = this.state;
+    const { nodesAmt, version, imageType, expirationTime, location, zone, helmInstall, deploymentYAML } = this.state;
+    const { trolleyUrl, port, userName } = this.props.appData;
 
     const triggerData = JSON.stringify({
       "cluster_type": 'gke',
-      "user_name": this.props.appData.userName,
+      "user_name": userName,
       "num_nodes": nodesAmt,
       "version": version,
       "image_type": imageType,
@@ -224,7 +219,7 @@ class CreateCluster extends Component {
     console.log(triggerData);
 
     const url = `http://${trolleyUrl}:${port}/trigger_gke_deployment`;
-    const toastMessage = `An ${clusterType} deployment was requested for ${version} kubernetes version with ${expirationTime} expiration time`;
+    const toastMessage = `A GKE deployment was requested for ${version} kubernetes version with ${expirationTime} expiration time`;
     this.setState({ toastMessage });
     const options = {
       method: 'POST',
@@ -344,8 +339,8 @@ class CreateCluster extends Component {
                 <option value="720">30d</option>
               </select>
             </div>
-            <button data-bs-toggle="collapse" data-bs-target="#yml" className="btn btn-color me-2 mb-2">Yaml editor</button>
-            <label htmlFor="fileUpload" className="btn btn-color mb-2">Upload Yaml file</label>
+            <button data-bs-toggle="collapse" data-bs-target="#yml" className="btn input-color me-2 mb-2">Yaml editor</button>
+            <label htmlFor="fileUpload" className="btn input-color mb-2">Upload Yaml file</label>
             <input type="file" accept=".yaml,.yml" onChange={(e) => this.uploadYamlFile(e.target.files[0])} id="fileUpload" style={{display: 'none'}} />
             <br />
             <div id="yml" className="collapse">
@@ -353,7 +348,7 @@ class CreateCluster extends Component {
                 <YamlEditor text={this.state.deploymentYAML} onChange={this.handleYamlChange} onError={this.handleYamlError} />
                 {/* <YamlEditor text={this.state.deploymentYAML} onChange={this.handleYamlChange} theme={oneDark} /> */}
               </div>
-              {/* <button className="btn btn-color mt-1">Save yaml file</button> */}
+              {/* <button className="btn input-color mt-1">Save yaml file</button> */}
             </div>
 
             <button onClick={() => this.buildCluster()} className="btn btn-outline-light mb-2 mt-2" id="build-cluster-button">Build Cluster!</button>
