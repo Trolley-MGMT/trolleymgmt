@@ -15,7 +15,7 @@ class Register extends Component {
     }
     return(
       <div className="row">
-        <div className="card card-outline card-primary mt-5 col-lg-4 col-md-6 col-sm-8 mx-auto">
+        <div className="card card-outline card-primary mt-3 mb-3 col-lg-4 col-md-6 col-sm-8 mx-auto">
           <div className="card-header text-center">
             <a href="/index" className="login-header"><img src={logo} width="30px" className="me-3" /><b>Trolley</b></a>
           </div>

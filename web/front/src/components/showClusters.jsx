@@ -7,25 +7,20 @@ class ShowClusters extends Component {
 
   constructor(props) {
     super(props);
-    const { trolleyRemoteUrl, trolleyLocalUrl, debug, userName } = this.props.appData;
     this.state = {
       loading: true,
-      trolleyUrl: debug ? trolleyLocalUrl : trolleyRemoteUrl,
-      port: 8081,
-      clusterType: this.props.type,
       data: [],
-      userName: userName,
       toastMessage: ''
     }
   }
 
   async componentDidMount() {
-    const { trolleyUrl, port, clusterType, userName } = this.state;
-    let data = mockData;
-    this.setState({data, loading: false});
-    return
+    const { 
+      appData: { trolleyUrl, port, userName },
+      type: clusterType
+    } = this.props;
     let url = `http://${trolleyUrl}:${port}/get_clusters_data?cluster_type=${clusterType}&user_name=${userName}`;
-    //let url = `http://${trolleyUrl}:${port}/get_clusters_data?cluster_type=${clusterType}&user_name=einatsoferman`;
+    console.log(url);
     try {
       const response = await fetch(url);
       if (!response.ok){
@@ -34,22 +29,28 @@ class ShowClusters extends Component {
       }
       const data = await response.json();
       console.log(data);
-      this.setState({ data, loading: false });
+      this.setState({ data });
     } catch(error) {
-      throw new Error(error);
+      console.log(error);
+      let data = mockData;
+      this.setState({ data });
+    } finally {
+      this.setState({ loading: false });
     }
   }
 
   deleteCluster = async (clusterName) => {
-    const { trolleyUrl, port, clusterType } = this.state;
+    const { 
+      appData: { trolleyUrl, port },
+      type: clusterType
+          } = this.props;
 
     const clusterDeletionData = JSON.stringify({
       "cluster_type": clusterType,
       "cluster_name": clusterName
     });
 
-    const toastMessage = `A ${clusterName} ${clusterType} cluster was requested for deletion`;
-    this.setState({ toastMessage });
+    let toastMessage = `A ${clusterName} ${clusterType} cluster was requested for deletion`;
     const url = `http://${trolleyUrl}:${port}/delete_cluster`;
     const options = {
       method: 'DELETE',
@@ -60,16 +61,19 @@ class ShowClusters extends Component {
       const response = await fetch(url, options);
       console.log(response);
       if (!response.ok){
-        const err = await response.text();
-        throw new Error(err);
+        const error = await response.text();
+        throw new Error(error);
       }
       const json = await response.json();
+    } catch(error) {
+      console.log(error);
+      toastMessage = `Error: ${error}`;
+    } finally {
+      this.setState({ toastMessage });
       const toastEl = document.getElementById('toast');
       const toast = new Toast(toastEl);
       toast.show();
-    } catch(error) {
-      throw new Error(error);
-    }     
+    }  
   }
 
   copyKubeConfig = async (kubeConfig) => {
@@ -106,21 +110,25 @@ class ShowClusters extends Component {
     }
   }
 
+  saveKubeConfig = async (clusterName, kubeConfig) => {
+    //TODO
+  }
+
   renderTable() {
     if (this.state.loading){
       return <div className="text-center mt-5"><div className="spinner-border"></div></div>;
     }
     else {
       if (this.state.data.length === 0){
-        const link = `/build-${this.props.type}-clusters`;
-        return <p>No clusters to show, <a href={link}>Make a new one</a>.</p>;
+        return <p>No clusters to show, <a href={`/build-${this.props.type}-clusters`}>Make a new one</a>.</p>;
       }
       return (
         <div className="table-responsive">
           <Table
             data={this.state.data}
             deleteCluster={this.deleteCluster}
-            copyKubeConfig={this.copyKubeConfig} />
+            copyKubeConfig={this.copyKubeConfig}
+            saveKubeConfig={this.saveKubeConfig} />
         </div>
       );
       }
@@ -130,7 +138,7 @@ class ShowClusters extends Component {
     return(
       <div className="col text-center"  style={{minWidth: '0px'}}>
         <br />
-        <h2>Manage {this.state.clusterType.toUpperCase()} clusters</h2>
+        <h2>Manage {this.props.type.toUpperCase()} clusters</h2>
         <br />
         {this.renderTable()}
         <div className="toast-container position-absolute top-0 end-0 p-3">

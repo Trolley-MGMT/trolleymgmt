@@ -20,9 +20,14 @@ class CreateCluster extends Component {
       deploymentYAML: '',
       // needs to be populated
       locations: [],
-      zones: [],
+      zones: [1,2],
       subnets: [],
       helmInstalls: [],
+      // loading
+      locationsIsLoading: true,
+      zonesIsLoading: false,
+      subnetsIsLoading: false,
+      helmInstallsIsLoading: true
     }
   }
 
@@ -37,10 +42,12 @@ class CreateCluster extends Component {
         throw new Error(error);
       }
       const locations = await response.json();
-      this.setState({ locations, location: locations[1] });
+      this.setState({ locations, location: locations[1], zonesIsLoading: true });
       await this.getZones(locations[1]);
     } catch(error) {
-      throw new Error(error);
+      console.log(error);
+    } finally{
+      this.setState({ locationsIsLoading: false })
     }
     // Get helm installs
     const url_helm = `http://${trolleyUrl}:${port}/fetch_helm_installs?names=True`;
@@ -53,8 +60,10 @@ class CreateCluster extends Component {
       const helmInstalls = await response.json();
       this.setState({ helmInstalls });
     } catch(error) {
-      throw new Error(error);
-    }      
+      console.log(error);
+    } finally {
+      this.setState({ helmInstallsIsLoading: false })
+    }
   }
 
   async getZones(location) {
@@ -69,13 +78,15 @@ class CreateCluster extends Component {
       const zones = await response.json();
       this.setState({ zones });
     } catch(error) {
-      throw new Error(error);
+      console.log(error);
+    } finally {
+      this.setState({ zonesIsLoading: false })
     }
   }
 
-  async getSubnets(zones) {
+  async getSubnets(zone) {
     const { trolleyUrl, port } = this.props.appData;
-    const url_subnets = `http://${trolleyUrl}:${port}/fetch_subnets?cluster_type=eks&zone_names=${zones}`;
+    const url_subnets = `http://${trolleyUrl}:${port}/fetch_subnets?cluster_type=eks&zone_names=${zone}`;
     try {
       const response = await fetch(url_subnets);
       if (!response.ok){
@@ -85,8 +96,10 @@ class CreateCluster extends Component {
       const subnets = await response.json();
       this.setState({ subnets });
     } catch(error) {
-      throw new Error(error);
-    }    
+      console.log(error);
+    } finally {
+      this.setState({ subnetsIsLoading: false })
+    }
   }
 
   populateLocations() {
@@ -121,6 +134,10 @@ class CreateCluster extends Component {
     );
   }
 
+  displayLoading() {
+    return (<span className="input-group-text" style={{flex: '1 1 auto'}}><div className="spinner-border  spinner-border-sm mx-auto"></div></span>);
+  }
+
   handleNodesAmtChange = (e) => {
     this.setState({ nodesAmt: e.target.value });
   }
@@ -130,13 +147,14 @@ class CreateCluster extends Component {
   }
 
   handleLocationChange = (e) => {
-    this.setState({ location: e.target.value });
+    this.setState({ location: e.target.value, zonesIsLoading: true });
     this.getZones(e.target.value);
   }
 
   handleZonesChange = (e) => {
-    this.setState({ zone: [...e.target.selectedOptions].map(opt => opt.value) });
-    this.getSubnets([...e.target.selectedOptions].map(opt => opt.value));
+    const selectedZones = [...e.target.selectedOptions].map(opt => opt.value);
+    this.setState({ zone: selectedZones, subnetsIsLoading: true });
+    this.getSubnets(selectedZones);
   }
 
   handleSubnetsChange = (e) => {
@@ -174,9 +192,15 @@ class CreateCluster extends Component {
     toast.show();
   }
 
-  async buildCluster() {
+  buildCluster = async (event) => {
+    event.preventDefault();
     const { nodesAmt, version, expirationTime, location, zone, subnet, helmInstall, deploymentYAML } = this.state;
     const { trolleyUrl, port, userName } = this.props.appData;
+
+    if (zone.length < 2){
+      alert("Please choose at least 2 zones");
+      return
+    }
 
     const triggerData = JSON.stringify({
       "user_name": userName,
@@ -192,8 +216,7 @@ class CreateCluster extends Component {
     console.log(triggerData);
 
     const url = `http://${trolleyUrl}:${port}/trigger_eks_deployment`;
-    const toastMessage = `An EKS deployment was requested for ${version} kubernetes version with ${expirationTime} expiration time`;
-    this.setState({ toastMessage });
+    let toastMessage = `An EKS deployment was requested for ${version} kubernetes version with ${expirationTime} expiration time`;
     const options = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -201,26 +224,32 @@ class CreateCluster extends Component {
     };
     try {
       const response = await fetch(url, options);
-      console.log(response);
       if (!response.ok){
-        const err = await response.text();
-        throw new Error(err);
+        const error = await response.text();
+        throw new Error(error);
       }
-      const json = await response.json();
+      const json = await response.json();  
+    } catch(error) {
+      console.log(error);
+      toastMessage = `Error: ${error}`;
+    } finally {
+      this.setState({ toastMessage });
       const toastEl = document.getElementById('toast');
       const toast = new Toast(toastEl);
       toast.show();
-    } catch(error) {
-      throw new Error(error);
     }
   }
 
   render() {
+    const submitDisabled = this.state.locationsIsLoading
+                        || this.state.zonesIsLoading
+                        || this.state.subnetsIsLoading
+                        || this.state.helmInstallsIsLoading;
     return (
       <div className="col text-center">
         <h2 className="mt-4 mb-4">Build an EKS cluster</h2>
         <div className="row justify-content-md-center">
-          <div className="form col-lg-6 col-md-8">
+          <form onSubmit={this.buildCluster} className="col-lg-6 col-md-8">
             <div className="input-group mt-3 mb-3">
               <label className="input-group-text input-color" htmlFor="nodes-amt" style={{ paddingRight: '26px' }}>Select the amount of nodes</label>
               <select
@@ -228,6 +257,7 @@ class CreateCluster extends Component {
                 value={this.state.nodesAmt}
                 onChange={this.handleNodesAmtChange}
                 id="nodes-amt"
+                required
               >
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -243,6 +273,7 @@ class CreateCluster extends Component {
                 value={this.state.version}
                 onChange={this.handleVersionChange}
                 id="versions-dropdown"
+                required
               >
                 <option value="1.21">1.21</option>
                 <option value="1.20">1.20</option>
@@ -252,47 +283,64 @@ class CreateCluster extends Component {
             </div>
             <div className="input-group mt-3 mb-3">
               <label className="input-group-text input-color" htmlFor="locations" style={{ paddingRight: '118px' }}>Select location</label>
-              <select
-                className="form-select"
-                value={this.state.location}
-                onChange={this.handleLocationChange}
-                id="locations"
-              >
-                { this.populateLocations() }
-              </select>
+              {this.state.locationsIsLoading ?
+                this.displayLoading() :
+                <select
+                  className="form-select"
+                  value={this.state.location}
+                  onChange={this.handleLocationChange}
+                  id="locations"
+                  required
+                >
+                  <option value=""></option>
+                  { this.populateLocations() }
+                </select>
+              }
             </div>
             <div className="input-group mt-3 mb-3">
               <label className="input-group-text input-color" htmlFor="zones" style={{ paddingRight: '7px' }}>Select Zones (Select at least 2)</label>
-              <select multiple
-                className="form-select"
-                value={this.state.zone}
-                onChange={this.handleZonesChange}
-                id="zones"
-              >
-                { this.populateZones() }
-              </select>
+              {this.state.zonesIsLoading ?
+                this.displayLoading() :
+                <select multiple
+                  className="form-select"
+                  value={this.state.zone}
+                  onChange={this.handleZonesChange}
+                  id="zones"
+                  required
+                >
+                  { this.populateZones() }
+                </select>
+              }
             </div>
             <div className="input-group mt-3 mb-3">
               <label className="input-group-text input-color" htmlFor="subnets" style={{ paddingRight: '118px' }}>Select Subnets</label>
-              <select multiple
-                className="form-select"
-                value={this.state.subnet}
-                onChange={this.handleSubnetsChange}
-                id="subnets"
-              >
-                { this.populateSubnets() }
-              </select>
+              {this.state.subnetsIsLoading ?
+                this.displayLoading() :
+                <select multiple
+                  className="form-select"
+                  value={this.state.subnet}
+                  onChange={this.handleSubnetsChange}
+                  id="subnets"
+                  required
+                >
+                  { this.populateSubnets() }
+                </select>
+              }
             </div>
             <div className="input-group mt-3 mb-3">
               <label className="input-group-text input-color" htmlFor="helm-installs" style={{ paddingRight: '48px' }}>Select Helm Installations</label>
-              <select multiple
-                className="form-select"
-                value={this.state.helmInstall}
-                onChange={this.handleHelmInstallsChange}
-                id="helm-installs"
-              >
-                { this.populateHelmInstalls() }
-              </select>
+              {this.state.helmInstallsIsLoading ?
+                this.displayLoading() :
+                <select multiple
+                  className="form-select"
+                  value={this.state.helmInstall}
+                  onChange={this.handleHelmInstallsChange}
+                  id="helm-installs"
+                  required
+                >
+                  { this.populateHelmInstalls() }
+                </select>
+              }
             </div>
             <div className="input-group mt-3 mb-3">
               <label className="input-group-text input-color" htmlFor="expiration-time" style={{ paddingRight: '39px'}}>Select the expiration time</label>
@@ -301,6 +349,7 @@ class CreateCluster extends Component {
                 value={this.state.expirationTime}
                 onChange={this.handleExpirationTimeChange}
                 id="expiration-time"
+                required
               >
                 <option value="1">1h</option>
                 <option value="2">2h</option>
@@ -327,8 +376,8 @@ class CreateCluster extends Component {
               {/* <button className="btn input-color mt-1">Save yaml file</button> */}
             </div>
 
-            <button onClick={() => this.buildCluster()} className="btn btn-outline-light mb-2 mt-2" id="build-cluster-button">Build Cluster!</button>
-          </div>
+            <button type="submit" className="btn btn-outline-light mb-2 mt-2" id="build-cluster-button" disabled={submitDisabled}>Build Cluster!</button>
+          </form>
         </div>
         <div className="toast-container position-absolute top-0 end-0 p-3">
           <div className="toast" id="toast" role="alert" aria-atomic="true" data-bs-delay="5000">

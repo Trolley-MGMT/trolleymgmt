@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 import YamlEditor from './yamlEditor';
 
-export default function Table({ data, deleteCluster, copyKubeConfig }) {
+export default function Table({ data, deleteCluster, copyKubeConfig, saveKubeConfig }) {
 
   return(
     <table className="table table-striped table-dark text-white table-hover align-middle">
@@ -51,7 +51,9 @@ export default function Table({ data, deleteCluster, copyKubeConfig }) {
                       </div>
                       {/* Modal footer */}
                       <div className="modal-footer">
-                        <button type="button" className="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                        <button type="button" onClick={() => copyKubeConfig(item.kubeconfig)} className="btn btn-primary">Copy Kubeconfig</button>
+                        <button type="button" className="btn btn-success">Save changes</button>
+                        <button type="button" onClick={() => saveKubeConfig(item.cluster_name, item.kubeconfig)} className="btn btn-danger" data-bs-dismiss="modal">Close</button>
                       </div>
                     </div>
                   </div>
@@ -62,7 +64,6 @@ export default function Table({ data, deleteCluster, copyKubeConfig }) {
             <tr key={`${i}-more`}>
               <td colSpan={6} style={{textAlign: 'left'}}> {/*style={{padding: '0px'}}*/}
                 <div id={item.cluster_name} className="collapse">
-                  <button type="button" onClick={() => copyKubeConfig(item.kubeconfig)} className="btn btn-outline-secondary float-end mb-3">Copy Kubeconfig</button>
                   More info about {item.cluster_name} cluster....
                 </div>
               </td>
