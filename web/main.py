@@ -5,6 +5,8 @@ import logging
 import os
 import time
 import datetime
+from functools import wraps
+
 import jwt
 import platform
 from dataclasses import asdict
@@ -153,6 +155,17 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                                          f' please try again'))
 
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            login_processor()
+            return f(*args, **kwargs)
+        except:
+            return False
+    return decorated_function
+
+
 def render_page(page_name: str = ''):
     try:
         token, user_object = login_processor()
@@ -169,6 +182,7 @@ def render_page(page_name: str = ''):
 
 
 @app.route('/get_clusters_data', methods=[GET])
+@login_required
 def get_clusters_data():
     cluster_type = request.args.get(CLUSTER_TYPE)
     user_name = request.args.get(USER_NAME.lower())
@@ -208,6 +222,7 @@ def get_clusters_data():
 #         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 @app.route('/deploy_yaml_on_cluster', methods=[POST])
+@login_required
 def deploy_yaml_on_cluster():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
@@ -222,6 +237,7 @@ def deploy_yaml_on_cluster():
 
 
 @app.route('/trigger_gke_deployment', methods=[POST])
+@login_required
 def trigger_gke_deployment():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
@@ -238,6 +254,7 @@ def trigger_gke_deployment():
 
 
 @app.route('/trigger_eks_deployment', methods=[POST])
+@login_required
 def trigger_eks_deployment():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
@@ -254,6 +271,7 @@ def trigger_eks_deployment():
 
 
 @app.route('/trigger_aks_deployment', methods=[POST])
+@login_required
 def trigger_aks_deployment():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
@@ -270,6 +288,7 @@ def trigger_aks_deployment():
 
 
 @app.route('/delete_expired_clusters', methods=[DELETE])
+@login_required
 def delete_expired_clusters():
     content = request.get_json()
     expired_clusters_list = mongo_handler.mongo_utils.retrieve_expired_clusters(cluster_type=content['cluster_type'])
@@ -283,6 +302,7 @@ def delete_expired_clusters():
 
 
 @app.route('/delete_cluster', methods=[DELETE])
+@login_required
 def delete_cluster():
     """
     This request deletes
@@ -328,6 +348,7 @@ def index():
 
 
 @app.route('/fetch_regions', methods=[GET])
+@login_required
 def fetch_regions():
     cluster_type = request.args.get("cluster_type")
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
@@ -343,6 +364,7 @@ def fetch_regions():
 
 
 @app.route('/fetch_zones', methods=[GET])
+@login_required
 def fetch_zones():
     cluster_type = request.args.get("cluster_type")
     region_name = request.args.get("region_name")
@@ -366,6 +388,7 @@ def fetch_zones():
 
 
 @app.route('/fetch_subnets', methods=[GET])
+@login_required
 def fetch_subnets():
     cluster_type = request.args.get("cluster_type")
     zone_names = request.args.get("zone_names")
@@ -387,6 +410,7 @@ def fetch_subnets():
 
 
 @app.route('/fetch_helm_installs', methods=[GET, POST])
+@login_required
 def fetch_helm_installs():
     names = bool(util.strtobool(request.args.get("names")))
     logger.info(f'A request to fetch helm installs for {names} names has arrived')
@@ -395,12 +419,14 @@ def fetch_helm_installs():
 
 
 @app.route('/fetch_gke_versions', methods=[GET])
+@login_required
 def fetch_gke_versions():
     gke_versions_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_VERSIONS_LIST, provider=GKE)
     return jsonify(gke_versions_list)
 
 
 @app.route('/fetch_gke_image_types', methods=[GET])
+@login_required
 def fetch_gke_image_types():
     logger.info(f'A request to fetch available GKE image types has arrived')
     gke_image_types_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_IMAGE_TYPES, provider=GKE)
@@ -408,6 +434,7 @@ def fetch_gke_image_types():
 
 
 @app.route('/register', methods=[GET, POST])
+@login_required
 def register():
     if request.method == 'GET':
         return render_template('register.html')
@@ -461,6 +488,7 @@ def register():
 
 
 @app.route('/login', methods=[GET, POST])
+@login_required
 def login():
     message = request.args.get('message')
     if message is None:
