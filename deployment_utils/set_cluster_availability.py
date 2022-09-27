@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-from mongo_handler.mongo_utils import set_cluster_availability
+from web.mongo_handler.mongo_utils import set_cluster_availability
 
 
 if __name__ == '__main__':
