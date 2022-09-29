@@ -57,6 +57,8 @@ helm_cache: Collection = db.helm_cache
 eks_cache: Collection = db.eks_cache
 fs = gridfs.GridFS(db)
 
+agents_data: Collection = db.agents_data
+
 logger.info(f'MONGO_USER is: {MONGO_USER}')
 logger.info(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
 logger.info(f'MONGO_URL is: {MONGO_URL}')
@@ -322,3 +324,27 @@ def insert_deployment_yaml(deployment_yaml_object: dict):
         return True
     except:
         return False
+
+
+def insert_agents_data_object(agents_data_object: dict) -> bool:
+    """
+    @param agents_data_object: The filename of the image to save
+    """
+    try:
+        mongo_query = {CLUSTER_NAME.lower(): agents_data_object[CLUSTER_NAME.lower()]}
+        existing_agents_data_object = agents_data.find_one(mongo_query)
+        logger.info(f'found user_object is: {existing_agents_data_object}')
+        if existing_agents_data_object:
+            result = agents_data.replace_one(existing_agents_data_object, agents_data_object)
+            logger.info(f'agents_data_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = agents_data.insert_one(agents_data_object)
+            if result.inserted_id:
+                logger.info(f'agents_data_object was inserted properly')
+                return True
+            else:
+                logger.error(f'agents_data_object was not inserted properly')
+                return False
+    except:
+        logger.error(f'agents_data_object was not inserted properly')

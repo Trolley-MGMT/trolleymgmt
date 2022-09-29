@@ -120,3 +120,13 @@ class DeploymentYAMLObject:
     cluster_type: str
     cluster_name: str
     deployment_yaml_dict: dict
+
+
+@dataclass
+class AgentsDataObject:
+    cluster_name: str
+    namespaces: list
+    deployments: list
+    pods: list
+    daemonsets: list
+    services: list

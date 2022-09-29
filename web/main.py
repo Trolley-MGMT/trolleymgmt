@@ -216,7 +216,7 @@ def get_clusters_data():
 #     elif cluster_type == AKS:
 #         trigger_eks_build_github_action(**content)
 #     deployment_yaml_object = DeploymentYAMLObject(cluster_name, deployment_yaml_dict)
-#     if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+#     if mongo_handler.mongo_utils.x_deployment_yaml(asdict(deployment_yaml_object)):
 #         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 #     else:
 #         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
