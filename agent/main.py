@@ -4,18 +4,12 @@ import time
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from dataclasses import asdict
 
-from kubernetes import client, config
-from kubernetes.client import V1NodeList
+from kubernetes import client
 
 from web.mongo_handler.mongo_objects import AgentsDataObject
 from web.mongo_handler.mongo_utils import insert_agents_data_object
 
-KUBECONFIG_PATH = os.environ['KUBECONFIG']
-
-config.load_kube_config(KUBECONFIG_PATH)
-k8s_client = client.ApiClient()
-k8s_api = client.CoreV1Api()
-apis_api = client.AppsV1Api()
+from agent.k8s_client.api_client import K8sApiClient
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -27,7 +21,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def fetch_namespaces_list() -> list:
+def fetch_namespaces_list(k8s_api) -> list:
     namespaces_list = []
     namespaces = k8s_api.list_namespace().items
     for namespace in namespaces:
@@ -35,7 +29,7 @@ def fetch_namespaces_list() -> list:
     return namespaces_list
 
 
-def fetch_pods_list(namespaces_list) -> list:
+def fetch_pods_list(k8s_api, namespaces_list) -> list:
     pods_list = []
     for namespace in namespaces_list:
         pods = k8s_api.list_namespaced_pod(namespace).items
@@ -47,7 +41,7 @@ def fetch_pods_list(namespaces_list) -> list:
     return pods_list
 
 
-def fetch_deployments_list(namespaces_list: '') -> list:
+def fetch_deployments_list(apis_api, namespaces_list: '') -> list:
     deployments_list = []
     for namespace in namespaces_list:
         deployments = apis_api.list_namespaced_deployment(namespace)
@@ -68,7 +62,7 @@ def fetch_deployments_list(namespaces_list: '') -> list:
     return deployments_list
 
 
-def fetch_daemonsets_list(namespaces_list: '') -> list:
+def fetch_daemonsets_list(apis_api, namespaces_list: '') -> list:
     daemonsets_list = []
     for namespace in namespaces_list:
         daemonsets = apis_api.list_namespaced_daemon_set(namespace)
@@ -88,7 +82,7 @@ def fetch_daemonsets_list(namespaces_list: '') -> list:
     return daemonsets_list
 
 
-def fetch_services_list(namespaces_list: '') -> list:
+def fetch_services_list(k8s_api, namespaces_list: '') -> list:
     services_list = []
     for namespace in namespaces_list:
         services = k8s_api.list_namespaced_service(namespace)
@@ -109,12 +103,17 @@ def fetch_services_list(namespaces_list: '') -> list:
     return services_list
 
 
-def main(cluster_name: str = None, fetch_interval: int = 30):
-    namespaces = fetch_namespaces_list()
-    deployments = fetch_deployments_list(namespaces)
-    pods = fetch_pods_list(namespaces)
-    daemonsets = fetch_daemonsets_list(namespaces)
-    services = fetch_services_list(namespaces)
+def main(debug_mode: bool, cluster_name: str = None, fetch_interval: int = 30):
+    k8s_api_client = K8sApiClient(debug_mode, cluster_name)
+    api_client = k8s_api_client.fetch_api_client()
+    k8s_api = client.CoreV1Api(api_client=api_client)
+    apis_api = client.AppsV1Api(api_client=api_client)
+
+    namespaces = fetch_namespaces_list(k8s_api)
+    deployments = fetch_deployments_list(apis_api, namespaces)
+    pods = fetch_pods_list(k8s_api, namespaces)
+    daemonsets = fetch_daemonsets_list(apis_api, namespaces)
+    services = fetch_services_list(k8s_api, namespaces)
     agents_data_object = AgentsDataObject(cluster_name, namespaces, deployments, pods, daemonsets, services)
     if insert_agents_data_object(asdict(agents_data_object)):
         logger.info('Agent data inserted successfully')
@@ -126,8 +125,9 @@ def main(cluster_name: str = None, fetch_interval: int = 30):
 
 if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('--cluster_name', default='pavelzagalsky-aks-bejge', type=str, help='Name of the built cluster')
+    parser.add_argument('--debug_mode', default=True, type=bool, help='Debugging Mode')
+    parser.add_argument('--cluster_name', default='minikube', type=str, help='Name of the built cluster')
     parser.add_argument('--fetch_interval', default=5, type=int, help='interval between objects fetching')
     args = parser.parse_args()
     while True:
-        main(args.cluster_name, args.fetch_interval)
+        main(args.debug_mode, args.cluster_name, args.fetch_interval)
