@@ -47,7 +47,7 @@ jobs:
           KUBECONFIG: /home/runner/.kube/config
 
         run: |
-          brew install helm
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
           which helm >> /tmp/helm_path
           export PYTHONPATH=$PYTHONPATH:.
           az aks get-credentials --name ${{ github.event.client_payload.cluster_name }} --overwrite-existing --resource-group myResourceGroup
