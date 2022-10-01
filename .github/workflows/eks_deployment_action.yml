@@ -33,6 +33,8 @@ jobs:
         run: |
           export KUBECONFIG=/home/runner/.kube/config
           aws sts get-caller-identity
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+          which helm >> /tmp/helm_path
           brew install eksctl
           eksctl create cluster --region=${{ github.event.client_payload.region_name }} --zones=${{ github.event.client_payload.zone_names }} --name ${{ github.event.client_payload.cluster_name }} --version ${{ github.event.client_payload.cluster_version }} --nodes ${{ github.event.client_payload.num_nodes }}
           aws eks --region ${{ github.event.client_payload.region_name }} update-kubeconfig --name ${{ github.event.client_payload.cluster_name }}

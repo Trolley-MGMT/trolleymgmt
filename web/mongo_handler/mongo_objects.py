@@ -16,6 +16,7 @@ class UserObject:
 @dataclass
 class GKEObject:
     cluster_name: str
+    context_name: str
     user_name: str
     kubeconfig: str
     nodes_names: list
@@ -36,6 +37,7 @@ class GKEObject:
 @dataclass
 class GKEAutopilotObject:
     cluster_name: str
+    context_name: str
     user_name: str
     kubeconfig: str
     nodes_names: list
@@ -54,6 +56,7 @@ class GKEAutopilotObject:
 @dataclass
 class EKSObject:
     cluster_name: str
+    context_name: str
     user_name: str
     kubeconfig: str
     nodes_names: list
@@ -72,6 +75,7 @@ class EKSObject:
 @dataclass
 class AKSObject:
     cluster_name: str
+    context_name: str
     user_name: str
     kubeconfig: str
     nodes_names: list
