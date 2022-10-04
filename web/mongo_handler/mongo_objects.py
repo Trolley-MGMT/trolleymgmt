@@ -127,10 +127,48 @@ class DeploymentYAMLObject:
 
 
 @dataclass
+class NamespacesDataObject:
+    namespaces: list
+
+
+@dataclass
+class DeploymentsDataObject:
+    deployments: list
+
+
+@dataclass
+class PodsDataObject:
+    pods: list
+
+
+@dataclass
+class ContainersDataObject:
+    containers: list
+
+
+@dataclass
+class DaemonsetsDataObject:
+    daemonsets: list
+
+
+@dataclass
+class StatefulSetsDataObject:
+    statefulsets: list
+
+
+@dataclass
+class ServicesDataObject:
+    services: list
+
+
+@dataclass
 class AgentsDataObject:
     cluster_name: str
+    context_name: str
     namespaces: list
     deployments: list
     pods: list
+    containers: list
     daemonsets: list
+    stateful_sets: list
     services: list
