@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trolley-agent-deployment
+  labels:
+    app: trolley-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trolley-agent
+  template:
+    metadata:
+      labels:
+        app: trolley-agent
+    spec:
+      containers:
+      - name: trolley-agent
+        image: pavelzagalsky/trolley-agent:latest
+        env:
+        - name: DEBUG_MODE
+          value: "true"
+        - name: CLUSTER_NAME
+          value: "shuki"
+        - name: CONTEXT_NAME
+          value: ""
+        - name: CLUSTER_TYPE
+          value: "gke"
+        - name: FETCH_INTERVAL
+          value: "5"

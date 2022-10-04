@@ -22,8 +22,8 @@ import mongo_handler.mongo_utils
 from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
-    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_LIST, HELM, LOCATIONS_DICT, \
-    CLUSTER_NAME, CLUSTER_DEPLOYMENT_YAML
+    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
+    CLUSTER_NAME
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
 from utils import random_string, apply_yaml
@@ -163,6 +163,7 @@ def login_required(f):
             return f(*args, **kwargs)
         except:
             return False
+
     return decorated_function
 
 
@@ -329,6 +330,19 @@ def delete_cluster():
                                                            cluster_name=content['cluster_name'],
                                                            availability=False)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+
+
+@app.route('/insert_agent_data', methods=[POST])
+# @login_required
+def insert_agent_data():
+    content = request.get_json()
+    function_name = inspect.stack()[0][3]
+    logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+    if mongo_handler.mongo_utils.insert_agents_data_object(content):
+        return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+
 
 
 @app.route('/healthz', methods=[GET, POST])
