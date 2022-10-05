@@ -26,7 +26,7 @@ logger.addHandler(handler)
 
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
-DEBUG_MODE = json.loads(os.environ.get('DEBUG_MODE', 'true').lower())
+DEBUG_MODE = json.loads(os.environ.get('DEBUG_MODE', 'false').lower())
 SERVER_URL = os.environ.get('SERVER_URL', 'https://77c0-2a0d-6fc2-41e0-1500-e5ed-d9ed-795c-d1a8.eu.ngrok.io')
 INTERNAL_CLUSTER_MODE = json.loads(os.environ.get('INTERNAL_CLUSTER_MODE', 'true').lower())
 CLUSTER_NAME = os.environ.get('CLUSTER_NAME', 'pavelzagalsky-gke-qjeigibl')

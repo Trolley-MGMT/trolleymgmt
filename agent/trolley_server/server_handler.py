@@ -18,7 +18,7 @@ class ServerRequest:
         if self.debug_mode:
             return f'http://localhost:8081/{self.operation}'
         else:
-            return f'http://{self.server_url}:8081/{self.operation}'
+            return f'http://{self.server_url}/{self.operation}'
 
     def send_server_request(self):
         request_url = self.build_request_url(self)
