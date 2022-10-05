@@ -15,11 +15,8 @@ class K8sApiClient:
 
     def fetch_api_client(self) -> ApiClient:
         if self.in_cluster_mode:
-            try:
-                kubernetes.config.load_incluster_config()
-                return ApiClient()
-            except kubernetes.config.config_exception:
-                print("could not load shit")
+            kubernetes.config.load_incluster_config()
+            return ApiClient()
         if self.debug_mode:
             clusters_contexts, _ = kubernetes.config.list_kube_config_contexts()
             for cluster_context in clusters_contexts:
