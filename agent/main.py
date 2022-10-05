@@ -27,6 +27,7 @@ logger.addHandler(handler)
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
 DEBUG_MODE = json.loads(os.environ.get('DEBUG_MODE', 'true').lower())
+SERVER_URL = os.environ.get('SERVER_URL', 'https://77c0-2a0d-6fc2-41e0-1500-e5ed-d9ed-795c-d1a8.eu.ngrok.io')
 INTERNAL_CLUSTER_MODE = json.loads(os.environ.get('INTERNAL_CLUSTER_MODE', 'true').lower())
 CLUSTER_NAME = os.environ.get('CLUSTER_NAME', 'pavelzagalsky-gke-qjeigibl')
 CONTEXT_NAME = os.environ.get('CONTEXT_NAME', '')
@@ -34,8 +35,8 @@ CLUSTER_TYPE = os.environ.get('CLUSTER_TYPE', 'gke')
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "5"))
 
 
-def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None, context_name: str = None, cluster_type: str = None,
-         fetch_interval: int = 30):
+def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None, context_name: str = None,
+         cluster_type: str = None, fetch_interval: int = 30, server_url: str = ''):
     if not context_name:
         try:
             cluster_object = retrieve_cluster_details(cluster_type, cluster_name)
@@ -60,7 +61,8 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     agents_data_object = AgentsDataObject(cluster_name=cluster_name, context_name=context_name, namespaces=namespaces,
                                           deployments=deployments, stateful_sets=stateful_sets, pods=pods,
                                           containers=containers, daemonsets=daemonsets, services=services)
-    server_request = ServerRequest(debug_mode=debug_mode, agent_data=agents_data_object, operation='insert_agent_data')
+    server_request = ServerRequest(debug_mode=debug_mode, agent_data=agents_data_object, operation='insert_agent_data',
+                                   server_url=server_url)
     server_request.send_server_request()
     logger.info(f'Taking a {fetch_interval} sleep time between fetches')
     time.sleep(fetch_interval)
@@ -69,4 +71,4 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
 if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     while True:
-        main(DEBUG_MODE, INTERNAL_CLUSTER_MODE, CLUSTER_NAME, CONTEXT_NAME, CLUSTER_TYPE, FETCH_INTERVAL)
+        main(DEBUG_MODE, INTERNAL_CLUSTER_MODE, CLUSTER_NAME, CONTEXT_NAME, CLUSTER_TYPE, FETCH_INTERVAL, SERVER_URL)
