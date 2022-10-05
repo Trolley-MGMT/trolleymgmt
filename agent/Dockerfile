@@ -13,7 +13,7 @@ RUN pip install -r requirements.txt
 
 COPY . /app
 COPY agent/main.py /app
-COPY ../web/variables /app/variables
+COPY web/variables /app/variables
 
 
 CMD ["python3",  "main.py" ]
