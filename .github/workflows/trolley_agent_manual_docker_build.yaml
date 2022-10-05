@@ -26,6 +26,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Build and Push
         run: |
           docker build -t trolley_agent/latest -f agent/Dockerfile .
           docker tag trolley_agent/latest pavelzagalsky/trolley_agent
