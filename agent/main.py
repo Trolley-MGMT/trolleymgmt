@@ -11,7 +11,7 @@ from agent.k8s_objects.k8s_objects_handler import fetch_namespaces_list, fetch_d
     fetch_containers_list, fetch_daemonsets_list, fetch_stateful_sets_list, fetch_services_list
 from agent.trolley_server.server_handler import ServerRequest
 from web.mongo_handler.mongo_objects import AgentsDataObject
-from web.mongo_handler.mongo_utils import insert_agents_data_object, retrieve_cluster_details
+from web.mongo_handler.mongo_utils import retrieve_cluster_details
 
 from agent.k8s_client.api_client import K8sApiClient
 
@@ -27,13 +27,14 @@ logger.addHandler(handler)
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
 DEBUG_MODE = json.loads(os.environ.get('DEBUG_MODE', 'true').lower())
-CLUSTER_NAME = os.environ.get('CLUSTER_NAME', 'shuki')
-CONTEXT_NAME = os.environ.get('CONTEXT_NAME', 'minikube')
+INTERNAL_CLUSTER_MODE = json.loads(os.environ.get('INTERNAL_CLUSTER_MODE', 'true').lower())
+CLUSTER_NAME = os.environ.get('CLUSTER_NAME', 'pavelzagalsky-gke-qjeigibl')
+CONTEXT_NAME = os.environ.get('CONTEXT_NAME', '')
 CLUSTER_TYPE = os.environ.get('CLUSTER_TYPE', 'gke')
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "5"))
 
 
-def main(debug_mode: bool, cluster_name: str = None, context_name: str = None, cluster_type: str = None,
+def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None, context_name: str = None, cluster_type: str = None,
          fetch_interval: int = 30):
     if not context_name:
         try:
@@ -43,7 +44,7 @@ def main(debug_mode: bool, cluster_name: str = None, context_name: str = None, c
                 kubeconfig_file.write(cluster_object['kubeconfig'])
         except:
             logger.error(f'{cluster_name} was not found in the system')
-    k8s_api_client = K8sApiClient(debug_mode, cluster_name, context_name)
+    k8s_api_client = K8sApiClient(debug_mode, internal_cluster_mode, cluster_name, context_name)
     api_client = k8s_api_client.fetch_api_client()
     k8s_api = client.CoreV1Api(api_client=api_client)
     apis_api = client.AppsV1Api(api_client=api_client)
@@ -68,4 +69,4 @@ def main(debug_mode: bool, cluster_name: str = None, context_name: str = None, c
 if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     while True:
-        main(DEBUG_MODE, CLUSTER_NAME, CONTEXT_NAME, CLUSTER_TYPE, FETCH_INTERVAL)
+        main(DEBUG_MODE, INTERNAL_CLUSTER_MODE, CLUSTER_NAME, CONTEXT_NAME, CLUSTER_TYPE, FETCH_INTERVAL)

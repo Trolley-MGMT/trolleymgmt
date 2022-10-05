@@ -16,9 +16,14 @@ spec:
     spec:
       containers:
       - name: trolley-agent
-        image: pavelzagalsky/trolley-agent:latest
+        volumeMounts:
+          - mountPath: /etc/kubernetes
+            name: kubernetes
+        image: pavelzagalsky/trolley_agent:latest
         env:
         - name: DEBUG_MODE
+          value: "true"
+        - name: INTERNAL_CLUSTER_MODE
           value: "true"
         - name: CLUSTER_NAME
           value: "shuki"
@@ -28,3 +33,17 @@ spec:
           value: "gke"
         - name: FETCH_INTERVAL
           value: "5"
+        - name: MONGO_USER
+          value: "pavel"
+        - name: MONGO_PASSWORD
+          value: "Pp59aa!!"
+        - name: MONGO_URL
+          value: "34.123.171.234"
+        - name: PROJECT_NAME
+          value: "trolley"
+        - name: KUBECONFIG
+          value: /etc/kubernetes/admin.conf
+      serviceAccountName: trolley-agent-service-account
+      volumes:
+        - emptyDir: { }
+          name: kubernetes
