@@ -28,6 +28,9 @@ jobs:
 
       - name: Build and Push
         run: |
+          pwd
+          ls
+          ls -la
           docker build -t trolley_agent/latest -f agent/Dockerfile .
           docker tag trolley_agent/latest pavelzagalsky/trolley_agent
           docker push pavelzagalsky/trolley_agent:latest
