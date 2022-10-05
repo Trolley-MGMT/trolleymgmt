@@ -1,0 +1,32 @@
+name: Trolley Agent Build Image
+on:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        required: true
+        description: branch_name
+        default: master
+
+jobs:
+  build_trolley_agent_docker_image:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Dockerhub Login
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+        run: |
+          docker build -t trolley_agent/latest -f agent/Dockerfile .
+          docker tag trolley_agent/latest pavelzagalsky/trolley_agent
+          docker push pavelzagalsky/trolley_agent:latest
