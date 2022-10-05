@@ -34,6 +34,14 @@ CONTEXT_NAME = os.environ.get('CONTEXT_NAME', '')
 CLUSTER_TYPE = os.environ.get('CLUSTER_TYPE', 'gke')
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "5"))
 
+logger.info(f'DEBUG_MODE is: {DEBUG_MODE}')
+logger.info(f'SERVER_URL is: {SERVER_URL}')
+logger.info(f'INTERNAL_CLUSTER_MODE is: {INTERNAL_CLUSTER_MODE}')
+logger.info(f'CLUSTER_NAME is: {CLUSTER_NAME}')
+logger.info(f'CONTEXT_NAME is: {CONTEXT_NAME}')
+logger.info(f'CLUSTER_TYPE is: {CLUSTER_TYPE}')
+logger.info(f'FETCH_INTERVAL is: {FETCH_INTERVAL}')
+
 
 def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None, context_name: str = None,
          cluster_type: str = None, fetch_interval: int = 30, server_url: str = ''):
