@@ -72,6 +72,7 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     logger.info(f'The cluster_type is: {cluster_type}')
     logger.info(f'The fetch_interval is: {fetch_interval}')
     logger.info(f'The server_url is: {server_url}')
+
     k8s_api_client = K8sApiClient(debug_mode, internal_cluster_mode, cluster_name, context_name)
     api_client = k8s_api_client.fetch_api_client()
     k8s_api = client.CoreV1Api(api_client=api_client)
@@ -84,6 +85,14 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     daemonsets = fetch_daemonsets_list(apis_api, namespaces)
     stateful_sets = fetch_stateful_sets_list(apis_api, namespaces)
     services = fetch_services_list(k8s_api, namespaces)
+
+    logger.info(f'The namespaces are: {namespaces}')
+    logger.info(f'The deployments are: {deployments}')
+    logger.info(f'The pods are: {pods}')
+    logger.info(f'The containers are: {containers}')
+    logger.info(f'The daemonsets are: {daemonsets}')
+    logger.info(f'The stateful_sets are: {stateful_sets}')
+    logger.info(f'The services are: {services}')
 
     agents_data_object = AgentsDataObject(cluster_name=cluster_name, context_name=context_name, namespaces=namespaces,
                                           deployments=deployments, stateful_sets=stateful_sets, pods=pods,
