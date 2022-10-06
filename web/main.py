@@ -344,7 +344,6 @@ def insert_agent_data():
         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
-
 @app.route('/healthz', methods=[GET, POST])
 def healthz():
     logger.info('A request was received')

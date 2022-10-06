@@ -27,14 +27,6 @@ consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
 logger.addHandler(consoleHandler)
 
-# logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
-#
-# handler = logging.FileHandler('/var/log/agent_main.log')
-# handler.setLevel(logging.DEBUG)
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# handler.setFormatter(formatter)
-# logger.addHandler(handler)
 
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
@@ -60,14 +52,15 @@ logger.info(f'FETCH_INTERVAL is: {FETCH_INTERVAL}')
 
 def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None, context_name: str = None,
          cluster_type: str = None, fetch_interval: int = 30, server_url: str = ''):
-    if not context_name:
-        try:
-            cluster_object = retrieve_cluster_details(cluster_type, cluster_name)
-            context_name = cluster_object['context_name']
-            with open(KUBECONFIG_TEMP_PATH, 'a+') as kubeconfig_file:
-                kubeconfig_file.write(cluster_object['kubeconfig'])
-        except:
-            logger.error(f'{cluster_name} was not found in the system')
+    if not internal_cluster_mode:
+        if not context_name:
+            try:
+                cluster_object = retrieve_cluster_details(cluster_type, cluster_name)
+                context_name = cluster_object['context_name']
+                with open(KUBECONFIG_TEMP_PATH, 'a+') as kubeconfig_file:
+                    kubeconfig_file.write(cluster_object['kubeconfig'])
+            except:
+                logger.error(f'{cluster_name} was not found in the system')
     k8s_api_client = K8sApiClient(debug_mode, internal_cluster_mode, cluster_name, context_name)
     api_client = k8s_api_client.fetch_api_client()
     k8s_api = client.CoreV1Api(api_client=api_client)
