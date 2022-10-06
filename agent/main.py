@@ -17,31 +17,21 @@ from web.mongo_handler.mongo_utils import retrieve_cluster_details
 from agent.k8s_client.api_client import K8sApiClient
 
 # logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-# logger = logging.getLogger()
+# logging = logging.getlogging()
 # if 'macOS' in platform.platform():
 #     log_path = f'{os.getcwd()}'
 # else:
 log_path = '/var/log/'
-file_name = 'agent_main'
-# fileHandler = logging.FileHandler(f"{log_path}/{file_name}")
-# fileHandler.setFormatter(logFormatter)
-# logger.addHandler(fileHandler)
-#
-# consoleHandler = logging.StreamHandler()
-# consoleHandler.setFormatter(logFormatter)
-# logger.addHandler(consoleHandler)
+file_name = 'agent_main.log'
 
-
-logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-logger = logging.getLogger()
-
-fileHandler = logging.FileHandler("{0}/{1}.log".format(log_path, file_name))
-fileHandler.setFormatter(logFormatter)
-logger.addHandler(fileHandler)
-
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(logFormatter)
-logger.addHandler(consoleHandler)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(f"{log_path}/{file_name}"),
+        logging.StreamHandler()
+    ]
+)
 
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
@@ -53,16 +43,16 @@ CONTEXT_NAME = os.environ.get('CONTEXT_NAME', '')
 CLUSTER_TYPE = os.environ.get('CLUSTER_TYPE', 'gke')
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "5"))
 
-logger.info(f'DEBUG_MODE is: {DEBUG_MODE}')
+logging.info(f'DEBUG_MODE is: {DEBUG_MODE}')
 print(f'DEBUG_MODE is: {DEBUG_MODE}')
-logger.info(f'SERVER_URL is: {SERVER_URL}')
+logging.info(f'SERVER_URL is: {SERVER_URL}')
 print(f'SERVER_URL is: {SERVER_URL}')
-logger.info(f'INTERNAL_CLUSTER_MODE is: {INTERNAL_CLUSTER_MODE}')
+logging.info(f'INTERNAL_CLUSTER_MODE is: {INTERNAL_CLUSTER_MODE}')
 print(f'INTERNAL_CLUSTER_MODE is: {INTERNAL_CLUSTER_MODE}')
-logger.info(f'CLUSTER_NAME is: {CLUSTER_NAME}')
-logger.info(f'CONTEXT_NAME is: {CONTEXT_NAME}')
-logger.info(f'CLUSTER_TYPE is: {CLUSTER_TYPE}')
-logger.info(f'FETCH_INTERVAL is: {FETCH_INTERVAL}')
+logging.info(f'CLUSTER_NAME is: {CLUSTER_NAME}')
+logging.info(f'CONTEXT_NAME is: {CONTEXT_NAME}')
+logging.info(f'CLUSTER_TYPE is: {CLUSTER_TYPE}')
+logging.info(f'FETCH_INTERVAL is: {FETCH_INTERVAL}')
 
 
 def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None, context_name: str = None,
@@ -75,14 +65,14 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
                 with open(KUBECONFIG_TEMP_PATH, 'a+') as kubeconfig_file:
                     kubeconfig_file.write(cluster_object['kubeconfig'])
             except:
-                logger.error(f'{cluster_name} was not found in the system')
-    logger.info(f'The debug_mode is: {debug_mode}')
-    logger.info(f'The internal_cluster_mode is: {internal_cluster_mode}')
-    logger.info(f'The cluster_name is: {cluster_name}')
-    logger.info(f'The context_name is: {context_name}')
-    logger.info(f'The cluster_type is: {cluster_type}')
-    logger.info(f'The fetch_interval is: {fetch_interval}')
-    logger.info(f'The server_url is: {server_url}')
+                logging.error(f'{cluster_name} was not found in the system')
+    logging.info(f'The debug_mode is: {debug_mode}')
+    logging.info(f'The internal_cluster_mode is: {internal_cluster_mode}')
+    logging.info(f'The cluster_name is: {cluster_name}')
+    logging.info(f'The context_name is: {context_name}')
+    logging.info(f'The cluster_type is: {cluster_type}')
+    logging.info(f'The fetch_interval is: {fetch_interval}')
+    logging.info(f'The server_url is: {server_url}')
 
     k8s_api_client = K8sApiClient(debug_mode, internal_cluster_mode, cluster_name, context_name)
     api_client = k8s_api_client.fetch_api_client()
@@ -97,13 +87,13 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     stateful_sets = fetch_stateful_sets_list(apis_api, namespaces)
     services = fetch_services_list(k8s_api, namespaces)
 
-    logger.info(f'The namespaces are: {namespaces}')
-    logger.info(f'The deployments are: {deployments}')
-    logger.info(f'The pods are: {pods}')
-    logger.info(f'The containers are: {containers}')
-    logger.info(f'The daemonsets are: {daemonsets}')
-    logger.info(f'The stateful_sets are: {stateful_sets}')
-    logger.info(f'The services are: {services}')
+    logging.info(f'The namespaces are: {namespaces}')
+    logging.info(f'The deployments are: {deployments}')
+    logging.info(f'The pods are: {pods}')
+    logging.info(f'The containers are: {containers}')
+    logging.info(f'The daemonsets are: {daemonsets}')
+    logging.info(f'The stateful_sets are: {stateful_sets}')
+    logging.info(f'The services are: {services}')
 
     agents_data_object = AgentsDataObject(cluster_name=cluster_name, context_name=context_name, namespaces=namespaces,
                                           deployments=deployments, stateful_sets=stateful_sets, pods=pods,
@@ -111,7 +101,7 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     server_request = ServerRequest(debug_mode=debug_mode, agent_data=agents_data_object, operation='insert_agent_data',
                                    server_url=server_url)
     server_request.send_server_request()
-    logger.info(f'Taking a {fetch_interval} sleep time between fetches')
+    logging.info(f'Taking a {fetch_interval} sleep time between fetches')
     time.sleep(fetch_interval)
 
 
