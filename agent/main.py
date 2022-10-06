@@ -15,14 +15,26 @@ from web.mongo_handler.mongo_utils import retrieve_cluster_details
 
 from agent.k8s_client.api_client import K8sApiClient
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+rootLogger = logging.getLogger()
+log_path = '/var/log/agent_main.log'
+file_name = 'agent_main.log'
+fileHandler = logging.FileHandler("{0}/{1}.log".format(log_path, file_name))
+fileHandler.setFormatter(logFormatter)
+rootLogger.addHandler(fileHandler)
 
-handler = logging.FileHandler('/var/log/agent_main.log')
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
+
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+#
+# handler = logging.FileHandler('/var/log/agent_main.log')
+# handler.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
 
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
