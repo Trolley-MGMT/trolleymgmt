@@ -9,7 +9,7 @@ KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 logger = logging.getLogger()
 log_path = '/var/log/'
-file_name = 'agent_main.log'
+file_name = 'agent_main2.log'
 fileHandler = logging.FileHandler(f"{log_path}/{file_name}")
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
