@@ -18,7 +18,7 @@ from agent.k8s_client.api_client import K8sApiClient
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('/logs/agent_main.log')
+handler = logging.FileHandler('/var/log/agent_main.log')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
