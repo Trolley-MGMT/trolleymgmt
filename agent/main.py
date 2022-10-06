@@ -65,6 +65,7 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
                     kubeconfig_file.write(cluster_object['kubeconfig'])
             except:
                 logger.error(f'{cluster_name} was not found in the system')
+    logger.info(f'Checking')
     k8s_api_client = K8sApiClient(debug_mode, internal_cluster_mode, cluster_name, context_name)
     api_client = k8s_api_client.fetch_api_client()
     k8s_api = client.CoreV1Api(api_client=api_client)
