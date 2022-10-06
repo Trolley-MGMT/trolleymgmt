@@ -32,14 +32,31 @@ REGISTRATION = False
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+logger = logging.getLogger()
 
-handler = logging.FileHandler('../trolley.log')
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+if MACOS in platform.platform():
+    log_path = f'{os.getcwd()}'
+else:
+    log_path = '/var/log/'
+file_name = 'server_main.log'
+fileHandler = logging.FileHandler("{0}/{1}".format(log_path, file_name))
+fileHandler.setFormatter(logFormatter)
+logger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+logger.addHandler(consoleHandler)
+
+
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+#
+# handler = logging.FileHandler('../trolley.log')
+# handler.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
 
 logger.info(f'The current directory is: {CUR_DIR}')
 logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
