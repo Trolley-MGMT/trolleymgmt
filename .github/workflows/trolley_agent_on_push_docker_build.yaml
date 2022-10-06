@@ -1,11 +1,8 @@
-name: Trolley Agent Manual Build Image
+name: Trolley Agent Automated Build Image
 on:
-  workflow_dispatch:
-    inputs:
-      branch_name:
-        required: true
-        description: branch_name
-        default: master
+  push:
+    branches:
+      - master
 
 jobs:
   build_trolley_agent_docker_image:
