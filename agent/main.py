@@ -18,10 +18,10 @@ from agent.k8s_client.api_client import K8sApiClient
 
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 logger = logging.getLogger()
-if 'macOS' in platform.platform():
-    log_path = f'{os.getcwd()}'
-else:
-    log_path = '/var/log/'
+# if 'macOS' in platform.platform():
+#     log_path = f'{os.getcwd()}'
+# else:
+log_path = '/var/log/'
 file_name = 'agent_main.log'
 fileHandler = logging.FileHandler("{0}/{1}".format(log_path, file_name))
 fileHandler.setFormatter(logFormatter)
