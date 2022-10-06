@@ -23,7 +23,7 @@ if 'macOS' in platform.platform():
 else:
     log_path = '/var/log/'
 file_name = 'agent_main.log'
-fileHandler = logging.FileHandler("{0}/{1}.".format(log_path, file_name))
+fileHandler = logging.FileHandler("{0}/{1}".format(log_path, file_name))
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 
