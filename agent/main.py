@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import sys
 import time
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import getpass
@@ -29,6 +30,7 @@ logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelnam
 logger = logging.getLogger()
 
 fileHandler = logging.FileHandler("{0}/{1}.log".format(log_path, file_name))
+logging.StreamHandler(sys.stdout)
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 
