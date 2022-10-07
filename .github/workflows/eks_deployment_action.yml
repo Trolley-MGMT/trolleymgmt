@@ -49,7 +49,7 @@ jobs:
           KUBECONFIG: '/home/runner/.kube/config'
 
         run: |
-          brew install helm
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
           which helm >> /tmp/helm_path
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt

@@ -19,7 +19,7 @@ jobs:
         run: gcloud info
       - name: Installing GCloud and Helm
         run: |
-          brew install helm
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
           which helm >> /tmp/helm_path
           export KUBECONFIG=/tmp/kubeconfig
           gcloud container images list
