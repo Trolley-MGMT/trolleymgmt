@@ -3,9 +3,6 @@ kind: ClusterRole
 metadata:
   name: trolley-agent
 rules:
-- apiGroups: [""]
-  #
-  # at the HTTP level, the name of the resource for accessing Secret
-  # objects is "secrets"
-  resources: ["containers", "pods", "services", "deployments", "daemonsets", "statefulsets"]
+- apiGroups: ["*"]
+  resources: ["*"]
   verbs: ["get", "watch", "list"]

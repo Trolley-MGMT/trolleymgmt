@@ -11,39 +11,48 @@ spec:
       app: trolley-agent
   template:
     metadata:
+      name: trolley-agent
       labels:
         app: trolley-agent
     spec:
       containers:
-      - name: trolley-agent
-        volumeMounts:
-          - mountPath: /etc/kubernetes
-            name: kubernetes
-        image: pavelzagalsky/trolley_agent:latest
-        env:
-        - name: DEBUG_MODE
-          value: "true"
-        - name: INTERNAL_CLUSTER_MODE
-          value: "true"
-        - name: CLUSTER_NAME
-          value: "shuki"
-        - name: CONTEXT_NAME
-          value: ""
-        - name: CLUSTER_TYPE
-          value: "gke"
-        - name: FETCH_INTERVAL
-          value: "5"
-        - name: MONGO_USER
-          value: "pavel"
-        - name: MONGO_PASSWORD
-          value: "Pp59aa!!"
-        - name: MONGO_URL
-          value: "34.123.171.234"
-        - name: PROJECT_NAME
-          value: "trolley"
-        - name: KUBECONFIG
-          value: /etc/kubernetes/admin.conf
+        - image: pavelzagalsky/trolley_agent:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 1
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 256Mi
+          name: trolley-agent-container
+          volumeMounts:
+            - mountPath: /var/log
+              name: trolley-agent-logs
+          env:
+            - name: DEBUG_MODE
+              value: "false"
+            - name: INTERNAL_CLUSTER_MODE
+              value: "true"
+            - name: SERVER_URL
+              value: ""
+            - name: CLUSTER_NAME
+              value: "pavelzagalsky-gke-hbjiybks"
+            - name: CONTEXT_NAME
+              value: "minikube"
+            - name: CLUSTER_TYPE
+              value: "gke"
+            - name: FETCH_INTERVAL
+              value: "30"
+            - name: MONGO_USER
+              value: "pavel"
+            - name: MONGO_PASSWORD
+              value: "Pp59aa!!"
+            - name: MONGO_URL
+              value: "34.123.171.234"
+            - name: PROJECT_NAME
+              value: "trolley"
       serviceAccountName: trolley-agent-service-account
       volumes:
         - emptyDir: { }
-          name: kubernetes
+          name: trolley-agent-logs

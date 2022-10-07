@@ -1,11 +1,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: trolley-agent-secrets-global
+  name: trolley-agent-service-account
 subjects:
-- kind: Group
-  name: manager # Name is case sensitive
-  apiGroup: rbac.authorization.k8s.io
+- kind: ServiceAccount
+  name: trolley-agent-service-account
+  namespace: default
 roleRef:
   kind: ClusterRole
   name: trolley-agent

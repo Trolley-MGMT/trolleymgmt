@@ -332,7 +332,6 @@ def insert_agents_data_object(agents_data_object: dict) -> bool:
     try:
         mongo_query = {CLUSTER_NAME.lower(): agents_data_object[CLUSTER_NAME.lower()]}
         existing_agents_data_object = agents_data.find_one(mongo_query)
-        logger.info(f'found user_object is: {existing_agents_data_object}')
         if existing_agents_data_object:
             result = agents_data.replace_one(existing_agents_data_object, agents_data_object)
             logger.info(f'agents_data_object was updated properly')

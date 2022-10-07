@@ -354,7 +354,7 @@ def delete_cluster():
 def insert_agent_data():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
-    logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+    logger.info(f'A request for {function_name} was requested')
     if mongo_handler.mongo_utils.insert_agents_data_object(content):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
     else:
