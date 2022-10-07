@@ -18,18 +18,18 @@ from web.mongo_handler.mongo_utils import retrieve_cluster_details
 from agent.k8s_client.api_client import K8sApiClient
 
 # logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-# logger = logging.getLogger()
-# if 'macOS' in platform.platform():
-#     log_path = f'{os.getcwd()}'
-# else:
-log_path = '/var/log/'
-file_name = 'agent_main'
+if 'macOS' in platform.platform():
+    log_path = f'{os.getcwd()}'
+    file_name = 'agent_main'
+else:
+    log_path = '/var/log/'
+    file_name = 'agent_main'
 
 
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 logger = logging.getLogger()
 
-fileHandler = logging.FileHandler("{0}/{1}.log".format(log_path, file_name))
+fileHandler = logging.FileHandler(f"{log_path}/{file_name}")
 logging.StreamHandler(sys.stdout)
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)

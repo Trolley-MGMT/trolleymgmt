@@ -1,5 +1,7 @@
 import getpass
 import logging
+import os
+import platform
 
 import kubernetes.config
 from kubernetes.client import ApiClient
@@ -8,8 +10,12 @@ KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 logger = logging.getLogger()
-log_path = '/var/log/'
-file_name = 'agent_main2.log'
+if 'macOS' in platform.platform():
+    log_path = f'{os.getcwd()}'
+    file_name = 'agent_main2'
+else:
+    log_path = '/var/log/'
+    file_name = 'agent_main2'
 fileHandler = logging.FileHandler(f"{log_path}/{file_name}")
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
