@@ -25,17 +25,29 @@ else:
     file_name = 'agent_main.log'
 
 
-logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-logger = logging.getLogger()
 
-fileHandler = logging.FileHandler(f"{log_path}/{file_name}")
-logging.StreamHandler(sys.stdout)
-fileHandler.setFormatter(logFormatter)
-logger.addHandler(fileHandler)
 
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(logFormatter)
-logger.addHandler(consoleHandler)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(f"{log_path}/{file_name}"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+
+
+# logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+# logger = logging.getLogger()
+#
+# fileHandler = logging.FileHandler(f"{log_path}/{file_name}")
+# logging.StreamHandler(sys.stdout)
+# fileHandler.setFormatter(logFormatter)
+# logger.addHandler(fileHandler)
+#
+# consoleHandler = logging.StreamHandler()
+# consoleHandler.setFormatter(logFormatter)
+# logger.addHandler(consoleHandler)
 
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
