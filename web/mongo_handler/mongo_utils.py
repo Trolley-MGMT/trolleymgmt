@@ -60,7 +60,6 @@ fs = gridfs.GridFS(db)
 agents_data: Collection = db.agents_data
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
-logger.info(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
 logger.info(f'MONGO_URL is: {MONGO_URL}')
 logger.info(f'PROJECT_NAME is: {PROJECT_NAME}')
 
