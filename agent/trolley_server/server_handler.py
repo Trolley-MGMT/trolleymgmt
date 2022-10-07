@@ -1,7 +1,27 @@
 import json
+import logging
+import os
+import platform
+import sys
 from dataclasses import asdict
 
-from requests import post
+from requests import post, exceptions
+
+if 'macOS' in platform.platform():
+    log_path = f'{os.getcwd()}'
+    file_name = 'agent_main.log'
+else:
+    log_path = '/var/log/'
+    file_name = 'agent_main.log'
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(f"{log_path}/{file_name}"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 
 class ServerRequest:
@@ -22,4 +42,7 @@ class ServerRequest:
 
     def send_server_request(self):
         request_url = self.build_request_url(self)
-        post(url=request_url, json=asdict(self.agent_data))
+        try:
+            post(url=request_url, json=asdict(self.agent_data))
+        except exceptions.RequestException as e:  # This is the correct syntax
+            logging.error(f'post request failed with the following message: {e}')

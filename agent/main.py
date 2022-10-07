@@ -33,25 +33,13 @@ logging.basicConfig(
     ]
 )
 
-# logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-# logging = logging.getlogging()
-#
-# fileHandler = logging.FileHandler(f"{log_path}/{file_name}")
-# logging.StreamHandler(sys.stdout)
-# fileHandler.setFormatter(logFormatter)
-# logging.addHandler(fileHandler)
-#
-# consoleHandler = logging.StreamHandler()
-# consoleHandler.setFormatter(logFormatter)
-# logging.addHandler(consoleHandler)
-
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
 DEBUG_MODE = json.loads(os.environ.get('DEBUG_MODE', 'false').lower())
 SERVER_URL = os.environ.get('SERVER_URL', 'https://77c0-2a0d-6fc2-41e0-1500-e5ed-d9ed-795c-d1a8.eu.ngrok.io')
 INTERNAL_CLUSTER_MODE = json.loads(os.environ.get('INTERNAL_CLUSTER_MODE', 'true').lower())
 CLUSTER_NAME = os.environ.get('CLUSTER_NAME', 'pavelzagalsky-gke-qjeigibl')
-CONTEXT_NAME = os.environ.get('CONTEXT_NAME', '')
+CONTEXT_NAME = os.environ.get('CONTEXT_NAME', 'minikube')
 CLUSTER_TYPE = os.environ.get('CLUSTER_TYPE', 'gke')
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "5"))
 
@@ -98,14 +86,6 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     daemonsets = fetch_daemonsets_list(apis_api, namespaces)
     stateful_sets = fetch_stateful_sets_list(apis_api, namespaces)
     services = fetch_services_list(k8s_api, namespaces)
-
-    logging.info(f'The namespaces are: {namespaces}')
-    logging.info(f'The deployments are: {deployments}')
-    logging.info(f'The pods are: {pods}')
-    logging.info(f'The containers are: {containers}')
-    logging.info(f'The daemonsets are: {daemonsets}')
-    logging.info(f'The stateful_sets are: {stateful_sets}')
-    logging.info(f'The services are: {services}')
 
     agents_data_object = AgentsDataObject(cluster_name=cluster_name, context_name=context_name, namespaces=namespaces,
                                           deployments=deployments, stateful_sets=stateful_sets, pods=pods,

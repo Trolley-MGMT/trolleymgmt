@@ -2,27 +2,28 @@ import getpass
 import logging
 import os
 import platform
+import sys
 
 import kubernetes.config
 from kubernetes.client import ApiClient
 
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
-logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-logger = logging.getLogger()
 if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
-    file_name = 'agent_main2'
+    file_name = 'agent_main.log'
 else:
     log_path = '/var/log/'
-    file_name = 'agent_main2'
-fileHandler = logging.FileHandler(f"{log_path}/{file_name}")
-fileHandler.setFormatter(logFormatter)
-logger.addHandler(fileHandler)
+    file_name = 'agent_main.log'
 
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(logFormatter)
-logger.addHandler(consoleHandler)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(f"{log_path}/{file_name}"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 
 class K8sApiClient:
@@ -38,15 +39,13 @@ class K8sApiClient:
                 kubernetes.config.load_incluster_config()
                 return ApiClient()
             except kubernetes.config.ConfigException:
-                logger.error(f'Error loading incluster configuration')
-        if self.debug_mode:
+                logging.error(f'Error loading incluster configuration')
+        else:
             clusters_contexts, _ = kubernetes.config.list_kube_config_contexts()
             for cluster_context in clusters_contexts:
                 if cluster_context['name'] == self.context_name:
-                    logger.info(f'Loading configuration for {self.context_name} context name')
+                    logging.info(f'Loading configuration for {self.context_name} context name')
                     api_client = kubernetes.config.new_client_from_config(context=self.context_name)
                     return api_client
             api_client = kubernetes.config.new_client_from_config(config_file=KUBECONFIG_TEMP_PATH)
             return api_client
-        kubernetes.config.load_incluster_config()
-        return ApiClient()
