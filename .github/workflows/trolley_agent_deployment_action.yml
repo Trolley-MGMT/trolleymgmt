@@ -5,7 +5,7 @@ on:
       cluster_name:
         required: true
         description: cluster_name to install the Agent on
-        default: pavelzagalsky-gke-hbjiybks
+        default: pavelzagalsky-gke-vkukhxio
       cluster_type:
         required: true
         description: cluster_type to install the Agent on
