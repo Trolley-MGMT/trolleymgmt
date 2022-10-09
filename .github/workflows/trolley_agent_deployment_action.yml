@@ -41,14 +41,27 @@ jobs:
         with:
           python-version: 3.9
 
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+      - name: Use gcloud CLI
+        run: gcloud info
+      - name: Installing GKE Cluster
+        run: |
+          gcloud components install beta --quiet
+          gcloud components install gke-gcloud-auth-plugin
+          
       - name: Echo the values
         run: |
-          echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
-          echo "cluster_type is: ${{ github.event.client_payload.cluster_type }}"
-          echo "mongo_user is: ${{ github.event.client_payload.mongo_user }}"
-          echo "mongo_password is: ${{ github.event.client_payload.mongo_password }}"
-          echo "mongo_url are: ${{ github.event.client_payload.mongo_url }}"
-          echo "server_url is: ${{ github.event.client_payload.server_url }}"
+          echo "cluster_name is: ${{ github.event.inputs.cluster_name }}"
+          echo "cluster_type is: ${{ github.event.inputs.cluster_type }}"
+          echo "mongo_user is: ${{ github.event.inputs.mongo_user }}"
+          echo "mongo_password is: ${{ github.event.inputs.mongo_password }}"
+          echo "mongo_url are: ${{ github.event.inputs.mongo_url }}"
+          echo "server_url is: ${{ github.event.inputs.server_url }}"
         env:
           KUBECONFIG: /home/runner/.kube/config
 
