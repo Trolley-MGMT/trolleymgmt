@@ -49,11 +49,11 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
         run: gcloud info
-      - name: Installing GKE Cluster
+      - name: Setting up GKE Cloud
         run: |
           gcloud components install beta --quiet
           gcloud components install gke-gcloud-auth-plugin
-          
+
       - name: Echo the values
         run: |
           echo "cluster_name is: ${{ github.event.inputs.cluster_name }}"
@@ -64,6 +64,12 @@ jobs:
           echo "server_url is: ${{ github.event.inputs.server_url }}"
         env:
           KUBECONFIG: /home/runner/.kube/config
+          CLUSTER_NAME: ${{ github.event.inputs.cluster_name }}
+          CLUSTER_TYPE: ${{ github.event.inputs.cluster_type }}
+          MONGO_USER: ${{ github.event.inputs.mongo_user }}
+          MONGO_PASSWORD: ${{ github.event.inputs.mongo_password }}
+          MONGO_URL: ${{ github.event.inputs.mongo_url }}
+          SERVER_URL: ${{ github.event.inputs.server_url }}
 
       - name: Prepare the YAML and deploy
         run: |
