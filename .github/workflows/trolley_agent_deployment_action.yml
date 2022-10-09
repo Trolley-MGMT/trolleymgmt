@@ -65,15 +65,16 @@ jobs:
           
           CLUSTER_NAME="${{ github.event.inputs.cluster_name }}"
           echo "CLUSTER_NAME=${CLUSTER_NAME}" >> $GITHUB_ENV
-          
-        env:
-          KUBECONFIG: /home/runner/.kube/config
-          CLUSTER_NAME: ${{ github.event.inputs.cluster_name }}
-          CLUSTER_TYPE: ${{ github.event.inputs.cluster_type }}
-          MONGO_USER: ${{ github.event.inputs.mongo_user }}
-          MONGO_PASSWORD: ${{ github.event.inputs.mongo_password }}
-          MONGO_URL: ${{ github.event.inputs.mongo_url }}
-          SERVER_URL: ${{ github.event.inputs.server_url }}
+          CLUSTER_TYPE="${{ github.event.inputs.cluster_type }}"
+          echo "CLUSTER_TYPE=${CLUSTER_TYPE}" >> $GITHUB_ENV
+          MONGO_USER="${{ github.event.inputs.mongo_user }}"
+          echo "MONGO_USER=${MONGO_USER}" >> $GITHUB_ENV
+          MONGO_PASSWORD="${{ github.event.inputs.mongo_password }}"
+          echo "MONGO_PASSWORD=${MONGO_PASSWORD}" >> $GITHUB_ENV
+          MONGO_URL="${{ github.event.inputs.mongo_url }}"
+          echo "MONGO_URL=${MONGO_URL}" >> $GITHUB_ENV
+          SERVER_URL="${{ github.event.inputs.server_url }}"
+          echo "SERVER_URL=${SERVER_URL}" >> $GITHUB_ENV
 
       - name: Prepare the YAML and deploy
         run: |
