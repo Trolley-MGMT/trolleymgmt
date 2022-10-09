@@ -19,11 +19,7 @@ MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD', 'password')
 MONGO_URL = os.environ.get('MONGO_URL', 'localhost')
 KUBECONFIG_PATH = os.environ.get('KUBECONFIG_PATH', '/home/runner/.kube/config')
 
-if 'macOS' in platform.platform():
-    log_path = f'{os.getcwd()}'
-else:
-    log_path = '/var/log/'
-
+log_path = f'{os.getcwd()}'
 log_file_name = 'agent_main.log'
 trolley_deployment_path = f'{os.getcwd()}'
 deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/")[:-1])
