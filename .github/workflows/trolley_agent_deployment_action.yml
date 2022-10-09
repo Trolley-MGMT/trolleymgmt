@@ -62,6 +62,10 @@ jobs:
           echo "mongo_password is: ${{ github.event.inputs.mongo_password }}"
           echo "mongo_url are: ${{ github.event.inputs.mongo_url }}"
           echo "server_url is: ${{ github.event.inputs.server_url }}"
+          
+          CLUSTER_NAME="${{ github.event.inputs.cluster_name }}"
+          echo "CLUSTER_NAME=${CLUSTER_NAME}" >> $GITHUB_ENV
+          
         env:
           KUBECONFIG: /home/runner/.kube/config
           CLUSTER_NAME: ${{ github.event.inputs.cluster_name }}
