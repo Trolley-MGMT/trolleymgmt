@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import platform
@@ -37,7 +36,6 @@ MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
-KUBECTL_COMMAND = 'kubectl'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

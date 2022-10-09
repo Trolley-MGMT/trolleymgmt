@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trolley-agent-deployment
+  labels:
+    app: trolley-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trolley-agent
+  template:
+    metadata:
+      name: trolley-agent
+      labels:
+        app: trolley-agent
+    spec:
+      containers:
+      - image: pavelzagalsky/trolley_agent:latest
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 1
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 256Mi
+        name: trolley-agent-container
+        volumeMounts:
+          - mountPath: /var/log
+            name: trolley-agent-logs
+        env:
+        - name: DEBUG_MODE
+          value: "false"
+        - name: INTERNAL_CLUSTER_MODE
+          value: "true"
+        - name: SERVER_URL
+          value: "https://35a1-2a0d-6fc2-41e0-1500-45c-42d0-af98-3f1.eu.ngrok.io"
+        - name: CLUSTER_NAME
+          value: ""
+        - name: CONTEXT_NAME
+          value: "minikube"
+        - name: CLUSTER_TYPE
+          value: "gke"
+        - name: FETCH_INTERVAL
+          value: "30"
+        - name: MONGO_USER
+          value: "pavel"
+        - name: MONGO_PASSWORD
+          value: "Pp59aa!!"
+        - name: MONGO_URL
+          value: "34.123.171.234"
+        - name: PROJECT_NAME
+          value: "trolley"
+      serviceAccountName: trolley-agent-service-account
+      volumes:
+        - emptyDir: { }
+          name: trolley-agent-logs
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: trolley-agent-service-account
+  namespace: default
+automountServiceAccountToken: true
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: trolley-agent
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: trolley-agent-service-account
+subjects:
+- kind: ServiceAccount
+  name: trolley-agent-service-account
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: trolley-agent
+  apiGroup: rbac.authorization.k8s.io
+

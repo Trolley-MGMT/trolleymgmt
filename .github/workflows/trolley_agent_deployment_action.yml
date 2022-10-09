@@ -1,0 +1,59 @@
+name: Trolley Agent Deployment Action
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        required: true
+        description: cluster_name to install the Agent on
+        default: pavelzagalsky-gke-hbjiybks
+      cluster_type:
+        required: true
+        description: cluster_type to install the Agent on
+        default: gke
+      mongo_user:
+        required: true
+        description: The Mongo DB User of the Trolley Service
+        default: pavel
+      mongo_password:
+        required: true
+        description: The Mongo DB Password of the Trolley Service
+        default: pavel
+      mongo_url:
+        required: true
+        description: The URL of the Mongo DB Server
+        default: https://35a1-2a0d-6fc2-41e0-1500-45c-42d0-af98-3f1.eu.ngrok.io
+      server_url:
+        required: true
+        description: The URL of the Trolley Server
+        default: https://35a1-2a0d-6fc2-41e0-1500-45c-42d0-af98-3f1.eu.ngrok.io
+
+
+jobs:
+  trolley_agent_docker_deployment:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Echo the values
+        run: |
+          echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
+          echo "cluster_type is: ${{ github.event.client_payload.cluster_type }}"
+          echo "mongo_user is: ${{ github.event.client_payload.mongo_user }}"
+          echo "mongo_password is: ${{ github.event.client_payload.mongo_password }}"
+          echo "mongo_url are: ${{ github.event.client_payload.mongo_url }}"
+          echo "server_url is: ${{ github.event.client_payload.server_url }}"
+        env:
+          KUBECONFIG: /home/runner/.kube/config
+
+      - name: Prepare the YAML and deploy
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          pip3 install -r web/requirements.txt
+          python3 deployment_utils/trolley_agent_deployment.py

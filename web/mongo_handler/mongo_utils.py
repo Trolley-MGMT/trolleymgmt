@@ -38,7 +38,7 @@ else:
         USER_NAME, USER_EMAIL, HELM
 
 MONGO_URL = os.environ['MONGO_URL']
-PROJECT_NAME = os.environ['PROJECT_NAME']
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley')
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
 
@@ -149,7 +149,7 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
 
 
 def retrieve_cluster_details(cluster_type: str, cluster_name: str) -> dict:
-    logger.info(f'A request to fetch {cluster_type} details was received')
+    logger.info(f'A request to fetch {cluster_name} details was received')
     if cluster_type == GKE:
         cluster_object = gke_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     elif cluster_type == GKE_AUTOPILOT:
@@ -160,6 +160,13 @@ def retrieve_cluster_details(cluster_type: str, cluster_name: str) -> dict:
         cluster_object = aks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     else:
         cluster_object = []
+    del cluster_object['_id']
+    return cluster_object
+
+
+def retrieve_agent_cluster_details(cluster_name: str) -> dict:
+    logger.info(f'A request to fetch {cluster_name} details was received')
+    cluster_object = agents_data.find_one({CLUSTER_NAME.lower(): cluster_name})
     del cluster_object['_id']
     return cluster_object
 

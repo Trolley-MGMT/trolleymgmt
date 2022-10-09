@@ -44,5 +44,5 @@ class ServerRequest:
         request_url = self.build_request_url(self)
         try:
             post(url=request_url, json=asdict(self.agent_data))
-        except exceptions.RequestException as e:  # This is the correct syntax
+        except exceptions.RequestException as e:
             logging.error(f'post request failed with the following message: {e}')

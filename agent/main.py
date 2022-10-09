@@ -19,10 +19,9 @@ from agent.k8s_client.api_client import K8sApiClient
 
 if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
-    file_name = 'agent_main.log'
 else:
     log_path = '/var/log/'
-    file_name = 'agent_main.log'
+file_name = 'agent_main.log'
 
 logging.basicConfig(
     level=logging.INFO,

@@ -208,6 +208,14 @@ def get_clusters_data():
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
+@app.route('/get_agent_cluster_data', methods=[GET])
+# @login_required
+def get_agent_cluster_data():
+    cluster_name = request.args.get(CLUSTER_NAME.lower())
+    cluster_object = mongo_handler.mongo_utils.retrieve_agent_cluster_details(cluster_name)
+    return Response(json.dumps(cluster_object), status=200, mimetype=APPLICATION_JSON)
+
+
 # @app.route('/trigger_cluster_deployment', methods=[POST])
 # def trigger_cluster_deployment():
 #     content = request.get_json()
