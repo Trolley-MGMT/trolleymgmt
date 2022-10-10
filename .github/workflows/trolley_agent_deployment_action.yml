@@ -45,14 +45,14 @@ jobs:
         uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
-      - name: Use gcloud CLI
-        run: gcloud info
-      - name: Setting up GKE Cloud
-        run: |
-          gcloud components install beta --quiet
-          gcloud components install gke-gcloud-auth-plugin
+#      - name: Set up Cloud SDK
+#        uses: google-github-actions/setup-gcloud@v0
+#      - name: Use gcloud CLI
+#        run: gcloud info
+#      - name: Setting up GKE Cloud
+#        run: |
+#          gcloud components install beta --quiet
+#          gcloud components install gke-gcloud-auth-plugin
 
       - name: Echo the values
         run: |
