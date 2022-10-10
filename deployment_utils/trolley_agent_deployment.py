@@ -22,12 +22,13 @@ KUBECONFIG_PATH = os.environ.get('KUBECONFIG_PATH', '/home/runner/.kube/config')
 if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
     trolley_deployment_path = f'{os.getcwd()}'
+    deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/")[:-1])
 else:
     log_path = '/home/runner/work/Trolley-Management/Trolley-Management'
     trolley_deployment_path = '/home/runner/work/Trolley-Management/Trolley-Management'
+    deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/"))
 
 log_file_name = 'agent_main.log'
-deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/")[:-1])
 deployment_yaml_path = f'{deployment_yaml_path_}/agent/agent_deployment_yamls'
 base_trolley_agent_full_path = f'{deployment_yaml_path}/full_agent_deployment.yml'
 edited_trolley_agent_full_path = f'{deployment_yaml_path}/edited_agent_deployment.yml'
@@ -41,6 +42,12 @@ logging.basicConfig(
     ]
 )
 
+logging.info(f'deployment_yaml_path_ is {deployment_yaml_path_}')
+logging.info(f'deployment_yaml_path is {deployment_yaml_path}')
+logging.info(f'base_trolley_agent_full_path is {base_trolley_agent_full_path}')
+logging.info(f'edited_trolley_agent_full_path is {edited_trolley_agent_full_path}')
+logging.info(os.getcwd())
+logging.info(os.listdir())
 
 def main():
     kubeconfig_gen_command = f'gcloud container clusters get-credentials {CLUSTER_NAME} ' \
