@@ -47,9 +47,9 @@ spec:
         - name: MONGO_USER
           value: "pavel"
         - name: MONGO_PASSWORD
-          value: "Pp59aa!!"
+          value: ""
         - name: MONGO_URL
-          value: "34.123.171.234"
+          value: ""
         - name: PROJECT_NAME
           value: "trolley"
       serviceAccountName: trolley-agent-service-account
