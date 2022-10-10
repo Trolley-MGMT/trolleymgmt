@@ -6,8 +6,7 @@ import sys
 from subprocess import PIPE, run
 
 import yaml
-from kubernetes import  config
-
+from kubernetes import config
 
 SERVER_URL = os.environ.get('SERVER_URL', 'https://something.eu.ngrok.io')
 CLUSTER_NAME = os.environ.get('CLUSTER_NAME', 'pavelzagalsky-gke-qjeigibl')
@@ -48,6 +47,7 @@ logging.info(f'base_trolley_agent_full_path is {base_trolley_agent_full_path}')
 logging.info(f'edited_trolley_agent_full_path is {edited_trolley_agent_full_path}')
 logging.info(os.getcwd())
 logging.info(os.listdir())
+
 
 def main():
     kubeconfig_gen_command = f'gcloud container clusters get-credentials {CLUSTER_NAME} ' \
