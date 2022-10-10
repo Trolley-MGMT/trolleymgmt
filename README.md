@@ -102,3 +102,8 @@ When the user clicks deploy, it triggers a Jenkins build which formulates the sp
 
 
 The project is still at a very early stage and would appreciate any contributions and feedback.  
+
+### GCP Authentication TBD
+This needs to be run to allow yaml deployments:
+
+gcloud projects add-iam-policy-binding <project_name> --member=<your_service_account>@developer.gserviceaccount.com --role=roles/container.admin

@@ -1,0 +1,50 @@
+name: Trolley Agent API Deployment Action
+on:
+  repository_dispatch:
+    types: trolley-agent-api-deployment-trigger
+
+jobs:
+  trigger-trolley-agent-api-deployment:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
+
+      - name: Echo the values
+        run: |
+          echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
+          echo "cluster_type is: ${{ github.event.client_payload.cluster_type }}"
+          echo "mongo_user is: ${{ github.event.client_payload.mongo_user }}"
+          echo "mongo_password is: ${{ github.event.client_payload.mongo_password }}"
+          echo "mongo_url are: ${{ github.event.client_payload.mongo_url }}"
+          echo "server_url is: ${{ github.event.client_payload.server_url }}"
+          
+          CLUSTER_NAME="${{ github.event.client_payload.cluster_name }}"
+          echo "CLUSTER_NAME=${CLUSTER_NAME}" >> $GITHUB_ENV
+          CLUSTER_TYPE="${{ github.event.client_payload.cluster_type }}"
+          echo "CLUSTER_TYPE=${CLUSTER_TYPE}" >> $GITHUB_ENV
+          MONGO_USER="${{ github.event.client_payload.mongo_user }}"
+          echo "MONGO_USER=${MONGO_USER}" >> $GITHUB_ENV
+          MONGO_PASSWORD="${{ github.event.client_payload.mongo_password }}"
+          echo "MONGO_PASSWORD=${MONGO_PASSWORD}" >> $GITHUB_ENV
+          MONGO_URL="${{ github.event.client_payload.mongo_url }}"
+          echo "MONGO_URL=${MONGO_URL}" >> $GITHUB_ENV
+          SERVER_URL="${{ github.event.client_payload.server_url }}"
+          echo "SERVER_URL=${SERVER_URL}" >> $GITHUB_ENV
+
+      - name: Prepare the YAML and deploy
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          pip3 install -r web/requirements.txt
+          python3 deployment_utils/trolley_agent_deployment.py

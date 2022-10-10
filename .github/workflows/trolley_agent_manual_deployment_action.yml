@@ -1,4 +1,4 @@
-name: Trolley Agent Deployment Action
+name: Trolley Agent API Deployment Action
 on:
   workflow_dispatch:
     inputs:

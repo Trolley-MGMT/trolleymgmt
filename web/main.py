@@ -25,7 +25,8 @@ from variables.variables import POST, GET, EKS, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
     CLUSTER_NAME
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
-    trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster
+    trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
+    trigger_trolley_agent_deployment_github_action
 from utils import random_string, apply_yaml
 
 REGISTRATION = False
@@ -47,7 +48,6 @@ logger.addHandler(fileHandler)
 consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
 logger.addHandler(consoleHandler)
-
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
@@ -257,6 +257,16 @@ def deploy_yaml_on_cluster():
     deployment_yaml = yaml.safe_load(yaml_content)
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     if apply_yaml(content[CLUSTER_TYPE], content[CLUSTER_NAME.lower()], deployment_yaml):
+        return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+
+
+@app.route('/deploy_trolley_agent_on_cluster', methods=[POST])
+# @login_required
+def deploy_trolley_agent_on_cluster():
+    content = request.get_json()
+    if trigger_trolley_agent_deployment_github_action(**content):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
     else:
         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
