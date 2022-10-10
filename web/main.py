@@ -202,6 +202,9 @@ def render_page(page_name: str = ''):
 @app.route('/get_clusters_data', methods=[GET])
 @login_required
 def get_clusters_data():
+    """
+    Ths endpoint allows providing basic clusters data that was gathered upon the clusters creation.
+    """
     cluster_type = request.args.get(CLUSTER_TYPE)
     user_name = request.args.get(USER_NAME.lower())
     clusters_list = mongo_handler.mongo_utils.retrieve_available_clusters(cluster_type, user_name)
@@ -209,8 +212,11 @@ def get_clusters_data():
 
 
 @app.route('/get_agent_cluster_data', methods=[GET])
-# @login_required
+@login_required
 def get_agent_cluster_data():
+    """
+    This endpoint allows providing an additional cluster data that is being collected by the deployed Trolley Agent
+    """
     cluster_name = request.args.get(CLUSTER_NAME.lower())
     cluster_object = mongo_handler.mongo_utils.retrieve_agent_cluster_details(cluster_name)
     return Response(json.dumps(cluster_object), status=200, mimetype=APPLICATION_JSON)
@@ -250,6 +256,9 @@ def get_agent_cluster_data():
 @app.route('/deploy_yaml_on_cluster', methods=[POST])
 @login_required
 def deploy_yaml_on_cluster():
+    """
+    This endpoint allows delivering a custom deployment using a YAML that was provided for a cluster
+    """
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     with open('trolley_service.yaml', "r") as f:
@@ -263,9 +272,14 @@ def deploy_yaml_on_cluster():
 
 
 @app.route('/deploy_trolley_agent_on_cluster', methods=[POST])
-# @login_required
+@login_required
 def deploy_trolley_agent_on_cluster():
+    """
+    This endpoint allows triggering a Trolley Agent deployment on a cluster
+    """
     content = request.get_json()
+    function_name = inspect.stack()[0][3]
+    logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     if trigger_trolley_agent_deployment_github_action(**content):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
     else:
@@ -275,14 +289,19 @@ def deploy_trolley_agent_on_cluster():
 @app.route('/trigger_gke_deployment', methods=[POST])
 @login_required
 def trigger_gke_deployment():
+    """
+    This endpoint triggers a GKE Cluster deployment
+    """
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     user_name = content['user_name']
     cluster_name = f'{user_name}-{GKE}-{random_string(8)}'
     content['cluster_name'] = cluster_name
-    trigger_gke_build_github_action(**content)
-    deployment_yaml_object = deployment_yaml_object_handling(content)
+    if trigger_gke_build_github_action(**content):
+        deployment_yaml_object = deployment_yaml_object_handling(content)
+    else:
+        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
     if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
     else:
@@ -292,14 +311,19 @@ def trigger_gke_deployment():
 @app.route('/trigger_eks_deployment', methods=[POST])
 @login_required
 def trigger_eks_deployment():
+    """
+    This endpoint triggers an EKS Cluster deployment
+    """
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     user_name = content['user_name']
     cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
-    trigger_eks_build_github_action(**content)
-    deployment_yaml_object = deployment_yaml_object_handling(content)
+    if trigger_eks_build_github_action(**content):
+        deployment_yaml_object = deployment_yaml_object_handling(content)
+    else:
+        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
     if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
     else:
@@ -309,14 +333,19 @@ def trigger_eks_deployment():
 @app.route('/trigger_aks_deployment', methods=[POST])
 @login_required
 def trigger_aks_deployment():
+    """
+    This endpoint allows an AKS Cluster deployment
+    """
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     user_name = content['user_name']
     cluster_name = f'{user_name}-{AKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
-    trigger_aks_build_github_action(**content)
-    deployment_yaml_object = deployment_yaml_object_handling(content)
+    if trigger_aks_build_github_action(**content):
+        deployment_yaml_object = deployment_yaml_object_handling(content)
+    else:
+        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
     if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
     else:
@@ -326,6 +355,9 @@ def trigger_aks_deployment():
 @app.route('/delete_expired_clusters', methods=[DELETE])
 @login_required
 def delete_expired_clusters():
+    """
+    Ths endpoint allows deletion of clusters that passed their expiration time
+    """
     content = request.get_json()
     expired_clusters_list = mongo_handler.mongo_utils.retrieve_expired_clusters(cluster_type=content['cluster_type'])
     for expired_cluster in expired_clusters_list:
@@ -341,7 +373,7 @@ def delete_expired_clusters():
 @login_required
 def delete_cluster():
     """
-    This request deletes
+    This request deletes a selected cluster
     """
     content = request.get_json()
     function_name = inspect.stack()[0][3]
@@ -368,8 +400,11 @@ def delete_cluster():
 
 
 @app.route('/insert_agent_data', methods=[POST])
-# @login_required
+@login_required
 def insert_agent_data():
+    """
+    This endpoint inserts data provided by a Trolley Agent
+    """
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested')
