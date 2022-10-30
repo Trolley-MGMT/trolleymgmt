@@ -161,6 +161,46 @@ $(document).ready(function() {
         })
     });
 
+
+    $("#add-provider-button").click(function() {
+        let data = ''
+
+        AWSAccessKeyID = $('#aws_access_key_id').val();
+        AWSSecretAccessKey = $('#aws_secret_access_key').val();
+        AzureCredentials = $('#azure_credentials').val();
+        GoogleCredsJSON = $('#google_creds_json').val();
+
+        let add_provider_data = JSON.stringify({
+            "aws_access_key_id": AWSAccessKeyID,
+            "aws_secret_access_key": AWSSecretAccessKey,
+            "azure_credentials": AzureCredentials,
+            "google_creds_json": GoogleCredsJSON
+        });
+
+
+        url = "http://" + trolley_url + ":" + port + "/provider";
+
+        swal_message = 'A request to add a provider was sent'
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(add_provider_data);
+
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: swal_message,
+            showConfirmButton: false,
+            timer: 5000
+        })
+    });
+
     function populate_kubernetes_clusters_objects() {
         url = "http://" + trolley_url + ":" + port + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'];
         $.ajax({
@@ -487,6 +527,28 @@ $(document).ready(function() {
         $("#gke-versions-dropdown").empty();
         populate_kubernetes_versions(gke_zones);
         populate_kubernetes_image_types(gke_zones);
+    })
+
+    $('#cloud-providers-dropdown').change(function() {
+        var cloud_provider = $('#cloud-providers-dropdown').val();
+        if (cloud_provider == "AWS") {
+            $("#AWSAccessKeyIDDiv").show();
+            $("#AWSSecretAccessKeyDiv").show();
+            $("#AzureCredentialsDiv").hide();
+            $("#GoogleCredsJSONDiv").hide();
+        }
+        else if (cloud_provider == "GCP") {
+            $("#AWSAccessKeyIDDiv").hide();
+            $("#AWSSecretAccessKeyDiv").hide();
+            $("#AzureCredentialsDiv").hide();
+            $("#GoogleCredsJSONDiv").show();
+        }
+        else if (cloud_provider == "Azure") {
+            $("#AWSAccessKeyIDDiv").hide();
+            $("#AWSSecretAccessKeyDiv").hide();
+            $("#AzureCredentialsDiv").show();
+            $("#GoogleCredsJSONDiv").hide();
+        }
     })
 
     $(document).on("click", ".btn", function() {

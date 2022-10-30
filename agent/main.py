@@ -74,7 +74,6 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     api_client = k8s_api_client.fetch_api_client()
     k8s_api = client.CoreV1Api(api_client=api_client)
     apis_api = client.AppsV1Api(api_client=api_client)
-
     namespaces = fetch_namespaces_list(k8s_api)
     deployments = fetch_deployments_list(apis_api, namespaces)
     pods = fetch_pods_list(k8s_api, namespaces)

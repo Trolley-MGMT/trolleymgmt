@@ -14,6 +14,16 @@ class UserObject:
 
 
 @dataclass
+class ProviderObject:
+    provider: str
+    aws_access_key_id: str
+    aws_secret_access_key: str
+    azure_credentials: str
+    google_creds_json: str
+    user_email: str
+
+
+@dataclass
 class GKEObject:
     cluster_name: str
     context_name: str

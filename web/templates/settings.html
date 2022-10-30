@@ -17,6 +17,12 @@
     <script>
       var data = {{ data|tojson }};
       console.log(data)
+
+
+
+
+
+
     </script>
 </head>
 
@@ -143,13 +149,13 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="manage-aks-clusters" class="nav-link">
+                                <a href="manage-aks-clusters" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="manage-eks-clusters" class="nav-link active">
+                                <a href="manage-eks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>EKS Clusters</p>
                                 </a>
@@ -198,77 +204,74 @@
                     <div id="clusters-data">
                     </div>
                 </div><!-- /.row -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Manage EKS clusters</h3>
+                <div class="col-md-6">
 
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                                <i class="fas fa-times"></i>
-                            </button>
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">Cloud Providers Credentials</h3>
                         </div>
+                        <select class="form-control" id="cloud-providers-dropdown">
+                            <option>AWS</option>
+                            <option>GCP</option>
+                            <option>Azure</option>
+                        </select>
+                        <div class="card-body">
+                            <div class="form-group" id="AWSAccessKeyIDDiv">
+                                <label for="aws_access_key_id">AWS Access Key ID</label>
+                                <input type="text" class="form-control form-control-border" id="aws_access_key_id"
+                                       placeholder="AKIAIOSFODNN7EXAMPLE">
+                            </div>
+                            <div class="form-group" id="AWSSecretAccessKeyDiv">
+                                <label for="aws_secret_access_key">AWS Access Key</label>
+                                <input type="text" class="form-control form-control-border" id="aws_secret_access_key"
+                                       placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY">
+                            </div>
+                            <div class="form-group" id="AzureCredentialsDiv" style="display:none">
+                                <label for="azure_credentials">Azure Credentials</label>
+                                <input type="text" class="form-control form-control-border" id="azure_credentials"
+                                       placeholder="d8er22sc-0000-5esd-be90-00r3fcywfs9s">
+                            </div>
+                            <div class="form-group" id="GoogleCredsJSONDiv" style="display:none">
+                                <label for="google_creds_json">Google Credentials JSON</label>
+                                <textarea class="form-control" rows="3" id="google_creds_json"
+                                          placeholder="Add the JSON here"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-info" id="add-provider-button">Add Provider</button>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped projects" id="eks-clusters-management-table">
-                        </table>
-                    </div>
-                    <!--                    -->
-                </div><!-- /.container-fluid -->
-            </div>
-            <!-- /.content-header -->
+                </div>
+                <!--                    -->
+            </div><!-- /.container-fluid -->
         </div>
-        <!-- /.content-wrapper -->
-        <!--        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"-->
-        <!--             aria-hidden="true">-->
-        <!--            <div class="modal-dialog" role="document">-->
-        <!--                <div class="modal-content">-->
-        <!--                    <div class="modal-header">-->
-        <!--                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>-->
-        <!--                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">-->
-        <!--                            <span aria-hidden="true">&times;</span>-->
-        <!--                        </button>-->
-        <!--                    </div>-->
-        <!--                    <div class="modal-body">-->
-        <!--                        Testing stuff-->
-        <!--                    </div>-->
-        <!--                    <div class="modal-footer">-->
-        <!--                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
-        <!--                        <button type="button" class="btn btn-primary" id="copyKubeconfig">Copy Kubeconfig</button>-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--            </div>-->
-        <!--        </div>-->
-        <!-- Control Sidebar -->
-        <aside class="control-sidebar control-sidebar-dark">
-            <!-- Control sidebar content goes here -->
-        </aside>
-        <!-- /.control-sidebar -->
-
-        <!-- Main Footer -->
-        <footer class="main-footer">
-            <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
-            All rights reserved.
-            <div class="float-right d-none d-sm-inline-block">
-                <b>Version</b> 0.1
-            </div>
-        </footer>
+        <!-- /.content-header -->
     </div>
-    <!-- ./wrapper -->
+    <aside class="control-sidebar control-sidebar-dark">
+        <!-- Control sidebar content goes here -->
+    </aside>
+    <!-- /.control-sidebar -->
 
-    <!-- REQUIRED SCRIPTS -->
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="static/script.js"></script>
-    <!-- Bootstrap 4 -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-            crossorigin="anonymous"></script>
-    <!-- AdminLTE App -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <!-- Main Footer -->
+    <footer class="main-footer">
+        <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
+        All rights reserved.
+        <div class="float-right d-none d-sm-inline-block">
+            <b>Version</b> 0.1
+        </div>
+    </footer>
 </div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED SCRIPTS -->
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="static/script.js"></script>
+<!-- Bootstrap 4 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
+<!-- AdminLTE App -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
 </body>
 </html>

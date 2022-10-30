@@ -58,6 +58,7 @@ eks_cache: Collection = db.eks_cache
 fs = gridfs.GridFS(db)
 
 agents_data: Collection = db.agents_data
+providers_data: Collection = db.providers_data
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
 logger.info(f'MONGO_URL is: {MONGO_URL}')
@@ -270,9 +271,12 @@ def retrieve_user(user_email: str):
     logger.info(f'found user_object is: {user_object}')
     if not user_object:
         return None
-    profile_image_id = user_object['profile_image_id']
-    file = fs.find_one({"_id": profile_image_id})
-    user_object['profile_image'] = file
+    try:
+        profile_image_id = user_object['profile_image_id']
+        file = fs.find_one({"_id": profile_image_id})
+        user_object['profile_image'] = file
+    except:
+        pass
     return user_object
 
 
@@ -345,6 +349,29 @@ def insert_agents_data_object(agents_data_object: dict) -> bool:
             return result.raw_result['updatedExisting']
         else:
             result = agents_data.insert_one(agents_data_object)
+            if result.inserted_id:
+                logger.info(f'agents_data_object was inserted properly')
+                return True
+            else:
+                logger.error(f'agents_data_object was not inserted properly')
+                return False
+    except:
+        logger.error(f'agents_data_object was not inserted properly')
+
+
+def add_providers_data_object(providers_data_object: dict) -> bool:
+    """
+    @param providers_data_object: The filename of the image to save
+    """
+    try:
+        mongo_query = {CLUSTER_NAME.lower(): providers_data_object[CLUSTER_NAME.lower()]}
+        existing_providers_data_object = agents_data.find_one(mongo_query)
+        if existing_providers_data_object:
+            result = providers_data.replace_one(existing_providers_data_object, providers_data_object)
+            logger.info(f'agents_data_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = providers_data.insert_one(providers_data_object)
             if result.inserted_id:
                 logger.info(f'agents_data_object was inserted properly')
                 return True

@@ -19,7 +19,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import mongo_handler.mongo_utils
-from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
+from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject, ProviderObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
@@ -111,6 +111,19 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
         return True
     else:
         return False
+
+
+def add_provider(provider: str, aws_access_key_id: str, aws_secret_access_key: str, azure_credentials: str,
+                 google_creds_json: str, user_email: str):
+    hashed_aws_access_key_id = generate_password_hash(aws_access_key_id, method='sha256')
+    hashed_aws_secret_access_key = generate_password_hash(aws_secret_access_key, method='sha256')
+    hashed_azure_credentials = generate_password_hash(azure_credentials, method='sha256')
+    hashed_google_creds_json = generate_password_hash(google_creds_json, method='sha256')
+    provider_object = ProviderObject(provider=provider, aws_access_key_id=hashed_aws_access_key_id,
+                                     aws_secret_access_key=hashed_aws_secret_access_key,
+                                     azure_credentials=hashed_azure_credentials,
+                                     google_creds_json=hashed_google_creds_json, user_email=user_email)
+    pass
 
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
@@ -414,6 +427,22 @@ def insert_agent_data():
         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
+@app.route('/provider', methods=[GET, POST])
+@login_required
+def provider():
+    """
+    This endpoint adds a provider data
+    """
+    content = request.get_json()
+    function_name = inspect.stack()[0][3]
+    logger.info(f'A request for {function_name} was requested')
+    user_email = session['user_email']
+    if mongo_handler.mongo_utils.add_providers_data_object(content):
+        return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+
+
 @app.route('/healthz', methods=[GET, POST])
 def healthz():
     logger.info('A request was received')
@@ -517,7 +546,6 @@ def fetch_gke_image_types():
 
 
 @app.route('/register', methods=[GET, POST])
-@login_required
 def register():
     if request.method == 'GET':
         return render_template('register.html')
@@ -535,9 +563,9 @@ def register():
             file_path = f'{first_name}{last_name}.{image_extension}'
             FileStorage(profile_image.save(os.path.join(app.config['UPLOAD_FOLDER'], file_path)))
 
-        if not REGISTRATION:
-            return render_template('login.html',
-                                   error_message='Registration is closed at the moment')
+        # if not REGISTRATION:
+        #     return render_template('login.html',
+        #                            error_message='Registration is closed at the moment')
         if not first_name:
             return render_template('register.html',
                                    error_message=f'Dear {first_name}, your first name was not entered correctly. '
@@ -546,9 +574,6 @@ def register():
             return render_template('register.html',
                                    error_message=f'Dear {first_name}, your last name was not entered correctly. '
                                                  f'Please try again')
-        if not first_name:
-            return render_template('register.html',
-                                   error_message=f'Your first name was not entered correctly. Please try again')
         if not password:
             return render_template('register.html',
                                    error_message=f'Dear {first_name}, your password was not entered correctly. '
@@ -620,6 +645,11 @@ def manage_aks_clusters():
 @app.route('/manage-gke-clusters', methods=[GET, POST])
 def manage_gke_clusters():
     return render_page('manage-gke-clusters.html')
+
+
+@app.route('/settings', methods=[GET, POST])
+def settings():
+    return render_page('settings.html')
 
 
 @app.route('/logout', methods=[GET, POST])
