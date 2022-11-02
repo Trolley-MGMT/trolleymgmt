@@ -23,11 +23,12 @@ from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject, Provid
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-    CLUSTER_NAME
+    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ
 from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
     trigger_trolley_agent_deployment_github_action
 from utils import random_string, apply_yaml
+from web.mongo_handler.mongo_objects import ProviderObject
 
 REGISTRATION = False
 CUR_DIR = os.getcwd()
@@ -48,15 +49,6 @@ logger.addHandler(fileHandler)
 consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
 logger.addHandler(consoleHandler)
-
-# logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
-#
-# handler = logging.FileHandler('../trolley.log')
-# handler.setLevel(logging.DEBUG)
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# handler.setFormatter(formatter)
-# logger.addHandler(handler)
 
 logger.info(f'The current directory is: {CUR_DIR}')
 logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
@@ -113,17 +105,16 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
         return False
 
 
-def add_provider(provider: str, aws_access_key_id: str, aws_secret_access_key: str, azure_credentials: str,
-                 google_creds_json: str, user_email: str):
-    hashed_aws_access_key_id = generate_password_hash(aws_access_key_id, method='sha256')
-    hashed_aws_secret_access_key = generate_password_hash(aws_secret_access_key, method='sha256')
-    hashed_azure_credentials = generate_password_hash(azure_credentials, method='sha256')
-    hashed_google_creds_json = generate_password_hash(google_creds_json, method='sha256')
-    provider_object = ProviderObject(provider=provider, aws_access_key_id=hashed_aws_access_key_id,
+def encode_provider_details(content: dict) -> ProviderObject:
+    hashed_aws_access_key_id = generate_password_hash(content['aws_access_key_id'], method='sha256')
+    hashed_aws_secret_access_key = generate_password_hash(content['aws_secret_access_key'], method='sha256')
+    hashed_azure_credentials = generate_password_hash(content['azure_credentials'], method='sha256')
+    hashed_google_creds_json = generate_password_hash(content['google_creds_json'], method='sha256')
+    provider_object = ProviderObject(provider=content[PROVIDER], aws_access_key_id=hashed_aws_access_key_id,
                                      aws_secret_access_key=hashed_aws_secret_access_key,
                                      azure_credentials=hashed_azure_credentials,
-                                     google_creds_json=hashed_google_creds_json, user_email=user_email)
-    pass
+                                     google_creds_json=hashed_google_creds_json, user_email=content['user_email'])
+    return provider_object
 
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
@@ -195,6 +186,24 @@ def login_required(f):
             return False
 
     return decorated_function
+
+
+def validate_provider_data(content: dict) -> bool:
+    if content[PROVIDER] == AWS:
+        if not content['aws_access_key_id'] or not content['aws_secret_access_key']:
+            return False
+        else:
+            return True
+    elif content[PROVIDER] == GCP:
+        if not content['google_creds_json']:
+            return False
+        else:
+            return True
+    elif content[PROVIDER] == AZ:
+        if not content['azure_credentials']:
+            return False
+        else:
+            return True
 
 
 def render_page(page_name: str = ''):
@@ -436,9 +445,13 @@ def provider():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested')
-    user_email = session['user_email']
-    if mongo_handler.mongo_utils.add_providers_data_object(content):
-        return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    content['user_email'] = session['user_email']
+    if validate_provider_data(content):
+        # encoded_provider_details = encode_provider_details(content)
+        if mongo_handler.mongo_utils.add_providers_data_object(asdict(content)):
+            return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+        else:
+            return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
     else:
         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 

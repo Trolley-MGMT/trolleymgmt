@@ -164,13 +164,15 @@ $(document).ready(function() {
 
     $("#add-provider-button").click(function() {
         let data = ''
-
+        var cloud_provider = $('#cloud-providers-dropdown').val().toLowerCase();
         AWSAccessKeyID = $('#aws_access_key_id').val();
         AWSSecretAccessKey = $('#aws_secret_access_key').val();
         AzureCredentials = $('#azure_credentials').val();
         GoogleCredsJSON = $('#google_creds_json').val();
 
+
         let add_provider_data = JSON.stringify({
+            "provider": cloud_provider,
             "aws_access_key_id": AWSAccessKeyID,
             "aws_secret_access_key": AWSSecretAccessKey,
             "azure_credentials": AzureCredentials,
@@ -181,7 +183,20 @@ $(document).ready(function() {
         url = "http://" + trolley_url + ":" + port + "/provider";
 
         swal_message = 'A request to add a provider was sent'
+        var forms = document.querySelectorAll('.needs-validation')
 
+          // Loop over them and prevent submission
+          Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+              form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                }
+
+                form.classList.add('was-validated')
+              }, false)
+            })
         const xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -613,6 +628,27 @@ $(document).ready(function() {
         });
 
     }
+
+        // Example starter JavaScript for disabling form submissions if there are invalid fields
+//    (function () {
+//      'use strict'
+
+      // Fetch all the forms we want to apply custom Bootstrap validation styles to
+//      var forms = document.querySelectorAll('.needs-validation')
+//
+//      // Loop over them and prevent submission
+//      Array.prototype.slice.call(forms)
+//        .forEach(function (form) {
+//          form.addEventListener('submit', function (event) {
+//            if (!form.checkValidity()) {
+//              event.preventDefault()
+//              event.stopPropagation()
+//            }
+//
+//            form.classList.add('was-validated')
+//          }, false)
+//        })
+//    })()
     //    function copyToClipboard(textToCopy) {
     //        // navigator clipboard api needs a secure context (https)
     //        if (navigator.clipboard && window.isSecureContext) {

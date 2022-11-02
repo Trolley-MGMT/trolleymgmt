@@ -17,5 +17,4 @@ COPY templates /app/templates
 COPY mongo_handler /app/mongo_handler
 COPY variables /app/variables
 
-#CMD ["ls" ]
 CMD ["python3",  "main.py" ]

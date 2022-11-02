@@ -11,12 +11,18 @@ PUT = 'PUT'
 GET = 'GET'
 POST = 'POST'
 
+# providers
+PROVIDER = 'provider'
+AWS = 'aws'
+GCP = 'gcp'
+AZ = 'azure'
+
 # GKE
 CLUSTER_TYPE = 'cluster_type'
 GKE = 'gke'
 GKE_AUTOPILOT = 'gke_autopilot'
 TROLLEY_PROJECT_NAME = 'trolley'
-GCP = 'gcp'
+
 
 # GENERAL
 HELM = 'helm'

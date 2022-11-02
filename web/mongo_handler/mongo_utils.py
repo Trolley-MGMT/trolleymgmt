@@ -2,6 +2,7 @@ import logging
 import os
 import platform
 import time
+from typing import Any
 
 import gridfs
 from bson import ObjectId
@@ -364,8 +365,8 @@ def add_providers_data_object(providers_data_object: dict) -> bool:
     @param providers_data_object: The filename of the image to save
     """
     try:
-        mongo_query = {CLUSTER_NAME.lower(): providers_data_object[CLUSTER_NAME.lower()]}
-        existing_providers_data_object = agents_data.find_one(mongo_query)
+        mongo_query = {'provider': providers_data_object['provider']}
+        existing_providers_data_object = providers_data.find_one(mongo_query)
         if existing_providers_data_object:
             result = providers_data.replace_one(existing_providers_data_object, providers_data_object)
             logger.info(f'agents_data_object was updated properly')
@@ -373,10 +374,10 @@ def add_providers_data_object(providers_data_object: dict) -> bool:
         else:
             result = providers_data.insert_one(providers_data_object)
             if result.inserted_id:
-                logger.info(f'agents_data_object was inserted properly')
+                logger.info(f'provider was inserted properly')
                 return True
             else:
-                logger.error(f'agents_data_object was not inserted properly')
+                logger.error(f'provider was not inserted properly')
                 return False
     except:
-        logger.error(f'agents_data_object was not inserted properly')
+        logger.error(f'provider data was not inserted properly')

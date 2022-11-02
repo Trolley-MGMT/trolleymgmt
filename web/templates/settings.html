@@ -23,6 +23,23 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </script>
 </head>
 
@@ -205,39 +222,46 @@
                     </div>
                 </div><!-- /.row -->
                 <div class="col-md-6">
-
                     <div class="card card-primary">
-                        <div class="card-header">
-                            <h3 class="card-title">Cloud Providers Credentials</h3>
-                        </div>
-                        <select class="form-control" id="cloud-providers-dropdown">
-                            <option>AWS</option>
-                            <option>GCP</option>
-                            <option>Azure</option>
-                        </select>
-                        <div class="card-body">
-                            <div class="form-group" id="AWSAccessKeyIDDiv">
-                                <label for="aws_access_key_id">AWS Access Key ID</label>
-                                <input type="text" class="form-control form-control-border" id="aws_access_key_id"
-                                       placeholder="AKIAIOSFODNN7EXAMPLE">
+                        <form class="row">
+                            <div class="card-body">
+                                <div class="card-header">
+                                    <h3 class="card-title">Cloud Providers Credentials</h3>
+                                </div>
+
+                                <select class="form-control" id="cloud-providers-dropdown">
+                                    <option>AWS</option>
+                                    <option>GCP</option>
+                                    <option>Azure</option>
+                                </select>
+                                <div id="AWSAccessKeyIDDiv">
+                                    <label for="aws_access_key_id" class="form-label">AWS Access Key</label>
+                                    <input type="text" class="form-control" id="aws_access_key_id"
+                                           placeholder="AKIAIOSFODNN7EXAMPLE" required>
+                                </div>
+                                <div id="AWSSecretAccessKeyDiv">
+                                    <label for="aws_secret_access_key" class="form-label">AWS Secret Access Key</label>
+                                    <input type="text" class="form-control" id="aws_secret_access_key"
+                                           placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" required>
+                                </div>
+                                <div id="AzureCredentialsDiv" style="display:none">
+                                    <label for="azure_credentials" class="form-label">Azure Credentials</label>
+                                    <input type="text" class="form-control" id="azure_credentials"
+                                           placeholder="d8er22sc-0000-5esd-be90-00r3fcywfs9s" required>
+                                </div>
+                                <div id="GoogleCredsJSONDiv" style="display:none">
+                                    <label for="google_creds_json" class="form-label">Google Cloud Credentials</label>
+                                    <textarea class="form-control" rows="3" id="google_creds_json"
+                                              placeholder="Add the JSON here"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-info" id="add-provider-button">Add Provider
+                                    </button>
+                                </div>
                             </div>
-                            <div class="form-group" id="AWSSecretAccessKeyDiv">
-                                <label for="aws_secret_access_key">AWS Access Key</label>
-                                <input type="text" class="form-control form-control-border" id="aws_secret_access_key"
-                                       placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY">
-                            </div>
-                            <div class="form-group" id="AzureCredentialsDiv" style="display:none">
-                                <label for="azure_credentials">Azure Credentials</label>
-                                <input type="text" class="form-control form-control-border" id="azure_credentials"
-                                       placeholder="d8er22sc-0000-5esd-be90-00r3fcywfs9s">
-                            </div>
-                            <div class="form-group" id="GoogleCredsJSONDiv" style="display:none">
-                                <label for="google_creds_json">Google Credentials JSON</label>
-                                <textarea class="form-control" rows="3" id="google_creds_json"
-                                          placeholder="Add the JSON here"></textarea>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-info" id="add-provider-button">Add Provider</button>
+                        </form>
+
+
                     </div>
                 </div>
                 <!--                    -->
