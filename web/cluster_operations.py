@@ -31,8 +31,8 @@ except:
 
 
 if 'Darwin' in platform.system() or run_env == 'github':
-    from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
-    from web.mongo_handler.mongo_utils import retrieve_cluster_details
+    from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+    from mongo_handler.mongo_utils import retrieve_cluster_details
 else:
     from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
     from mongo_handler.mongo_utils import retrieve_cluster_details

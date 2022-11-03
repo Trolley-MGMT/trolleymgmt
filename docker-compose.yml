@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+    - "8081:8081"
+    volumes:
+    - .:/opt
+    environment:
+      MONGO_URL: 34.123.171.234
+      MONGO_PASSWORD: Pp59aa!!
+      MONGO_USER: pavel
+      ACTION_TOKEN: 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
+      PROJECT_NAME: trolley
+      GITHUB_REPOSITORY: Trolley-MGMT/Trolley-Management
+      SECRET_KEY: s3cr3t_k3y
+volumes:
+  mongo-data:
+  mongo-configdb:

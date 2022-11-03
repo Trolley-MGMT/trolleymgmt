@@ -277,7 +277,7 @@ def retrieve_user(user_email: str):
         file = fs.find_one({"_id": profile_image_id})
         user_object['profile_image'] = file
     except:
-        pass
+        logger.error(f'There was a problem here')
     return user_object
 
 

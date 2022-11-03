@@ -24,31 +24,31 @@ from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ
-from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
+from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
     trigger_trolley_agent_deployment_github_action
-from utils import random_string, apply_yaml
+from web.utils import random_string, apply_yaml
 from web.mongo_handler.mongo_objects import ProviderObject
 
 REGISTRATION = False
 CUR_DIR = os.getcwd()
 PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 
-logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-logger = logging.getLogger()
-
-if MACOS in platform.platform():
-    log_path = f'{os.getcwd()}'
-else:
-    log_path = '/var/log/'
 file_name = 'server_main.log'
-fileHandler = logging.FileHandler("{0}/{1}".format(log_path, file_name))
-fileHandler.setFormatter(logFormatter)
-logger.addHandler(fileHandler)
+if MACOS in platform.platform():
+    log_path = f'{os.getcwd()}/{file_name}'
+else:
+    log_path = f'/var/log/{file_name}'
 
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(logFormatter)
-logger.addHandler(consoleHandler)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.FileHandler('server_main.log')
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 logger.info(f'The current directory is: {CUR_DIR}')
 logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
@@ -56,8 +56,9 @@ logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 PROJECT_NAME = os.getenv('PROJECT_NAME')
 
 app = Flask(__name__, template_folder='templates')
-logger.info(os.getenv('SECRET_KEY'))
+
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+logger.info(os.getenv('SECRET_KEY'))
 app.config['UPLOAD_FOLDER'] = ''
 
 if MACOS in platform.platform():
@@ -135,12 +136,15 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
     user_object = mongo_handler.mongo_utils.retrieve_user(user_email)
     logger.info(f'user_obj is: {user_object}')
     if not user_object:
+        logger.error('failed here')
         return '', {'user_email': user_email}
     session['user_email'] = user_email
     session['user_password'] = password
     try:
+        logger.info('trying here')
         session['first_name'] = user_object['first_name'].capitalize()
     except:
+        logger.error('failed here')
         redirect(url_for('login',
                          failure_message=f'username or password were not found in the system '
                                          f' please try again'))
@@ -161,7 +165,6 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                 logger.error(error)
                 logger.info(f'Failed to create a token')
                 token = ''
-            # decoded_token = token.decode("utf-8")
             session['x-access-token'] = token
             logger.info(f'The decoded token is: {token}')
             return token, user_object
@@ -183,7 +186,7 @@ def login_required(f):
             login_processor()
             return f(*args, **kwargs)
         except:
-            return False
+            return render_template('login.html')
 
     return decorated_function
 
