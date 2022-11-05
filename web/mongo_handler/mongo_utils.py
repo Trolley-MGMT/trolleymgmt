@@ -2,7 +2,6 @@ import logging
 import os
 import platform
 import time
-from typing import Any
 
 import gridfs
 from bson import ObjectId

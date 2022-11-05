@@ -6,20 +6,23 @@ services:
     - "8081:8081"
     volumes:
     - .:/opt
+    - $HOME/.aws/credentials:/home/app/.aws/credentials:ro
     environment:
       MONGO_URL: mongodb
       MONGO_PASSWORD: s3cr3t
       MONGO_USER: pavel
-      ACTION_TOKEN: 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
+      ACTION_TOKEN: ghp_
       PROJECT_NAME: trolley
       GITHUB_REPOSITORY: Trolley-MGMT/Trolley-Management
       SECRET_KEY: s3cr3t_k3y
+      AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials
+      AWS_DEFAULT_REGION: us-east-1
     networks:
       - frontend
       - backend
   mongodb:
     image: 'mongo'
-    container_name: 'mongo-db' # give your container a name
+    container_name: 'mongo-db'
     command: mongod --auth
     environment:
       - MONGO_INITDB_ROOT_USERNAME=pavel

@@ -18,4 +18,7 @@ COPY templates /app/templates
 COPY mongo_handler /app/mongo_handler
 COPY variables /app/variables
 
-CMD ["python3",  "main.py" ]
+ADD ../trolley_api.sh /trolley_api.sh
+ADD ../gke_cache.sh /gke_cache.sh
+RUN chmod +x trolley_api.sh gke_cache.sh
+#CMD ["python3",  "main.py" ]

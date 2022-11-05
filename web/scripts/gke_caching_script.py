@@ -30,7 +30,8 @@ if 'Darwin' in platform.system():
 else:
     CREDENTIALS_PATH = '/tmp/google_credentials'
 
-GCP_PROJECT_ID = os.environ['GCP_PROJECT_ID']
+# GCP_PROJECT_ID = os.environ['GCP_PROJECT_ID']
+GCP_PROJECT_ID = 'trolley-361905'
 
 credentials = service_account.Credentials.from_service_account_file(
     CREDENTIALS_PATH)
