@@ -33,7 +33,6 @@ jobs:
         run: |
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install gcc
           brew doctor
           export KUBECONFIG=/home/runner/.kube/config
           aws sts get-caller-identity
