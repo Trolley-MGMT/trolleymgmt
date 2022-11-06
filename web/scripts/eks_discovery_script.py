@@ -28,7 +28,7 @@ LOCAL_USER = gt.getuser()
 if 'Darwin' in platform.system():
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
 else:
-    KUBECONFIG_PATH = '/home/app/.kube/config'
+    KUBECONFIG_PATH = '/root/.kube/config'
 
 
 def generate_kubeconfig(cluster_object: dict) -> dict:
