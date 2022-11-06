@@ -29,14 +29,12 @@ except:
     run_env = 'not github'
     logger.error('this does not run on github')
 
-
 if 'Darwin' in platform.system() or run_env == 'github':
     from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
     from mongo_handler.mongo_utils import retrieve_cluster_details
 else:
     from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
     from mongo_handler.mongo_utils import retrieve_cluster_details
-
 
 GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
@@ -69,12 +67,14 @@ def trigger_aks_build_github_action(cluster_name: str = '',
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
                      '-H \'Accept-Encoding: gzip, deflate\' ' \
                      '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
-                     '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
-                     '-d \'{"event_type": "aks-build-api-trigger", "client_payload": ' \
-                     '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", ' \
-                     '"num_nodes": "' + str(num_nodes) + '", "aks_location": "' + aks_location + '",  ' \
-                     '"helm_installs": "' + ','.join(helm_installs) + '", ' \
-                     '"expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
+                                                                          '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
+                                                                          '-d \'{"event_type": "aks-build-api-trigger", "client_payload": ' \
+                                                                          '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", ' \
+                                                                                                                                                      '"num_nodes": "' + str(
+        num_nodes) + '", "aks_location": "' + aks_location + '",  ' \
+                                                             '"helm_installs": "' + ','.join(helm_installs) + '", ' \
+                                                                                                              '"expiration_time": "' + str(
+        expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
     logger.info(f'Running the aks build command: {github_command}')
     try:
         response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
@@ -101,12 +101,13 @@ def trigger_gke_build_github_action(user_name: str = '',
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
                      '-H \'Accept-Encoding: gzip, deflate\' ' \
                      '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
-                     '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
-                     '-d \'{"event_type": "gke-build-api-trigger", "client_payload": ' \
-                     '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '",' \
-                     '"zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", ' \
-                     '"region_name": "' + gke_region + '", "num_nodes": "' + str(num_nodes) + '", ' \
-                     '"user_name": "' + user_name + '", "helm_installs": "' + ','.join(helm_installs) +  \
+                                                                          '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
+                                                                          '-d \'{"event_type": "gke-build-api-trigger", "client_payload": ' \
+                                                                          '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '",' \
+                                                                                                                                                      '"zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", ' \
+                                                                                                                                                                                                                        '"region_name": "' + gke_region + '", "num_nodes": "' + str(
+        num_nodes) + '", ' \
+                     '"user_name": "' + user_name + '", "helm_installs": "' + ','.join(helm_installs) + \
                      '", "expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
     logger.info(f'Running the gke build command: {github_command}')
     try:
@@ -118,7 +119,8 @@ def trigger_gke_build_github_action(user_name: str = '',
         return False
 
 
-def trigger_eks_build_github_action(cluster_name: str = '',
+def trigger_eks_build_github_action(user_name: str,
+                                    cluster_name: str = '',
                                     cluster_type: str = '',
                                     deployment_yaml: str = '',
                                     version: str = '',
@@ -134,13 +136,16 @@ def trigger_eks_build_github_action(cluster_name: str = '',
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
                      '-H \'Accept-Encoding: gzip, deflate\' ' \
                      '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
-                     '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
-                     '-d \'{"event_type": "eks-build-api-trigger", "client_payload": ' \
-                     '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", ' \
-                     '"zone_names": "' + ",".join(eks_zones) + '", "subnets": "' + ",".join(eks_subnets) + '", ' \
-                     '"num_nodes": "' + str(num_nodes) + '", "region_name": "' + eks_location + '",  ' \
-                     '"helm_installs": "' + ','.join(helm_installs) + '", ' \
-                     '"expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
+                                                                          '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
+                                                                          '-d \'{"event_type": "eks-build-api-trigger", "client_payload": ' \
+                                                                          '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", ' \
+                                                                                                                                                      '"zone_names": "' + ",".join(
+        eks_zones) + '", "subnets": "' + ",".join(eks_subnets) + '", ' \
+                                                                 '"num_nodes": "' + str(
+        num_nodes) + '", "region_name": "' + eks_location + '",  ' \
+                                                            '"helm_installs": "' + ','.join(helm_installs) + '", ' \
+                                                                                                             '"expiration_time": "' + str(
+        expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
     logger.info(f'Running the eks build command: {github_command}')
     try:
         response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
@@ -152,21 +157,21 @@ def trigger_eks_build_github_action(cluster_name: str = '',
 
 
 def trigger_trolley_agent_deployment_github_action(cluster_name: str = '',
-                                    cluster_type: str = '',
-                                    server_url: str = '',
-                                    mongo_user: str = '',
-                                    mongo_password: str = '',
-                                    mongo_url: str = '',
-                                    project_name: str = ''):
+                                                   cluster_type: str = '',
+                                                   server_url: str = '',
+                                                   mongo_user: str = '',
+                                                   mongo_password: str = '',
+                                                   mongo_url: str = '',
+                                                   project_name: str = ''):
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
                      '-H \'Accept-Encoding: gzip, deflate\' ' \
                      '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
-                     '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
-                     '-d \'{"event_type": "trolley-agent-api-deployment-trigger", "client_payload": ' \
-                     '{"cluster_name": "' + cluster_name + '", "cluster_type": "' + cluster_type + '",' \
-                     '"server_url": "' + server_url + '", "mongo_user": "' + mongo_user + '", ' \
-                     '"mongo_password": "' + mongo_password + '", "mongo_url": "' + mongo_url + '", ' \
-                     '"project_name": "' + project_name + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
+                                                                          '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
+                                                                          '-d \'{"event_type": "trolley-agent-api-deployment-trigger", "client_payload": ' \
+                                                                          '{"cluster_name": "' + cluster_name + '", "cluster_type": "' + cluster_type + '",' \
+                                                                                                                                                        '"server_url": "' + server_url + '", "mongo_user": "' + mongo_user + '", ' \
+                                                                                                                                                                                                                             '"mongo_password": "' + mongo_password + '", "mongo_url": "' + mongo_url + '", ' \
+                                                                                                                                                                                                                                                                                                        '"project_name": "' + project_name + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
     logger.info(f'Running the gke build command: {github_command}')
     try:
         response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)

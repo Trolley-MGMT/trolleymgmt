@@ -31,6 +31,7 @@ jobs:
           aws-region: us-east-1
       - name: Trigger EKS Build
         run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           export KUBECONFIG=/home/runner/.kube/config
           aws sts get-caller-identity
           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
