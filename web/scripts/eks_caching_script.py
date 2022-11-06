@@ -1,11 +1,11 @@
 from dataclasses import asdict
 import logging
-
 from web.mongo_handler.mongo_utils import insert_cache_object
 from web.mongo_handler.mongo_objects import EKSCacheObject
 from web.variables.variables import EKS
 
 import boto3
+
 ec2 = boto3.client('ec2')
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def fetch_regions():
+def fetch_regions() -> list:
     logger.info(f'A request to fetch regions has arrived')
     response = ec2.describe_regions()
     regions_list = []
@@ -63,6 +63,7 @@ def fetch_subnets(zones_list: list) -> dict:
 
 
 def main():
+    # add kubernetes versions
     regions_list = fetch_regions()
     zones_list = fetch_zones()
     regions_zones_dict = {}

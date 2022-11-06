@@ -120,6 +120,11 @@ class EKSCacheObject:
 
 
 @dataclass
+class EKSDiscoveryObject:
+    clusters_list: list
+
+
+@dataclass
 class AKSCacheObject:
     locations_dict: dict
 

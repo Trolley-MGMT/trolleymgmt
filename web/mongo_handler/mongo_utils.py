@@ -55,6 +55,11 @@ aks_cache: Collection = db.aks_cache
 gke_cache: Collection = db.gke_cache
 helm_cache: Collection = db.helm_cache
 eks_cache: Collection = db.eks_cache
+
+aks_discovery: Collection = db.aks_discovery
+gke_discovery: Collection = db.gke_discovery
+eks_discovery: Collection = db.eks_discovery
+
 fs = gridfs.GridFS(db)
 
 agents_data: Collection = db.agents_data
@@ -244,6 +249,43 @@ def insert_cache_object(caching_object: dict = None, provider: str = None) -> bo
             return True
         except:
             logger.error('failure to insert data into helm_cache table')
+            return False
+
+
+def insert_discovery_object(discovery_object: dict = None, provider: str = None) -> bool:
+    """
+    @param discovery_object: The dictionary with all the discovered clusters' data.
+    @param provider: The dictionary with all the cluster data.
+    """
+    if provider == GKE:
+        gke_discovery.drop()
+        try:
+            mongo_response = gke_discovery.insert_one(discovery_object)
+            logger.info(mongo_response.acknowledged)
+            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            return True
+        except:
+            logger.error('failure to insert data into gke_cache table')
+            return False
+    elif provider == EKS:
+        eks_discovery.drop()
+        try:
+            mongo_response = eks_discovery.insert_one(discovery_object)
+            logger.info(mongo_response.acknowledged)
+            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            return True
+        except:
+            logger.error('failure to insert data into eks_cache table')
+            return False
+    elif provider == AKS:
+        aks_discovery.drop()
+        try:
+            mongo_response = aks_discovery.insert_one(discovery_object)
+            logger.info(mongo_response.acknowledged)
+            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            return True
+        except:
+            logger.error('failure to insert data into aks_cache table')
             return False
 
 
