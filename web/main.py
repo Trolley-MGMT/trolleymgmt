@@ -40,7 +40,6 @@ if MACOS in platform.platform():
 else:
     log_path = f'/var/log/{file_name}'
 
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -666,6 +665,11 @@ def manage_gke_clusters():
 @app.route('/settings', methods=[GET, POST])
 def settings():
     return render_page('settings.html')
+
+
+@app.route('/billing-dashboards', methods=[GET, POST])
+def billing_dashboards():
+    return render_page('billing-dashboards.html')
 
 
 @app.route('/logout', methods=[GET, POST])
