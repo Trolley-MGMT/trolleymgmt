@@ -40,7 +40,7 @@ It should look something like this: ghp_XXXXXXXXXXXXXXXX
 Set your Environment Variables menu the following:
 
     ```
-    PYTHONUNBUFFERED=1;SECRET_KEY=s3cr3t_k3y;MONGO_USER=<mongo_user>;MONGO_PASSWORD=<mongo_password>;ACTION_TOKEN=ghp_<token>;MONGO_URL=<mongo_url>;PROJECT_NAME=trolley;GITHUB_REPOSITORY=<your_github_user/your_fork>
+    PYTHONUNBUFFERED=1;SECRET_KEY=s3cr3t_k3y;MONGO_USER=<mongo_user>;MONGO_PASSWORD=<mongo_password>;GITHUB_ACTION_TOKEN=ghp_<token>;MONGO_URL=<mongo_url>;PROJECT_NAME=trolley;GITHUB_REPOSITORY=<your_github_user/your_fork>
     ```
 
 7. To run the app in your IDE just set the script path to web/main.py and it should work from there
@@ -59,7 +59,7 @@ Set your Environment Variables menu the following:
     -e SECRET_KEY='s3cr3t_k3y' \
     -e MONGO_USER='<mongo_user>' \
     -e MONGO_PASSWORD='<mongo_password>' \
-    -e ACTION_TOKEN='<github_token>' \
+    -e GITHUB_ACTION_TOKEN='<github_token>' \
     -e MONGO_URL='<mongo_url>' \
     -e PROJECT_NAME='trolley' \
      -d -p 8081:8081  trolley/latest
@@ -76,7 +76,7 @@ Set your Environment Variables menu the following:
     -e SECRET_KEY='s3cr3t_k3y' \
     -e MONGO_USER='<mongo_user>' \
     -e MONGO_PASSWORD='<mongo_password>' \
-    -e ACTION_TOKEN='<github_token>' \
+    -e GITHUB_ACTION_TOKEN='<github_token>' \
     -e MONGO_URL='<mongo_url>' \
     -e PROJECT_NAME='trolley' \
      -d -p 8081:8081  trolley/latest

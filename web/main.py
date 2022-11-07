@@ -19,7 +19,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import mongo_handler.mongo_utils
-from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject, ProviderObject
+from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \

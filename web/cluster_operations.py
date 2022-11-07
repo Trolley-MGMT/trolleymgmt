@@ -1,3 +1,4 @@
+import getpass
 import logging
 import os
 import platform
@@ -32,11 +33,15 @@ except:
 if 'Darwin' in platform.system() or run_env == 'github':
     from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
     from mongo_handler.mongo_utils import retrieve_cluster_details
+
+    AWS_CREDENTIALS_PATH = f'/Users/{getpass.getuser()}/.aws/credentials'
 else:
     from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
     from mongo_handler.mongo_utils import retrieve_cluster_details
 
-GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
+    AWS_CREDENTIALS_PATH = '/home/app/.aws/credentials'
+
+GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
 GITHUB_ACTIONS_API_URL = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/dispatches'
 GITHUB_ACTION_REQUEST_HEADER_DOCKER = """curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
@@ -52,6 +57,14 @@ logger.info(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
 logger.info(f'GitHub Repository is: {GITHUB_REPOSITORY}')
 logger.info(f'GITHUB_ACTIONS_API_URL is: {GITHUB_ACTIONS_API_URL}')
 logger.info(f'GITHUB_ACTION_REQUEST_HEADER_DOCKER is: {GITHUB_ACTION_REQUEST_HEADER_DOCKER}')
+
+
+def get_aws_credentials() -> tuple:
+    with open(AWS_CREDENTIALS_PATH, "r") as f:
+        aws_credentials = f.read()
+        aws_access_key_id = aws_credentials.split('\n')[1].split(" = ")[1]
+        aws_secret_access_key = aws_credentials.split('\n')[2].split(" = ")[1]
+        return aws_access_key_id, aws_secret_access_key
 
 
 def trigger_aks_build_github_action(cluster_name: str = '',
@@ -131,8 +144,30 @@ def trigger_eks_build_github_action(user_name: str,
                                     num_nodes: int = '',
                                     helm_installs: list = '',
                                     expiration_time: int = '') -> bool:
+    aws_access_key_id, aws_secret_access_key = get_aws_credentials()
     if len(helm_installs) < 1:
         helm_installs = ["."]
+
+
+
+
+    json_data = {
+        "event_type": "eks-build-api-trigger",
+        "client_payload": {"cluster_name": cluster_name,
+                           "cluster_version": version,
+                           "eks_location": eks_location,
+                           "eks_zones": ','.join(eks_zones),
+                           "eks_subnets": ','.join(eks_subnets),
+                           "num_nodes": str(num_nodes),
+                           "helm_installs": ','.join(helm_installs),
+                           "expiration_time": expiration_time,
+                           "aws_access_key_id": aws_access_key_id,
+                           "aws_secret_access_key": aws_secret_access_key}
+    }
+    response = requests.post(GITHUB_ACTIONS_API_URL,
+                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+
+
     github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
                      '-H \'Accept-Encoding: gzip, deflate\' ' \
                      '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \

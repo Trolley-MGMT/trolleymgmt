@@ -11,7 +11,7 @@ services:
       MONGO_URL: mongodb
       MONGO_PASSWORD: s3cr3t
       MONGO_USER: pavel
-      ACTION_TOKEN: ghp_
+      GITHUB_ACTION_TOKEN: ghp_
       PROJECT_NAME: trolley
       GITHUB_REPOSITORY: Trolley-MGMT/Trolley-Management
       SECRET_KEY: s3cr3t_k3y

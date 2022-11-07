@@ -28,7 +28,7 @@ spec:
           value: "value"
         - name: MONGO_URL
           value: "value"
-        - name: ACTION_TOKEN
+        - name: GITHUB_ACTION_TOKEN
           value: "value"
         - name: PROJECT_NAME
           value: "value"
