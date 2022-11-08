@@ -143,21 +143,18 @@ def trigger_eks_build_github_action(user_name: str,
                                     image_type: str = '',
                                     num_nodes: int = '',
                                     helm_installs: list = '',
-                                    expiration_time: int = '') -> bool:
+                                    expiration_time: int = '') -> dict:
     aws_access_key_id, aws_secret_access_key = get_aws_credentials()
     if len(helm_installs) < 1:
         helm_installs = ["."]
-
-
-
 
     json_data = {
         "event_type": "eks-build-api-trigger",
         "client_payload": {"cluster_name": cluster_name,
                            "cluster_version": version,
-                           "eks_location": eks_location,
-                           "eks_zones": ','.join(eks_zones),
-                           "eks_subnets": ','.join(eks_subnets),
+                           "region_name": eks_location,
+                           "zone_names": ','.join(eks_zones),
+                           "subnets": ','.join(eks_subnets),
                            "num_nodes": str(num_nodes),
                            "helm_installs": ','.join(helm_installs),
                            "expiration_time": expiration_time,
@@ -166,29 +163,30 @@ def trigger_eks_build_github_action(user_name: str,
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+    logger.info(f'This is the request response: {response}')
+    return response
 
-
-    github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
-                     '-H \'Accept-Encoding: gzip, deflate\' ' \
-                     '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
-                                                                          '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
-                                                                          '-d \'{"event_type": "eks-build-api-trigger", "client_payload": ' \
-                                                                          '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", ' \
-                                                                                                                                                      '"zone_names": "' + ",".join(
-        eks_zones) + '", "subnets": "' + ",".join(eks_subnets) + '", ' \
-                                                                 '"num_nodes": "' + str(
-        num_nodes) + '", "region_name": "' + eks_location + '",  ' \
-                                                            '"helm_installs": "' + ','.join(helm_installs) + '", ' \
-                                                                                                             '"expiration_time": "' + str(
-        expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
-    logger.info(f'Running the eks build command: {github_command}')
-    try:
-        response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-        logger.info(f'printing out the response: {response}')
-        return True
-    except subprocess.SubprocessError as e:
-        logger.error(f'The request failed with the following error: {e}')
-        return False
+    # github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
+    #                  '-H \'Accept-Encoding: gzip, deflate\' ' \
+    #                  '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
+    #                                                                       '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
+    #                                                                       '-d \'{"event_type": "eks-build-api-trigger", "client_payload": ' \
+    #                                                                       '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", ' \
+    #                                                                                                                                                   '"zone_names": "' + ",".join(
+    #     eks_zones) + '", "subnets": "' + ",".join(eks_subnets) + '", ' \
+    #                                                              '"num_nodes": "' + str(
+    #     num_nodes) + '", "region_name": "' + eks_location + '",  ' \
+    #                                                         '"helm_installs": "' + ','.join(helm_installs) + '", ' \
+    #                                                                                                          '"expiration_time": "' + str(
+    #     expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
+    # logger.info(f'Running the eks build command: {github_command}')
+    # try:
+    #     response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    #     logger.info(f'printing out the response: {response}')
+    #     return True
+    # except subprocess.SubprocessError as e:
+    #     logger.error(f'The request failed with the following error: {e}')
+    #     return False
 
 
 def trigger_trolley_agent_deployment_github_action(cluster_name: str = '',

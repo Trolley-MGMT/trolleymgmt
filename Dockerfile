@@ -22,6 +22,7 @@ COPY web/main.py /app
 COPY web/templates /app/templates
 COPY web/mongo_handler /app/mongo_handler
 COPY web/variables /app/variables
+COPY web/trolley_small.png /app
 
 ADD ../web/scripts/aks_caching_script.py aks_caching_script.py
 ADD ../web/scripts/gke_caching_script.py gke_caching_script.py

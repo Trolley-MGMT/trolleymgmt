@@ -17,6 +17,7 @@ COPY main.py /app
 COPY templates /app/templates
 COPY mongo_handler /app/mongo_handler
 COPY variables /app/variables
+COPY web/trolley_small.png /app
 
 ADD ../trolley_api.sh /trolley_api.sh
 ADD ../gke_cache.sh /gke_cache.sh

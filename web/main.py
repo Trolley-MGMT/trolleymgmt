@@ -44,7 +44,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 handler = logging.FileHandler('server_main.log')
-handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -344,10 +343,12 @@ def trigger_eks_deployment():
     user_name = content['user_name']
     cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
-    if trigger_eks_build_github_action(**content):
+    response = trigger_eks_build_github_action(**content)
+    logger.info(f'This is the response: {response} \n {response.text} \n {response.headers} ')
+    if response.status_code == 204:
         deployment_yaml_object = deployment_yaml_object_handling(content)
     else:
-        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+        return Response(json.dumps(response.text), status=400, mimetype=APPLICATION_JSON)
     if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
     else:
@@ -665,11 +666,6 @@ def manage_gke_clusters():
 @app.route('/settings', methods=[GET, POST])
 def settings():
     return render_page('settings.html')
-
-
-@app.route('/billing-dashboards', methods=[GET, POST])
-def billing_dashboards():
-    return render_page('billing-dashboards.html')
 
 
 @app.route('/logout', methods=[GET, POST])
