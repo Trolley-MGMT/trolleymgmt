@@ -25,6 +25,6 @@ jobs:
 
       - name: Build and Push
         run: |
-          docker build -t agents/k8s_agent/trolley_agent/latest -f agent/Dockerfile .
+          docker build -t agents/k8s_agent/trolley_agent/latest -f agents/k8s_agent/Dockerfile .
           docker tag trolley_agent/latest pavelzagalsky/trolley_agent
           docker push pavelzagalsky/trolley_agent:latest
