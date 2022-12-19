@@ -14,14 +14,11 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.1/dist/css/adminlte.min.css">
     <link href="static/img/trolley.png" rel="icon">
-    <script>
+        <script>
       var data = {{ data|tojson }};
       console.log(data)
-
-
-
-
     </script>
+    <script src="static/chart.min.js"></script>
 </head>
 
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
@@ -51,7 +48,7 @@
                     <form class="form-inline">
                         <div class="input-group input-group-sm">
                             <input class="form-control form-control-navbar" type="search"
-                                   placeholder="Search for AKS Cluster"
+                                   placeholder="Search for your product"
                                    aria-label="Search">
                             <div class="input-group-append">
                                 <button class="btn btn-navbar" type="submit">
@@ -159,7 +156,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="manage-gke-clusters" class="nav-link active">
+                                <a href="manage-gke-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
                                 </a>
@@ -184,7 +181,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="events-dashboards" class="nav-link">
+                                <a href="events-dashboards" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Events</p>
                                 </a>
@@ -219,85 +216,269 @@
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
-        <div class="content-header">
+        <section class="content">
             <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                    </div><!-- /.col -->
-                    <div id="clusters-data">
-                    </div>
-                </div><!-- /.row -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Manage GKE clusters</h3>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Select your product</label>
+                        <select class="form-control">
+                            <option>Hummus SDK</option>
+                            <option>Mashawshe XP</option>
+                            <option>Halva API</option>
+                            <option>Tahini Auth</option>
+                            <option>Tabooleh Flow</option>
+                            <option>Kebab IO</option>
 
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                                <i class="fas fa-times"></i>
-                            </button>
+                        </select>
+                    </div>
+                </div>
+
+                <h5 class="mt-4 mb-2">Companies Usage</h5>
+                <div class="box box-danger">
+                    <div class="col-sm-6">
+                        <div class="box-body">
+                            <div class="chart-responsive">
+                                <canvas id="myChart"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped projects" id="gke-clusters-management-table">
-                        </table>
+                </div>
+
+                <h5 class="mt-4 mb-2">Resources Budget</h5>
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <div class="info-box bg-gradient-info">
+                            <span class="info-box-icon"><i class="far fa-desktop"></i></span>
+                            <i class="fa-solid fa-computer-classic"></i>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Compute</span>
+                                <span class="info-box-number">$40,415</span>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: 45%"></div>
+                                </div>
+                                <span class="progress-description"> 45% Increase in 30 Days </span>
+                            </div>
+
+                        </div>
+
                     </div>
-                    <!--                    -->
-                </div><!-- /.container-fluid -->
-            </div>
-            <!-- /.content-header -->
-        </div>
-        <!-- /.content-wrapper -->
-        <!--        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"-->
-        <!--             aria-hidden="true">-->
-        <!--            <div class="modal-dialog" role="document">-->
-        <!--                <div class="modal-content">-->
-        <!--                    <div class="modal-header">-->
-        <!--                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>-->
-        <!--                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">-->
-        <!--                            <span aria-hidden="true">&times;</span>-->
-        <!--                        </button>-->
-        <!--                    </div>-->
-        <!--                    <div class="modal-body">-->
-        <!--                        Testing stuff-->
-        <!--                    </div>-->
-        <!--                    <div class="modal-footer">-->
-        <!--                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
-        <!--                        <button type="button" class="btn btn-primary" id="copyKubeconfig">Copy Kubeconfig</button>-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--            </div>-->
-        <!--        </div>-->
-        <!-- Control Sidebar -->
-        <aside class="control-sidebar control-sidebar-dark">
-            <!-- Control sidebar content goes here -->
-        </aside>
-        <!-- /.control-sidebar -->
 
-        <!-- Main Footer -->
-        <footer class="main-footer">
-            <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
-            All rights reserved.
-            <div class="float-right d-none d-sm-inline-block">
-                <b>Version</b> 0.1
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <div class="info-box bg-gradient-success">
+                            <span class="info-box-icon"><i class="far fa-wifi"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Networking</span>
+                                <span class="info-box-number">$15,680</span>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: 70%"></div>
+                                </div>
+                                <span class="progress-description"> 70% Increase in 30 Days </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <div class="info-box bg-gradient-warning">
+                            <span class="info-box-icon"><i class="far fa-cloud"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Storage</span>
+                                <span class="info-box-number">$25,410</span>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: 16%"></div>
+                                </div>
+                                <span class="progress-description"> 16% Increase in 30 Days </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <div class="info-box bg-gradient-danger">
+                            <span class="info-box-icon"><i class="far fa-server"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Serverless</span>
+                                <span class="info-box-number">$33,544</span>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: 81%"></div>
+                                </div>
+                                <span class="progress-description"> 81% Increase in 30 Days </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <h5 class="mb-2 mt-4">Resources Listing</h5>
+                <div class="row">
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-info">
+                            <div class="inner">
+                                <h3>150</h3>
+                                <p>Compute</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-success">
+                            <div class="inner">
+                                <h3>53<sup style="font-size: 20px">%</sup></h3>
+                                <p>Networking</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-wifi"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-warning">
+                            <div class="inner">
+                                <h3>44</h3>
+                                <p>Storage</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-danger">
+                            <div class="inner">
+                                <h3>65</h3>
+                                <p>Serverless</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
             </div>
-        </footer>
+        </section>
     </div>
-    <!-- ./wrapper -->
 
-    <!-- REQUIRED SCRIPTS -->
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="static/script.js"></script>
-    <!-- Bootstrap 4 -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-            crossorigin="anonymous"></script>
-    <!-- AdminLTE App -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+</div>
 
+</div>
+</section>
+
+</div>
+<!-- /.content-header -->
+</div>
+<aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+</aside>
+<!-- /.control-sidebar -->
+
+<!-- Main Footer -->
+<footer class="main-footer">
+    <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
+    All rights reserved.
+    <div class="float-right d-none d-sm-inline-block">
+        <b>Version</b> 0.1
+    </div>
+</footer>
+</div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED SCRIPTS -->
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="static/script.js"></script>
+<!-- Bootstrap 4 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
+<!-- AdminLTE App -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script src="static/chart.min.js"></script>
+<script>
+  const labels = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+
+  const dash_data = {
+    labels: labels,
+    datasets: [{
+      label: 'Cost in $',
+      backgroundColor: 'rgb(255, 99, 132)',
+      borderColor: 'rgb(255, 99, 132)',
+      data: ['20234', '15234', '55548', '52986', '42231', '40959', '45636', '39825', '32020', '67659', '84956', '95897'],
+      backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
+    }]
+
+  };
+
+    const config = {
+      type: 'line',
+      data: dash_data,
+      options: {
+        plugins: {
+          legend: {
+            labels: {
+              color: 'white',
+              font: {
+                size: 18,
+              }
+            }
+          }
+        }
+      }
+    };
+
+
+</script>
+<script>
+  const myChart = new Chart(
+    document.getElementById('myChart'),
+    config
+  );
+
+
+</script>
 </body>
 </html>
+

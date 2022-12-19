@@ -425,7 +425,6 @@ def delete_cluster():
 
 
 @app.route('/insert_agent_data', methods=[POST])
-@login_required
 def insert_agent_data():
     """
     This endpoint inserts data provided by a Trolley Agent
@@ -433,10 +432,16 @@ def insert_agent_data():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested')
-    if mongo_handler.mongo_utils.insert_agents_data_object(content):
-        return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
-    else:
-        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+    if content['agent_type'] == 'k8s':
+        if mongo_handler.mongo_utils.insert_k8s_agent_data_object(content):
+            return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+        else:
+            return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+    elif content['agent_type'] == 'aws':
+        if mongo_handler.mongo_utils.insert_aws_agent_data_object(content):
+            return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+        else:
+            return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
 @app.route('/provider', methods=[GET, POST])
@@ -666,6 +671,16 @@ def manage_gke_clusters():
 @app.route('/settings', methods=[GET, POST])
 def settings():
     return render_page('settings.html')
+
+
+@app.route('/products-dashboards', methods=[GET, POST])
+def products_dashboards():
+    return render_page('products-dashboards.html')
+
+
+@app.route('/events-dashboards', methods=[GET, POST])
+def events_dashboards():
+    return render_page('events-dashboards.html')
 
 
 @app.route('/logout', methods=[GET, POST])
