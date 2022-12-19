@@ -9,13 +9,14 @@ import platform
 
 from kubernetes import client
 
-from agent.k8s_objects.k8s_objects_handler import fetch_namespaces_list, fetch_deployments_list, fetch_pods_list, \
+from agents.k8s_agent.k8s_objects.k8s_objects_handler import fetch_namespaces_list, fetch_deployments_list, \
+    fetch_pods_list, \
     fetch_containers_list, fetch_daemonsets_list, fetch_stateful_sets_list, fetch_services_list
-from agent.trolley_server.server_handler import ServerRequest
-from web.mongo_handler.mongo_objects import AgentsDataObject
+from agents.trolley_server.server_handler import ServerRequest
+from web.mongo_handler.mongo_objects import K8SAgentsDataObject
 from web.mongo_handler.mongo_utils import retrieve_cluster_details
 
-from agent.k8s_client.api_client import K8sApiClient
+from agents.k8s_agent.k8s_client.api_client import K8sApiClient
 
 if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
@@ -35,7 +36,7 @@ logging.basicConfig(
 KUBECONFIG_TEMP_PATH = f'/Users/{getpass.getuser()}/.kube/temp_config'
 
 DEBUG_MODE = json.loads(os.environ.get('DEBUG_MODE', 'false').lower())
-SERVER_URL = os.environ.get('SERVER_URL', 'https://77c0-2a0d-6fc2-41e0-1500-e5ed-d9ed-795c-d1a8.eu.ngrok.io')
+SERVER_URL = os.environ.get('SERVER_URL', 'https://d950-2a0d-6fc2-41e0-f100-b89a-c967-879a-79f4.eu.ngrok.io')
 INTERNAL_CLUSTER_MODE = json.loads(os.environ.get('INTERNAL_CLUSTER_MODE', 'true').lower())
 CLUSTER_NAME = os.environ.get('CLUSTER_NAME', 'pavelzagalsky-gke-qjeigibl')
 CONTEXT_NAME = os.environ.get('CONTEXT_NAME', 'minikube')
@@ -70,6 +71,7 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     logging.info(f'The fetch_interval is: {fetch_interval}')
     logging.info(f'The server_url is: {server_url}')
 
+    timestamp = int(time.time())
     k8s_api_client = K8sApiClient(debug_mode, internal_cluster_mode, cluster_name, context_name)
     api_client = k8s_api_client.fetch_api_client()
     k8s_api = client.CoreV1Api(api_client=api_client)
@@ -82,9 +84,10 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     stateful_sets = fetch_stateful_sets_list(apis_api, namespaces)
     services = fetch_services_list(k8s_api, namespaces)
 
-    agents_data_object = AgentsDataObject(cluster_name=cluster_name, context_name=context_name, namespaces=namespaces,
-                                          deployments=deployments, stateful_sets=stateful_sets, pods=pods,
-                                          containers=containers, daemonsets=daemonsets, services=services)
+    agents_data_object = K8SAgentsDataObject(timestamp=timestamp, agent_type='k8s', cluster_name=cluster_name,
+                                             context_name=context_name, namespaces=namespaces,
+                                             deployments=deployments, stateful_sets=stateful_sets, pods=pods,
+                                             containers=containers, daemonsets=daemonsets, services=services)
     server_request = ServerRequest(debug_mode=debug_mode, agent_data=agents_data_object, operation='insert_agent_data',
                                    server_url=server_url)
     server_request.send_server_request()

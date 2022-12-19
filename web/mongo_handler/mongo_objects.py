@@ -177,7 +177,9 @@ class ServicesDataObject:
 
 
 @dataclass
-class AgentsDataObject:
+class K8SAgentsDataObject:
+    timestamp: int
+    agent_type: str
     cluster_name: str
     context_name: str
     namespaces: list
@@ -187,3 +189,11 @@ class AgentsDataObject:
     daemonsets: list
     stateful_sets: list
     services: list
+
+
+@dataclass
+class AWSAgentsDataObject:
+    timestamp: int
+    account_id: str
+    agent_type: str
+    ec3_instances: list

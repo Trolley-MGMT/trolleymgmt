@@ -32,7 +32,7 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE
+    USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM
@@ -62,7 +62,8 @@ eks_discovery: Collection = db.eks_discovery
 
 fs = gridfs.GridFS(db)
 
-agents_data: Collection = db.agents_data
+k8s_agent_data: Collection = db.k8s_agent_data
+aws_agent_data: Collection = db.aws_agent_data
 providers_data: Collection = db.providers_data
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
@@ -172,7 +173,7 @@ def retrieve_cluster_details(cluster_type: str, cluster_name: str) -> dict:
 
 def retrieve_agent_cluster_details(cluster_name: str) -> dict:
     logger.info(f'A request to fetch {cluster_name} details was received')
-    cluster_object = agents_data.find_one({CLUSTER_NAME.lower(): cluster_name})
+    cluster_object = k8s_agent_data.find_one({CLUSTER_NAME.lower(): cluster_name})
     del cluster_object['_id']
     return cluster_object
 
@@ -378,19 +379,42 @@ def insert_deployment_yaml(deployment_yaml_object: dict):
         return False
 
 
-def insert_agents_data_object(agents_data_object: dict) -> bool:
+def insert_k8s_agent_data_object(agent_data_object: dict) -> bool:
     """
-    @param agents_data_object: The filename of the image to save
+    @param agent_data_object: The filename of the image to save
     """
     try:
-        mongo_query = {CLUSTER_NAME.lower(): agents_data_object[CLUSTER_NAME.lower()]}
-        existing_agents_data_object = agents_data.find_one(mongo_query)
+        mongo_query = {CLUSTER_NAME.lower(): agent_data_object[CLUSTER_NAME.lower()]}
+        existing_agents_data_object = k8s_agent_data.find_one(mongo_query)
         if existing_agents_data_object:
-            result = agents_data.replace_one(existing_agents_data_object, agents_data_object)
+            result = k8s_agent_data.replace_one(existing_agents_data_object, agent_data_object)
             logger.info(f'agents_data_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
-            result = agents_data.insert_one(agents_data_object)
+            result = k8s_agent_data.insert_one(agent_data_object)
+            if result.inserted_id:
+                logger.info(f'agents_data_object was inserted properly')
+                return True
+            else:
+                logger.error(f'agents_data_object was not inserted properly')
+                return False
+    except:
+        logger.error(f'agents_data_object was not inserted properly')
+
+
+def insert_aws_agent_data_object(agent_data_object: dict) -> bool:
+    """
+    @param agent_data_object: The filename of the image to save
+    """
+    try:
+        mongo_query = {ACCOUNT_ID.lower(): agent_data_object[ACCOUNT_ID.lower()]}
+        existing_agents_data_object = aws_agent_data.find_one(mongo_query)
+        if existing_agents_data_object:
+            result = aws_agent_data.replace_one(existing_agents_data_object, agent_data_object)
+            logger.info(f'agents_data_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = aws_agent_data.insert_one(agent_data_object)
             if result.inserted_id:
                 logger.info(f'agents_data_object was inserted properly')
                 return True

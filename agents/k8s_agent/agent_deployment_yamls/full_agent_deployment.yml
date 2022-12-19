@@ -35,7 +35,7 @@ spec:
         - name: INTERNAL_CLUSTER_MODE
           value: "true"
         - name: SERVER_URL
-          value: "https://35a1-2a0d-6fc2-41e0-1500-45c-42d0-af98-3f1.eu.ngrok.io"
+          value: "https://d950-2a0d-6fc2-41e0-f100-b89a-c967-879a-79f4.eu.ngrok.io"
         - name: CLUSTER_NAME
           value: ""
         - name: CONTEXT_NAME
