@@ -1,4 +1,3 @@
 #!/bin/sh
-/bin/sh ./eks_cache.sh
-/bin/sh ./eks_discovery.sh
+/bin/sh ./aws_discovery.sh
 python3 main.py

@@ -4,16 +4,16 @@ import getpass as gt
 import logging
 import os
 import platform
+from dataclasses import asdict
 from subprocess import run, PIPE
 import sys
 import time
 
 import boto3
 
-from agents.trolley_server.server_handler import ServerRequest
-from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, AWSS3BucketsObject, AWSEKSDataObject, \
-    AWSObject
-from web.variables.variables import AWS
+from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, AWSS3BucketsObject, AWSEKSDataObject
+from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
+    insert_aws_buckets_object, insert_eks_clusters_object
 
 if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
@@ -30,9 +30,10 @@ logging.basicConfig(
     ]
 )
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "30"))
-EC2_CLIENT = boto3.client('ec2')
+DEFAULT_AWS_REGION = os.environ.get('DEFAULT_AWS_REGION', "us-east-1")
+EC2_CLIENT = boto3.client('ec2', region_name=DEFAULT_AWS_REGION)
 S3_CLIENT = boto3.client('s3')
-EKS_CLIENT = boto3.client('eks')
+EKS_CLIENT = boto3.client('eks', region_name=DEFAULT_AWS_REGION)
 ACCOUNT_ID = int(boto3.client('sts').get_caller_identity().get('Account'))
 TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
@@ -116,6 +117,7 @@ def fetch_eks_clusters():
                 eks_clusters_names.append(cluster)
             for cluster_name in eks_clusters_names:
                 cluster_data = eks_client.describe_cluster(name=cluster_name)
+                cluster_object['cluster_name'] = cluster_name
                 cluster_object['user_name'] = 'vacant'
                 cluster_object['created_timestamp'] = int(cluster_data['cluster']['createdAt'].timestamp())
                 cluster_object['human_created_timestamp'] = cluster_data['cluster']['createdAt'].strftime(
@@ -135,43 +137,32 @@ def fetch_eks_clusters():
                             eks_clusters=eks_clusters_object)
 
 
-def main(fetch_interval: int = 30, server_url: str = '', is_fetching_files: bool = False,
-         is_fetching_buckets: bool = False, is_fetching_ec2_instances: bool = False,
+def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_ec2_instances: bool = False,
          is_fetching_eks_clusters: bool = False):
     if is_fetching_eks_clusters:
         aws_eks_data_object = fetch_eks_clusters()
-    else:
-        aws_eks_data_object = {}
+        print(asdict(aws_eks_data_object))
+        insert_eks_clusters_object(asdict(aws_eks_data_object))
     if is_fetching_files:
         aws_files_data_object = fetch_files()
-    else:
-        aws_files_data_object = {}
+        print(asdict(aws_files_data_object))
+        insert_aws_files_object(asdict(aws_files_data_object))
     if is_fetching_buckets:
         aws_buckets_data_object = fetch_buckets()
-    else:
-        aws_buckets_data_object = {}
+        print(asdict(aws_buckets_data_object))
+        insert_aws_buckets_object(asdict(aws_buckets_data_object))
     if is_fetching_ec2_instances:
         aws_instances_data_object = fetch_ec2_instances()
-    else:
-        aws_instances_data_object = {}
-
-    aws_data_object = AWSObject(ec2Object=aws_instances_data_object, s3FilesObject=aws_files_data_object,
-                                s3BucketsObject=aws_buckets_data_object,
-                                eksObject=aws_eks_data_object, agent_type=AWS)
-    server_request = ServerRequest(agent_data=aws_data_object, operation='insert_agent_data',
-                                   server_url=server_url)
-    server_request.send_server_request()
-    logging.info(f'Taking a {fetch_interval} sleep time between fetches')
-    time.sleep(fetch_interval)
+        print(asdict(aws_instances_data_object))
+        insert_aws_instances_object(asdict(aws_instances_data_object))
 
 
 if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('--fetch-files', action='store_true', help='Fetch files or not')
-    parser.add_argument('--fetch-buckets', action='store_true', help='Fetch buckets or not')
-    parser.add_argument('--fetch-ec2-instances', action='store_true', help='Fetch EC2 instances or not')
-    parser.add_argument('--fetch-eks-clusters', action='store_true', help='Fetch EKS clusters or not')
+    parser.add_argument('--fetch-files', action='store_true', default=True, help='Fetch files or not')
+    parser.add_argument('--fetch-buckets', action='store_true', default=True, help='Fetch buckets or not')
+    parser.add_argument('--fetch-ec2-instances', action='store_true', default=True, help='Fetch EC2 instances or not')
+    parser.add_argument('--fetch-eks-clusters', action='store_true', default=True, help='Fetch EKS clusters or not')
     args = parser.parse_args()
-    while True:
-        main(is_fetching_files=args.fetch_files, is_fetching_buckets=args.fetch_buckets,
-             is_fetching_ec2_instances=args.fetch_ec2_instances, is_fetching_eks_clusters=args.fetch_eks_clusters)
+    main(is_fetching_files=args.fetch_files, is_fetching_buckets=args.fetch_buckets,
+         is_fetching_ec2_instances=args.fetch_ec2_instances, is_fetching_eks_clusters=args.fetch_eks_clusters)

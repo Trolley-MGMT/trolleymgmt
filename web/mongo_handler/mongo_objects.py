@@ -192,8 +192,37 @@ class K8SAgentsDataObject:
 
 
 @dataclass
-class AWSAgentsDataObject:
+class AWSEC2DataObject:
     timestamp: int
-    account_id: str
+    account_id: int
+    ec2_instances: list
+
+
+@dataclass
+class AWSS3FilesObject:
+    timestamp: int
+    account_id: int
+    files: list
+
+
+@dataclass
+class AWSS3BucketsObject:
+    timestamp: int
+    account_id: int
+    buckets: list
+
+
+@dataclass
+class AWSEKSDataObject:
+    timestamp: int
+    account_id: int
+    eks_clusters: list
+
+
+@dataclass
+class AWSObject:
     agent_type: str
-    ec3_instances: list
+    ec2Object: AWSEC2DataObject
+    s3FilesObject: AWSS3FilesObject
+    s3BucketsObject: AWSS3BucketsObject
+    eksObject: AWSEKSDataObject

@@ -27,8 +27,8 @@ COPY web/trolley_small.png /app
 ADD ../web/scripts/aks_caching_script.py aks_caching_script.py
 ADD ../web/scripts/gke_caching_script.py gke_caching_script.py
 ADD ../web/scripts/eks_caching_script.py eks_caching_script.py
-ADD ../web/scripts/eks_discovery_script.py eks_discovery_script.py
+ADD ../web/scripts/aws_discovery_script.py aws_discovery_script.py
 RUN mkdir .aws
-RUN chmod +x trolley_api.sh aks_cache.sh gke_cache.sh eks_cache.sh eks_discovery.sh
+RUN chmod +x trolley_api.sh aks_cache.sh gke_cache.sh eks_cache.sh aws_discovery.sh
 
 CMD ./trolley_api.sh

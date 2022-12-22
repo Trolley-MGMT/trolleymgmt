@@ -11,7 +11,7 @@ from pymongo.collection import Collection
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('../mongo_utils.log')
+handler = logging.FileHandler('mongo_utils.log')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
@@ -32,10 +32,10 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-    USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID
+        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM
+        USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
 
 MONGO_URL = os.environ['MONGO_URL']
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley')
@@ -44,7 +44,6 @@ MONGO_USER = os.environ['MONGO_USER']
 
 client = MongoClient(MONGO_URL, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
 db = client[PROJECT_NAME]
-logger.info(db.list_collection_names())
 gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
@@ -63,12 +62,17 @@ eks_discovery: Collection = db.eks_discovery
 fs = gridfs.GridFS(db)
 
 k8s_agent_data: Collection = db.k8s_agent_data
-aws_agent_data: Collection = db.aws_agent_data
+aws_ec2_instances_data: Collection = db.aws_es2_instances_data
+aws_s3_files_data: Collection = db.aws_s3_files_data
+aws_s3_buckets_data: Collection = db.aws_s3_buckets_data
+aws_eks_clusters_data: Collection = db.aws_eks_clusters_data
 providers_data: Collection = db.providers_data
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
 logger.info(f'MONGO_URL is: {MONGO_URL}')
 logger.info(f'PROJECT_NAME is: {PROJECT_NAME}')
+logger.info(f'Listing all the collections')
+logger.info(db.list_collection_names())
 
 
 def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = None) -> bool:
@@ -402,19 +406,25 @@ def insert_k8s_agent_data_object(agent_data_object: dict) -> bool:
         logger.error(f'agents_data_object was not inserted properly')
 
 
-def insert_aws_agent_data_object(agent_data_object: dict) -> bool:
+def insert_aws_instances_object(aws_instances_object: dict) -> bool:
     """
-    @param agent_data_object: The filename of the image to save
+    @param aws_instances_object: The aws ec2 instances to save to DB
     """
+    logger.info('is this on?')
+    logger.info(f'{aws_instances_object}')
     try:
-        mongo_query = {ACCOUNT_ID.lower(): agent_data_object[ACCOUNT_ID.lower()]}
-        existing_agents_data_object = aws_agent_data.find_one(mongo_query)
-        if existing_agents_data_object:
-            result = aws_agent_data.replace_one(existing_agents_data_object, agent_data_object)
+        mongo_query = {ACCOUNT_ID.lower(): aws_instances_object[ACCOUNT_ID.lower()]}
+        logger.info(f'Running the following mongo_query {mongo_query}')
+        existing_data_object = aws_ec2_instances_data.find_one(mongo_query)
+        logger.info(f'existing_data_object {existing_data_object}')
+        if existing_data_object:
+            result = aws_ec2_instances_data.replace_one(existing_data_object, aws_instances_object)
             logger.info(f'agents_data_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
-            result = aws_agent_data.insert_one(agent_data_object)
+            result = aws_ec2_instances_data.insert_one(aws_instances_object)
+            logger.info(result.acknowledged)
+            logger.info(result.raw_result)
             if result.inserted_id:
                 logger.info(f'agents_data_object was inserted properly')
                 return True
@@ -423,6 +433,106 @@ def insert_aws_agent_data_object(agent_data_object: dict) -> bool:
                 return False
     except:
         logger.error(f'agents_data_object was not inserted properly')
+
+
+def insert_aws_files_object(aws_files_object: dict) -> bool:
+    """
+    @param aws_files_object: The aws files list to save
+    """
+    logger.info('is this on?')
+    logger.info(f'{aws_files_object}')
+    try:
+        mongo_query = {ACCOUNT_ID.lower(): aws_files_object[ACCOUNT_ID.lower()]}
+        logger.info(f'Running the following mongo_query {mongo_query}')
+        existing_data_object = aws_s3_files_data.find_one(mongo_query)
+        logger.info(f'existing_data_object {existing_data_object}')
+        if existing_data_object:
+            result = aws_s3_files_data.replace_one(existing_data_object, aws_files_object)
+            logger.info(f'agents_data_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = aws_s3_files_data.insert_one(aws_files_object)
+            if result.inserted_id:
+                logger.info(result.acknowledged)
+                logger.info(result.raw_result)
+                logger.info(f'agents_data_object was inserted properly')
+                return True
+            else:
+                logger.error(f'agents_data_object was not inserted properly')
+                return False
+    except:
+        logger.error(f'agents_data_object was not inserted properly')
+
+
+def insert_aws_buckets_object(aws_buckets_object: dict) -> bool:
+    """
+    @param aws_buckets_object: The aws files list to save
+    """
+    logger.info('is this on?')
+    logger.info(f'{aws_buckets_object}')
+    try:
+        mongo_query = {ACCOUNT_ID.lower(): aws_buckets_object[ACCOUNT_ID.lower()]}
+        logger.info(f'Running the following mongo_query {mongo_query}')
+        existing_data_object = aws_s3_buckets_data.find_one(mongo_query)
+        logger.info(f'existing_data_object {existing_data_object}')
+        if existing_data_object:
+            result = aws_s3_buckets_data.replace_one(existing_data_object, aws_buckets_object)
+            logger.info(f'agents_data_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = aws_s3_buckets_data.insert_one(aws_buckets_object)
+            logger.info(result.acknowledged)
+            logger.info(result.raw_result)
+            if result.inserted_id:
+                logger.info(f'agents_data_object was inserted properly')
+                return True
+            else:
+                logger.error(f'agents_data_object was not inserted properly')
+                return False
+    except:
+        logger.error(f'agents_data_object was not inserted properly')
+
+
+def insert_eks_clusters_object(eks_clusters_object: dict) -> bool:
+    """
+    @param eks_clusters_object: The eks clusters list to save
+    """
+    logger.info('is this on?')
+    logger.info(f'{eks_clusters_object}')
+    try:
+        mongo_query = {ACCOUNT_ID.lower(): eks_clusters_object[ACCOUNT_ID.lower()]}
+        existing_data_object = aws_eks_clusters_data.find_one(mongo_query)
+        if existing_data_object:
+            result = aws_eks_clusters_data.replace_one(existing_data_object, eks_clusters_object)
+            logger.info(f'agents_data_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = aws_eks_clusters_data.insert_one(eks_clusters_object)
+            logger.info(result.acknowledged)
+            logger.info(result.raw_result)
+            if result.inserted_id:
+                logger.info(f'agents_data_object was inserted properly')
+                return True
+            else:
+                logger.error(f'agents_data_object was not inserted properly')
+                return False
+    except:
+        logger.error(f'agents_data_object was not inserted properly')
+
+
+def insert_aws_agent_data_object(agent_data_object: dict) -> bool:
+    """
+    @param agent_data_object: The filename of the image to save
+    """
+    if agent_data_object['ec2Object']:
+        insert_aws_instances_object(agent_data_object['ec2Object'])
+    if agent_data_object['s3FilesObject']:
+        insert_aws_files_object(agent_data_object['s3FilesObject'])
+    if agent_data_object['s3BucketsObject']:
+        insert_aws_buckets_object(agent_data_object['s3BucketsObject'])
+    if agent_data_object['eksObject']:
+        insert_eks_clusters_object(agent_data_object['eksObject'])
+    return True
 
 
 def add_providers_data_object(providers_data_object: dict) -> bool:
