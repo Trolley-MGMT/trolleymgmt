@@ -36,7 +36,7 @@ jobs:
           which helm >> /tmp/helm_path
           brew install eksctl
           eksctl delete cluster --region=${{ github.event.client_payload.region_name }} --name=${{ github.event.client_payload.cluster_name }}
-          
+
       - name: Deleting Cluster
         if: always()
         env:

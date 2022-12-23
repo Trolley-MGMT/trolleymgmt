@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import platform
@@ -104,8 +105,9 @@ def get_cluster_parameters(node_info: V1NodeList) -> tuple:
 
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
-         region_name: str = '', cluster_metadata: dict = '', resource_group=''):
-    helm_installs = cluster_metadata['helm_installs']
+         region_name: str = '', cluster_metadata: str = '', resource_group=''):
+    cluster_metadata_dict = json.loads(cluster_metadata)
+    helm_installs = cluster_metadata_dict['helm_installs']
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
@@ -133,7 +135,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
     cluster_version, runtime_version, os_image = get_cluster_parameters(node_info)
     timestamp = int(time.time())
     human_created_timestamp = datetime.utcfromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
-    expiration_timestamp = cluster_metadata['expiration_time'] * 60 * 60 + timestamp
+    expiration_timestamp = cluster_metadata_dict['expiration_time'] * 60 * 60 + timestamp
     human_expiration_timestamp = datetime.utcfromtimestamp(expiration_timestamp).strftime('%d-%m-%Y %H:%M:%S')
 
     if cluster_type == GKE:
