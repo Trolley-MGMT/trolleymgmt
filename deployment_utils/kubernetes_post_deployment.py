@@ -17,18 +17,6 @@ from web.mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSOb
 from web.utils import apply_yaml
 from web.variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS, MACOS
 
-if MACOS in platform.platform():
-    HELM_COMMAND = '/opt/homebrew/bin/helm'
-
-else:
-    HELM_PATH = '/tmp/helm_path'
-    with open(HELM_PATH, "r") as f:
-        HELM_COMMAND = f.read().strip()
-        print(f'The helm command is: {HELM_COMMAND}')
-    PROJECT_NAME = os.environ['PROJECT_NAME']
-    MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
-    MONGO_USER = os.environ['MONGO_USER']
-
 KUBECONFIG_PATH = os.environ['KUBECONFIG']
 MONGO_URL = os.environ['MONGO_URL']
 PROJECT_NAME = os.environ['PROJECT_NAME']
@@ -107,7 +95,7 @@ def get_cluster_parameters(node_info: V1NodeList) -> tuple:
 
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
-         region_name: str = '', expiration_time: int = '', helm_installs: str = '', resource_group=''):
+         region_name: str = '', expiration_time: int = '', resource_group=''):
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
@@ -118,16 +106,6 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
         print(kubeconfig_yaml)
         context_name = kubeconfig_yaml['current-context']
         print(f'The current context is: {context_name}')
-    if ',' in helm_installs:
-        helm_installs_list = helm_installs.split(',')
-        for helm_install in helm_installs_list:
-            helm_name = helm_install.split('/')[1]
-            command = HELM_COMMAND + ' upgrade --install ' + helm_name + ' ' + helm_install
-            print(f'Running a {command} command')
-            result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-            print(f'The result is: {result}')
-    elif '.' in helm_installs:
-        print(f'No helm charts to install for {cluster_name} cluster')
     node_info = k8s_api.list_node()
     nodes_ips = get_nodes_ips(node_info)
     nodes_names = get_nodes_names(node_info)
@@ -200,7 +178,6 @@ if __name__ == '__main__':
     parser.add_argument('--zone_name', default='us-central1-c', type=str,
                         help='Name of the zone where the cluster was built')
     parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
-    # parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
     args = parser.parse_args()
     with open(KUBECONFIG_PATH, "r") as f:
         kubeconfig_yaml = f.read()
@@ -210,5 +187,4 @@ if __name__ == '__main__':
          user_name=args.user_name,
          cluster_name=args.cluster_name,
          region_name=args.region_name, zone_name=args.zone_name, expiration_time=args.expiration_time,
-         helm_installs=args.helm_installs,
          resource_group=args.resource_group)
