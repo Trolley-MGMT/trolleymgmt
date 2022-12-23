@@ -22,12 +22,18 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ github.event.client_payload.aws_access_key_id }}
+          aws-secret-access-key: ${{ github.event.client_payload.aws_secret_access_key }}
           aws-region: us-east-1
+
       - name: Install EKSCTL
         run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          export KUBECONFIG=/home/runner/.kube/config
           aws sts get-caller-identity
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+          which helm >> /tmp/helm_path
           brew install eksctl
 
       - name: Deleting Cluster

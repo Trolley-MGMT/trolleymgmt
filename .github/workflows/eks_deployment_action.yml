@@ -29,6 +29,7 @@ jobs:
           aws-access-key-id: ${{ github.event.client_payload.aws_access_key_id }}
           aws-secret-access-key: ${{ github.event.client_payload.aws_secret_access_key }}
           aws-region: us-east-1
+
       - name: Trigger EKS Build
         run: |
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
