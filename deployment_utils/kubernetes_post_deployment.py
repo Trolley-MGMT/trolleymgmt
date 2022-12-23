@@ -200,7 +200,7 @@ if __name__ == '__main__':
     parser.add_argument('--zone_name', default='us-central1-c', type=str,
                         help='Name of the zone where the cluster was built')
     parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
-    parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
+    # parser.add_argument('--helm_installs', default='', type=str, help='Helm installation to run post deployment')
     args = parser.parse_args()
     with open(KUBECONFIG_PATH, "r") as f:
         kubeconfig_yaml = f.read()
