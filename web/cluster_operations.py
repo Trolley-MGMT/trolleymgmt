@@ -91,25 +91,6 @@ def trigger_aks_build_github_action(user_name: str = '',
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
     logger.info(f'This is the request response: {response}')
     return response
-    # github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
-    #                  '-H \'Accept-Encoding: gzip, deflate\' ' \
-    #                  '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
-    #                                                                       '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
-    #                                                                       '-d \'{"event_type": "aks-build-api-trigger", "client_payload": ' \
-    #                                                                       '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '", ' \
-    #                                                                                                                                                   '"num_nodes": "' + str(
-    #     num_nodes) + '", "aks_location": "' + aks_location + '",  ' \
-    #                                                          '"helm_installs": "' + ','.join(helm_installs) + '", ' \
-    #                                                                                                           '"expiration_time": "' + str(
-    #     expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
-    # logger.info(f'Running the aks build command: {github_command}')
-    # try:
-    #     response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    #     logger.info(f'printing out the response: {response}')
-    #     return True
-    # except subprocess.SubprocessError as e:
-    #     logger.error(f'The request failed with the following error: {e}')
-    #     return False
 
 
 def trigger_gke_build_github_action(user_name: str = '',
@@ -140,25 +121,6 @@ def trigger_gke_build_github_action(user_name: str = '',
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
     logger.info(f'This is the request response: {response}')
     return response
-    # github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
-    #                  '-H \'Accept-Encoding: gzip, deflate\' ' \
-    #                  '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
-    #                                                                       '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
-    #                                                                       '-d \'{"event_type": "gke-build-api-trigger", "client_payload": ' \
-    #                                                                       '{"cluster_name": "' + cluster_name + '", "cluster_version": "' + version + '",' \
-    #                                                                                                                                                   '"zone_name": "' + gke_zone + '", "image_type": "' + image_type + '", ' \
-    #                                                                                                                                                                                                                     '"region_name": "' + gke_region + '", "num_nodes": "' + str(
-    #     num_nodes) + '", ' \
-    #                  '"user_name": "' + user_name + '", "helm_installs": "' + ','.join(helm_installs) + \
-    #                  '", "expiration_time": "' + str(expiration_time) + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
-    # logger.info(f'Running the gke build command: {github_command}')
-    # try:
-    #     response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    #     logger.info(f'printing out the response: {response}')
-    #     return True
-    # except subprocess.SubprocessError as e:
-    #     logger.error(f'The request failed with the following error: {e}')
-    #     return False
 
 
 def trigger_eks_build_github_action(user_name: str,
@@ -185,10 +147,13 @@ def trigger_eks_build_github_action(user_name: str,
                            "region_name": eks_location,
                            "zone_names": ','.join(eks_zones),
                            "subnets": ','.join(eks_subnets),
-                           "num_nodes": str(num_nodes),
-                           "expiration_time": expiration_time,
                            "aws_access_key_id": aws_access_key_id,
-                           "aws_secret_access_key": aws_secret_access_key}
+                           "aws_secret_access_key": aws_secret_access_key,
+                           "cluster_metadata": {"deployment_yaml": deployment_yaml,
+                                                "helm_installs": helm_installs,
+                                                "num_nodes": str(num_nodes),
+                                                "expiration_time": expiration_time,
+                                                }}
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
