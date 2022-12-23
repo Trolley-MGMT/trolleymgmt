@@ -20,7 +20,6 @@ jobs:
           echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
           echo "cluster_version is: ${{ github.event.client_payload.cluster_version }}"
           echo "aks_location is: ${{ github.event.client_payload.aks_location }}"
-          echo "helm_installs are: ${{ github.event.client_payload.helm_installs }}"
           echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"
           echo "user_name is: ${{ github.event.client_payload.user_name }}"
 
@@ -52,7 +51,7 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:.
           az aks get-credentials --name ${{ github.event.client_payload.cluster_name }} --overwrite-existing --resource-group myResourceGroup
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type aks --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --resource_group myResourceGroup --helm_installs  ${{ github.event.client_payload.helm_installs }} --region_name ${{ github.event.client_payload.aks_location }} --expiration_time ${{ github.event.client_payload.expiration_time }}
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type aks --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --resource_group myResourceGroup --region_name ${{ github.event.client_payload.aks_location }} --expiration_time ${{ github.event.client_payload.expiration_time }}
 
       - name: Deleting Cluster
         if: always()

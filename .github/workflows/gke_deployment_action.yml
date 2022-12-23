@@ -20,7 +20,6 @@ jobs:
           echo "cluster_version is: ${{ github.event.client_payload.cluster_version }}"
           echo "zone_name is: ${{ github.event.client_payload.zone_name }}"
           echo "image_type is: ${{ github.event.client_payload.image_type }}"
-          echo "helm_installs are: ${{ github.event.client_payload.helm_installs }}"
           echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"
           echo "user_name is: ${{ github.event.client_payload.user_name }}"
           echo "deployment_yaml is: ${{ github.event.client_payload.deployment_yaml }}"
@@ -63,7 +62,7 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_name }} --helm_installs  ${{ github.event.client_payload.helm_installs }} --expiration_time ${{ github.event.client_payload.expiration_time }}
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_name }} --expiration_time ${{ github.event.client_payload.expiration_time }}
 
 #      - name: Deleting Cluster
 #        if: always()

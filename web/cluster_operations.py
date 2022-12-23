@@ -79,7 +79,7 @@ def trigger_aks_build_github_action(user_name: str = '',
     if len(helm_installs) < 1:
         helm_installs = ["."]
     json_data = {
-        "event_type": "gke-build-api-trigger",
+        "event_type": "aks-build-api-trigger",
         "client_payload": {"cluster_name": cluster_name,
                            "user_name": user_name,
                            "cluster_version": version,
