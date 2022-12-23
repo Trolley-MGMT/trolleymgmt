@@ -66,6 +66,7 @@ $(document).ready(function() {
         AKSNodesAmount = $('#aks-nodes-amt').val();
         EKSNodesAmount = $('#eks-nodes-amt').val();
         GKENodesAmount = $('#gke-nodes-amt').val();
+        HelmInstalls = $('#helm-installs-dropdown').val();
         AKSLocation = $('#aks-locations-dropdown').val();
         EKSLocation = $('#eks-locations-dropdown').val();
         EKSZones = $('#eks-zones-dropdown').val();
@@ -90,6 +91,7 @@ $(document).ready(function() {
             "version": AKSKubernetesVersion,
             "expiration_time": AKSExpirationTime,
             "aks_location": AKSLocation,
+            "helm_installs": HelmInstalls,
             "deployment_yaml": DeploymentYAML
         });
 
@@ -101,6 +103,7 @@ $(document).ready(function() {
             "eks_location": EKSLocation,
             "eks_zones": EKSZones,
             "eks_subnets": EKSSubnets,
+            "helm_installs": HelmInstalls,
             "deployment_yaml": DeploymentYAML
         });
 
@@ -113,6 +116,7 @@ $(document).ready(function() {
             "expiration_time": GKEExpirationTime,
             "gke_region": GKERegion,
             "gke_zone": GKEZone,
+            "helm_installs": HelmInstalls,
             "deployment_yaml": DeploymentYAML
         });
 
