@@ -228,9 +228,15 @@ def delete_eks_cluster(cluster_name: str = ''):
     """
     eks_cluster_details = retrieve_cluster_details(cluster_type=EKS, cluster_name=cluster_name)
     eks_cluster_region_name = eks_cluster_details[REGION_NAME.lower()]
+    aws_access_key_id, aws_secret_access_key = get_aws_credentials()
     json_data = {
         "event_type": "eks-delete-api-trigger",
-        "client_payload": {"cluster_name": cluster_name, 'region_name': eks_cluster_region_name}
+        "client_payload":
+            {"cluster_name": cluster_name,
+             "region_name": eks_cluster_region_name,
+             "aws_access_key_id": aws_access_key_id,
+             "aws_secret_access_key": aws_secret_access_key,
+             }
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
