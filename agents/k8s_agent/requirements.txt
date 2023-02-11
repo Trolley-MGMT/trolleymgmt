@@ -3,7 +3,7 @@ certifi==2022.9.24
 charset-normalizer==2.1.1
 google-auth==2.12.0
 kubernetes==24.2.0
-oauthlib==3.2.1
+oauthlib==3.2.2
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pymongo==4.2.0
