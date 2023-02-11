@@ -105,9 +105,8 @@ def get_cluster_parameters(node_info: V1NodeList) -> tuple:
 
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
-         region_name: str = '', cluster_metadata: str = '', resource_group=''):
-    cluster_metadata_dict = json.loads(cluster_metadata)
-    helm_installs = cluster_metadata_dict['helm_installs']
+         region_name: str = '', expiration_time: int = None, resource_group=''):
+
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
@@ -118,24 +117,13 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
         print(kubeconfig_yaml)
         context_name = kubeconfig_yaml['current-context']
         print(f'The current context is: {context_name}')
-
-    if ',' in helm_installs:
-        helm_installs_list = helm_installs.split(',')
-        for helm_install in helm_installs_list:
-            helm_name = helm_install.split('/')[1]
-            command = HELM_COMMAND + ' upgrade --install ' + helm_name + ' ' + helm_install
-            print(f'Running a {command} command')
-            result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-            print(f'The result is: {result}')
-    elif '.' in helm_installs:
-        print(f'No helm charts to install for {cluster_name} cluster')
     node_info = k8s_api.list_node()
     nodes_ips = get_nodes_ips(node_info)
     nodes_names = get_nodes_names(node_info)
     cluster_version, runtime_version, os_image = get_cluster_parameters(node_info)
     timestamp = int(time.time())
     human_created_timestamp = datetime.utcfromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
-    expiration_timestamp = cluster_metadata_dict['expiration_time'] * 60 * 60 + timestamp
+    expiration_timestamp = expiration_time * 60 * 60 + timestamp
     human_expiration_timestamp = datetime.utcfromtimestamp(expiration_timestamp).strftime('%d-%m-%Y %H:%M:%S')
 
     if cluster_type == GKE:
@@ -204,8 +192,7 @@ if __name__ == '__main__':
                         help='Name of the region where the cluster was built')
     parser.add_argument('--zone_name', default='us-central1-c', type=str,
                         help='Name of the zone where the cluster was built')
-    # parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
-    parser.add_argument('--cluster_metadata', default='', type=str, help='Cluster Metadata')
+    parser.add_argument('--expiration_time', default=24, type=int, help='Expiration time of the cluster in hours')
     args = parser.parse_args()
     with open(KUBECONFIG_PATH, "r") as f:
         kubeconfig_yaml = f.read()
@@ -214,5 +201,5 @@ if __name__ == '__main__':
     main(cluster_type=args.cluster_type, project_name=args.project_name,
          user_name=args.user_name,
          cluster_name=args.cluster_name,
-         region_name=args.region_name, zone_name=args.zone_name, cluster_metadata=args.cluster_metadata,
+         region_name=args.region_name, zone_name=args.zone_name, expiration_time=args.expiration_time,
          resource_group=args.resource_group)

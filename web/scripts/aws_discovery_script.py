@@ -108,7 +108,6 @@ def fetch_eks_clusters():
     aws_regions = fetch_regions()
     eks_clusters_object = []
     eks_clusters_names = []
-    cluster_object = {}
     for aws_region in aws_regions:
         eks_client = boto3.client('eks', region_name=aws_region)
         response = eks_client.list_clusters()
@@ -116,6 +115,7 @@ def fetch_eks_clusters():
             for cluster in response['clusters']:
                 eks_clusters_names.append(cluster)
             for cluster_name in eks_clusters_names:
+                cluster_object = {}
                 cluster_data = eks_client.describe_cluster(name=cluster_name)
                 cluster_object['cluster_name'] = cluster_name
                 cluster_object['user_name'] = 'vacant'

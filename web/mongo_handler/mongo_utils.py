@@ -37,13 +37,17 @@ else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
 
-MONGO_URL = os.environ['MONGO_URL']
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley')
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
+MONGO_URL = os.environ['MONGO_URL']
 
-client = MongoClient(MONGO_URL, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
+if "mongodb.net" in MONGO_URL:
+    client = MongoClient(f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority")
+else:
+    client = MongoClient(MONGO_URL, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
 db = client[PROJECT_NAME]
+
 gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters

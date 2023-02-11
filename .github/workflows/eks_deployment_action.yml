@@ -21,6 +21,7 @@ jobs:
           echo "${{ github.event.client_payload.region_name }}"
           echo "${{ github.event.client_payload.zone_names }}"
           echo "${{ github.event.client_payload.num_nodes }}"
+          echo "${{ github.event.client_payload.expiration_time }}"
           echo "user_name is: ${{ github.event.client_payload.user_name }}"
 
       - name: Configure AWS credentials
@@ -56,7 +57,7 @@ jobs:
           which helm >> /tmp/helm_path
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_names }} --region_name ${{ github.event.client_payload.region_name }} --cluster_metadata ${{ github.event.client_payload.cluster_metadata }}
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_names }} --region_name ${{ github.event.client_payload.region_name }} --expiration_time ${{ github.event.client_payload.expiration_time }}
 
       - name: Deleting Cluster
         if: always()

@@ -150,10 +150,7 @@ def trigger_eks_build_github_action(user_name: str,
                            "subnets": ','.join(eks_subnets),
                            "aws_access_key_id": aws_access_key_id,
                            "aws_secret_access_key": aws_secret_access_key,
-                           "cluster_metadata": str({"deployment_yaml": deployment_yaml,
-                                                "helm_installs": helm_installs,
-                                                "expiration_time": expiration_time,
-                                                })}
+                           "expiration_time": expiration_time}
     }
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
