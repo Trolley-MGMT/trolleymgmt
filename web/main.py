@@ -226,7 +226,7 @@ def render_page(page_name: str = ''):
 @login_required
 def get_clusters_data():
     """
-    Ths endpoint allows providing basic clusters data that was gathered upon the clusters creation.
+    Ths endpoint allows providing basic clusters data that was gathered upon the clusters' creation.
     """
     cluster_type = request.args.get(CLUSTER_TYPE)
     user_name = request.args.get(USER_NAME.lower())

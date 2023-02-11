@@ -125,8 +125,8 @@ def fetch_eks_clusters():
                 cluster_object['expiration_timestamp'] = TS_IN_20_YEARS
                 cluster_object['human_expiration_timestamp'] = datetime.datetime.fromtimestamp(TS_IN_20_YEARS).strftime(
                     '%d-%m-%Y %H:%M:%S')
-                cluster_object['kubernetes_version'] = cluster_data['cluster']['version']
-                cluster_object['region'] = cluster_data['cluster']['arn'].split(":")[3]
+                cluster_object['cluster_version'] = cluster_data['cluster']['version']
+                cluster_object['region_name'] = cluster_data['cluster']['arn'].split(":")[3]
                 cluster_object['tags'] = cluster_data['cluster']['tags']
                 cluster_object['availability'] = True
                 cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster_name, cluster_region=aws_region)

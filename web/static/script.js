@@ -15,7 +15,6 @@ $(document).ready(function() {
         <tr><th style="width: 10%" class="text-center">Cluster Name</th>
             <th style="width: 10%" class="text-center">Cluster Region</th>
             <th style="width: 10%" class="text-center">Kubernetes Version</th>
-            <th style="width: 30%" class="text-center">Nodes IPs</th>
             <th style="width: 15%" class="text-center">Expiration Time</th>
             <th style="width: 20%" class="text-center">
             </th></tr></thead><tbody><tr>`
@@ -234,7 +233,6 @@ $(document).ready(function() {
                         cluster_data += '<td class="text-center"><a>' + value.cluster_name + '</a></td>';
                         cluster_data += '<td class="text-center"><a>' + value.region_name + '</a></td>';
                         cluster_data += '<td class="text-center"><a>' + value.cluster_version + '</a></td>';
-                        cluster_data += '<td class="text-center"><a>' + value.nodes_ips + '</a></td>';
                         cluster_data += '<td class="text-center"><a>' + value.human_expiration_timestamp + '</a></td>';
 
                         let manage_table_buttons = '<td class="project-actions text-right"> \

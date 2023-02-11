@@ -51,6 +51,7 @@ db = client[PROJECT_NAME]
 gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
+aws_eks_clusters_data: Collection = db.aws_eks_clusters_data
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
@@ -69,7 +70,6 @@ k8s_agent_data: Collection = db.k8s_agent_data
 aws_ec2_instances_data: Collection = db.aws_es2_instances_data
 aws_s3_files_data: Collection = db.aws_s3_files_data
 aws_s3_buckets_data: Collection = db.aws_s3_buckets_data
-aws_eks_clusters_data: Collection = db.aws_eks_clusters_data
 providers_data: Collection = db.providers_data
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
@@ -147,12 +147,14 @@ def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', ava
 def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
     logger.info(f'A request to fetch {cluster_type} clusters for {user_name} was received')
     clusters_object = []
+    discovered_clusters_object = []
     if cluster_type == GKE:
         cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == GKE_AUTOPILOT:
         cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == EKS:
         cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+        discovered_clusters_object = aws_eks_clusters_data.find({"account_id": 553159257253})
     elif cluster_type == AKS:
         cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     else:
@@ -160,6 +162,11 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
     for cluster in cluster_object:
         del cluster['_id']
         clusters_object.append(cluster)
+    if discovered_clusters_object:
+        for discovered_clusters_object_ in discovered_clusters_object:
+            if len(discovered_clusters_object_['eks_clusters']) > 0:
+                for cluster in discovered_clusters_object_['eks_clusters']:
+                    clusters_object.append(cluster)
     return clusters_object
 
 
