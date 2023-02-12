@@ -51,7 +51,7 @@ db = client[PROJECT_NAME]
 gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
-aws_eks_clusters_data: Collection = db.aws_eks_clusters_data
+aws_discovered_eks_clusters: Collection = db.aws_discovered_eks_clusters
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
@@ -154,19 +154,20 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
         cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == EKS:
         cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
-        discovered_clusters_object = aws_eks_clusters_data.find({"account_id": 553159257253})
+        discovered_clusters_object = aws_discovered_eks_clusters.find({AVAILABILITY: True})
     elif cluster_type == AKS:
         cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     else:
         cluster_object = []
     for cluster in cluster_object:
         del cluster['_id']
+        cluster['discovered'] = False
         clusters_object.append(cluster)
     if discovered_clusters_object:
-        for discovered_clusters_object_ in discovered_clusters_object:
-            if len(discovered_clusters_object_['eks_clusters']) > 0:
-                for cluster in discovered_clusters_object_['eks_clusters']:
-                    clusters_object.append(cluster)
+        for cluster in discovered_clusters_object:
+            del cluster['_id']
+            cluster['discovered'] = True
+            clusters_object.append(cluster)
     return clusters_object
 
 
@@ -177,7 +178,9 @@ def retrieve_cluster_details(cluster_type: str, cluster_name: str) -> dict:
     elif cluster_type == GKE_AUTOPILOT:
         cluster_object = gke_autopilot_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     elif cluster_type == EKS:
-        cluster_object = eks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+        cluster_object = aws_discovered_eks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+        if cluster_object is None:
+            cluster_object = eks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     elif cluster_type == AKS:
         cluster_object = aks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     else:
@@ -504,31 +507,30 @@ def insert_aws_buckets_object(aws_buckets_object: dict) -> bool:
         logger.error(f'agents_data_object was not inserted properly')
 
 
-def insert_eks_clusters_object(eks_clusters_object: dict) -> bool:
+def insert_eks_cluster_object(eks_cluster_object: dict) -> bool:
     """
-    @param eks_clusters_object: The eks clusters list to save
+    @param eks_cluster_object: The eks clusters list to save
     """
     logger.info('is this on?')
-    logger.info(f'{eks_clusters_object}')
+    logger.info(f'{eks_cluster_object}')
     try:
-        mongo_query = {ACCOUNT_ID.lower(): eks_clusters_object[ACCOUNT_ID.lower()]}
-        existing_data_object = aws_eks_clusters_data.find_one(mongo_query)
+        mongo_query = {CLUSTER_NAME.lower(): eks_cluster_object[CLUSTER_NAME.lower()]}
+        existing_data_object = aws_discovered_eks_clusters.find_one(mongo_query)
         if existing_data_object:
-            result = aws_eks_clusters_data.replace_one(existing_data_object, eks_clusters_object)
-            logger.info(f'agents_data_object was updated properly')
+            result = aws_discovered_eks_clusters.replace_one(existing_data_object, eks_cluster_object)
+            logger.info(f'aws_discovered_eks_clusters was updated properly')
             return result.raw_result['updatedExisting']
         else:
-            result = aws_eks_clusters_data.insert_one(eks_clusters_object)
+            result = aws_discovered_eks_clusters.insert_one(eks_cluster_object)
             logger.info(result.acknowledged)
-            logger.info(result.raw_result)
             if result.inserted_id:
-                logger.info(f'agents_data_object was inserted properly')
+                logger.info(f'aws_discovered_eks_clusters was inserted properly')
                 return True
             else:
-                logger.error(f'agents_data_object was not inserted properly')
+                logger.error(f'aws_discovered_eks_clusters was not inserted properly')
                 return False
     except:
-        logger.error(f'agents_data_object was not inserted properly')
+        logger.error(f'aws_discovered_eks_clusters was not inserted properly')
 
 
 def insert_aws_agent_data_object(agent_data_object: dict) -> bool:
@@ -542,7 +544,7 @@ def insert_aws_agent_data_object(agent_data_object: dict) -> bool:
     if agent_data_object['s3BucketsObject']:
         insert_aws_buckets_object(agent_data_object['s3BucketsObject'])
     if agent_data_object['eksObject']:
-        insert_eks_clusters_object(agent_data_object['eksObject'])
+        insert_eks_cluster_object(agent_data_object['eksObject'])
     return True
 
 

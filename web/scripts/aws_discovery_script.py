@@ -11,9 +11,10 @@ import time
 
 import boto3
 
-from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, AWSS3BucketsObject, AWSEKSDataObject
+from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, AWSS3BucketsObject, AWSEKSDataObject, \
+    EKSObject
 from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
-    insert_aws_buckets_object, insert_eks_clusters_object
+    insert_aws_buckets_object, insert_eks_cluster_object
 
 if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
@@ -104,7 +105,7 @@ def fetch_ec2_instances():
                             ec2_instances=instances_object)
 
 
-def fetch_eks_clusters():
+def fetch_eks_clusters() -> list:
     aws_regions = fetch_regions()
     eks_clusters_object = []
     eks_clusters_names = []
@@ -133,16 +134,15 @@ def fetch_eks_clusters():
                 cluster_object['nodes_names'] = []
                 cluster_object['nodes_ips'] = []
                 eks_clusters_object.append(cluster_object)
-    return AWSEKSDataObject(timestamp=TS, account_id=ACCOUNT_ID,
-                            eks_clusters=eks_clusters_object)
+    return eks_clusters_object
 
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_ec2_instances: bool = False,
          is_fetching_eks_clusters: bool = False):
     if is_fetching_eks_clusters:
-        aws_eks_data_object = fetch_eks_clusters()
-        print(asdict(aws_eks_data_object))
-        insert_eks_clusters_object(asdict(aws_eks_data_object))
+        aws_discovered_clusters = fetch_eks_clusters()
+        for aws_discovered_cluster in aws_discovered_clusters:
+            insert_eks_cluster_object(aws_discovered_cluster)
     if is_fetching_files:
         aws_files_data_object = fetch_files()
         print(asdict(aws_files_data_object))
