@@ -24,4 +24,5 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 web/scripts/expired_clusters_deletion.py --cluster_type gke
+          cd web/scripts
+          python3 expired_clusters_deletion.py --cluster_type gke
