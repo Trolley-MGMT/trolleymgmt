@@ -81,5 +81,4 @@ jobs:
           export PYTHONPATH=/home/runner/work/Trolley-Management/Trolley-Management
           pip3 install -r web/requirements.txt
           cd deployment_utils
-          pip3 install -r web/requirements.txt
           python3 trolley_agent_deployment.py
