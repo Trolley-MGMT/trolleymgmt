@@ -210,8 +210,10 @@ def delete_gke_cluster(cluster_name: str = ''):
                            "zone_name": gke_zone_name}
     }
     print(f'The JSON Data for the request is: {json_data}')
+    print(f'The GITHUB_ACTION_REQUEST_HEADER for the request is: {GITHUB_ACTION_REQUEST_HEADER}')
     response = requests.post(GITHUB_ACTIONS_API_URL,
                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+    print(response)
     logger.info(response)
 
 
