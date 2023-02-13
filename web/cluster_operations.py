@@ -38,7 +38,7 @@ if 'Darwin' in platform.system() or run_env == 'github':
 else:
     AWS_CREDENTIALS_PATH = '/home/app/.aws/credentials'
 
-GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')
+GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
 GITHUB_ACTIONS_API_URL = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/dispatches'
 GITHUB_ACTION_REQUEST_HEADER_DOCKER = """curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
