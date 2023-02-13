@@ -39,7 +39,7 @@ else:
     AWS_CREDENTIALS_PATH = '/home/app/.aws/credentials'
 
 if run_env == "github":
-    GITHUB_ACTION_TOKEN = os.environ['ACTION_TOKEN']
+    GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 else:
     GITHUB_ACTION_TOKEN = os.getenv('ACTION_TOKEN')
 
