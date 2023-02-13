@@ -1,7 +1,7 @@
 name: Expired Clusters Deletion
 on:
   schedule:
-    - cron: "* * * * *"
+    - cron: "*/2 * * * *"
 
 jobs:
   expired_clusters_deletion:
