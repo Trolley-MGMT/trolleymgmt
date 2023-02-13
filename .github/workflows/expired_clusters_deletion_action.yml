@@ -1,7 +1,7 @@
 name: Expired Clusters Deletion
 on:
   schedule:
-    - cron: "5 * * * *"
+    - cron: "* * * * *"
 
 jobs:
   expired_clusters_deletion:
@@ -22,7 +22,7 @@ jobs:
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
         run: |
-          export PYTHONPATH=$PYTHONPATH:.
+          export PYTHONPATH=/home/runner/work/Trolley-Management/Trolley-Management
           pip3 install -r web/requirements.txt
           cd web/scripts
           python3 expired_clusters_deletion.py --cluster_type gke
