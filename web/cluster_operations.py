@@ -7,6 +7,9 @@ from subprocess import run, PIPE
 
 import requests
 
+from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+from mongo_handler.mongo_utils import retrieve_cluster_details
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -31,14 +34,8 @@ except:
     logger.error('this does not run on github')
 
 if 'Darwin' in platform.system() or run_env == 'github':
-    from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
-    from mongo_handler.mongo_utils import retrieve_cluster_details
-
     AWS_CREDENTIALS_PATH = f'/Users/{getpass.getuser()}/.aws/credentials'
 else:
-    from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
-    from mongo_handler.mongo_utils import retrieve_cluster_details
-
     AWS_CREDENTIALS_PATH = '/home/app/.aws/credentials'
 
 GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')

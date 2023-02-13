@@ -11,8 +11,8 @@ import time
 
 import boto3
 
-from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, AWSS3BucketsObject, AWSEKSDataObject, \
-    EKSObject
+from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, AWSS3BucketsObject
+
 from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
     insert_aws_buckets_object, insert_eks_cluster_object
 

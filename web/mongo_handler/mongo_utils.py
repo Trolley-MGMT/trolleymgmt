@@ -52,6 +52,11 @@ gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
 aws_discovered_eks_clusters: Collection = db.aws_discovered_eks_clusters
+
+aws_discovered_ec2_instances: Collection = db.aws_discovered_ec2_instances
+aws_discovered_s3_files: Collection = db.aws_discovered_s3_files
+aws_discovered_s3_buckets: Collection = db.aws_discovered_s3_buckets
+
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
@@ -67,9 +72,7 @@ eks_discovery: Collection = db.eks_discovery
 fs = gridfs.GridFS(db)
 
 k8s_agent_data: Collection = db.k8s_agent_data
-aws_ec2_instances_data: Collection = db.aws_es2_instances_data
-aws_s3_files_data: Collection = db.aws_s3_files_data
-aws_s3_buckets_data: Collection = db.aws_s3_buckets_data
+
 providers_data: Collection = db.providers_data
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
@@ -429,16 +432,15 @@ def insert_aws_instances_object(aws_instances_object: dict) -> bool:
     try:
         mongo_query = {ACCOUNT_ID.lower(): aws_instances_object[ACCOUNT_ID.lower()]}
         logger.info(f'Running the following mongo_query {mongo_query}')
-        existing_data_object = aws_ec2_instances_data.find_one(mongo_query)
+        existing_data_object = aws_discovered_ec2_instances.find_one(mongo_query)
         logger.info(f'existing_data_object {existing_data_object}')
         if existing_data_object:
-            result = aws_ec2_instances_data.replace_one(existing_data_object, aws_instances_object)
+            result = aws_discovered_ec2_instances.replace_one(existing_data_object, aws_instances_object)
             logger.info(f'agents_data_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
-            result = aws_ec2_instances_data.insert_one(aws_instances_object)
+            result = aws_discovered_ec2_instances.insert_one(aws_instances_object)
             logger.info(result.acknowledged)
-            logger.info(result.raw_result)
             if result.inserted_id:
                 logger.info(f'agents_data_object was inserted properly')
                 return True
@@ -458,17 +460,16 @@ def insert_aws_files_object(aws_files_object: dict) -> bool:
     try:
         mongo_query = {ACCOUNT_ID.lower(): aws_files_object[ACCOUNT_ID.lower()]}
         logger.info(f'Running the following mongo_query {mongo_query}')
-        existing_data_object = aws_s3_files_data.find_one(mongo_query)
+        existing_data_object = aws_discovered_s3_files.find_one(mongo_query)
         logger.info(f'existing_data_object {existing_data_object}')
         if existing_data_object:
-            result = aws_s3_files_data.replace_one(existing_data_object, aws_files_object)
+            result = aws_discovered_s3_files.replace_one(existing_data_object, aws_files_object)
             logger.info(f'agents_data_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
-            result = aws_s3_files_data.insert_one(aws_files_object)
+            result = aws_discovered_s3_files.insert_one(aws_files_object)
             if result.inserted_id:
                 logger.info(result.acknowledged)
-                logger.info(result.raw_result)
                 logger.info(f'agents_data_object was inserted properly')
                 return True
             else:
@@ -487,16 +488,15 @@ def insert_aws_buckets_object(aws_buckets_object: dict) -> bool:
     try:
         mongo_query = {ACCOUNT_ID.lower(): aws_buckets_object[ACCOUNT_ID.lower()]}
         logger.info(f'Running the following mongo_query {mongo_query}')
-        existing_data_object = aws_s3_buckets_data.find_one(mongo_query)
+        existing_data_object = aws_discovered_s3_buckets.find_one(mongo_query)
         logger.info(f'existing_data_object {existing_data_object}')
         if existing_data_object:
-            result = aws_s3_buckets_data.replace_one(existing_data_object, aws_buckets_object)
+            result = aws_discovered_s3_buckets.replace_one(existing_data_object, aws_buckets_object)
             logger.info(f'agents_data_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
-            result = aws_s3_buckets_data.insert_one(aws_buckets_object)
+            result = aws_discovered_s3_buckets.insert_one(aws_buckets_object)
             logger.info(result.acknowledged)
-            logger.info(result.raw_result)
             if result.inserted_id:
                 logger.info(f'agents_data_object was inserted properly')
                 return True

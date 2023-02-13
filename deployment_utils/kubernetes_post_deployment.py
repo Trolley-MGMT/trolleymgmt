@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import platform
@@ -6,7 +5,6 @@ import time
 from dataclasses import asdict
 from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
-from subprocess import PIPE, run
 
 import yaml
 from kubernetes import client, config
