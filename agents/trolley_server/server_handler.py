@@ -25,11 +25,11 @@ logging.basicConfig(
 
 
 class ServerRequest:
-    def __init__(self, debug_mode: bool = True, timeout: int = 60, agent_data: any = None, operation: str = None,
+    def __init__(self, debug_mode: bool = True, timeout: int = 60, cluster_data: any = None, operation: str = None,
                  server_url: str = None):
         self.debug_mode = debug_mode
         self.timeout = timeout
-        self.agent_data = agent_data
+        self.cluster_data = cluster_data
         self.operation = operation
         self.server_url = server_url
 
@@ -43,6 +43,6 @@ class ServerRequest:
     def send_server_request(self):
         request_url = self.build_request_url(self)
         try:
-            post(url=request_url, json=asdict(self.agent_data))
+            post(url=request_url, json=asdict(self.cluster_data))
         except exceptions.RequestException as e:
             logging.error(f'post request failed with the following message: {e}')

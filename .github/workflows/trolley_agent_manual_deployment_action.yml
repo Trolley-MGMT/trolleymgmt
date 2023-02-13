@@ -78,6 +78,8 @@ jobs:
 
       - name: Prepare the YAML and deploy
         run: |
-          export PYTHONPATH=$PYTHONPATH:.
+          export PYTHONPATH=/home/runner/work/Trolley-Management/Trolley-Management
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/trolley_agent_deployment.py
+          cd deployment_utils
+          pip3 install -r web/requirements.txt
+          python3 trolley_agent_deployment.py

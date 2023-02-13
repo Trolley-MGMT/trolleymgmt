@@ -400,27 +400,27 @@ def insert_deployment_yaml(deployment_yaml_object: dict):
         return False
 
 
-def insert_k8s_agent_data_object(agent_data_object: dict) -> bool:
+def insert_cluster_data_object(cluster_data_object: dict) -> bool:
     """
-    @param agent_data_object: The filename of the image to save
+    @param cluster_data_object: The filename of the image to save
     """
     try:
-        mongo_query = {CLUSTER_NAME.lower(): agent_data_object[CLUSTER_NAME.lower()]}
-        existing_agents_data_object = k8s_agent_data.find_one(mongo_query)
-        if existing_agents_data_object:
-            result = k8s_agent_data.replace_one(existing_agents_data_object, agent_data_object)
-            logger.info(f'agents_data_object was updated properly')
+        mongo_query = {CLUSTER_NAME.lower(): cluster_data_object[CLUSTER_NAME.lower()]}
+        existing_cluster_data_object = k8s_agent_data.find_one(mongo_query)
+        if existing_cluster_data_object:
+            result = k8s_agent_data.replace_one(existing_cluster_data_object, cluster_data_object)
+            logger.info(f'cluster_data_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
-            result = k8s_agent_data.insert_one(agent_data_object)
+            result = k8s_agent_data.insert_one(cluster_data_object)
             if result.inserted_id:
-                logger.info(f'agents_data_object was inserted properly')
+                logger.info(f'cluster_data_object was inserted properly')
                 return True
             else:
-                logger.error(f'agents_data_object was not inserted properly')
+                logger.error(f'cluster_data_object was not inserted properly')
                 return False
     except:
-        logger.error(f'agents_data_object was not inserted properly')
+        logger.error(f'cluster_data_object was not inserted properly')
 
 
 def insert_aws_instances_object(aws_instances_object: dict) -> bool:

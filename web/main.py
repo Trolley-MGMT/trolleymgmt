@@ -424,8 +424,8 @@ def delete_cluster():
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
-@app.route('/insert_agent_data', methods=[POST])
-def insert_agent_data():
+@app.route('/insert_cluster_data', methods=[POST])
+def insert_cluster_data():
     """
     This endpoint inserts data provided by a Trolley Agent
     """
@@ -433,12 +433,12 @@ def insert_agent_data():
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested')
     if content['agent_type'] == 'k8s':
-        if mongo_handler.mongo_utils.insert_k8s_agent_data_object(content):
+        if mongo_handler.mongo_utils.insert_cluster_data_object(content):
             return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
     elif content['agent_type'] == 'aws':
-        if mongo_handler.mongo_utils.insert_aws_agent_data_object(content):
+        if mongo_handler.mongo_utils.insert_cluster_data_object(content):
             return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)

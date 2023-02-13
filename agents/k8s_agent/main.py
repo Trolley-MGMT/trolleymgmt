@@ -13,7 +13,7 @@ from agents.k8s_agent.k8s_objects.k8s_objects_handler import fetch_namespaces_li
     fetch_pods_list, \
     fetch_containers_list, fetch_daemonsets_list, fetch_stateful_sets_list, fetch_services_list
 from agents.trolley_server.server_handler import ServerRequest
-from web.mongo_handler.mongo_objects import K8SAgentsDataObject
+from web.mongo_handler.mongo_objects import ClusterDataObject
 from web.mongo_handler.mongo_utils import retrieve_cluster_details
 
 from agents.k8s_agent.k8s_client.api_client import K8sApiClient
@@ -84,12 +84,12 @@ def main(debug_mode: bool, internal_cluster_mode: bool, cluster_name: str = None
     stateful_sets = fetch_stateful_sets_list(apis_api, namespaces)
     services = fetch_services_list(k8s_api, namespaces)
 
-    agents_data_object = K8SAgentsDataObject(timestamp=timestamp, agent_type='k8s', cluster_name=cluster_name,
+    cluster_data_object = ClusterDataObject(timestamp=timestamp, agent_type='k8s', cluster_name=cluster_name,
                                              context_name=context_name, namespaces=namespaces,
                                              deployments=deployments, stateful_sets=stateful_sets, pods=pods,
                                              containers=containers, daemonsets=daemonsets, services=services)
-    server_request = ServerRequest(debug_mode=debug_mode, agent_data=agents_data_object, operation='insert_agent_data',
-                                   server_url=server_url)
+    server_request = ServerRequest(debug_mode=debug_mode, cluster_data=cluster_data_object,
+                                   operation='insert_cluster_data', server_url=server_url)
     server_request.send_server_request()
     logging.info(f'Taking a {fetch_interval} sleep time between fetches')
     time.sleep(fetch_interval)

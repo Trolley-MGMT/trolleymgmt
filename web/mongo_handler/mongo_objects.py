@@ -177,7 +177,7 @@ class ServicesDataObject:
 
 
 @dataclass
-class K8SAgentsDataObject:
+class ClusterDataObject:
     timestamp: int
     agent_type: str
     cluster_name: str
