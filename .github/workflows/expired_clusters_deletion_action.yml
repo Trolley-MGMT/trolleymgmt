@@ -1,8 +1,8 @@
 name: Expired Clusters Deletion
 on:
-#  workflow_dispatch:
-  schedule:
-    - cron: "5 * * * *"
+  workflow_dispatch:
+#  schedule:
+#    - cron: "5 * * * *"
 
 jobs:
   expired_clusters_deletion:
