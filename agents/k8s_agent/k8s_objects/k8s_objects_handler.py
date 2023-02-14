@@ -34,7 +34,7 @@ def fetch_containers_list(k8s_api, namespaces_list: list = None) -> list:
                                                       namespace=namespace)
                 containers_list.append({'namespace': namespace,
                                         'pod': pod.metadata.name,
-                                        'container': pod.spec.containers[0].name,
+                                        'container_name': pod.spec.containers[0].name,
                                         'log': str(log)})
     return containers_list
 

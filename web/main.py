@@ -207,7 +207,7 @@ def validate_provider_data(content: dict) -> bool:
             return True
 
 
-def render_page(page_name: str = ''):
+def render_page(page_name: str = '', cluster_name: str = ''):
     try:
         token, user_object = login_processor()
         base64_data = codecs.encode(user_object['profile_image'].read(), 'base64')
@@ -215,7 +215,8 @@ def render_page(page_name: str = ''):
     except:
         is_login_pass = False
     if is_login_pass:
-        data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name']}
+        data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'],
+                'cluster_name': cluster_name}
         profile_image = base64_data.decode('utf-8')
         return render_template(page_name, data=data, image=profile_image)
     else:
@@ -671,6 +672,18 @@ def manage_gke_clusters():
 @app.route('/settings', methods=[GET, POST])
 def settings():
     return render_page('settings.html')
+
+
+@app.route('/clusters-data', methods=[GET, POST])
+def clusters_data():
+    cluster_name = request.values['cluster_name']
+    return render_page('clusters-data.html', cluster_name=cluster_name)
+
+
+@app.route('/namespaces-data', methods=[GET, POST])
+def namespaces_data():
+    cluster_name = request.values['cluster_name']
+    return render_page('namespaces-data.html', cluster_name=cluster_name)
 
 
 @app.route('/products-dashboards', methods=[GET, POST])

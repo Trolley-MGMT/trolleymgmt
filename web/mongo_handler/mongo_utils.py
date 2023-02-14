@@ -192,11 +192,15 @@ def retrieve_cluster_details(cluster_type: str, cluster_name: str) -> dict:
     return cluster_object
 
 
-def retrieve_agent_cluster_details(cluster_name: str) -> dict:
+def retrieve_agent_cluster_details(cluster_name: str) -> list:
     logger.info(f'A request to fetch {cluster_name} details was received')
     cluster_object = k8s_agent_data.find_one({CLUSTER_NAME.lower(): cluster_name})
-    del cluster_object['_id']
-    return cluster_object
+    if not cluster_object is None:
+        del cluster_object['_id']
+    else:
+        empty_object = {'content': None}
+        return [empty_object]
+    return [cluster_object]
 
 
 def retrieve_expired_clusters(cluster_type: str) -> list:
