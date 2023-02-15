@@ -246,6 +246,8 @@ $(document).ready(function() {
 
         url = "http://" + trolley_url + ":" + port + "/deploy_trolley_agent_on_cluster";
 
+        swal_message = 'An trolley agent was deployed on' + cluster_name
+
         const xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -255,6 +257,14 @@ $(document).ready(function() {
             }
         };
         xhr.send(deploy_trolley_agent_data);
+
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: swal_message,
+            showConfirmButton: false,
+            timer: 5000
+        })
     });
 
     function populate_kubernetes_clusters_objects() {
@@ -322,6 +332,7 @@ $(document).ready(function() {
             success: function(response) {
                 if ((response.status === 'Failure') || (response[0].content === null)) {
                         $('#resources-title').replaceWith('Trolley Agent was not found on the cluster. Click to install!');
+                        $('#agent-deployment-div').show();
                 } else {
                     $.each(response, function(key, value) {
                         $('#agents-data-div').show();
