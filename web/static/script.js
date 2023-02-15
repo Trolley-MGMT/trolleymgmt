@@ -11,6 +11,7 @@ $(document).ready(function() {
     let managePage = false;
     let buildPage = false;
     let pathname = window.location.pathname.split('/');
+
     let manage_table_header = `<div class="card-body p-0">
     <table class="table table-striped projects" >
         <thead>
@@ -178,7 +179,6 @@ $(document).ready(function() {
         })
     });
 
-
     $("#add-provider-button").click(function() {
         let data = ''
         var cloud_provider = $('#cloud-providers-dropdown').val().toLowerCase();
@@ -231,6 +231,30 @@ $(document).ready(function() {
             showConfirmButton: false,
             timer: 5000
         })
+    });
+
+    $("#agent-deployment-button").click(function() {
+        let cluster_name = window.localStorage.getItem("cluster_name");
+        let cluster_type = cluster_name.split('-')[1]
+        let trolley_server_url = $('#trolley_server_url').val();
+
+        let deploy_trolley_agent_data = JSON.stringify({
+            "cluster_name": cluster_name,
+            "cluster_type": cluster_type,
+            "trolley_server_url": trolley_server_url,
+        });
+
+        url = "http://" + trolley_url + ":" + port + "/deploy_trolley_agent_on_cluster";
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(deploy_trolley_agent_data);
     });
 
     function populate_kubernetes_clusters_objects() {
@@ -557,7 +581,6 @@ $(document).ready(function() {
         }, )
     }
 
-
     function populate_kubernetes_image_types(selected_location) {
          if (clusterType == 'aks') {
             var $dropdown = $("#aks-locations-dropdown");
@@ -641,7 +664,6 @@ $(document).ready(function() {
     });
         $("#userNameLabel").text(data['first_name'].capitalize());
     }
-
 
     $('#eks-locations-dropdown').change(function() {
         var eks_location = $('#eks-locations-dropdown').val();
@@ -755,50 +777,6 @@ $(document).ready(function() {
         });
 
     }
-
-        // Example starter JavaScript for disabling form submissions if there are invalid fields
-//    (function () {
-//      'use strict'
-
-      // Fetch all the forms we want to apply custom Bootstrap validation styles to
-//      var forms = document.querySelectorAll('.needs-validation')
-//
-//      // Loop over them and prevent submission
-//      Array.prototype.slice.call(forms)
-//        .forEach(function (form) {
-//          form.addEventListener('submit', function (event) {
-//            if (!form.checkValidity()) {
-//              event.preventDefault()
-//              event.stopPropagation()
-//            }
-//
-//            form.classList.add('was-validated')
-//          }, false)
-//        })
-//    })()
-    //    function copyToClipboard(textToCopy) {
-    //        // navigator clipboard api needs a secure context (https)
-    //        if (navigator.clipboard && window.isSecureContext) {
-    //            // navigator clipboard api method'
-    //            return navigator.clipboard.writeText(textToCopy);
-    //        } else {
-    //            // text area method
-    //            let textArea = document.createElement("textarea");
-    //            textArea.value = textToCopy;
-    //            // make the textarea out of viewport
-    //            textArea.style.position = "fixed";
-    //            textArea.style.left = "-999999px";
-    //            textArea.style.top = "-999999px";
-    //            document.body.appendChild(textArea);
-    //            textArea.focus();
-    //            textArea.select();
-    //            return new Promise((res, rej) => {
-    //                // here the magic happens
-    //                document.execCommand('copy') ? res() : rej();
-    //                textArea.remove();
-    //            });
-    //        }
-    //    }
 
     $(function() {
         var url = window.location;

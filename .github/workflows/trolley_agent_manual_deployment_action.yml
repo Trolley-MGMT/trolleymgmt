@@ -1,5 +1,8 @@
 name: Trolley Agent Manual Deployment Action
 on:
+  repository_dispatch:
+    types: trolley-agent-manual-deployment-action
+
   workflow_dispatch:
     inputs:
       cluster_name:

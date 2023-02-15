@@ -302,6 +302,9 @@ def deploy_trolley_agent_on_cluster():
     This endpoint allows triggering a Trolley Agent deployment on a cluster
     """
     content = request.get_json()
+    content['mongo_password'] = os.getenv('MONGO_PASSWORD')
+    content['mongo_url'] = os.getenv('MONGO_URL')
+    content['mongo_user'] = os.getenv('MONGO_USER')
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     if trigger_trolley_agent_deployment_github_action(**content):
@@ -674,9 +677,12 @@ def settings():
     return render_page('settings.html')
 
 
-@app.route('/clusters-data', methods=[GET, POST])
+@app.route('/clusters-data', methods=[GET])
 def clusters_data():
-    cluster_name = request.values['cluster_name']
+    try:
+        cluster_name = request.values['cluster_name']
+    except:
+        cluster_name = 'nothing'
     return render_page('clusters-data.html', cluster_name=cluster_name)
 
 

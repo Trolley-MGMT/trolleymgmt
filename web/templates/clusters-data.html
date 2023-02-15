@@ -26,6 +26,8 @@
 
 
 
+
+
     </script>
 </head>
 
@@ -52,23 +54,6 @@
                 <a class="nav-link" data-widget="navbar-search" href="#" role="button">
                     <i class="fas fa-search"></i>
                 </a>
-                <div class="navbar-search-block">
-                    <form class="form-inline">
-                        <div class="input-group input-group-sm">
-                            <input class="form-control form-control-navbar" type="search"
-                                   placeholder="Search for your product"
-                                   aria-label="Search">
-                            <div class="input-group-append">
-                                <button class="btn btn-navbar" type="submit">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
             </li>
         </ul>
     </nav>
@@ -228,6 +213,29 @@
             <div class="container-fluid">
 
                 <h5 class="mb-2 mt-4" id="resources-title">Resources Listing</h5>
+
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Agent Deployment</h3>
+                    </div>
+
+
+                    <form>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="trolley_server_url">Server address</label>
+                                <input type="text" class="form-control" id="trolley_server_url"
+                                       placeholder="https://d2ba-2a0d-6fc2-41e0-3d00-8de7-4aec-8b97-f42e.eu.ngrok.io">
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary" id="agent-deployment-button">Deploy</button>
+                        </div>
+                    </form>
+                </div>
+
+
                 <div class="row" id="agents-data-div" style="display: none;">
                     <div class="col-lg-3 col-6">
 
@@ -372,71 +380,6 @@
 <!-- AdminLTE App -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-<script src="static/chart.min.js"></script>
-<script>
-  const labels = [
-    'AppsFlyer',
-    'AWS',
-    'Google',
-    'Intel',
-    'Meta',
-    'Microsoft',
-    'Oracle'
-  ];
-
-  const dash_data = {
-    labels: labels,
-    datasets: [{
-      label: 'Products Costs',
-      backgroundColor: 'rgb(255, 99, 132)',
-      borderColor: 'rgb(255, 99, 132)',
-      data: [20, 15, 55, 2, 20, 30, 45],
-      backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
-    }]
-
-  };
-
-    const config = {
-      type: 'doughnut',
-      data: dash_data,
-      options: {
-        plugins: {
-          legend: {
-            labels: {
-              color: 'white',
-              font: {
-                size: 18,
-              }
-            }
-          }
-        }
-      }
-    };
-
-
-
-
-
-
-
-
-
-</script>
-<script>
-  const myChart = new Chart(
-    document.getElementById('myChart'),
-    config
-  );
-
-
-
-
-
-
-
-
-
-</script>
 
 </body>
 </html>
