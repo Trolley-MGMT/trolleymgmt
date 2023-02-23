@@ -32,7 +32,7 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID
+        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
@@ -74,6 +74,7 @@ fs = gridfs.GridFS(db)
 k8s_agent_data: Collection = db.k8s_agent_data
 
 providers_data: Collection = db.providers_data
+clients_data: Collection = db.clients_data
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
 logger.info(f'MONGO_URL is: {MONGO_URL}')
@@ -166,11 +167,19 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
         del cluster['_id']
         cluster['discovered'] = False
         clusters_object.append(cluster)
+        if 'client_name' not in cluster.keys():
+            cluster['client_name'] = ''
+        if 'tags' not in cluster.keys():
+            cluster['tags'] = []
     if discovered_clusters_object:
         for cluster in discovered_clusters_object:
             del cluster['_id']
             cluster['discovered'] = True
             clusters_object.append(cluster)
+            if 'client_name' not in cluster.keys():
+                cluster['client_name'] = ''
+            if 'tags' not in cluster.keys():
+                cluster['tags'] = []
     return clusters_object
 
 
@@ -315,7 +324,29 @@ def insert_discovery_object(discovery_object: dict = None, provider: str = None)
             return False
 
 
-def retrieve_cache(cache_type: str = '', provider: str = '') -> dict:
+def retrieve_clients_data() -> list:
+    clients_data_list = []
+    clients_data_object = clients_data.find()
+    for client_data in clients_data_object:
+        del client_data['_id']
+        clients_data_list.append(client_data)
+    return clients_data_list
+
+
+def retrieve_client_per_cluster_name(cluster_type: str = '', cluster_name: str = '') -> list:
+    mongo_query = {CLUSTER_NAME.lower(): cluster_name}
+    if cluster_type == GKE:
+        client_name = gke_clusters.find_one(mongo_query)
+    elif cluster_type == EKS:
+        client_name = eks_clusters.find_one(mongo_query)
+    elif cluster_type == AKS:
+        client_name = aks_clusters.find_one(mongo_query)
+    else:
+        client_name = gke_clusters.find_one(mongo_query)
+    return client_name[CLIENT_NAME.lower()]
+
+
+def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
     if provider == GKE:
         cache_object = gke_cache.find()[0]
     elif provider == EKS:
@@ -573,3 +604,55 @@ def add_providers_data_object(providers_data_object: dict) -> bool:
                 return False
     except:
         logger.error(f'provider data was not inserted properly')
+
+
+def add_client_data_object(client_data_object: dict) -> bool:
+    """
+    @param client_data_object: The filename of the image to save
+    """
+    try:
+        mongo_query = {'client_name': client_data_object['client_name']}
+        existing_clients_data_object = clients_data.find_one(mongo_query)
+        if existing_clients_data_object:
+            result = clients_data.replace_one(existing_clients_data_object, client_data_object)
+            logger.info(f'clients_data_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = clients_data.insert_one(client_data_object)
+            if result.inserted_id:
+                logger.info(f'client was inserted properly')
+                return True
+            else:
+                logger.error(f'client was not inserted properly')
+                return False
+    except:
+        logger.error(f'client data was not inserted properly')
+
+
+def add_client_to_cluster(cluster_type: str = '', cluster_name: str = '', client_name: str = '',
+                          discovered: bool = False):
+    """
+
+    @param cluster_type: The type of the cluster to change the availability of
+    @param cluster_name: The name of the cluster to set the availability of
+    @param client_name: Name of the client we want to associate with the cluster
+    @param discovered: Signifies whether the cluster was discovered by Trolley agent.
+    @return:
+    """
+
+    myquery = {CLUSTER_NAME.lower(): cluster_name}
+    newvalues = {"$set": {CLIENT_NAME.lower(): client_name}}
+    if cluster_type == GKE:
+        result = gke_clusters.update_one(myquery, newvalues)
+    elif cluster_type == GKE_AUTOPILOT:
+        result = gke_autopilot_clusters.update_one(myquery, newvalues)
+    elif cluster_type == EKS:
+        if discovered:
+            result = aws_discovered_eks_clusters.update_one(myquery, newvalues)
+        else:
+            result = eks_clusters.update_one(myquery, newvalues)
+    elif cluster_type == AKS:
+        result = aks_clusters.update_one(myquery, newvalues)
+    else:
+        result = gke_clusters.update_one(myquery, newvalues)
+    return result.raw_result['updatedExisting']

@@ -28,6 +28,13 @@
 
 
 
+
+
+
+
+
+
+
     </script>
 </head>
 
@@ -98,7 +105,7 @@
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                     data-accordion="false">
-                    <li class="nav-item">
+                    <li class="nav-item" id="build-clusters-div">
                         <a href="#" class="nav-link">
                             <i class="fad fa-cubes"></i>
                             <p>
@@ -127,7 +134,7 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" id="manage-clusters-div">
                         <a href="#" class="nav-link">
                             <i class="fad fa-wrench"></i>
                             <p>
@@ -158,7 +165,26 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" id="clients-div">
+                        <a href="#" class="nav-link">
+                            <i class="fa fa-cog"></i>
+                            <p>
+                                Clients
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview" style="display: none;">
+                            <li class="nav-item">
+                                <a href="manage-clients" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Clients Management</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item" id="dashboards-div">
                         <a href="#" class="nav-link">
                             <i class="fa fa-cog"></i>
                             <p>
@@ -218,8 +244,6 @@
                     <div class="card-header">
                         <h3 class="card-title">Agent Deployment</h3>
                     </div>
-
-
                     <form>
                         <div class="card-body">
                             <div class="form-group">
@@ -236,7 +260,7 @@
                 </div>
 
 
-                <div class="row" id="agents-data-div" style="display: none;">
+                <div class="row" id="agent-data-div" style="display: none;">
                     <div class="col-lg-3 col-6">
 
                         <div class="small-box bg-info">
@@ -340,6 +364,17 @@
 
                     </div>
                 </div>
+<!--                <div class="col-lg-4 align-content-lg-center" id="attach-client-div" style="display: none;">-->
+<!--                    <div class="form-group">-->
+<!--                        <label>Attach a client to this cluster</label>-->
+<!--                        <br>-->
+<!--                        <select class="col-lg-8 align-content-lg-center" id="client-names-dropdown">-->
+<!--                        </select>-->
+<!--                        <button type="submit" class="btn btn-primary" id="assign-client-button">Assign</button>-->
+<!--                    </div>-->
+
+<!--                </div>-->
+
 
             </div>
         </section>

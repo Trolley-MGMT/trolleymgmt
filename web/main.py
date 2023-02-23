@@ -23,7 +23,7 @@ from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ
+    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT
 from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
     trigger_trolley_agent_deployment_github_action
@@ -468,6 +468,27 @@ def provider():
         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
+@app.route('/client', methods=[GET, POST, PUT])
+@login_required
+def client():
+    """
+    This endpoint adds a client data
+    """
+    content = request.get_json()
+    function_name = inspect.stack()[0][3]
+    logger.info(f'A request for {function_name} was requested')
+    if request.method == POST:
+        if mongo_handler.mongo_utils.add_client_data_object(content):
+            return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+        else:
+            return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+    elif request.method == PUT:
+        if mongo_handler.mongo_utils.add_client_to_cluster(**content):
+            return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+        else:
+            return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+
+
 @app.route('/healthz', methods=[GET, POST])
 def healthz():
     logger.info('A request was received')
@@ -553,6 +574,22 @@ def fetch_helm_installs():
     logger.info(f'A request to fetch helm installs for {names} names has arrived')
     helm_installs_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=HELM_INSTALLS_LIST, provider=HELM)
     return jsonify(helm_installs_list)
+
+
+@app.route('/fetch_client_names', methods=[GET])
+@login_required
+def fetch_client_names():
+    client_names = mongo_handler.mongo_utils.retrieve_clients_data()
+    return jsonify(client_names)
+
+
+@app.route('/fetch_client_name_per_cluster', methods=[GET])
+@login_required
+def fetch_client_name_per_cluster():
+    cluster_type = request.args.get('cluster_type')
+    cluster_name = request.args.get('cluster_name')
+    client_names = mongo_handler.mongo_utils.retrieve_client_per_cluster_name(cluster_type, cluster_name)
+    return jsonify(client_names)
 
 
 @app.route('/fetch_gke_versions', methods=[GET])
@@ -684,6 +721,11 @@ def clusters_data():
     except:
         cluster_name = 'nothing'
     return render_page('clusters-data.html', cluster_name=cluster_name)
+
+
+@app.route('/manage-clients', methods=[GET, POST])
+def manage_clients():
+    return render_page('manage-clients.html')
 
 
 @app.route('/namespaces-data', methods=[GET, POST])
