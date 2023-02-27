@@ -1,11 +1,10 @@
 $(document).ready(function() {
-    window.localStorage.setItem("user_name", data['user_name']);
-    let user_name = window.localStorage.getItem("user_name");
-    window.localStorage.setItem("cluster_name", data['cluster_name']);
-    let clusterName = window.localStorage.getItem("cluster_name");
+    window.localStorage.setItem("userName", data['user_name']);
+    let user_name = window.localStorage.getItem("userName");
+    window.localStorage.setItem("clusterName", data['cluster_name']);
+    let clusterName = window.localStorage.getItem("clusterName");
     let clusterType = clusterName.split('-')[1]
-    window.localStorage.setItem("cluster_type", clusterType);
-
+    window.localStorage.setItem("clusterType", clusterType);
     let trolley_remote_url = ''
     let trolley_local_url = 'localhost';
     let trolley_url = '';
@@ -67,13 +66,13 @@ $(document).ready(function() {
 
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1)) {
         clusterType = 'aks'
-        window.localStorage.setItem("cluster_type", clusterType);
+        window.localStorage.setItem("clusterType", clusterType);
     } else if (($.inArray('build-eks-clusters', pathname) > -1) || ($.inArray('manage-eks-clusters', pathname) > -1)) {
         clusterType = 'eks'
-        window.localStorage.setItem("cluster_type", clusterType);
+        window.localStorage.setItem("clusterType", clusterType);
     } else if (($.inArray('build-gke-clusters', pathname) > -1) || ($.inArray('manage-gke-clusters', pathname) > -1)) {
         clusterType = 'gke'
-        window.localStorage.setItem("cluster_type", clusterType);
+        window.localStorage.setItem("clusterType", clusterType);
     } else {
         clusterType = clusterType
     }
@@ -296,47 +295,9 @@ $(document).ready(function() {
         })
     });
 
-//    $("#assign-client-button").click(function() {
-//        assign_client_name(client)
-//        let clusterType = window.localStorage.getItem("cluster_type");
-//        let clientName = $('#clientnames-dropdown').val();
-//        let clusterName = window.localStorage.getItem("cluster_name");
-//
-//        let assign_client_data = JSON.stringify({
-//            "cluster_type": clusterType,
-//            "cluster_name": clusterName,
-//            "client_name": clientName
-//
-//        });
-//
-//
-//        url = "http://" + trolley_url + ":" + port + "/client";
-//
-//        swal_message = 'A request to assign a' + clientName + ' client to' + clusterName + 'was sent'
-//
-//        const xhr = new XMLHttpRequest();
-//        xhr.open("PUT", url, true);
-//        xhr.setRequestHeader("Content-Type", "application/json");
-//        xhr.onreadystatechange = function() {
-//            if (xhr.readyState === 4 && xhr.status === 200) {
-//                var json = JSON.parse(xhr.responseText);
-//            }
-//        };
-//        xhr.send(assign_client_data);
-//
-//        Swal.fire({
-//            position: 'top-end',
-//            icon: 'success',
-//            title: swal_message,
-//            showConfirmButton: false,
-//            timer: 5000
-//        })
-//        $('#attach-client-div').hide()
-//    });
-
 
     $("#agent-deployment-button").click(function() {
-        let clusterName = window.localStorage.getItem("cluster_name");
+        let clusterName = window.localStorage.getItem("clusterName");
         let clusterType = cluster_name.split('-')[1]
         let trolleyServerURL = $('#trolley_server_url').val();
 
@@ -369,88 +330,66 @@ $(document).ready(function() {
         })
     });
 
-    function populate_kubernetes_clusters_objects() {
-        url = "http://" + trolley_url + ":" + port + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'];
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                var cluster_data = '';
-                var kubeconfigs_array = [];
-                if (response.status === 'Failure') {
-                    cluster_data += '<tr data-widget="expandable-table" aria-expanded="false">;>';
-                    cluster_data += '<td>No Kubernetes clusters were found</td>';
-                } else {
-                    window.localStorage.removeItem("kubeconfigs");
-                    $.each(response, function(key, value) {
-                        var tags_string_ = JSON.stringify(value.tags);
-                        var tags_string__ = tags_string_.replace(/[{}]/g, "");
-                        var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
-                        var tags_string = tags_string___.replace(/[,]/g, "<br>");
-                        var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clientnames-dropdown-' + value.cluster_name + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clientnames-button-' + value.cluster_name + '" >Add</button>'
-                        cluster_data += '<tr id="tr_' + value.cluster_name + '">';
-                        cluster_data += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.cluster_name + '"><p>' + value.cluster_name + '</p></a></td>';
-                        cluster_data += '<td class="text-center"><a>' + value.region_name + '</a></td>';
-                        cluster_data += '<td class="text-center"><a>' + value.cluster_version + '</a></td>';
-                        cluster_data += '<td class="text-center"><a>' + value.human_expiration_timestamp + '</a></td>';
-
-                        if (value.client_name === '') {
-                            cluster_data += '<td class="text-center" id="' + value.cluster_name + '-div"><a>' + client_name_assign_element + '</a></td>';
-                        } else {
-                            cluster_data += '<td class="text-center"><a>' + value.client_name + '</a></td>';
-                        }
-                        cluster_data += '<td class="text-center"><a>' + tags_string + '</a></td>';
-                        let manage_table_buttons = '<td class="project-actions text-right"> \
-                        <a class="btn btn-primary btn-sm " data-toggle="modal" data-target="#exampleModal" id="more-button-' + value.cluster_name + '" href="#"  ><i class="fas fa-folder"></i>More</a> \
-                        <a class="btn btn-info btn-sm" id="edit-button-' + value.cluster_name + '" href="#"><i class="fas fa-pencil-alt"></i>Edit</a> \
-                        <a class="btn btn-danger btn-sm" id="delete-button-' + value.cluster_name + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
-                        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"> \
-                        <div class="modal-dialog modal-lg" role="document"> <div class="modal-content"> <div class="modal-header"> \
-                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5> \
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"> \
-                        <span aria-hidden="true">&times;</span></button> </div> <div class="modal-body"> \
-                        Testing stuff</div> <div class="modal-footer"> \
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> \
-                        <button type="button" class="btn btn-primary" id="copyKubeconfig-button-' + value.cluster_name + '">Copy Kubeconfig</button> \
-                        </div> </div> </div> </div>'
-                        cluster_data += manage_table_buttons
-                        kubeconfigs_array.push({
-                            key: value.cluster_name,
-                            value: value.kubeconfig
-                        });
-                    })
-                    window.localStorage.setItem("kubeconfigs", JSON.stringify(kubeconfigs_array));
-
-                }
-                full_table = manage_table_header + cluster_data + manage_table_footer
-                if (clusterType == 'aks') {
-                    $('#aks-clusters-management-table').append(full_table);
-                } else if (clusterType == 'eks') {
-                    $('#eks-clusters-management-table').append(full_table);
-                } else if (clusterType == 'gke') {
-                    $('#gke-clusters-management-table').append(full_table);
-                }
-
-
-                var clusterNames = window.localStorage.getItem("cluster_names");
-                let clusterNamesList = JSON.parse(clusterNames)
-                $.each(clusterNamesList, function( index, value ) {
-                    var clientNames = window.localStorage.getItem("client_names");
-                    let clientNamesList = clientNames.split(',')
-                    $("#clientnames-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
-                    $.each(clientNamesList, function( index, clientNameValue ) {
-                        $("#clientnames-dropdown-" + value['clusterName']).append($("<option />").val(clientNameValue).text(clientNameValue));
-                    });
-                });
-
-
-
-            },
-            error: function() {
-                console.log('error loading orchestration items')
+    function populate_kubernetes_clusters_objects(){
+        var clusterHTML = '';
+        var clusterNames = []
+        var kubeconfigs_array = [];
+        let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
+        $.each(clustersData, function(key, value) {
+            clusterNames.push(value.clusterName)
+            var tags_string_ = JSON.stringify(value.tags);
+            var tags_string__ = tags_string_.replace(/[{}]/g, "");
+            var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
+            var tags_string = tags_string___.replace(/[,]/g, "<br>");
+            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clientnames-dropdown-' + value.clusterName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clientnames-button-' + value.clusterName + '" >Add</button>'
+            clusterHTML += '<tr id="tr_' + value.clusterName + '">';
+            clusterHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.clusterName + '"><p>' + value.clusterName + '</p></a></td>';
+            clusterHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
+            clusterHTML += '<td class="text-center"><a>' + value.clusterVersion + '</a></td>';
+            clusterHTML += '<td class="text-center"><a>' + value.humanExpirationTimestamp + '</a></td>';
+            if (value.clientName === '') {
+                clusterHTML += '<td class="text-center" id="' + value.clusterName + '-div"><a>' + client_name_assign_element + '</a></td>';
+            } else {
+                clusterHTML += '<td class="text-center"><a>' + value.clientName + '</a></td>';
             }
-        })
+            clusterHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
+            let manage_table_buttons = '<td class="project-actions text-right"> \
+            <a class="btn btn-danger btn-sm" id="delete-button-' + value.clusterName + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"> \
+            <div class="modal-dialog modal-lg" role="document"> <div class="modal-content"> <div class="modal-header"> \
+            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5> \
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"> \
+            <span aria-hidden="true">&times;</span></button> </div> <div class="modal-body"> \
+            Testing stuff</div> <div class="modal-footer"> \
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> \
+            <button type="button" class="btn btn-primary" id="copyKubeconfig-button-' + value.clusterName + '">Copy Kubeconfig</button> \
+            </div> </div> </div> </div>'
+            clusterHTML += manage_table_buttons
+            kubeconfigs_array.push({
+                key: value.clusterName,
+                value: value.kubeconfig
+            });
+        full_table = manage_table_header + clusterHTML + manage_table_footer
+
+        });
+        if (clusterType == 'aks') {
+            $('#aks-clusters-management-table').append(full_table);
+        } else if (clusterType == 'eks') {
+            $('#eks-clusters-management-table').append(full_table);
+        } else if (clusterType == 'gke') {
+            $('#gke-clusters-management-table').append(full_table);
+        }
+
+        $.each(clusterNames, function( index, value ) {
+            var clientNames = window.localStorage.getItem("clientNames");
+            let clientNamesList = clientNames.split(',')
+            $("#clientnames-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
+            $.each(clientNamesList, function( index, clientNameValue ) {
+                $("#clientnames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
+            });
+        });
     }
+
 
     function populate_kubernetes_agent_data() {
         url = "http://" + trolley_url + ":" + port + "/get_agent_cluster_data?cluster_name=" + data['cluster_name'];
@@ -550,7 +489,7 @@ $(document).ready(function() {
     })
 
     function assign_client_name(clusterName) {
-        let cluster_names_array = jQuery.parseJSON(window.localStorage.getItem("cluster_names"))
+        let cluster_names_array = jQuery.parseJSON(window.localStorage.getItem("clusterNames"))
         let discovered = false
         $.each(cluster_names_array, function(key, value) {
             if (value['clusterName'] === clusterName) {
@@ -558,7 +497,7 @@ $(document).ready(function() {
             }
             });
 
-        let clusterType = window.localStorage.getItem("cluster_type");
+        let clusterType = window.localStorage.getItem("clusterType");
         let clientName = $('#clientnames-dropdown-' + clusterName).val();
 
         let assign_client_data = JSON.stringify({
@@ -572,7 +511,7 @@ $(document).ready(function() {
 
         url = "http://" + trolley_url + ":" + port + "/client";
 
-        swal_message = 'A request to assign a' + clientName + ' client to' + clusterName + 'was sent'
+        swal_message = 'A request to assign a ' + clientName + ' client to ' + clusterName + ' was sent'
 
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", url, true);
@@ -592,8 +531,10 @@ $(document).ready(function() {
             timer: 5000
         })
 
+        $("#clientnames-dropdown-" + clusterName).hide();
+        $("#clientnames-button-" + clusterName).hide();
+        $("#" + clusterName + "-div").append("<a>" + clientName + "</a>");
     }
-
 
     function store_client_names(){
         url = "http://" + trolley_url + ":" + port + "/fetch_client_names";
@@ -611,7 +552,7 @@ $(document).ready(function() {
                     });
                     }
                 }
-                window.localStorage.setItem("client_names", clientNames);
+                window.localStorage.setItem("clientNames", clientNames);
             }
 
         }, )
@@ -619,7 +560,7 @@ $(document).ready(function() {
 
     function store_clusters(){
         url = "http://" + trolley_url + ":" + port + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'];
-        clustersNames = []
+        let clustersData = []
         $.ajax({
             type: 'GET',
             url: url,
@@ -629,14 +570,22 @@ $(document).ready(function() {
                 } else {
                     if (response.length > 0) {
                     $.each(response, function(key, value) {
-                       clustersNames.push({
+                       clustersData.push({
                             clusterName: value['cluster_name'],
+                            clientName: value['client_name'],
+                            clusterVersion: value['clusterVersion'],
+                            humanExpirationTimestamp: value['human_expiration_timestamp'],
+                            kubeconfig: value['kubeconfig'],
+                            nodesIPs: value['nodes_ips'],
+                            regionName: value['region_name'],
+                            tags: value['tags'],
                             discovered: value['discovered']
                     });
                     });
                     }
                 }
-                window.localStorage.setItem("cluster_names", JSON.stringify(clustersNames));
+//                window.localStorage.removeItem("clustersData");
+                window.localStorage.setItem("clustersData", JSON.stringify(clustersData));
             }
 
         }, )
