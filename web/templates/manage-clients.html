@@ -24,6 +24,15 @@
 
 
 
+
+
+
+
+
+
+
+
+
     </script>
 </head>
 
@@ -38,7 +47,7 @@
                 <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
             </li>
             <li class="nav-item d-none d-sm-inline-block">
-                <a href="index.html" class="nav-link">Home</a>
+                <a href="#" class="nav-link">Home</a>
             </li>
             </li>
         </ul>
@@ -53,8 +62,7 @@
                 <div class="navbar-search-block">
                     <form class="form-inline">
                         <div class="input-group input-group-sm">
-                            <input class="form-control form-control-navbar" type="search"
-                                   placeholder="Search for your product"
+                            <input class="form-control form-control-navbar" type="search" placeholder="Search"
                                    aria-label="Search">
                             <div class="input-group-append">
                                 <button class="btn btn-navbar" type="submit">
@@ -111,7 +119,7 @@
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                     data-accordion="false">
-                    <li class="nav-item">
+                    <li class="nav-item" id="build-clusters-div">
                         <a href="#" class="nav-link">
                             <i class="fad fa-cubes"></i>
                             <p>
@@ -127,7 +135,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="build-aks-clusters" class="nav-link">
+                                <a href="build-eks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>EKS Clusters</p>
                                 </a>
@@ -140,7 +148,7 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" id="manage-clusters-div">
                         <a href="#" class="nav-link">
                             <i class="fad fa-wrench"></i>
                             <p>
@@ -167,11 +175,28 @@
                                     <p>GKE Clusters</p>
                                 </a>
                             </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item" id="clients-div">
+                        <a href="#" class="nav-link">
+                            <i class="fa fa-cog"></i>
+                            <p>
+                                Clients
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview" style="display: none;">
+                            <li class="nav-item">
+                                <a href="manage-clients" class="nav-link active">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Clients Management</p>
+                                </a>
+                            </li>
                             <li class="nav-item">
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" id="dashboards-div">
                         <a href="#" class="nav-link">
                             <i class="fa fa-cog"></i>
                             <p>
@@ -181,7 +206,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="products-dashboards" class="nav-link active">
+                                <a href="products-dashboards" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Products</p>
                                 </a>
@@ -222,66 +247,126 @@
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
-        <section class="content">
+        <div class="content-header">
             <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">Client Management</h1>
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
 
-                <h5 class="mb-2 mt-4" id="resources-title">Namespaces Listing</h5>
-                <div class="row" id="agents-data-div" style="display: none;">
-                    <div class="card">
+                <div class="col-md-6">
+
+                    <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="fas fa-text-width"></i>
-                                Namespaces
-                            </h3>
+                            <h3 class="card-title">Add a new client</h3>
                         </div>
-                        <div class="card-body" id="namespaces-div">
-                        </div>
+                        <form>
+                            <div class="card-body">
+                                <div class="form-group" id="client">
+                                    <label for="client_name">Client Name</label>
+                                    <input type="text" class="form-control" id="client_name"
+                                           placeholder="Enter Client's Name">
+                                    <div data-lastpass-icon-root="true"
+                                         style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
+                                </div>
 
+                                <div class="col-lg-8 align-content-lg-center">
+                                    <!-- select -->
+                                    <div class="form-group">
+                                        <label>Select the internal products used</label>
+                                        <select class="form-control" id="client-internal-products-used" multiple>
+                                            <option>Hummus SDK</option>
+                                            <option>Mashawshe XP</option>
+                                            <option>Halva API</option>
+                                            <option>Tahini Auth</option>
+                                            <option>Tabooleh Flow</option>
+                                            <option>Kebab IO</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+
+                                <div class="card card-info">
+                                    <form>
+                                        <div class="card-body">
+                                            <div class="form-group" id="connection">
+                                                <label for="connection_name">Connection Name</label>
+                                                <input type="text" class="form-control" id="connection_name"
+                                                       placeholder="Enter Connection's Name">
+                                                <div data-lastpass-icon-root="true"
+                                                     style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="connection_email">Connection's Email address</label>
+                                                <input type="text" class="form-control" id="connection_email"
+                                                       placeholder="Enter email">
+                                                <div data-lastpass-icon-root="true"
+                                                     style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="connection_phone_number">Connection's Phone Number</label>
+                                                <input type="text" class="form-control" id="connection_phone_number"
+                                                       placeholder="Enter phone number">
+                                                <div data-lastpass-icon-root="true"
+                                                     style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                </div>
+                                <div class="form-group">
+                                    <label for="client_web_address">Client's Web Address</label>
+                                    <input type="text" class="form-control" id="client_web_address"
+                                           placeholder="Enter Connection's Web Address">
+                                    <div data-lastpass-icon-root="true"
+                                         style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Additional info</label>
+                                    <textarea class="form-control" rows="6"  placeholder="Insert additional data for the client" id="client_additional_info"></textarea>
+                                </div>
+
+                            </div>
+
+                        </form>
                     </div>
+
                 </div>
+                <button type="submit" class="btn btn-info" id="add-client-button">Add a client!</button>
 
-
+                <!-- /.content-header -->
             </div>
-        </section>
+
+            <aside class="control-sidebar control-sidebar-dark">
+                <!-- Control sidebar content goes here -->
+            </aside>
+            <!-- /.control-sidebar -->
+
+            <!-- Main Footer -->
+            <footer class="main-footer">
+                <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
+                All rights reserved.
+                <div class="float-right d-none d-sm-inline-block">
+                    <b>Version</b> 0.1
+                </div>
+            </footer>
+        </div>
+        <!-- ./wrapper -->
+
+        <!-- REQUIRED SCRIPTS -->
+        <!-- jQuery -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="static/script.js"></script>
+        <!-- Bootstrap 4 -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+                crossorigin="anonymous"></script>
+        <!-- AdminLTE App -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
     </div>
-
 </div>
-
-</div>
-</section>
-
-</div>
-<!-- /.content-header -->
-</div>
-<aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-</aside>
-<!-- /.control-sidebar -->
-
-<!-- Main Footer -->
-<footer class="main-footer">
-    <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
-    All rights reserved.
-    <div class="float-right d-none d-sm-inline-block">
-        <b>Version</b> 0.1
-    </div>
-</footer>
-</div>
-<!-- ./wrapper -->
-
-<!-- REQUIRED SCRIPTS -->
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="static/script.js"></script>
-<!-- Bootstrap 4 -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-        crossorigin="anonymous"></script>
-<!-- AdminLTE App -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-<script src="static/chart.min.js"></script>
-
 </body>
 </html>
-
