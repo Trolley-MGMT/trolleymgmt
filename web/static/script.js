@@ -84,13 +84,27 @@ $(document).ready(function() {
         populate_helm_installs();
     }
     if (managePage) {
-        store_clusters();
-        store_client_names();
-        populate_kubernetes_clusters_objects();
+        store_clusters()
+            .then((data) => {
+                console.log(data)
+                store_client_names()
+                populate_kubernetes_clusters_objects()
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+
     }
     if (clustersDataPage) {
-        store_clusters();
-        store_client_names();
+        store_clusters()
+            .then((data) => {
+                console.log(data)
+                store_client_names()
+                populate_kubernetes_clusters_objects()
+            })
+            .catch((error) => {
+                console.log(error)
+            })
         populate_kubernetes_agent_data();
         fetch_client_name_per_cluster(clusterType, clusterName)
         populate_client_names();
@@ -536,44 +550,42 @@ $(document).ready(function() {
         $("#" + clusterName + "-div").append("<a>" + clientName + "</a>");
     }
 
-    function store_client_names(){
-        url = "http://" + trolley_url + ":" + port + "/fetch_client_names";
-        clientNames = []
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    if (response.length > 0) {
-                    $.each(response, function(key, value) {
-                        clientNames.push(value['client_name'])
-                    });
+    function store_client_names() {
+        var clientNames = []
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "http://" + trolley_url + ":" + port + "/fetch_client_names",
+                type: 'GET',
+                success: function(data) {
+                    if (data.length > 0) {
+                        $.each(data, function(key, value) {
+                            clientNames.push(value['client_name'])
+                        });
                     }
-                }
-                window.localStorage.setItem("clientNames", clientNames);
-            }
-
-        }, )
+                    window.localStorage.setItem("clientNames", clientNames);
+                    resolve(data)
+                },
+                error: function(error) {
+                    reject(error)
+                },
+            })
+        })
     }
 
-    function store_clusters(){
-        url = "http://" + trolley_url + ":" + port + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'];
-        let clustersData = []
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    if (response.length > 0) {
-                    $.each(response, function(key, value) {
+
+    function store_clusters() {
+        var clustersData = []
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "http://" + trolley_url + ":" + port + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'],
+                type: 'GET',
+                success: function(data) {
+                    if (data.length > 0) {
+                       $.each(data, function(key, value) {
                        clustersData.push({
                             clusterName: value['cluster_name'],
                             clientName: value['client_name'],
-                            clusterVersion: value['clusterVersion'],
+                            clusterVersion: value['cluster_version'],
                             humanExpirationTimestamp: value['human_expiration_timestamp'],
                             kubeconfig: value['kubeconfig'],
                             nodesIPs: value['nodes_ips'],
@@ -583,12 +595,14 @@ $(document).ready(function() {
                     });
                     });
                     }
-                }
-//                window.localStorage.removeItem("clustersData");
-                window.localStorage.setItem("clustersData", JSON.stringify(clustersData));
-            }
-
-        }, )
+                    window.localStorage.setItem("clustersData", JSON.stringify(clustersData));
+                    resolve(data)
+                },
+                error: function(error) {
+                    reject(error)
+                },
+            })
+        })
     }
 
     function populate_regions() {
