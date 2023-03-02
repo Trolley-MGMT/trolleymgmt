@@ -26,11 +26,10 @@ logger.addHandler(handler)
 LOCAL_USER = gt.getuser()
 
 if 'Darwin' in platform.system():
-    CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/Documents/trolley/trolley-creds.json' # path to the GCP credentials
+    CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
 else:
-    CREDENTIALS_PATH = '/tmp/google_credentials'
+    CREDENTIALS_PATH = '/home/app/.gcp/gcp_credentials.json'
 
-# GCP_PROJECT_ID = os.environ['GCP_PROJECT_ID']
 GCP_PROJECT_ID = 'trolley-361905'
 
 credentials = service_account.Credentials.from_service_account_file(

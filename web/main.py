@@ -246,37 +246,6 @@ def get_agent_cluster_data():
     return Response(json.dumps(cluster_object), status=200, mimetype=APPLICATION_JSON)
 
 
-# @app.route('/trigger_cluster_deployment', methods=[POST])
-# def trigger_cluster_deployment():
-#     content = request.get_json()
-#     function_name = inspect.stack()[0][3]
-#     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
-#     user_name = content['user_name']
-#     cluster_type = content['cluster_type']
-#     cluster_name = f'{user_name}-{cluster_type}-{random_string(8)}'
-#     content['cluster_name'] = cluster_name
-#     full_deployment_yaml = content['deployment_yaml']
-#     deployment_yaml_dict = []
-#     if '---' in full_deployment_yaml:
-#         deployments_list = full_deployment_yaml.split('---')
-#         for deployment in deployments_list:
-#             single_deployment = yaml.safe_load(deployment)
-#             deployment_yaml_dict.append(single_deployment)
-#     else:
-#         deployment_yaml_dict = full_deployment_yaml
-#     del content['deployment_yaml']
-#     if cluster_type == GKE:
-#         trigger_gke_build_github_action(**content)
-#     elif cluster_type == EKS:
-#         trigger_eks_build_github_action(**content)
-#     elif cluster_type == AKS:
-#         trigger_eks_build_github_action(**content)
-#     deployment_yaml_object = DeploymentYAMLObject(cluster_name, deployment_yaml_dict)
-#     if mongo_handler.mongo_utils.x_deployment_yaml(asdict(deployment_yaml_object)):
-#         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
-#     else:
-#         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
-
 @app.route('/deploy_yaml_on_cluster', methods=[POST])
 @login_required
 def deploy_yaml_on_cluster():
@@ -518,7 +487,10 @@ def fetch_regions():
         regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=EKS)
     else:
         regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=GKE)
-    return jsonify(regions)
+    if len(regions) == 0:
+        return jsonify("Regions data was not found"), 400
+    else:
+        return jsonify(regions), 200
 
 
 @app.route('/fetch_zones', methods=[GET])

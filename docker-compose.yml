@@ -7,6 +7,7 @@ services:
     volumes:
     - .:/opt
     - $HOME/.aws/credentials:/home/app/.aws/credentials:ro
+    - $HOME/.gcp/gcp_credentials.json:/home/app/.gcp/gcp_credentials.json:ro
     environment:
       MONGO_URL: mongodb
       MONGO_PASSWORD: s3cr3t
@@ -17,6 +18,7 @@ services:
       SECRET_KEY: s3cr3t_k3y
       AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials
       AWS_DEFAULT_REGION: us-east-1
+      GCP_CREDENTIALS_FILE: /home/app/.aws/credentials
     networks:
       - frontend
       - backend

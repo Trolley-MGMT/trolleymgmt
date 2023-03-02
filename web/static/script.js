@@ -81,7 +81,6 @@ $(document).ready(function() {
 
     if (buildPage) {
         populate_regions();
-        populate_helm_installs();
     }
     if (managePage) {
         store_clusters()
@@ -106,7 +105,6 @@ $(document).ready(function() {
                 console.log(error)
             })
         populate_kubernetes_agent_data();
-        fetch_client_name_per_cluster(clusterType, clusterName)
         populate_client_names();
     }
 
@@ -309,10 +307,9 @@ $(document).ready(function() {
         })
     });
 
-
     $("#agent-deployment-button").click(function() {
         let clusterName = window.localStorage.getItem("clusterName");
-        let clusterType = cluster_name.split('-')[1]
+        let clusterType = clusterName.split('-')[1]
         let trolleyServerURL = $('#trolley_server_url').val();
 
         let deploy_trolley_agent_data = JSON.stringify({
@@ -343,104 +340,6 @@ $(document).ready(function() {
             timer: 5000
         })
     });
-
-    function populate_kubernetes_clusters_objects(){
-        var clusterHTML = '';
-        var clusterNames = []
-        var kubeconfigs_array = [];
-        let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
-        $.each(clustersData, function(key, value) {
-            clusterNames.push(value.clusterName)
-            var tags_string_ = JSON.stringify(value.tags);
-            var tags_string__ = tags_string_.replace(/[{}]/g, "");
-            var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
-            var tags_string = tags_string___.replace(/[,]/g, "<br>");
-            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clientnames-dropdown-' + value.clusterName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clientnames-button-' + value.clusterName + '" >Add</button>'
-            clusterHTML += '<tr id="tr_' + value.clusterName + '">';
-            clusterHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.clusterName + '"><p>' + value.clusterName + '</p></a></td>';
-            clusterHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
-            clusterHTML += '<td class="text-center"><a>' + value.clusterVersion + '</a></td>';
-            clusterHTML += '<td class="text-center"><a>' + value.humanExpirationTimestamp + '</a></td>';
-            if (value.clientName === '') {
-                clusterHTML += '<td class="text-center" id="' + value.clusterName + '-div"><a>' + client_name_assign_element + '</a></td>';
-            } else {
-                clusterHTML += '<td class="text-center"><a>' + value.clientName + '</a></td>';
-            }
-            clusterHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
-            let manage_table_buttons = '<td class="project-actions text-right"> \
-            <a class="btn btn-danger btn-sm" id="delete-button-' + value.clusterName + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
-            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"> \
-            <div class="modal-dialog modal-lg" role="document"> <div class="modal-content"> <div class="modal-header"> \
-            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5> \
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"> \
-            <span aria-hidden="true">&times;</span></button> </div> <div class="modal-body"> \
-            Testing stuff</div> <div class="modal-footer"> \
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> \
-            <button type="button" class="btn btn-primary" id="copyKubeconfig-button-' + value.clusterName + '">Copy Kubeconfig</button> \
-            </div> </div> </div> </div>'
-            clusterHTML += manage_table_buttons
-            kubeconfigs_array.push({
-                key: value.clusterName,
-                value: value.kubeconfig
-            });
-        full_table = manage_table_header + clusterHTML + manage_table_footer
-
-        });
-        if (clusterType == 'aks') {
-            $('#aks-clusters-management-table').append(full_table);
-        } else if (clusterType == 'eks') {
-            $('#eks-clusters-management-table').append(full_table);
-        } else if (clusterType == 'gke') {
-            $('#gke-clusters-management-table').append(full_table);
-        }
-
-        $.each(clusterNames, function( index, value ) {
-            var clientNames = window.localStorage.getItem("clientNames");
-            let clientNamesList = clientNames.split(',')
-            $("#clientnames-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
-            $.each(clientNamesList, function( index, clientNameValue ) {
-                $("#clientnames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
-            });
-        });
-    }
-
-
-    function populate_kubernetes_agent_data() {
-        url = "http://" + trolley_url + ":" + port + "/get_agent_cluster_data?cluster_name=" + data['cluster_name'];
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if ((response.status === 'Failure') || (response[0].content === null)) {
-                        $('#resources-title').replaceWith('Trolley Agent was not found on the cluster. Click to install!');
-                        $('#agent-deployment-div').show();
-                } else {
-                    if (response.length < 0) {
-                    $('#attach-client-div').show();
-                    } else {
-                    $.each(response, function(key, value) {
-                        $('#agent-data-div').show();
-                        $('#namespaces').append('<h3>' + value.namespaces.length + '</h3>');
-                        $('#deployments').append('<h3>' + value.deployments.length + '</h3>');
-                        $('#pods').append('<h3>' + value.pods.length + '</h3>');
-                        $('#containers').append('<h3>' + value.containers.length + '</h3>');
-                        $('#daemonsets').append('<h3>' + value.daemonsets.length + '</h3>');
-                        $('#services').append('<h3>' + value.services.length + '</h3>');
-                        window.localStorage.setItem("namespaces", value.namespaces);
-                        window.localStorage.setItem("deployments", JSON.stringify(value.deployments));
-                        window.localStorage.setItem("pods", JSON.stringify(value.pods));
-                        window.localStorage.setItem("containers", JSON.stringify(value.containers));
-                        window.localStorage.setItem("daemonsets", JSON.stringify(value.daemonsets));
-                        window.localStorage.setItem("services", JSON.stringify(value.services));
-                    })
-                    }
-                }
-            },
-            error: function() {
-                console.log('error loading orchestration items')
-            }
-        })
-    }
 
     $("#namespaces-more-info").click(function() {
         $("#objects-div").empty();
@@ -556,14 +455,14 @@ $(document).ready(function() {
             $.ajax({
                 url: "http://" + trolley_url + ":" + port + "/fetch_client_names",
                 type: 'GET',
-                success: function(data) {
-                    if (data.length > 0) {
-                        $.each(data, function(key, value) {
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
                             clientNames.push(value['client_name'])
                         });
                     }
                     window.localStorage.setItem("clientNames", clientNames);
-                    resolve(data)
+                    resolve(response)
                 },
                 error: function(error) {
                     reject(error)
@@ -572,16 +471,15 @@ $(document).ready(function() {
         })
     }
 
-
     function store_clusters() {
         var clustersData = []
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "http://" + trolley_url + ":" + port + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'],
                 type: 'GET',
-                success: function(data) {
-                    if (data.length > 0) {
-                       $.each(data, function(key, value) {
+                success: function(response) {
+                    if (response.length > 0) {
+                       $.each(response, function(key, value) {
                        clustersData.push({
                             clusterName: value['cluster_name'],
                             clientName: value['client_name'],
@@ -596,7 +494,7 @@ $(document).ready(function() {
                     });
                     }
                     window.localStorage.setItem("clustersData", JSON.stringify(clustersData));
-                    resolve(data)
+                    resolve(response)
                 },
                 error: function(error) {
                     reject(error)
@@ -605,7 +503,104 @@ $(document).ready(function() {
         })
     }
 
-    function populate_regions() {
+    function populate_kubernetes_clusters_objects(){
+        var clusterHTML = '';
+        var clusterNames = []
+        var kubeconfigs_array = [];
+        let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
+        $.each(clustersData, function(key, value) {
+            clusterNames.push(value.clusterName)
+            var tags_string_ = JSON.stringify(value.tags);
+            var tags_string__ = tags_string_.replace(/[{}]/g, "");
+            var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
+            var tags_string = tags_string___.replace(/[,]/g, "<br>");
+            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clientnames-dropdown-' + value.clusterName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clientnames-button-' + value.clusterName + '" >Add</button>'
+            clusterHTML += '<tr id="tr_' + value.clusterName + '">';
+            clusterHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.clusterName + '"><p>' + value.clusterName + '</p></a></td>';
+            clusterHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
+            clusterHTML += '<td class="text-center"><a>' + value.clusterVersion + '</a></td>';
+            clusterHTML += '<td class="text-center"><a>' + value.humanExpirationTimestamp + '</a></td>';
+            if (value.clientName === '') {
+                clusterHTML += '<td class="text-center" id="' + value.clusterName + '-div"><a>' + client_name_assign_element + '</a></td>';
+            } else {
+                clusterHTML += '<td class="text-center"><a>' + value.clientName + '</a></td>';
+            }
+            clusterHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
+            let manage_table_buttons = '<td class="project-actions text-right"> \
+            <a class="btn btn-danger btn-sm" id="delete-button-' + value.clusterName + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"> \
+            <div class="modal-dialog modal-lg" role="document"> <div class="modal-content"> <div class="modal-header"> \
+            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5> \
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"> \
+            <span aria-hidden="true">&times;</span></button> </div> <div class="modal-body"> \
+            Testing stuff</div> <div class="modal-footer"> \
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> \
+            <button type="button" class="btn btn-primary" id="copyKubeconfig-button-' + value.clusterName + '">Copy Kubeconfig</button> \
+            </div> </div> </div> </div>'
+            clusterHTML += manage_table_buttons
+            kubeconfigs_array.push({
+                key: value.clusterName,
+                value: value.kubeconfig
+            });
+        full_table = manage_table_header + clusterHTML + manage_table_footer
+
+        });
+        if (clusterType == 'aks') {
+            $('#aks-clusters-management-table').append(full_table);
+        } else if (clusterType == 'eks') {
+            $('#eks-clusters-management-table').append(full_table);
+        } else if (clusterType == 'gke') {
+            $('#gke-clusters-management-table').append(full_table);
+        }
+
+        $.each(clusterNames, function( index, value ) {
+            var clientNames = window.localStorage.getItem("clientNames");
+            let clientNamesList = clientNames.split(',')
+            $("#clientnames-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
+            $.each(clientNamesList, function( index, clientNameValue ) {
+                $("#clientnames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
+            });
+        });
+    }
+
+    function populate_kubernetes_agent_data() {
+        url = "http://" + trolley_url + ":" + port + "/get_agent_cluster_data?cluster_name=" + data['cluster_name'];
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response) {
+                if ((response.status === 'Failure') || (response[0].content === null)) {
+                        $('#resources-title').replaceWith('Trolley Agent was not found on the cluster. Click to install!');
+                        $('#agent-deployment-div').show();
+                } else {
+                    if (response.length < 0) {
+                    $('#attach-client-div').show();
+                    } else {
+                    $.each(response, function(key, value) {
+                        $('#agent-data-div').show();
+                        $('#namespaces').append('<h3>' + value.namespaces.length + '</h3>');
+                        $('#deployments').append('<h3>' + value.deployments.length + '</h3>');
+                        $('#pods').append('<h3>' + value.pods.length + '</h3>');
+                        $('#containers').append('<h3>' + value.containers.length + '</h3>');
+                        $('#daemonsets').append('<h3>' + value.daemonsets.length + '</h3>');
+                        $('#services').append('<h3>' + value.services.length + '</h3>');
+                        window.localStorage.setItem("namespaces", value.namespaces);
+                        window.localStorage.setItem("deployments", JSON.stringify(value.deployments));
+                        window.localStorage.setItem("pods", JSON.stringify(value.pods));
+                        window.localStorage.setItem("containers", JSON.stringify(value.containers));
+                        window.localStorage.setItem("daemonsets", JSON.stringify(value.daemonsets));
+                        window.localStorage.setItem("services", JSON.stringify(value.services));
+                    })
+                    }
+                }
+            },
+            error: function() {
+                console.log('error loading orchestration items')
+            }
+        })
+    }
+
+    function populate_regions_() {
         if (clusterType == 'aks') {
             var $dropdown = $("#aks-locations-dropdown");
         } else if (clusterType == 'eks') {
@@ -619,7 +614,7 @@ $(document).ready(function() {
             url: url,
             success: function(response) {
                 if (response.status === 'Failure') {
-                    console.log('error')
+                    alert("Failure to fetch regions data")
                 } else {
                     if (clusterType == 'aks') {
                         $.each(response, function(key, value) {
@@ -641,43 +636,64 @@ $(document).ready(function() {
         }, )
     }
 
-    function populate_client_names() {
-        var $dropdown = $("#clientnames-dropdown");
-        url = "http://" + trolley_url + ":" + port + "/fetch_client_names";
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    if (response.length > 0) {
-                    $.each(response, function(key, value) {
-                        $dropdown.append($("<option />").val(value['client_name']).text(value['client_name']));
-                    });
+    function populate_regions() {
+        if (clusterType == 'aks') {
+            var $dropdown = $("#aks-locations-dropdown");
+        } else if (clusterType == 'eks') {
+            var $dropdown = $("#eks-locations-dropdown");
+        } else if (clusterType == 'gke') {
+            var $dropdown = $("#gke-regions-dropdown");
+        }
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "http://" + trolley_url + ":" + port + "/fetch_regions?cluster_type=" + clusterType,
+                type: 'GET',
+                success: function(response) {
+                    if (clusterType == 'aks') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(key));
+                        });
+                    } else if (clusterType == 'eks') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+                        });
+                        populate_zones('eu-north-1')
+                    } else if (clusterType == 'gke') {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+                        });
+                        populate_zones('us-east1')
                     }
-
-                }
-            }
-        }, )
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching regions data")
+                },
+            })
+        })
     }
 
-    function fetch_client_name_per_cluster(clusterType, clusterName) {
-        url = "http://" + trolley_url + ":" + port + "/fetch_client_name_per_cluster?cluster_type=" + clusterType + "&cluster_name=" + clusterName;
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    if (response.length == 0) {
-                        $('#attach-client-div').show();
+    function populate_client_names() {
+        var $dropdown = $("#clientnames-dropdown");
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "http://" + trolley_url + ":" + port + "/fetch_client_names",
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value['client_name']).text(value['client_name']));
+                        });
                     }
-
-                }
-            }
-        }, )
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching client names data")
+                },
+            })
+        })
     }
 
     function populate_zones(region_name) {
@@ -688,15 +704,13 @@ $(document).ready(function() {
         } else if (clusterType == 'gke') {
             var $dropdown = $("#gke-zones-dropdown");
         }
-        url = "http://" + trolley_url + ":" + port + "/fetch_zones?cluster_type=" + clusterType + "&region_name=" + region_name;
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    if (clusterType == 'aks') {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "http://" + trolley_url + ":" + port + "/fetch_zones?cluster_type=" + clusterType + "&region_name=" + region_name,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        if (clusterType == 'aks') {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value.name).text(value.displayName));
                         });
@@ -711,9 +725,15 @@ $(document).ready(function() {
                         populate_kubernetes_versions('asia-east1-b')
                         populate_kubernetes_image_types('asia-east1-b')
                     }
-                }
-            }
-        }, )
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching zones data")
+                },
+            })
+        })
     }
 
     function populate_subnets(zone_names) {
@@ -724,32 +744,36 @@ $(document).ready(function() {
         } else if (clusterType == 'gke') {
             var $dropdown = $("#gke-subnets-dropdown");
         }
-        url = "http://" + trolley_url + ":" + port + "/fetch_subnets?cluster_type=" + clusterType + "&zone_names=" + zone_names;
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    if (clusterType == 'aks') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value.name).text(value.displayName));
-                        });
-                    } else if (clusterType == 'eks') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value).text(value));
-                        });
-                    } else if (clusterType == 'gke') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value).text(value));
-                        });
-                        populate_kubernetes_versions('asia-east1-b')
-                        populate_kubernetes_image_types('asia-east1-b')
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "http://" + trolley_url + ":" + port + "/fetch_subnets?cluster_type=" + clusterType + "&zone_names=" + zone_names,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        if (clusterType == 'aks') {
+                            $.each(response, function(key, value) {
+                                $dropdown.append($("<option />").val(value.name).text(value.displayName));
+                            });
+                        } else if (clusterType == 'eks') {
+                            $.each(response, function(key, value) {
+                                $dropdown.append($("<option />").val(value).text(value));
+                            });
+                        } else if (clusterType == 'gke') {
+                            $.each(response, function(key, value) {
+                                $dropdown.append($("<option />").val(value).text(value));
+                            });
+                            populate_kubernetes_versions('asia-east1-b')
+                            populate_kubernetes_image_types('asia-east1-b')
+                        }
                     }
-                }
-            }
-        }, )
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching subnets data")
+                },
+            })
+        })
     }
 
     function populate_vpcs(selected_location) {
@@ -760,67 +784,59 @@ $(document).ready(function() {
             var $dropdown = $("#eks-vpcs-dropdown");
             var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
         }
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    $.each(response, function(key, value) {
-                        $dropdown.append($("<option />").val(value).text(value));
-                    });
-                }
-            }
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "http://" + trolley_url + ":" + port + "/fetch_client_names",
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+                        });
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching VPCs names data")
+                },
+            })
         })
-    }
-
-    function populate_helm_installs() {
-        var $dropdown = $("#helm-installs-dropdown");
-        url = "http://" + trolley_url + ":" + port + "/fetch_helm_installs?names=True";
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    $.each(response, function(key, value) {
-                        $dropdown.append($("<option />").val(value).text(value));
-                    });
-                }
-            }
-        }, )
     }
 
     function populate_kubernetes_versions(selected_location) {
          if (clusterType == 'aks') {
-            var $dropdown = $("#aks-locations-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+            var $dropdown = $("#aks-versions-dropdown");
+            var url = "http://" + trolley_url + ":" + port + "/fetch_aks_versions?az_region=" + selected_location;
         } else if (clusterType == 'eks') {
-            var $dropdown = $("#eks-vpcs-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+            var $dropdown = $("#eks-versions-dropdown");
+            var url = "http://" + trolley_url + ":" + port + "/fetch_eks_versions?aws_region=" + selected_location;
         } else if (clusterType == 'gke') {
             var $dropdown = $("#gke-versions-dropdown");
             var url = "http://" + trolley_url + ":" + port + "/fetch_gke_versions?gcp_zone=" + selected_location;
         }
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    $.each(response, function(key, value) {
-                        $dropdown.append($("<option />").val(value).text(value));
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
                     });
-                }
-            }
-        }, )
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching Kubernetes versions data")
+                },
+            })
+        })
     }
 
     function populate_kubernetes_image_types(selected_location) {
-         if (clusterType == 'aks') {
+        if (clusterType == 'aks') {
             var $dropdown = $("#aks-locations-dropdown");
             var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
         } else if (clusterType == 'eks') {
@@ -830,41 +846,49 @@ $(document).ready(function() {
             var $dropdown = $("#gke-image-types-dropdown");
             var url = "http://" + trolley_url + ":" + port + "/fetch_gke_image_types?gcp_zone=" + selected_location;
         }
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    $.each(response, function(key, value) {
-                        $dropdown.append($("<option />").val(value).text(value));
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
                     });
-                }
-            }
-        }, )
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching Kubernetes image types")
+                },
+            })
+        })
     }
 
     function populate_k8s_agent_data(clusterName) {
-        var url = "http://" + trolley_url + ":" + port + "/get_agent_cluster_data?cluster_name=" + clusterName;
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    console.log('error')
-                } else {
-                    $.each(response, function(key, value) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "http://" + trolley_url + ":" + port + "/get_agent_cluster_data?cluster_name=" + clusterName,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
                         console.log(key);
                         console.log(value);
                     });
-                }
-            }
-        }, )
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching K8S agent data")
+                },
+            })
+        })
     }
 
     function delete_cluster(clusterType, clusterName) {
-
         let cluster_deletion_data = JSON.stringify({
             "cluster_type": clusterType,
             "cluster_name": clusterName
