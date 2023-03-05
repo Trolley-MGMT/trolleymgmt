@@ -25,5 +25,5 @@ ADD web/scripts/eks_caching_script.py eks_caching_script.py
 ADD web/scripts/aws_discovery_script.py aws_discovery_script.py
 RUN chmod +x trolley_api.sh aks_cache.sh gke_cache.sh eks_cache.sh aws_discovery.sh
 
-#CMD ./trolley_api.sh
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+CMD ./trolley_api.sh
+#ENTRYPOINT ["tail", "-f", "/dev/null"]

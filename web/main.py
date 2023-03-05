@@ -14,7 +14,6 @@ from distutils import util
 
 import yaml
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
-from flask_cors import CORS, cross_origin
 
 from jwt import InvalidTokenError
 from werkzeug.datastructures import FileStorage
@@ -56,7 +55,6 @@ logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 PROJECT_NAME = os.getenv('PROJECT_NAME')
 
 app = Flask(__name__, template_folder='templates')
-CORS(app)
 
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -229,7 +227,6 @@ def render_page(page_name: str = '', cluster_name: str = ''):
 
 @app.route('/get_clusters_data', methods=[GET])
 @login_required
-@cross_origin()
 def get_clusters_data():
     """
     Ths endpoint allows providing basic clusters data that was gathered upon the clusters' creation.
@@ -242,7 +239,6 @@ def get_clusters_data():
 
 @app.route('/get_agent_cluster_data', methods=[GET])
 @login_required
-@cross_origin()
 def get_agent_cluster_data():
     """
     This endpoint allows providing an additional cluster data that is being collected by the deployed Trolley Agent
@@ -254,7 +250,6 @@ def get_agent_cluster_data():
 
 @app.route('/deploy_yaml_on_cluster', methods=[POST])
 @login_required
-@cross_origin()
 def deploy_yaml_on_cluster():
     """
     This endpoint allows delivering a custom deployment using a YAML that was provided for a cluster
@@ -273,7 +268,6 @@ def deploy_yaml_on_cluster():
 
 @app.route('/deploy_trolley_agent_on_cluster', methods=[POST])
 @login_required
-@cross_origin()
 def deploy_trolley_agent_on_cluster():
     """
     This endpoint allows triggering a Trolley Agent deployment on a cluster
@@ -292,7 +286,6 @@ def deploy_trolley_agent_on_cluster():
 
 @app.route('/trigger_gke_deployment', methods=[POST])
 @login_required
-@cross_origin()
 def trigger_gke_deployment():
     """
     This endpoint triggers a GKE Cluster deployment
@@ -315,7 +308,6 @@ def trigger_gke_deployment():
 
 @app.route('/trigger_eks_deployment', methods=[POST])
 @login_required
-@cross_origin()
 def trigger_eks_deployment():
     """
     This endpoint triggers an EKS Cluster deployment
@@ -340,7 +332,6 @@ def trigger_eks_deployment():
 
 @app.route('/trigger_aks_deployment', methods=[POST])
 @login_required
-@cross_origin()
 def trigger_aks_deployment():
     """
     This endpoint allows an AKS Cluster deployment
@@ -363,7 +354,6 @@ def trigger_aks_deployment():
 
 @app.route('/delete_expired_clusters', methods=[DELETE])
 @login_required
-@cross_origin()
 def delete_expired_clusters():
     """
     Ths endpoint allows deletion of clusters that passed their expiration time
@@ -381,7 +371,6 @@ def delete_expired_clusters():
 
 @app.route('/delete_cluster', methods=[DELETE])
 @login_required
-@cross_origin()
 def delete_cluster():
     """
     This request deletes a selected cluster
@@ -412,7 +401,6 @@ def delete_cluster():
 
 @app.route('/insert_cluster_data', methods=[POST])
 @login_required
-@cross_origin()
 def insert_cluster_data():
     """
     This endpoint inserts data provided by a Trolley Agent
@@ -434,7 +422,6 @@ def insert_cluster_data():
 
 @app.route('/provider', methods=[GET, POST])
 @login_required
-@cross_origin()
 def provider():
     """
     This endpoint adds a provider data
@@ -455,7 +442,6 @@ def provider():
 
 @app.route('/client', methods=[GET, POST, PUT, DELETE])
 @login_required
-@cross_origin()
 def client():
     """
     This endpoint adds a client data
@@ -498,7 +484,6 @@ def index():
 
 @app.route('/fetch_regions', methods=[GET])
 @login_required
-@cross_origin()
 def fetch_regions():
     cluster_type = request.args.get("cluster_type")
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
@@ -518,7 +503,6 @@ def fetch_regions():
 
 @app.route('/fetch_zones', methods=[GET])
 @login_required
-@cross_origin()
 def fetch_zones():
     cluster_type = request.args.get("cluster_type")
     region_name = request.args.get("region_name")
@@ -543,7 +527,6 @@ def fetch_zones():
 
 @app.route('/fetch_subnets', methods=[GET])
 @login_required
-@cross_origin()
 def fetch_subnets():
     cluster_type = request.args.get("cluster_type")
     zone_names = request.args.get("zone_names")
@@ -566,7 +549,6 @@ def fetch_subnets():
 
 @app.route('/fetch_helm_installs', methods=[GET, POST])
 @login_required
-@cross_origin()
 def fetch_helm_installs():
     names = bool(util.strtobool(request.args.get("names")))
     logger.info(f'A request to fetch helm installs for {names} names has arrived')
@@ -576,7 +558,7 @@ def fetch_helm_installs():
 
 @app.route('/fetch_clients_data', methods=[GET])
 @login_required
-@cross_origin()
+
 def fetch_clients_data():
     client_names = mongo_handler.mongo_utils.retrieve_clients_data()
     return jsonify(client_names)
@@ -584,7 +566,6 @@ def fetch_clients_data():
 
 @app.route('/fetch_client_name_per_cluster', methods=[GET])
 @login_required
-@cross_origin()
 def fetch_client_name_per_cluster():
     cluster_type = request.args.get('cluster_type')
     cluster_name = request.args.get('cluster_name')
@@ -594,7 +575,6 @@ def fetch_client_name_per_cluster():
 
 @app.route('/fetch_gke_versions', methods=[GET])
 @login_required
-@cross_origin()
 def fetch_gke_versions():
     gke_versions_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_VERSIONS_LIST, provider=GKE)
     return jsonify(gke_versions_list)
@@ -602,7 +582,6 @@ def fetch_gke_versions():
 
 @app.route('/fetch_gke_image_types', methods=[GET])
 @login_required
-@cross_origin()
 def fetch_gke_image_types():
     logger.info(f'A request to fetch available GKE image types has arrived')
     gke_image_types_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_IMAGE_TYPES, provider=GKE)
@@ -661,7 +640,6 @@ def register():
 
 @app.route('/login', methods=[GET, POST])
 @login_required
-@cross_origin()
 def login():
     message = request.args.get('message')
     if message is None:
@@ -684,56 +662,48 @@ def login():
 
 @app.route('/build-eks-clusters', methods=[GET, POST])
 @login_required
-@cross_origin()
 def build_eks_clusters():
     return render_page('build-eks-clusters.html')
 
 
 @app.route('/build-aks-clusters', methods=[GET, POST])
 @login_required
-@cross_origin()
 def build_aks_clusters():
     return render_page('build-aks-clusters.html')
 
 
 @app.route('/build-gke-clusters', methods=[GET, POST])
 @login_required
-@cross_origin()
 def build_gke_clusters():
     return render_page('build-gke-clusters.html')
 
 
 @app.route('/manage-eks-clusters', methods=[GET, POST])
 @login_required
-@cross_origin()
 def manage_eks_clusters():
     return render_page('manage-eks-clusters.html')
 
 
 @app.route('/manage-aks-clusters', methods=[GET, POST])
 @login_required
-@cross_origin()
 def manage_aks_clusters():
     return render_page('manage-aks-clusters.html')
 
 
 @app.route('/manage-gke-clusters', methods=[GET, POST])
 @login_required
-@cross_origin()
 def manage_gke_clusters():
     return render_page('manage-gke-clusters.html')
 
 
 @app.route('/settings', methods=[GET, POST])
 @login_required
-@cross_origin()
 def settings():
     return render_page('settings.html')
 
 
 @app.route('/clusters-data', methods=[GET])
 @login_required
-@cross_origin()
 def clusters_data():
     try:
         cluster_name = request.values['cluster_name']
@@ -744,14 +714,12 @@ def clusters_data():
 
 @app.route('/clients', methods=[GET, POST])
 @login_required
-@cross_origin()
 def clients():
     return render_page('clients.html')
 
 
 @app.route('/namespaces-data', methods=[GET, POST])
 @login_required
-@cross_origin()
 def namespaces_data():
     cluster_name = request.values['cluster_name']
     return render_page('namespaces-data.html', cluster_name=cluster_name)
@@ -759,21 +727,18 @@ def namespaces_data():
 
 @app.route('/products-dashboards', methods=[GET, POST])
 @login_required
-@cross_origin()
 def products_dashboards():
     return render_page('products-dashboards.html')
 
 
 @app.route('/events-dashboards', methods=[GET, POST])
 @login_required
-@cross_origin()
 def events_dashboards():
     return render_page('events-dashboards.html')
 
 
 @app.route('/logout', methods=[GET, POST])
 @login_required
-@cross_origin()
 def logout():
     session.pop('x-access-token', None)
     session.pop('user_email', None)
