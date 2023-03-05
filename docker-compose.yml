@@ -34,7 +34,7 @@ services:
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
       - mongodbdata:/data/db
     ports:
-      - '27017-27019:27117-27119'
+      - '27117-27119:27017-27019'
     networks:
       - frontend
       - backend
