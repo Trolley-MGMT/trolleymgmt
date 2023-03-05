@@ -5,7 +5,7 @@ $(document).ready(function() {
     let clusterName = window.localStorage.getItem("clusterName");
     let clusterType = clusterName.split('-')[1]
     window.localStorage.setItem("clusterType", clusterType);
-    let trolley_remote_url = '34.123.171.234';
+    let trolley_remote_url = 'trolley-cvhbphlcxq-uc.a.run.app';
     let trolley_local_url = 'localhost';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let debug = false;
@@ -34,11 +34,9 @@ $(document).ready(function() {
     if (debug === true) {
         trolley_url = trolley_local_url;
         gitBranch = 'master'
-        port = 8081
     } else {
         trolley_url = trolley_remote_url
         gitBranch = 'master'
-        port = 80
     }
 
     if (pathname[1].includes('build')) {
@@ -188,19 +186,19 @@ $(document).ready(function() {
         });
 
         if (clusterType === 'aks') {
-            url = "http://" + trolley_url + ":" + port + "/trigger_aks_deployment";
+            url = "https://" + trolley_url + "/trigger_aks_deployment";
             trigger_data = trigger_aks_deployment_data
             expiration_time = AKSExpirationTime
         } else if (clusterType == 'eks') {
-            url = "http://" + trolley_url + ":" + port + "/trigger_eks_deployment";
+            url = "https://" + trolley_url + "/trigger_eks_deployment";
             trigger_data = trigger_eks_deployment_data
             expiration_time = EKSExpirationTime
         } else if (clusterType == 'gke') {
-            url = "http://" + trolley_url + ":" + port + "/trigger_gke_deployment";
+            url = "https://" + trolley_url + "/trigger_gke_deployment";
             trigger_data = trigger_gke_deployment_data
             expiration_time = GKEExpirationTime
         } else {
-            url = "http://" + trolley_url + ":" + port + "/trigger_kubernetes_deployment";
+            url = "https://" + trolley_url + "/trigger_kubernetes_deployment";
             trigger_data = trigger_gke_deployment
             expiration_time = GKEExpirationTime
         }
@@ -246,7 +244,7 @@ $(document).ready(function() {
         });
 
 
-        url = "http://" + trolley_url + ":" + port + "/provider";
+        url = "https://" + trolley_url + "/provider";
 
         swal_message = 'A request to add a provider was sent'
         var forms = document.querySelectorAll('.needs-validation')
@@ -312,7 +310,7 @@ $(document).ready(function() {
         });
 
 
-        url = "http://" + trolley_url + ":" + port + "/client";
+        url = "https://" + trolley_url + "/client";
 
         swal_message = 'A request to add a client was sent'
 
@@ -347,7 +345,7 @@ $(document).ready(function() {
             "trolley_server_url": trolleyServerURL,
         });
 
-        url = "http://" + trolley_url + ":" + port + "/deploy_trolley_agent_on_cluster";
+        url = "https://" + trolley_url + "/deploy_trolley_agent_on_cluster";
 
         swal_message = 'An trolley agent was deployed on' + clusterName
 
@@ -451,11 +449,11 @@ $(document).ready(function() {
         });
 
 
-        url = "http://" + trolley_url + ":" + port + "/client";
+        url = "https://" + trolley_url + "/client";
 
         swal_message = 'A request to assign a ' + clientName + ' client to ' + clusterName + ' was sent'
 
-        const xhr = new XMLHttpRequest();
+        const xhr = new XMLhttpsRequest();
         xhr.open("PUT", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function() {
@@ -482,7 +480,7 @@ $(document).ready(function() {
         var clientNames = []
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "http://" + trolley_url + ":" + port + "/fetch_clients_data",
+                url: "https://" + trolley_url + "/fetch_clients_data",
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -504,7 +502,7 @@ $(document).ready(function() {
         var clustersData = []
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "http://" + trolley_url + ":" + port + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'],
+                url: "https://" + trolley_url + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'],
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -593,7 +591,7 @@ $(document).ready(function() {
     }
 
     function populate_kubernetes_agent_data() {
-        url = "http://" + trolley_url + ":" + port + "/get_agent_cluster_data?cluster_name=" + data['cluster_name'];
+        url = "https://" + trolley_url + "/get_agent_cluster_data?cluster_name=" + data['cluster_name'];
         $.ajax({
             type: 'GET',
             url: url,
@@ -637,7 +635,7 @@ $(document).ready(function() {
         } else if (clusterType == 'gke') {
             var $dropdown = $("#gke-regions-dropdown");
         }
-        url = "http://" + trolley_url + ":" + port + "/fetch_regions?cluster_type=" + clusterType;
+        url = "https://" + trolley_url + "/fetch_regions?cluster_type=" + clusterType;
         $.ajax({
             type: 'GET',
             url: url,
@@ -675,7 +673,7 @@ $(document).ready(function() {
         }
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "http://" + trolley_url + ":" + port + "/fetch_regions?cluster_type=" + clusterType,
+                url: "https://" + trolley_url + "/fetch_regions?cluster_type=" + clusterType,
                 type: 'GET',
                 success: function(response) {
                     if (clusterType == 'aks') {
@@ -707,7 +705,7 @@ $(document).ready(function() {
 
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "http://" + trolley_url + ":" + port + "/fetch_clients_data",
+                url: "https://" + trolley_url + "/fetch_clients_data",
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -736,7 +734,7 @@ $(document).ready(function() {
         var $dropdown = $("#clientnames-dropdown");
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "http://" + trolley_url + ":" + port + "/fetch_clients_data",
+                url: "https://" + trolley_url + "/fetch_clients_data",
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -764,7 +762,7 @@ $(document).ready(function() {
         }
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "http://" + trolley_url + ":" + port + "/fetch_zones?cluster_type=" + clusterType + "&region_name=" + region_name,
+                url: "https://" + trolley_url + "/fetch_zones?cluster_type=" + clusterType + "&region_name=" + region_name,
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -804,7 +802,7 @@ $(document).ready(function() {
         }
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "http://" + trolley_url + ":" + port + "/fetch_subnets?cluster_type=" + clusterType + "&zone_names=" + zone_names,
+                url: "https://" + trolley_url + "/fetch_subnets?cluster_type=" + clusterType + "&zone_names=" + zone_names,
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -837,14 +835,14 @@ $(document).ready(function() {
     function populate_vpcs(selected_location) {
         if (clusterType == 'aks') {
             var $dropdown = $("#aks-locations-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+            var url = "https://" + trolley_url + "/fetch_aws_vpcs?aws_region=" + selected_location;
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-vpcs-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+            var url = "https://" + trolley_url + "/fetch_aws_vpcs?aws_region=" + selected_location;
         }
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "http://" + trolley_url + ":" + port + "/fetch_client_names",
+                url: "https://" + trolley_url + "/fetch_client_names",
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -865,13 +863,13 @@ $(document).ready(function() {
     function populate_kubernetes_versions(selected_location) {
          if (clusterType == 'aks') {
             var $dropdown = $("#aks-versions-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_aks_versions?az_region=" + selected_location;
+            var url = "https://" + trolley_url + "/fetch_aks_versions?az_region=" + selected_location;
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-versions-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_eks_versions?aws_region=" + selected_location;
+            var url = "https://" + trolley_url + "/fetch_eks_versions?aws_region=" + selected_location;
         } else if (clusterType == 'gke') {
             var $dropdown = $("#gke-versions-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_gke_versions?gcp_zone=" + selected_location;
+            var url = "https://" + trolley_url + "/fetch_gke_versions?gcp_zone=" + selected_location;
         }
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -896,13 +894,13 @@ $(document).ready(function() {
     function populate_kubernetes_image_types(selected_location) {
         if (clusterType == 'aks') {
             var $dropdown = $("#aks-locations-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+            var url = "https://" + trolley_url + "/fetch_aws_vpcs?aws_region=" + selected_location;
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-vpcs-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_aws_vpcs?aws_region=" + selected_location;
+            var url = "https://" + trolley_url + "/fetch_aws_vpcs?aws_region=" + selected_location;
         } else if (clusterType == 'gke') {
             var $dropdown = $("#gke-image-types-dropdown");
-            var url = "http://" + trolley_url + ":" + port + "/fetch_gke_image_types?gcp_zone=" + selected_location;
+            var url = "https://" + trolley_url + "/fetch_gke_image_types?gcp_zone=" + selected_location;
         }
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -927,7 +925,7 @@ $(document).ready(function() {
     function populate_k8s_agent_data(clusterName) {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "http://" + trolley_url + ":" + port + "/get_agent_cluster_data?cluster_name=" + clusterName,
+                url: "https://" + trolley_url + "/get_agent_cluster_data?cluster_name=" + clusterName,
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -954,7 +952,7 @@ $(document).ready(function() {
 
         swal_message = 'A ' + clusterName + ' ' + clusterType + ' cluster was requested for deletion'
 
-        url = "http://" + trolley_url + ":" + port + "/delete_cluster";
+        url = "https://" + trolley_url + "/delete_cluster";
         const xhr = new XMLHttpRequest();
         xhr.open("DELETE", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -982,7 +980,7 @@ $(document).ready(function() {
 
         swal_message = 'A ' + clientName + ' was requested for deletion'
 
-        url = "http://" + trolley_url + ":" + port + "/client";
+        url = "https://" + trolley_url + "/client";
         const xhr = new XMLHttpRequest();
         xhr.open("DELETE", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
