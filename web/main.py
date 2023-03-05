@@ -60,6 +60,7 @@ app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 logger.info(os.getenv('SECRET_KEY'))
 app.config['UPLOAD_FOLDER'] = ''
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 if MACOS in platform.platform():
     CUR_DIR = os.getcwd()
