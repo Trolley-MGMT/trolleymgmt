@@ -10,7 +10,7 @@ services:
     - /home/pavelzagalsky/.gcp/gcp_credentials.json:/home/app/.gcp/gcp_credentials.json:ro # Substitute $HOME with the path to your home directory
     environment:
       MONGO_URL: mongodb
-      MONGO_PORT: 27117
+      MONGO_PORT: 27017
       MONGO_PASSWORD: s3cr3t
       MONGO_USER: pavel
       GITHUB_ACTION_TOKEN:
