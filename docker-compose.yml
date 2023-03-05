@@ -19,7 +19,7 @@ services:
       SECRET_KEY: s3cr3t_k3y
       AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials
       AWS_DEFAULT_REGION: us-east-1
-      GCP_CREDENTIALS_FILE: /home/app/.aws/gcp_credentials
+      GCP_CREDENTIALS_FILE: /home/app/.gcp/gcp_credentials
     networks:
       - frontend
       - backend
