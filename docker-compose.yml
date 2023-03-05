@@ -10,7 +10,7 @@ services:
     - /home/pavelzagalsky/.gcp/gcp_credentials.json:/home/app/.gcp/gcp_credentials.json:ro # Substitute $HOME with the path to your home directory
     environment:
       MONGO_URL: mongodb
-      MONGO_PORT: 27117
+      MONGO_PORT: 27027
       MONGO_PASSWORD: s3cr3t
       MONGO_USER: pavel
       GITHUB_ACTION_TOKEN:
@@ -34,7 +34,9 @@ services:
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
       - mongodbdata:/data/db
     ports:
-      - '27117-27119:27017-27019'
+      - '27027:27017'
+      - '27028:27018'
+      - '27029:27019'
     networks:
       - frontend
       - backend
