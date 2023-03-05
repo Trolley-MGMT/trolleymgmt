@@ -38,7 +38,7 @@ $(document).ready(function() {
     } else {
         trolley_url = trolley_remote_url
         gitBranch = 'master'
-        port = 8081
+        port = 80
     }
 
     if (pathname[1].includes('build')) {
