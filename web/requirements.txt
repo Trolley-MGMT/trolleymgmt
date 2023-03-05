@@ -14,6 +14,7 @@ charset-normalizer==2.0.12
 click==8.1.2
 dnspython @ git+https://github.com/rthalley/dnspython@925a669f0f15f00908d3e066dbbc461852c06819
 Flask==2.1.1
+Flask-Cors==3.0.10
 google==3.0.0
 google-api-core==2.8.2
 google-api-python-client==2.58.0
