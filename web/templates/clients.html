@@ -19,20 +19,6 @@
       console.log(data)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </script>
 </head>
 
@@ -187,7 +173,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="manage-clients" class="nav-link active">
+                                <a href="clients" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Clients Management</p>
                                 </a>
@@ -255,9 +241,20 @@
                     </div><!-- /.col -->
                 </div><!-- /.row -->
 
-                <div class="col-md-6">
+                <div class="col-md-12">
+                    <section class="content">
 
-                    <div class="card card-primary">
+                        <div class="card card-solid">
+                            <div class="card-body pb-0">
+                                <div class="row" id="clients-main-div">
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </section>
+
+                    <div class="card card-primary" id="add-client-card-title-div" style="display: none;">
                         <div class="card-header">
                             <h3 class="card-title">Add a new client</h3>
                         </div>
@@ -323,8 +320,17 @@
                                          style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
                                 </div>
                                 <div class="form-group">
+                                    <label for="client_web_address">Client's Office Address</label>
+                                    <input type="text" class="form-control" id="client_office_address"
+                                           placeholder="Enter Connection's Office Address">
+                                    <div data-lastpass-icon-root="true"
+                                         style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
+                                </div>
+                                <div class="form-group">
                                     <label>Additional info</label>
-                                    <textarea class="form-control" rows="6"  placeholder="Insert additional data for the client" id="client_additional_info"></textarea>
+                                    <textarea class="form-control" rows="6"
+                                              placeholder="Insert additional data for the client"
+                                              id="client_additional_info"></textarea>
                                 </div>
 
                             </div>
@@ -334,6 +340,7 @@
 
                 </div>
                 <button type="submit" class="btn btn-info" id="add-client-button">Add a client!</button>
+                <button type="submit" class="btn btn-info" id="submit-client-button" style="display: none;">Submit client data!</button>
 
                 <!-- /.content-header -->
             </div>

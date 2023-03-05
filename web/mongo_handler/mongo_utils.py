@@ -326,7 +326,8 @@ def insert_discovery_object(discovery_object: dict = None, provider: str = None)
 
 def retrieve_clients_data() -> list:
     clients_data_list = []
-    clients_data_object = clients_data.find()
+    mongo_query = {AVAILABILITY.lower(): True}
+    clients_data_object = clients_data.find(mongo_query)
     for client_data in clients_data_object:
         del client_data['_id']
         clients_data_list.append(client_data)
@@ -608,7 +609,7 @@ def add_providers_data_object(providers_data_object: dict) -> bool:
 
 def add_client_data_object(client_data_object: dict) -> bool:
     """
-    @param client_data_object: The filename of the image to save
+    @param client_data_object: The client data to add
     """
     try:
         mongo_query = {'client_name': client_data_object['client_name']}
@@ -618,6 +619,7 @@ def add_client_data_object(client_data_object: dict) -> bool:
             logger.info(f'clients_data_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
+            client_data_object['availability'] = True
             result = clients_data.insert_one(client_data_object)
             if result.inserted_id:
                 logger.info(f'client was inserted properly')
@@ -656,3 +658,21 @@ def add_client_to_cluster(cluster_type: str = '', cluster_name: str = '', client
     else:
         result = gke_clusters.update_one(myquery, newvalues)
     return result.raw_result['updatedExisting']
+
+def delete_client(client_name: str) -> bool:
+    """
+    @param client_name: The name of the client to delete
+    """
+    try:
+        mongo_query = {'client_name': client_name}
+        newvalues = {"$set": {AVAILABILITY.lower(): False}}
+        existing_clients_data_object = clients_data.find_one(mongo_query)
+        if existing_clients_data_object:
+            result = clients_data.update_one(mongo_query, newvalues)
+            logger.info(f'clients_name was deleted')
+            return True
+        else:
+            logger.error(f'client does not exist')
+            return False
+    except:
+        logger.error(f'client data was not deleted properly')
