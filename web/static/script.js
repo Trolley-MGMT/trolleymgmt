@@ -8,7 +8,7 @@ $(document).ready(function() {
     let trolley_remote_url = '34.123.171.234';
     let trolley_local_url = 'localhost';
     let trolley_url = 'http://www.pavelzagalsky.com';
-    let debug = true;
+    let debug = false;
     let managePage = false;
     let buildPage = false;
     let pathname = window.location.pathname.split('/');
