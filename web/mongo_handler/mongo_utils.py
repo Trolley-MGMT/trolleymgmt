@@ -41,7 +41,7 @@ PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley')
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
 MONGO_URL = os.environ['MONGO_URL']
-MONGO_PORT = os.getenv('MONGO_PORT', 27017)
+MONGO_PORT = int(os.getenv('MONGO_PORT', 27017))
 
 if "mongodb.net" in MONGO_URL:
     client = MongoClient(f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority")
