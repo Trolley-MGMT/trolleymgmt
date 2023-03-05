@@ -747,5 +747,5 @@ def logout():
     return redirect(url_for('login'))
 
 
-app.run(host='0.0.0.0', port=80, debug=True)
+app.run(host='0.0.0.0', port=8081, debug=True)
 # web.run(host='0.0.0.0', port=8081, debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'))

@@ -3,7 +3,7 @@ services:
   web:
     build: .
     ports:
-    - "8081:8081"
+    - "80:8081"
     volumes:
     - .:/opt
     - /home/pzagalsky/.aws/:/home/app/.aws/:ro # Substitute $HOME with the path to your home directory
