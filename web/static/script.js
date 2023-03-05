@@ -5,7 +5,7 @@ $(document).ready(function() {
     let clusterName = window.localStorage.getItem("clusterName");
     let clusterType = clusterName.split('-')[1]
     window.localStorage.setItem("clusterType", clusterType);
-    let trolley_remote_url = ''
+    let trolley_remote_url = '34.123.171.234';
     let trolley_local_url = 'localhost';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let debug = false;
