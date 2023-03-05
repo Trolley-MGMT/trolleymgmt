@@ -2,11 +2,6 @@ FROM ubuntu:20.04
 RUN apt-get update -y
 RUN apt-get install -y python3
 RUN apt-get update && apt-get install -y git g++ python3-pip curl sudo unzip
-RUN #curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" # x86
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip" # arm
-RUN unzip awscliv2.zip
-RUN sudo ./aws/install
-
 RUN pip install --upgrade pip
 
 COPY web/requirements.txt /app/requirements.txt
