@@ -52,12 +52,13 @@ db = client[PROJECT_NAME]
 gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
-aws_discovered_eks_clusters: Collection = db.aws_discovered_eks_clusters
-gcp_discovered_gke_clusters: Collection = db.gcp_discovered_gke_clusters
 
+aws_discovered_eks_clusters: Collection = db.aws_discovered_eks_clusters
 aws_discovered_ec2_instances: Collection = db.aws_discovered_ec2_instances
 aws_discovered_s3_files: Collection = db.aws_discovered_s3_files
 aws_discovered_s3_buckets: Collection = db.aws_discovered_s3_buckets
+
+gcp_discovered_gke_clusters: Collection = db.gcp_discovered_gke_clusters
 
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
