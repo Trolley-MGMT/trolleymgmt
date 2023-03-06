@@ -37,7 +37,9 @@ else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
 
-PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley')
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-361905')
+GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
+
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
 MONGO_URL = os.environ['MONGO_URL']
@@ -59,6 +61,8 @@ aws_discovered_s3_files: Collection = db.aws_discovered_s3_files
 aws_discovered_s3_buckets: Collection = db.aws_discovered_s3_buckets
 
 gcp_discovered_gke_clusters: Collection = db.gcp_discovered_gke_clusters
+gcp_discovered_vm_instances: Collection = db.gcp_discovered_vm_instances
+
 
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
@@ -534,8 +538,6 @@ def insert_aws_buckets_object(aws_buckets_object: dict) -> bool:
     """
     @param aws_buckets_object: The aws files list to save
     """
-    logger.info('is this on?')
-    logger.info(f'{aws_buckets_object}')
     try:
         mongo_query = {ACCOUNT_ID.lower(): aws_buckets_object[ACCOUNT_ID.lower()]}
         logger.info(f'Running the following mongo_query {mongo_query}')
@@ -606,6 +608,30 @@ def insert_gke_cluster_object(gke_cluster_object: dict) -> bool:
                 return False
     except:
         logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
+
+
+def insert_gcp_vm_instances_object(gcp_vm_instances_object: dict) -> bool:
+    """
+    @param gcp_vm_instances_object: The gcp vm instances object to save
+    """
+    try:
+        mongo_query = {'project_name': gcp_vm_instances_object['project_name']}
+        existing_data_object = gcp_discovered_vm_instances.find_one(mongo_query)
+        if existing_data_object:
+            result = gcp_discovered_vm_instances.replace_one(existing_data_object, gcp_vm_instances_object)
+            logger.info(f'gcp_vm_instances_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = gcp_discovered_vm_instances.insert_one(gcp_vm_instances_object)
+            logger.info(result.acknowledged)
+            if result.inserted_id:
+                logger.info(f'gcp_vm_instances_object was inserted properly')
+                return True
+            else:
+                logger.error(f'gcp_vm_instances_object was not inserted properly')
+                return False
+    except:
+        logger.error(f'gcp_vm_instances_object was not inserted properly')
 
 
 def insert_aws_agent_data_object(agent_data_object: dict) -> bool:

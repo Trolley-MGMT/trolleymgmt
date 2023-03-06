@@ -5,11 +5,15 @@ import getpass as gt
 import logging
 import os
 import platform
+from collections import defaultdict
+from dataclasses import asdict
 from subprocess import run, PIPE
 import time
 
+from google.cloud import compute_v1
 
-from web.mongo_handler.mongo_utils import insert_gke_cluster_object
+from web.mongo_handler.mongo_objects import GCPVMDataObject
+from web.mongo_handler.mongo_utils import insert_gke_cluster_object, insert_gcp_vm_instances_object
 
 from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
@@ -20,19 +24,17 @@ TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
 
-
 if 'Darwin' in platform.system():
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
     CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
 else:
     KUBECONFIG_PATH = '/root/.kube/config'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/app/.gcp/gcp_credentials.json'
     CREDENTIALS_PATH = '/home/app/.gcp/gcp_credentials.json'
-
 
 credentials = service_account.Credentials.from_service_account_file(
     CREDENTIALS_PATH)
 service = discovery.build('container', 'v1', credentials=credentials)
-
 
 
 def generate_kubeconfig(cluster_name: str, zone: str) -> str:
@@ -65,6 +67,39 @@ def fetch_regions() -> list:
         if region_name not in regions_list:
             regions_list.append(region_name)
     return regions_list
+
+
+def list_all_instances(
+        project_id: str, ) -> GCPVMDataObject:
+    """
+    Returns a dictionary of all instances present in a project, grouped by their zone.
+
+    Args:
+        project_id: project ID or project number of the Cloud project you want to use.
+    Returns:
+        A dictionary with zone names as keys (in form of "zones/{zone_name}") and
+        iterable collections of Instance objects as values.
+    """
+    instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH)
+    request = compute_v1.AggregatedListInstancesRequest()
+    request.project = project_id
+    request.max_results = 50
+
+    agg_list = instance_client.aggregated_list(request=request)
+
+    all_instances = defaultdict(list)
+    instances_object = []
+
+    for zone, response in agg_list:
+        if response.instances:
+            all_instances[zone].extend(response.instances)
+            for instance in response.instances:
+                instance_object = {'name': instance.name,
+                                   'tags': dict(instance.labels),
+                                   'instance_type': instance.machine_type.split("/")[-1],
+                                   'instance_zone': instance.zone.split("/")[-1]}
+                instances_object.append(instance_object)
+    return GCPVMDataObject(timestamp=TS, project_name=project_id, vm_instances=instances_object)
 
 
 def fetch_gke_clusters() -> list:
@@ -115,6 +150,10 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         gke_discovered_clusters = fetch_gke_clusters()
         for gke_discovered_cluster in gke_discovered_clusters:
             insert_gke_cluster_object(gke_discovered_cluster)
+    if is_fetching_vm_instances:
+        gcp_discovered_vm_instances_object = list_all_instances(project_id=GCP_PROJECT_NAME)
+        print(asdict(gcp_discovered_vm_instances_object))
+        insert_gcp_vm_instances_object(asdict(gcp_discovered_vm_instances_object))
 
 
 if __name__ == '__main__':

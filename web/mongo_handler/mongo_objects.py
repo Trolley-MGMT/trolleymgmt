@@ -199,6 +199,13 @@ class AWSEC2DataObject:
 
 
 @dataclass
+class GCPVMDataObject:
+    timestamp: int
+    project_name: str
+    vm_instances: list
+
+
+@dataclass
 class AWSS3FilesObject:
     timestamp: int
     account_id: int
