@@ -20,12 +20,14 @@ COPY web/variables /app/variables
 COPY web/trolley_small.png /app
 
 ADD web/scripts/aks_caching_script.py aks_caching_script.py
-ADD web/scripts/gke_caching_script.py gke_caching_script.py
-ADD web/scripts/eks_caching_script.py eks_caching_script.py
+ADD web/scripts/gcp_caching_script.py gcp_caching_script.py
+ADD web/scripts/aws_caching_script.py aws_caching_script.py
 ADD web/scripts/aws_discovery_script.py aws_discovery_script.py
-RUN chmod +x trolley_api.sh aks_cache.sh gke_cache.sh eks_cache.sh aws_discovery.sh
+ADD web/scripts/gcp_discovery_script.py gcp_discovery_script.py
+RUN chmod +x trolley_api.sh aks_cache.sh aws_cache.sh gcp_cache.sh aws_discovery.sh gcp_discovery.sh
 
 CMD ./trolley_api.sh
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
+# Command to execute to run the Google App run
+#CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
 
 #ENTRYPOINT ["tail", "-f", "/dev/null"]

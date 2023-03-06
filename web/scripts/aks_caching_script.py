@@ -20,7 +20,7 @@ CURRENTLY_ALLOWED_LOCATIONS = CURRENTLY_ALLOWED_LOCATIONS.split(',')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('eks_caching_script.log')
+handler = logging.FileHandler('aws_caching_script.log')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)

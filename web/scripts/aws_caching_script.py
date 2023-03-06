@@ -1,7 +1,7 @@
 from dataclasses import asdict
 import logging
 from web.mongo_handler.mongo_utils import insert_cache_object
-from web.mongo_handler.mongo_objects import EKSCacheObject
+from web.mongo_handler.mongo_objects import AWSCacheObject
 from web.variables.variables import EKS
 
 import boto3
@@ -11,7 +11,7 @@ ec2 = boto3.client('ec2')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('eks_caching_script.log')
+handler = logging.FileHandler('aws_caching_script.log')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
@@ -75,13 +75,13 @@ def main():
                 else:
                     regions_zones_dict[region] = [zone]
     subnets_dict = fetch_subnets(zones_list)
-    eks_caching_object = EKSCacheObject(
+    aws_caching_object = AWSCacheObject(
         zones_list=zones_list,
         regions_list=regions_list,
         subnets_dict=subnets_dict,
         regions_zones_dict=regions_zones_dict
     )
-    insert_cache_object(caching_object=asdict(eks_caching_object), provider=EKS)
+    insert_cache_object(caching_object=asdict(aws_caching_object), provider=EKS)
 
 
 if __name__ == '__main__':

@@ -53,6 +53,7 @@ gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters
 eks_clusters: Collection = db.eks_clusters
 aws_discovered_eks_clusters: Collection = db.aws_discovered_eks_clusters
+gcp_discovered_gke_clusters: Collection = db.gcp_discovered_gke_clusters
 
 aws_discovered_ec2_instances: Collection = db.aws_discovered_ec2_instances
 aws_discovered_s3_files: Collection = db.aws_discovered_s3_files
@@ -62,9 +63,9 @@ aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
 aks_cache: Collection = db.aks_cache
-gke_cache: Collection = db.gke_cache
+gcp_cache: Collection = db.gcp_cache
 helm_cache: Collection = db.helm_cache
-eks_cache: Collection = db.eks_cache
+aws_cache: Collection = db.aws_cache
 
 aks_discovery: Collection = db.aks_discovery
 gke_discovery: Collection = db.gke_discovery
@@ -119,17 +120,18 @@ def insert_eks_deployment(eks_deployment_object: dict = None) -> bool:
 def insert_aks_deployment(aks_deployment_object: dict = None) -> bool:
     """
     @param aks_deployment_object: The dictionary with all the cluster data.
-    @param cluster_type: The type of the cluster we want to add to the DB. Ex: AKS
     """
     aks_clusters.insert_one(aks_deployment_object)
     return True
 
 
-def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', availability: bool = False):
+def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', discovered: bool = False,
+                             availability: bool = False):
     """
 
     @param cluster_type: The type of the cluster to change the availability of
     @param cluster_name: The name of the cluster to set the availability of
+    @param discovered: Whether the cluster was found out scanning the cloud provider or not
     @param availability: Availability True/False
     @return:
     """
@@ -137,11 +139,17 @@ def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', ava
     myquery = {CLUSTER_NAME.lower(): cluster_name}
     newvalues = {"$set": {AVAILABILITY: availability}}
     if cluster_type == GKE:
-        result = gke_clusters.update_one(myquery, newvalues)
+        if discovered:
+            result = gcp_discovered_gke_clusters.update_one(myquery, newvalues)
+        else:
+            result = gke_clusters.update_one(myquery, newvalues)
     elif cluster_type == GKE_AUTOPILOT:
         result = gke_autopilot_clusters.update_one(myquery, newvalues)
     elif cluster_type == EKS:
-        result = eks_clusters.update_one(myquery, newvalues)
+        if discovered:
+            result = aws_discovered_eks_clusters.update_one(myquery, newvalues)
+        else:
+            result = eks_clusters.update_one(myquery, newvalues)
     elif cluster_type == AKS:
         result = aks_clusters.update_one(myquery, newvalues)
     else:
@@ -155,6 +163,7 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
     discovered_clusters_object = []
     if cluster_type == GKE:
         cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+        discovered_clusters_object = gcp_discovered_gke_clusters.find({AVAILABILITY: True})
     elif cluster_type == GKE_AUTOPILOT:
         cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == EKS:
@@ -184,15 +193,19 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
     return clusters_object
 
 
-def retrieve_cluster_details(cluster_type: str, cluster_name: str) -> dict:
+def retrieve_cluster_details(cluster_type: str, cluster_name: str, discovered: bool = False) -> dict:
     logger.info(f'A request to fetch {cluster_name} details was received')
     if cluster_type == GKE:
-        cluster_object = gke_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+        if discovered:
+            cluster_object = gcp_discovered_gke_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+        else:
+            cluster_object = gke_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     elif cluster_type == GKE_AUTOPILOT:
         cluster_object = gke_autopilot_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     elif cluster_type == EKS:
-        cluster_object = aws_discovered_eks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
-        if cluster_object is None:
+        if discovered:
+            cluster_object = aws_discovered_eks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+        else:
             cluster_object = eks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     elif cluster_type == AKS:
         cluster_object = aks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
@@ -247,24 +260,24 @@ def insert_cache_object(caching_object: dict = None, provider: str = None) -> bo
     @param provider: The dictionary with all the cluster data.
     """
     if provider == GKE:
-        gke_cache.drop()
+        gcp_cache.drop()
         try:
-            mongo_response = gke_cache.insert_one(caching_object)
+            mongo_response = gcp_cache.insert_one(caching_object)
             logger.info(mongo_response.acknowledged)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            logger.error('failure to insert data into gke_cache table')
+            logger.error('failure to insert data into gcp_cache table')
             return False
     elif provider == EKS:
-        eks_cache.drop()
+        aws_cache.drop()
         try:
-            mongo_response = eks_cache.insert_one(caching_object)
+            mongo_response = aws_cache.insert_one(caching_object)
             logger.info(mongo_response.acknowledged)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            logger.error('failure to insert data into eks_cache table')
+            logger.error('failure to insert data into aws_cache table')
             return False
     elif provider == AKS:
         aks_cache.drop()
@@ -301,7 +314,7 @@ def insert_discovery_object(discovery_object: dict = None, provider: str = None)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            logger.error('failure to insert data into gke_cache table')
+            logger.error('failure to insert data into gcp_cache table')
             return False
     elif provider == EKS:
         eks_discovery.drop()
@@ -311,7 +324,7 @@ def insert_discovery_object(discovery_object: dict = None, provider: str = None)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            logger.error('failure to insert data into eks_cache table')
+            logger.error('failure to insert data into aws_cache table')
             return False
     elif provider == AKS:
         aks_discovery.drop()
@@ -350,15 +363,15 @@ def retrieve_client_per_cluster_name(cluster_type: str = '', cluster_name: str =
 
 def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
     if provider == GKE:
-        cache_object = gke_cache.find()[0]
+        cache_object = gcp_cache.find()[0]
     elif provider == EKS:
-        cache_object = eks_cache.find()[0]
+        cache_object = aws_cache.find()[0]
     elif provider == AKS:
         cache_object = aks_cache.find()[0]
     elif provider == HELM:
         return helm_cache.find()[0]['helms_installs']
     else:
-        cache_object = gke_cache.find()[0]
+        cache_object = gcp_cache.find()[0]
     return cache_object[cache_type]
 
 
@@ -548,7 +561,6 @@ def insert_eks_cluster_object(eks_cluster_object: dict) -> bool:
     """
     @param eks_cluster_object: The eks clusters list to save
     """
-    logger.info('is this on?')
     logger.info(f'{eks_cluster_object}')
     try:
         mongo_query = {CLUSTER_NAME.lower(): eks_cluster_object[CLUSTER_NAME.lower()]}
@@ -568,6 +580,31 @@ def insert_eks_cluster_object(eks_cluster_object: dict) -> bool:
                 return False
     except:
         logger.error(f'aws_discovered_eks_clusters was not inserted properly')
+
+
+def insert_gke_cluster_object(gke_cluster_object: dict) -> bool:
+    """
+    @param gke_cluster_object: The eks clusters list to save
+    """
+    logger.info(f'{gke_cluster_object}')
+    try:
+        mongo_query = {CLUSTER_NAME.lower(): gke_cluster_object[CLUSTER_NAME.lower()]}
+        existing_data_object = gcp_discovered_gke_clusters.find_one(mongo_query)
+        if existing_data_object:
+            result = gcp_discovered_gke_clusters.replace_one(existing_data_object, gke_cluster_object)
+            logger.info(f'aws_discovered_eks_clusters was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = gcp_discovered_gke_clusters.insert_one(gke_cluster_object)
+            logger.info(result.acknowledged)
+            if result.inserted_id:
+                logger.info(f'gcp_discovered_gke_clusters was inserted properly')
+                return True
+            else:
+                logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
+                return False
+    except:
+        logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
 
 
 def insert_aws_agent_data_object(agent_data_object: dict) -> bool:
@@ -659,6 +696,7 @@ def add_client_to_cluster(cluster_type: str = '', cluster_name: str = '', client
     else:
         result = gke_clusters.update_one(myquery, newvalues)
     return result.raw_result['updatedExisting']
+
 
 def delete_client(client_name: str) -> bool:
     """

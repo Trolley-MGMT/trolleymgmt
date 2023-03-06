@@ -4,7 +4,7 @@ on:
     - cron: "0 1 * * *"
 
 jobs:
-  eks_caching:
+  aws_caching:
     runs-on: ubuntu-20.04
     steps:
       - uses: 'actions/checkout@v3'
@@ -34,4 +34,4 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 web/scripts/eks_caching_script.py
+          python3 web/scripts/aws_caching_script.py

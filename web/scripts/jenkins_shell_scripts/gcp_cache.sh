@@ -22,8 +22,8 @@ source $WORKSPACE/$RANDOM_VENV/bin/activate
 echo "Installing projects requirements"
 pip3 install -r $WORKSPACE/requirements.txt
 
-# Running gke_cache script
-echo "Running python3 $WORKSPACE/scripts/gke_caching_script.py"
-python3 $WORKSPACE/web/scripts/gke_caching_script.py
+# Running gcp_cache script
+echo "Running python3 $WORKSPACE/scripts/gcp_caching_script.py"
+python3 $WORKSPACE/web/scripts/gcp_caching_script.py
 
 rm -R $WORKSPACE/$RANDOM_VENV

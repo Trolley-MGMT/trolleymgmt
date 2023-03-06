@@ -384,18 +384,21 @@ def delete_cluster():
         delete_gke_cluster(**content)
         mongo_handler.mongo_utils.set_cluster_availability(cluster_type=GKE,
                                                            cluster_name=content['cluster_name'],
+                                                           discovered=content['discovered'],
                                                            availability=False)
     elif content[CLUSTER_TYPE] == EKS:
         del content[CLUSTER_TYPE]
         delete_eks_cluster(**content)
         mongo_handler.mongo_utils.set_cluster_availability(cluster_type=EKS,
                                                            cluster_name=content['cluster_name'],
+                                                           discovered=content['discovered'],
                                                            availability=False)
     elif content[CLUSTER_TYPE] == AKS:
         del content[CLUSTER_TYPE]
         delete_aks_cluster(**content)
         mongo_handler.mongo_utils.set_cluster_availability(cluster_type=AKS,
                                                            cluster_name=content['cluster_name'],
+                                                           discovered=content['discovered'],
                                                            availability=False)
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
@@ -748,6 +751,6 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)
 # app.run(host='0.0.0.0', port=8081, debug=True, ssl_context=('cert.pem', 'key.pem'))
 # web.run(host='0.0.0.0', port=8081, debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'))

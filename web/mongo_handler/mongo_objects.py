@@ -112,7 +112,7 @@ class GKECacheObject:
 
 
 @dataclass
-class EKSCacheObject:
+class AWSCacheObject:
     zones_list: list
     regions_list: list
     subnets_dict: dict
