@@ -63,7 +63,7 @@ def fetch_regions() -> list:
     return regions_list
 
 
-def fetch_buckets():
+def fetch_buckets() -> AWSS3BucketsObject:
     response = S3_CLIENT.list_buckets()
     buckets_list = []
     for bucket in response['Buckets']:
@@ -72,21 +72,22 @@ def fetch_buckets():
                               buckets=buckets_list)
 
 
-def fetch_files():
-    response = S3_CLIENT.list_buckets()
-    buckets_list = []
-    for bucket in response['Buckets']:
-        buckets_list.append(bucket["Name"])
-
+def fetch_files(aws_buckets: AWSS3BucketsObject) -> AWSS3FilesObject:
+    aws_buckets_list = []
+    aws_files_dict = {}
+    for aws_bucket in aws_buckets.buckets:
+        aws_buckets_list.append(aws_bucket)
     files_list = []
-    for bucket in buckets_list:
-        for key in S3_CLIENT.list_objects(Bucket=bucket)['Contents']:
+    for bucket in aws_buckets_list:
+        for file in S3_CLIENT.list_objects(Bucket=bucket)['Contents']:
             file_object = {
-                key['Key']: {'size': key['Size'], 'owner': key['Owner']['DisplayName'],
-                             'bucket': bucket, 'last_modified': int(key['LastModified'].timestamp())}}
+                file['Key']: {'size': file['Size'], 'owner': file['Owner']['DisplayName'],
+                              'last_modified': int(file['LastModified'].timestamp())}}
             files_list.append(file_object)
+        aws_files_dict[bucket] = files_list
+        files_list = []
     return AWSS3FilesObject(timestamp=TS, account_id=ACCOUNT_ID,
-                            files=files_list)
+                            files=aws_files_dict)
 
 
 def fetch_ec2_instances():
@@ -139,20 +140,26 @@ def fetch_eks_clusters() -> list:
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_ec2_instances: bool = False,
          is_fetching_eks_clusters: bool = False):
+    global aws_buckets_data_object
     if is_fetching_eks_clusters:
         aws_discovered_clusters = fetch_eks_clusters()
+        print('List of discovered EKS clusters: ')
+        print(aws_discovered_clusters)
         for aws_discovered_cluster in aws_discovered_clusters:
             insert_eks_cluster_object(aws_discovered_cluster)
-    if is_fetching_files:
-        aws_files_data_object = fetch_files()
-        print(asdict(aws_files_data_object))
-        insert_aws_files_object(asdict(aws_files_data_object))
     if is_fetching_buckets:
         aws_buckets_data_object = fetch_buckets()
+        print('List of discovered S3 buckets: ')
         print(asdict(aws_buckets_data_object))
         insert_aws_buckets_object(asdict(aws_buckets_data_object))
+    if is_fetching_files:
+        aws_files_data_object = fetch_files(aws_buckets_data_object)
+        print('List of discovered S3 files: ')
+        print(asdict(aws_files_data_object))
+        insert_aws_files_object(asdict(aws_files_data_object))
     if is_fetching_ec2_instances:
         aws_instances_data_object = fetch_ec2_instances()
+        print('List of discovered EC2 instances: ')
         print(asdict(aws_instances_data_object))
         insert_aws_instances_object(asdict(aws_instances_data_object))
 

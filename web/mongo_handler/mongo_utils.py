@@ -62,7 +62,8 @@ aws_discovered_s3_buckets: Collection = db.aws_discovered_s3_buckets
 
 gcp_discovered_gke_clusters: Collection = db.gcp_discovered_gke_clusters
 gcp_discovered_vm_instances: Collection = db.gcp_discovered_vm_instances
-
+gcp_discovered_buckets: Collection = db.gcp_discovered_buckets
+gcp_discovered_files: Collection = db.gcp_discovered_files
 
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
@@ -558,6 +559,58 @@ def insert_aws_buckets_object(aws_buckets_object: dict) -> bool:
                 return False
     except:
         logger.error(f'agents_data_object was not inserted properly')
+
+
+def insert_gcp_files_object(gcp_files_object: dict) -> bool:
+    """
+    @param gcp_files_object: The gcp files list to save
+    """
+    try:
+        mongo_query = {'project_name': gcp_files_object['project_name']}
+        logger.info(f'Running the following mongo_query {mongo_query}')
+        existing_data_object = gcp_discovered_files.find_one(mongo_query)
+        logger.info(f'existing_data_object {existing_data_object}')
+        if existing_data_object:
+            result = gcp_discovered_files.replace_one(existing_data_object, gcp_files_object)
+            logger.info(f'gcp_files_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = gcp_discovered_files.insert_one(gcp_files_object)
+            logger.info(result.acknowledged)
+            if result.inserted_id:
+                logger.info(f'gcp_files_object was inserted properly')
+                return True
+            else:
+                logger.error(f'gcp_files_object was not inserted properly')
+                return False
+    except:
+        logger.error(f'gcp_files_object was not inserted properly')
+
+
+def insert_gcp_buckets_object(gcp_buckets_object: dict) -> bool:
+    """
+    @param gcp_buckets_object: The gcp buckets list to save
+    """
+    try:
+        mongo_query = {'project_name': gcp_buckets_object['project_name']}
+        logger.info(f'Running the following mongo_query {mongo_query}')
+        existing_data_object = gcp_discovered_buckets.find_one(mongo_query)
+        logger.info(f'existing_data_object {existing_data_object}')
+        if existing_data_object:
+            result = gcp_discovered_buckets.replace_one(existing_data_object, gcp_buckets_object)
+            logger.info(f'gcp_buckets_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = gcp_discovered_buckets.insert_one(gcp_buckets_object)
+            logger.info(result.acknowledged)
+            if result.inserted_id:
+                logger.info(f'gcp_buckets_object was inserted properly')
+                return True
+            else:
+                logger.error(f'gcp_buckets_object was not inserted properly')
+                return False
+    except:
+        logger.error(f'gcp_buckets_object was not inserted properly')
 
 
 def insert_eks_cluster_object(eks_cluster_object: dict) -> bool:

@@ -455,7 +455,7 @@ $(document).ready(function() {
 
         swal_message = 'A request to assign a ' + clientName + ' client to ' + clusterName + ' was sent'
 
-        const xhr = new XMLhttpsRequest();
+        const xhr = new XMLHttpRequest();
         xhr.open("PUT", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function() {

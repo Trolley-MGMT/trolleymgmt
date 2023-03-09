@@ -209,7 +209,14 @@ class GCPVMDataObject:
 class AWSS3FilesObject:
     timestamp: int
     account_id: int
-    files: list
+    files: dict
+
+
+@dataclass
+class GCPFilesObject:
+    timestamp: int
+    project_name: int
+    files: dict
 
 
 @dataclass
@@ -218,6 +225,12 @@ class AWSS3BucketsObject:
     account_id: int
     buckets: list
 
+
+@dataclass
+class GCPBucketsObject:
+    timestamp: int
+    project_name: str
+    buckets: list
 
 @dataclass
 class AWSEKSDataObject:
