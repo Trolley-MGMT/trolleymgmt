@@ -6,6 +6,7 @@ import os
 import time
 import datetime
 from functools import wraps
+from threading import Thread
 
 import jwt
 import platform
@@ -30,6 +31,7 @@ from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_
     trigger_trolley_agent_deployment_github_action
 from web.utils import random_string, apply_yaml
 from web.mongo_handler.mongo_objects import ProviderObject
+from web.scripts import gcp_discovery_script, aws_discovery_script
 
 REGISTRATION = False
 CUR_DIR = os.getcwd()
@@ -55,7 +57,6 @@ logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 PROJECT_NAME = os.getenv('PROJECT_NAME')
 
 app = Flask(__name__, template_folder='templates')
-
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 logger.info(os.getenv('SECRET_KEY'))
@@ -247,6 +248,23 @@ def get_agent_cluster_data():
     cluster_name = request.args.get(CLUSTER_NAME.lower())
     cluster_object = mongo_handler.mongo_utils.retrieve_agent_cluster_details(cluster_name)
     return Response(json.dumps(cluster_object), status=200, mimetype=APPLICATION_JSON)
+
+
+@app.route('/trigger_cloud_provider_discovery', methods=[POST])
+@login_required
+def trigger_cloud_provider_discovery():
+    """
+    This endpoint allows triggering a cloud provider discovery
+    """
+    content = request.get_json()
+    function_name = inspect.stack()[0][3]
+    logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+    if AWS in content[PROVIDER]:
+        Thread(target=aws_discovery_script.main, args=(True, True, True, True)).start()
+    elif GCP in content[PROVIDER]:
+        Thread(target=gcp_discovery_script.main, args=(True, True, True, True)).start()
+    return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+
 
 
 @app.route('/deploy_yaml_on_cluster', methods=[POST])
@@ -562,7 +580,6 @@ def fetch_helm_installs():
 
 @app.route('/fetch_clients_data', methods=[GET])
 @login_required
-
 def fetch_clients_data():
     client_names = mongo_handler.mongo_utils.retrieve_clients_data()
     return jsonify(client_names)

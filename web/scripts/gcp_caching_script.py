@@ -50,8 +50,6 @@ def fetch_machine_types(zones_list) -> dict:
                 else:
                     machine_types_dict[zone].append(machine_type['name'])
                 print(machine_type['description'])
-
-            request = service.machineTypes().list_next(previous_request=request, previous_response=response)
     return machine_types_dict
 
 

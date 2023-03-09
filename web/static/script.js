@@ -80,12 +80,15 @@ $(document).ready(function() {
 }
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1)) {
         clusterType = 'aks'
+        provider = 'az'
         window.localStorage.setItem("clusterType", clusterType);
     } else if (($.inArray('build-eks-clusters', pathname) > -1) || ($.inArray('manage-eks-clusters', pathname) > -1)) {
         clusterType = 'eks'
+        provider = 'aws'
         window.localStorage.setItem("clusterType", clusterType);
     } else if (($.inArray('build-gke-clusters', pathname) > -1) || ($.inArray('manage-gke-clusters', pathname) > -1)) {
         clusterType = 'gke'
+        provider = 'gcp'
         window.localStorage.setItem("clusterType", clusterType);
     } else {
         clusterType = clusterType
@@ -946,6 +949,33 @@ $(document).ready(function() {
         })
     }
 
+    function trigger_cloud_provider_discovery(provider) {
+        let cloud_provider_discovery_data = JSON.stringify({
+            "provider": provider
+        });
+
+        swal_message = 'Clusters scan for ' + provider + ' provider was triggered. Please check again in a couple of minutes'
+
+        url = http + trolley_url + "/trigger_cloud_provider_discovery";
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(cloud_provider_discovery_data);
+
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: swal_message,
+            showConfirmButton: true,
+            timer: 5000
+        })
+    }
+
     function delete_cluster(clusterType, clusterName, discovered) {
         let cluster_deletion_data = JSON.stringify({
             "cluster_type": clusterType,
@@ -1089,6 +1119,9 @@ $(document).ready(function() {
         } else if (this.innerText === "Delete") {
             console.log("Logic for deleting " + clusterName + " cluster")
             delete_cluster(clusterType, clusterName, discovered)
+        } else if (this.innerText === "Scan for clusters") {
+            console.log("Logic for triggering a clusters scan")
+            trigger_cloud_provider_discovery(provider)
         } else if (this.innerText === "Copy Kubeconfig") {
             clusterName = window.localStorage.getItem("currentClusterName");
             console.log("Logic for copying kubeconfig for " + clusterName + " cluster")

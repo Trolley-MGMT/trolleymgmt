@@ -492,19 +492,19 @@ def insert_aws_instances_object(aws_instances_object: dict) -> bool:
         logger.info(f'existing_data_object {existing_data_object}')
         if existing_data_object:
             result = aws_discovered_ec2_instances.replace_one(existing_data_object, aws_instances_object)
-            logger.info(f'agents_data_object was updated properly')
+            logger.info(f'aws_instances_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
             result = aws_discovered_ec2_instances.insert_one(aws_instances_object)
             logger.info(result.acknowledged)
             if result.inserted_id:
-                logger.info(f'agents_data_object was inserted properly')
+                logger.info(f'aws_instances_object was inserted properly')
                 return True
             else:
-                logger.error(f'agents_data_object was not inserted properly')
+                logger.error(f'aws_instances_object was not inserted properly')
                 return False
     except:
-        logger.error(f'agents_data_object was not inserted properly')
+        logger.error(f'aws_instances_object was not inserted properly')
 
 
 def insert_aws_files_object(aws_files_object: dict) -> bool:
@@ -520,19 +520,19 @@ def insert_aws_files_object(aws_files_object: dict) -> bool:
         logger.info(f'existing_data_object {existing_data_object}')
         if existing_data_object:
             result = aws_discovered_s3_files.replace_one(existing_data_object, aws_files_object)
-            logger.info(f'agents_data_object was updated properly')
+            logger.info(f'aws_files_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
             result = aws_discovered_s3_files.insert_one(aws_files_object)
             if result.inserted_id:
                 logger.info(result.acknowledged)
-                logger.info(f'agents_data_object was inserted properly')
+                logger.info(f'aws_files_object was inserted properly')
                 return True
             else:
-                logger.error(f'agents_data_object was not inserted properly')
+                logger.error(f'aws_files_object was not inserted properly')
                 return False
     except:
-        logger.error(f'agents_data_object was not inserted properly')
+        logger.error(f'aws_files_object was not inserted properly')
 
 
 def insert_aws_buckets_object(aws_buckets_object: dict) -> bool:
@@ -546,16 +546,16 @@ def insert_aws_buckets_object(aws_buckets_object: dict) -> bool:
         logger.info(f'existing_data_object {existing_data_object}')
         if existing_data_object:
             result = aws_discovered_s3_buckets.replace_one(existing_data_object, aws_buckets_object)
-            logger.info(f'agents_data_object was updated properly')
+            logger.info(f'aws_buckets_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
             result = aws_discovered_s3_buckets.insert_one(aws_buckets_object)
             logger.info(result.acknowledged)
             if result.inserted_id:
-                logger.info(f'agents_data_object was inserted properly')
+                logger.info(f'aws_buckets_object was inserted properly')
                 return True
             else:
-                logger.error(f'agents_data_object was not inserted properly')
+                logger.error(f'aws_buckets_object was not inserted properly')
                 return False
     except:
         logger.error(f'agents_data_object was not inserted properly')

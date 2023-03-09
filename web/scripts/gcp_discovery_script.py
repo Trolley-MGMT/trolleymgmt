@@ -7,6 +7,7 @@ import os
 import platform
 from collections import defaultdict
 from dataclasses import asdict
+from pathlib import Path
 from subprocess import run, PIPE
 import time
 
@@ -44,6 +45,8 @@ def generate_kubeconfig(cluster_name: str, zone: str) -> str:
         os.remove(KUBECONFIG_PATH)
     kubeconfig_generate_command = f'gcloud container clusters get-credentials {cluster_name} --zone={zone}'
     run(kubeconfig_generate_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    file = Path(KUBECONFIG_PATH)
+    file.touch(exist_ok=True)
     with open(KUBECONFIG_PATH, "r") as f:
         kubeconfig = f.read()
         logging.info(f'The kubeconfig content is: {kubeconfig}')
@@ -161,7 +164,10 @@ def fetch_gke_clusters() -> list:
                 cluster_object['cluster_version'] = cluster['currentMasterVersion']
                 cluster_object['region_name'] = cluster['locations']
                 cluster_object['zone_name'] = cluster['zone']
-                cluster_object['tags'] = cluster['resourceLabels']
+                try:
+                    cluster_object['tags'] = cluster['resourceLabels']
+                except:
+                    pass
                 cluster_object['availability'] = True
                 cluster_object['nodes_names'] = []
                 cluster_object['nodes_ips'] = []
