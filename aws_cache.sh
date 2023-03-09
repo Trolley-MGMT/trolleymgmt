@@ -1,2 +1,2 @@
 #!/bin/sh
-python3 eks_caching_script.py
+python3 aws_caching_script.py
