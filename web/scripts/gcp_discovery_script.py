@@ -96,14 +96,26 @@ def list_all_instances(
     instances_object = []
 
     for zone, response in agg_list:
+        external_ip = ''
+        internal_ip = ''
         if response.instances:
             all_instances[zone].extend(response.instances)
             for instance in response.instances:
-                instance_object = {'name': instance.name,
-                                   'tags': dict(instance.labels),
-                                   'instance_type': instance.machine_type.split("/")[-1],
-                                   'instance_zone': instance.zone.split("/")[-1]}
-                instances_object.append(instance_object)
+                if instance.status == 'RUNNING':
+                    try:
+                        for networking_interface in instance.network_interfaces:
+                            internal_ip = networking_interface.network_i_p
+                            for access_config in networking_interface.access_configs:
+                                external_ip = access_config.nat_i_p
+                    except:
+                        external_ip = ''
+                    instance_object = {'instance_name': instance.name,
+                                       'external_ip': external_ip,
+                                       'internal_ip': internal_ip,
+                                       'tags': dict(instance.labels),
+                                       'instance_type': instance.machine_type.split("/")[-1],
+                                       'instance_zone': instance.zone.split("/")[-1]}
+                    instances_object.append(instance_object)
     return GCPVMDataObject(timestamp=TS, project_name=project_id, vm_instances=instances_object)
 
 

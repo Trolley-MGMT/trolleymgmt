@@ -32,7 +32,7 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME
+    USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
@@ -64,6 +64,11 @@ gcp_discovered_gke_clusters: Collection = db.gcp_discovered_gke_clusters
 gcp_discovered_vm_instances: Collection = db.gcp_discovered_vm_instances
 gcp_discovered_buckets: Collection = db.gcp_discovered_buckets
 gcp_discovered_files: Collection = db.gcp_discovered_files
+
+az_discovered_aks_clusters: Collection = db.az_discovered_aks_clusters
+az_discovered_vm_instances: Collection = db.az_discovered_vm_instances
+az_discovered_buckets: Collection = db.az_discovered_buckets
+az_discovered_files: Collection = db.az_discovered_files
 
 aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
@@ -197,6 +202,20 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
             if 'tags' not in cluster.keys():
                 cluster['tags'] = []
     return clusters_object
+
+
+def retrieve_instances(provider_type: str) -> dict:
+    logger.info(f'A request to fetch instance for {provider_type} provider was received')
+    if provider_type == AWS:
+        instances_object = aws_discovered_ec2_instances.find_one()
+    elif provider_type == GCP:
+        instances_object = gcp_discovered_vm_instances.find_one()
+    elif provider_type == AZ:
+        instances_object = az_discovered_vm_instances.find_one()
+    else:
+        instances_object = {}
+    del instances_object['_id']
+    return instances_object
 
 
 def retrieve_cluster_details(cluster_type: str, cluster_name: str, discovered: bool = False) -> dict:

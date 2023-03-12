@@ -239,6 +239,17 @@ def get_clusters_data():
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
+@app.route('/get_instances_data', methods=[GET])
+@login_required
+def get_instances_data():
+    """
+    Ths endpoint allows providing basic instances data that was gathered.
+    """
+    provider_type = request.args.get(PROVIDER)
+    instances_list = mongo_handler.mongo_utils.retrieve_instances(provider_type)
+    return Response(json.dumps(instances_list), status=200, mimetype=APPLICATION_JSON)
+
+
 @app.route('/get_agent_cluster_data', methods=[GET])
 @login_required
 def get_agent_cluster_data():
@@ -264,7 +275,6 @@ def trigger_cloud_provider_discovery():
     elif GCP in content[PROVIDER]:
         Thread(target=gcp_discovery_script.main, args=(True, True, True, True)).start()
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
-
 
 
 @app.route('/deploy_yaml_on_cluster', methods=[POST])
@@ -715,6 +725,24 @@ def manage_aks_clusters():
 @login_required
 def manage_gke_clusters():
     return render_page('manage-gke-clusters.html')
+
+
+@app.route('/manage-aws-ec2-instances', methods=[GET, POST])
+@login_required
+def manage_aws_ec2_instances():
+    return render_page('manage-aws-ec2-instances.html')
+
+
+@app.route('/manage-gcp-vm-instances', methods=[GET, POST])
+@login_required
+def manage_gcp_vm_instances():
+    return render_page('manage-gcp-vm-instances.html')
+
+
+@app.route('/manage-az-vm-instances', methods=[GET, POST])
+@login_required
+def manage_az_vm_instances():
+    return render_page('manage-az-vm-instances.html')
 
 
 @app.route('/settings', methods=[GET, POST])

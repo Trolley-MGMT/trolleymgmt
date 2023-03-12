@@ -9,11 +9,13 @@ $(document).ready(function() {
     let trolley_local_url = 'localhost';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let debug = true;
-    let managePage = false;
+    let clustersManagePage = false;
+    let instancesManagePage = false;
     let buildPage = false;
     let pathname = window.location.pathname.split('/');
+    let provider = pathname[1].split('-')[1]
 
-    let manage_table_header = `<div class="card-body p-0">
+    let clusters_manage_table_header = `<div class="card-body p-0">
     <table class="table table-striped projects" >
         <thead>
         <tr><th style="width: 10%" class="text-center">Cluster Name</th>
@@ -25,7 +27,22 @@ $(document).ready(function() {
             <th style="width: 20%" class="text-center">
             </th></tr></thead><tbody><tr>`
 
-    let manage_table_footer = `</tr></tbody></table></div>`
+    let clusters_manage_table_footer = `</tr></tbody></table></div>`
+
+    let instances_manage_table_header = `<div class="card-body p-0">
+    <table class="table table-striped projects" >
+        <thead>
+        <tr><th style="width: 10%" class="text-center">Instance Name</th>
+            <th style="width: 10%" class="text-center">Instance Region</th>
+            <th style="width: 10%" class="text-center">Internal IP</th>
+            <th style="width: 10%" class="text-center">External IP</th>
+            <th style="width: 15%" class="text-center">Client Name</th>
+            <th style="width: 15%" class="text-center">Tags</th>
+            <th style="width: 20%" class="text-center">
+            </th></tr></thead><tbody><tr>`
+
+    let instances_manage_table_footer = `</tr></tbody></table></div>`
+
     var clientElement = '';
     var clientElementHeader = '<div class="row">';
     var clientElementFooter = '</div>';
@@ -45,37 +62,50 @@ $(document).ready(function() {
         buildPage = true;
         clustersDataPage = false;
         dataPage = false;
-        managePage = false;
+        clustersManagePage = false;
+        instancesManagePage = false;
         clientsPage = false;
-    } else if (pathname[1].includes('manage')) {
+    } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-aks')) || (pathname[1].includes('manage-gke'))){
         buildPage = false;
         clustersDataPage = false;
         dataPage = false;
-        managePage = true;
+        clustersManagePage = true;
+        instancesManagePage = false;
+        clientsPage = false;
+    } else if ((pathname[1].includes('manage-aws-ec2')) || (pathname[1].includes('manage-gcp-vm')) || (pathname[1].includes('manage-az-vm'))){
+        buildPage = false;
+        clustersDataPage = false;
+        dataPage = false;
+        clustersManagePage = false;
+        instancesManagePage = true;
         clientsPage = false;
     } else if (pathname[1].includes('clusters-data')) {
         buildPage = false;
         clustersDataPage = true;
         dataPage = false;
-        managePage = false;
+        clustersManagePage = false;
+        instancesManagePage = false;
         clientsPage = false;
     } else if (pathname[1].includes('data')) {
         buildPage = false;
         clustersDataPage = false;
         dataPage = true;
-        managePage = false;
+        clustersManagePage = false;
+        instancesManagePage = false;
         clientsPage = false;
     } else if (pathname[1].includes('clients')) {
         buildPage = false;
         clustersDataPage = false;
         dataPage = false;
-        managePage = false;
+        clustersManagePage = false;
+        instancesManagePage = false;
         clientsPage = true;
     } else {
         buildPage = false;
         clustersDataPage = false;
         dataPage = false;
-        managePage = false;
+        clustersManagePage = false;
+        instancesManagePage = false;
         clientsPage = false;
 }
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1)) {
@@ -104,7 +134,7 @@ $(document).ready(function() {
         populate_clients_data();
 
     }
-    if (managePage) {
+    if (clustersManagePage) {
         store_clusters()
             .then((data) => {
                 console.log(data)
@@ -116,6 +146,19 @@ $(document).ready(function() {
             })
 
     }
+
+    if (instancesManagePage) {
+        store_instances()
+            .then((data) => {
+                console.log(data)
+                populate_instances_objects()
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+
+    }
+
     if (clustersDataPage) {
         store_clusters()
             .then((data) => {
@@ -535,6 +578,35 @@ $(document).ready(function() {
         })
     }
 
+    function store_instances() {
+        var instancesData = []
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/get_instances_data?provider=" + provider,
+                type: 'GET',
+                success: function(response) {
+                    if (response.vm_instances.length > 0) {
+                       $.each(response.vm_instances, function(key, value) {
+                       instancesData.push({
+                            instanceName: value['instance_name'],
+                            instanceType: value['instance_type'],
+                            instanceZone: value['instance_zone'],
+                            internalIP: value['internal_ip'],
+                            externalIP: value['external_ip'],
+                            tags: value['tags']
+                    });
+                    });
+                    }
+                    window.localStorage.setItem("instancesData", JSON.stringify(instancesData));
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                },
+            })
+        })
+    }
+
     function populate_kubernetes_clusters_objects(){
         var clusterHTML = '';
         var clusterNames = []
@@ -574,7 +646,7 @@ $(document).ready(function() {
                 key: value.clusterName,
                 value: value.kubeconfig
             });
-        full_table = manage_table_header + clusterHTML + manage_table_footer
+        full_table = clusters_manage_table_header + clusterHTML + clusters_manage_table_footer
 
         });
         if (clusterType == 'aks') {
@@ -589,6 +661,54 @@ $(document).ready(function() {
             var clientNames = window.localStorage.getItem("clientNames");
             let clientNamesList = clientNames.split(',')
             $("#clientnames-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
+            $.each(clientNamesList, function( index, clientNameValue ) {
+                $("#clientnames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
+            });
+        });
+    }
+
+    function populate_instances_objects(){
+        var instancesHTML = '';
+        var instancesNames = []
+        var kubeconfigs_array = [];
+        let instancesData = jQuery.parseJSON(window.localStorage.getItem("instancesData"));
+        $.each(instancesData, function(key, value) {
+            instancesNames.push(value.instanceName)
+            var tags_string_ = JSON.stringify(value.tags);
+            var tags_string__ = tags_string_.replace(/[{}]/g, "");
+            var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
+            var tags_string = tags_string___.replace(/[,]/g, "<br>");
+            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clientnames-dropdown-' + value.instanceName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clientnames-button-' + value.instanceName + '" >Add</button>'
+            instancesHTML += '<tr id="tr_' + value.instanceName + '">';
+            instancesHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.instanceName + '"><p>' + value.instanceName + '</p></a></td>';
+            instancesHTML += '<td class="text-center"><a>' + value.instanceZone + '</a></td>';
+            instancesHTML += '<td class="text-center"><a>' + value.internalIP + '</a></td>';
+            instancesHTML += '<td class="text-center"><a>' + value.externalIP + '</a></td>';
+            if (value.clientName === '') {
+                instancesHTML += '<td class="text-center" id="' + value.instanceName + '-div"><a>' + client_name_assign_element + '</a></td>';
+            } else {
+                instancesHTML += '<td class="text-center"><a>' + value.clientName + '</a></td>';
+            }
+            instancesHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
+            let manage_table_buttons = '<td class="project-actions text-right"> \
+            <a class="btn btn-danger btn-sm" id="delete-button-' + value.instanceName + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
+            </div> </div> </div> </div>'
+            instancesHTML += manage_table_buttons
+        full_table = instances_manage_table_header + instancesHTML + instances_manage_table_footer
+
+        });
+        if (provider == 'aws') {
+            $('#aws-ec2-instances-management-table').append(full_table);
+        } else if (provider == 'gcp') {
+            $('#gcp-vm-instances-management-table').append(full_table);
+        } else if (provider == 'az') {
+            $('#gcp-vm-instances-management-table').append(full_table);
+        }
+
+        $.each(instancesNames, function( index, value ) {
+            var clientNames = window.localStorage.getItem("clientNames");
+            let clientNamesList = clientNames.split(',')
+            $("#clientnames-dropdown-" + value['instanceName']).append($("<option />").val('').text('Add a client'));
             $.each(clientNamesList, function( index, clientNameValue ) {
                 $("#clientnames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
             });
