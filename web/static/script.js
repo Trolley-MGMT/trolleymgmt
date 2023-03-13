@@ -14,6 +14,7 @@ $(document).ready(function() {
     let buildPage = false;
     let pathname = window.location.pathname.split('/');
     let provider = pathname[1].split('-')[1]
+    window.localStorage.setItem("provider", provider);
 
     let clusters_manage_table_header = `<div class="card-body p-0">
     <table class="table table-striped projects" >
@@ -72,6 +73,7 @@ $(document).ready(function() {
         clustersManagePage = true;
         instancesManagePage = false;
         clientsPage = false;
+        window.localStorage.setItem("objectType", "cluster");
     } else if ((pathname[1].includes('manage-aws-ec2')) || (pathname[1].includes('manage-gcp-vm')) || (pathname[1].includes('manage-az-vm'))){
         buildPage = false;
         clustersDataPage = false;
@@ -79,6 +81,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = true;
         clientsPage = false;
+        window.localStorage.setItem("objectType", "instance");
     } else if (pathname[1].includes('clusters-data')) {
         buildPage = false;
         clustersDataPage = true;
@@ -107,7 +110,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
-}
+    }
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1)) {
         clusterType = 'aks'
         provider = 'az'
@@ -151,6 +154,7 @@ $(document).ready(function() {
         store_instances()
             .then((data) => {
                 console.log(data)
+                store_client_names()
                 populate_instances_objects()
             })
             .catch((error) => {
@@ -476,25 +480,39 @@ $(document).ready(function() {
             });
     })
 
-    function assign_client_name(clusterName) {
-        let cluster_names_array = jQuery.parseJSON(window.localStorage.getItem("clusterNames"))
+    function assign_client_name(objectType, objectName, dataArray) {
         let discovered = false
-        $.each(cluster_names_array, function(key, value) {
-            if (value['clusterName'] === clusterName) {
-                discovered = true
+        provider = window.localStorage.getItem("provider", provider)
+        if (objectType === 'cluster')
+        {
+            $.each(dataArray, function(key, value) {
+            if (value['clusterName'] === objectName) {
+                discovered = value['discovered']
             }
             });
+            let clusterType = window.localStorage.getItem("clusterType");
+            clientName = $('#clientnames-dropdown-' + objectName).val();
 
-        let clusterType = window.localStorage.getItem("clusterType");
-        let clientName = $('#clientnames-dropdown-' + clusterName).val();
+            var assign_client_data = JSON.stringify({
+                "object_type": objectType,
+                "cluster_type": clusterType,
+                "cluster_name": objectName,
+                "client_name": clientName,
+                "discovered": discovered
+            });
+        }
 
-        let assign_client_data = JSON.stringify({
-            "cluster_type": clusterType,
-            "cluster_name": clusterName,
-            "client_name": clientName,
-            "discovered": discovered
-
-        });
+        else if (objectType == 'instance') {
+            $.each(dataArray, function(key, value) {
+                });
+                clientName = $('#clientnames-dropdown-' + objectName).val();
+            var assign_client_data = JSON.stringify({
+                "object_type": objectType,
+                "instance_name": objectName,
+                "client_name": clientName,
+                "provider": provider
+            });
+        }
 
 
         url = http + trolley_url + "/client";
@@ -519,9 +537,9 @@ $(document).ready(function() {
             timer: 5000
         })
 
-        $("#clientnames-dropdown-" + clusterName).hide();
-        $("#clientnames-button-" + clusterName).hide();
-        $("#" + clusterName + "-div").append("<a>" + clientName + "</a>");
+        $("#clientnames-dropdown-" + objectName).hide();
+        $("#clientnames-button-" + objectName).hide();
+        $("#" + objectName + "-div").append("<a>" + clientName + "</a>");
     }
 
     function store_client_names() {
@@ -585,14 +603,15 @@ $(document).ready(function() {
                 url: http + trolley_url + "/get_instances_data?provider=" + provider,
                 type: 'GET',
                 success: function(response) {
-                    if (response.vm_instances.length > 0) {
-                       $.each(response.vm_instances, function(key, value) {
+                    if (response.length > 0) {
+                       $.each(response, function(key, value) {
                        instancesData.push({
                             instanceName: value['instance_name'],
                             instanceType: value['instance_type'],
                             instanceZone: value['instance_zone'],
                             internalIP: value['internal_ip'],
                             externalIP: value['external_ip'],
+                            clientName: value['client_name'],
                             tags: value['tags']
                     });
                     });
@@ -624,7 +643,7 @@ $(document).ready(function() {
             clusterHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
             clusterHTML += '<td class="text-center"><a>' + value.clusterVersion + '</a></td>';
             clusterHTML += '<td class="text-center"><a>' + value.humanExpirationTimestamp + '</a></td>';
-            if (value.clientName === '') {
+            if (!value.clientName) {
                 clusterHTML += '<td class="text-center" id="' + value.clusterName + '-div"><a>' + client_name_assign_element + '</a></td>';
             } else {
                 clusterHTML += '<td class="text-center"><a>' + value.clientName + '</a></td>';
@@ -684,7 +703,7 @@ $(document).ready(function() {
             instancesHTML += '<td class="text-center"><a>' + value.instanceZone + '</a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.internalIP + '</a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.externalIP + '</a></td>';
-            if (value.clientName === '') {
+            if (!value.clientName) {
                 instancesHTML += '<td class="text-center" id="' + value.instanceName + '-div"><a>' + client_name_assign_element + '</a></td>';
             } else {
                 instancesHTML += '<td class="text-center"><a>' + value.clientName + '</a></td>';
@@ -1069,9 +1088,10 @@ $(document).ready(function() {
         })
     }
 
-    function trigger_cloud_provider_discovery(provider) {
+    function trigger_cloud_provider_discovery(provider, objectType) {
         let cloud_provider_discovery_data = JSON.stringify({
-            "provider": provider
+            "provider": provider,
+            "object_type": objectType
         });
 
         swal_message = 'Clusters scan for ' + provider + ' provider was triggered. Please check again in a couple of minutes'
@@ -1217,18 +1237,20 @@ $(document).ready(function() {
         var discovered = "";
         var buttonValue = valueID.split("-")
         buttonValue.splice(0, 2)
-        let clusterName = buttonValue.join("-")
-        let clustersData = window.localStorage.getItem("clustersData")
-        let clustersDataArray = JSON.parse(clustersData)
-        $.each(clustersDataArray, function(key, value) {
-            if (value['clusterName'] == clusterName) {
-                discovered = value['discovered']
-                }
-            });
-        if (this.innerText === "Add") {
-            assign_client_name(clusterName);
+        let objectName = buttonValue.join("-")
+        let objectType = window.localStorage.getItem("objectType");
+        if (objectType === 'cluster') {
+            let clustersData = window.localStorage.getItem("clustersData")
+            let clusterNamesArray = [];
+            var dataArray = JSON.parse(clustersData)
         }
-        if (this.innerText === "More") {
+        else if (objectType === 'instance') {
+            let instanceData = window.localStorage.getItem("instancesData")
+            let instanceNamesArray = [];
+            var dataArray = JSON.parse(instanceData)
+        } if (this.innerText === "Add") {
+            assign_client_name(objectType, objectName, dataArray);
+        } else if (this.innerText === "More") {
             console.log("Logic for viewing " + clusterName + " cluster")
             window.localStorage.removeItem("currentClusterName");
             window.localStorage.setItem("currentClusterName", clusterName);
@@ -1241,7 +1263,10 @@ $(document).ready(function() {
             delete_cluster(clusterType, clusterName, discovered)
         } else if (this.innerText === "Scan for clusters") {
             console.log("Logic for triggering a clusters scan")
-            trigger_cloud_provider_discovery(provider)
+            trigger_cloud_provider_discovery(provider, objectType='cluster')
+        } else if (this.innerText === "Scan for VMs") {
+            console.log("Logic for triggering a VMs scan")
+            trigger_cloud_provider_discovery(provider, objectType='instance')
         } else if (this.innerText === "Copy Kubeconfig") {
             clusterName = window.localStorage.getItem("currentClusterName");
             console.log("Logic for copying kubeconfig for " + clusterName + " cluster")

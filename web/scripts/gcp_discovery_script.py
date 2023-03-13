@@ -13,14 +13,16 @@ import time
 
 from google.cloud import compute_v1
 
-from web.mongo_handler.mongo_objects import GCPVMDataObject, GCPBucketsObject, GCPFilesObject
+from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
 from web.mongo_handler.mongo_utils import insert_gke_cluster_object, insert_gcp_vm_instances_object, \
-    insert_gcp_buckets_object, insert_gcp_files_object
+    insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances
 
 from google.cloud import storage
 from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
 from googleapiclient import discovery
+
+from web.variables.variables import GKE, GCP
 
 TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
@@ -75,9 +77,9 @@ def fetch_regions() -> list:
 
 
 def list_all_instances(
-        project_id: str, ) -> GCPVMDataObject:
+        project_id: str, ) -> list:
     """
-    Returns a dictionary of all instances present in a project, grouped by their zone.
+    Returns a list of all instances present in a project, grouped by their zone.
 
     Args:
         project_id: project ID or project number of the Cloud project you want to use.
@@ -109,14 +111,13 @@ def list_all_instances(
                                 external_ip = access_config.nat_i_p
                     except:
                         external_ip = ''
-                    instance_object = {'instance_name': instance.name,
-                                       'external_ip': external_ip,
-                                       'internal_ip': internal_ip,
-                                       'tags': dict(instance.labels),
-                                       'instance_type': instance.machine_type.split("/")[-1],
-                                       'instance_zone': instance.zone.split("/")[-1]}
+                    instance_object = GCPInstanceDataObject(timestamp=TS, project_name=project_id,
+                                                            instance_name=instance.name, internal_ip=internal_ip,
+                                                            external_ip=external_ip, tags=dict(instance.labels),
+                                                            instance_type=instance.machine_type.split("/")[-1],
+                                                            instance_zone=instance.zone.split("/")[-1], client_name='')
                     instances_object.append(instance_object)
-    return GCPVMDataObject(timestamp=TS, project_name=project_id, vm_instances=instances_object)
+    return instances_object
 
 
 def fetch_buckets() -> GCPBucketsObject:
@@ -186,6 +187,7 @@ def fetch_gke_clusters() -> list:
                 cluster_object['os_image'] = cluster['nodeConfig']['imageType']
                 cluster_object['node_pools'] = cluster['nodePools']
                 cluster_object['node_pools'] = cluster['nodePools']
+                cluster_object['discovered'] = True
                 cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster['name'], zone=cluster['zone'])
                 gke_clusters_object.append(cluster_object)
     return gke_clusters_object
@@ -195,16 +197,42 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
          is_fetching_gke_clusters: bool = False):
     global gcp_discovered_buckets
     if is_fetching_gke_clusters:
+        already_discovered_clusters_to_test = []
+        discovered_clusters_to_add = []
+
+        already_discovered_gke_clusters = retrieve_available_clusters(GKE)
         gke_discovered_clusters = fetch_gke_clusters()
-        print(gke_discovered_clusters)
+
+        for already_discovered_cluster in already_discovered_gke_clusters:
+            already_discovered_clusters_to_test.append(already_discovered_cluster['cluster_name'])
+
+        for gcp_discovered_cluster in gke_discovered_clusters:
+            if gcp_discovered_cluster['cluster_name'] not in already_discovered_clusters_to_test:
+                discovered_clusters_to_add.append(gcp_discovered_cluster)
+
         print('List of discovered GKE Clusters: ')
+        print(gke_discovered_clusters)
         for gke_discovered_cluster in gke_discovered_clusters:
             insert_gke_cluster_object(gke_discovered_cluster)
     if is_fetching_vm_instances:
+        already_discovered_vm_instances_to_test = []
+        discovered_vm_instances_to_add = []
+
+        already_discovered_vm_instances = retrieve_instances(GCP)
         gcp_discovered_vm_instances_object = list_all_instances(project_id=GCP_PROJECT_NAME)
+
+        for already_discovered_vm in already_discovered_vm_instances:
+            already_discovered_vm_instances_to_test.append(already_discovered_vm['instance_name'])
+
+        for gcp_discovered_vm_instance in gcp_discovered_vm_instances_object:
+            if gcp_discovered_vm_instance.instance_name not in already_discovered_vm_instances_to_test:
+                discovered_vm_instances_to_add.append(gcp_discovered_vm_instance)
+
         print('List of discovered VM Instances: ')
-        print(asdict(gcp_discovered_vm_instances_object))
-        insert_gcp_vm_instances_object(asdict(gcp_discovered_vm_instances_object))
+        print(gcp_discovered_vm_instances_object)
+        print('List of discovered VMs to add: ')
+        print(discovered_vm_instances_to_add)
+        insert_gcp_vm_instances_object(discovered_vm_instances_to_add)
     if is_fetching_buckets:
         gcp_discovered_buckets = fetch_buckets()
         print('List of discovered GCP Buckets: ')
@@ -215,15 +243,18 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         print('List of discovered GCP Files: ')
         print(asdict(gcp_discovered_files_object))
         insert_gcp_files_object(asdict(gcp_discovered_files_object))
+    print('Finished the discovery script')
 
 
 if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('--fetch-files', action='store_true', default=True, help='Fetch files or not')
-    parser.add_argument('--fetch-buckets', action='store_true', default=True, help='Fetch buckets or not')
+    parser.add_argument('--fetch-gke-clusters', action='store_true', default=True, help='Fetch GKE clusters or not')
     parser.add_argument('--fetch-vm-instances', action='store_true', default=True,
                         help='Fetch GCP compute instances or not')
-    parser.add_argument('--fetch-gke-clusters', action='store_true', default=True, help='Fetch GKE clusters or not')
+    parser.add_argument('--fetch-files', action='store_true', default=True, help='Fetch files or not')
+    parser.add_argument('--fetch-buckets', action='store_true', default=True, help='Fetch buckets or not')
     args = parser.parse_args()
-    main(is_fetching_files=args.fetch_files, is_fetching_buckets=args.fetch_buckets,
-         is_fetching_vm_instances=args.fetch_vm_instances, is_fetching_gke_clusters=args.fetch_gke_clusters)
+    main(is_fetching_gke_clusters=args.fetch_gke_clusters,
+         is_fetching_vm_instances=args.fetch_vm_instances,
+         is_fetching_files=args.fetch_files,
+         is_fetching_buckets=args.fetch_buckets)

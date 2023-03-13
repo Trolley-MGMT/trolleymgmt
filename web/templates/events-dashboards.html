@@ -14,9 +14,10 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.1/dist/css/adminlte.min.css">
     <link href="static/img/trolley.png" rel="icon">
-        <script>
+    <script>
       var data = {{ data|tojson }};
       console.log(data)
+
     </script>
     <script src="static/chart.min.js"></script>
 </head>
@@ -175,6 +176,12 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
+                                <a href="manage-az-vm-instances" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>AZ VM Instances</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a href="manage-aws-ec2-instances" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AWS EC2 Instances</p>
@@ -184,12 +191,6 @@
                                 <a href="manage-gcp-vm-instances" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GCP VM Instances</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="manage-az-vm-instances" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>AZ VM Instances</p>
                                 </a>
                             </li>
                         </ul>
@@ -517,12 +518,14 @@
     };
 
 
+
 </script>
 <script>
   const myChart = new Chart(
     document.getElementById('myChart'),
     config
   );
+
 
 
 </script>

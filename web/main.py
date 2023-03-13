@@ -25,7 +25,7 @@ from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT
+    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE
 from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
     trigger_trolley_agent_deployment_github_action
@@ -273,7 +273,10 @@ def trigger_cloud_provider_discovery():
     if AWS in content[PROVIDER]:
         Thread(target=aws_discovery_script.main, args=(True, True, True, True)).start()
     elif GCP in content[PROVIDER]:
-        Thread(target=gcp_discovery_script.main, args=(True, True, True, True)).start()
+        if content[OBJECT_TYPE] == CLUSTER:
+            Thread(target=gcp_discovery_script.main, args=(False, False, False, True)).start()
+        if content[OBJECT_TYPE] == INSTANCE:
+            Thread(target=gcp_discovery_script.main, args=(False, False, True, False)).start()
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -483,14 +486,20 @@ def client():
     logger.info(f'A request for {function_name} was requested')
     if request.method == POST:
         if mongo_handler.mongo_utils.add_client_data_object(content):
-            return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
-            return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == PUT:
-        if mongo_handler.mongo_utils.add_client_to_cluster(**content):
-            return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
-        else:
-            return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+        if content[OBJECT_TYPE] == CLUSTER:
+            if mongo_handler.mongo_utils.add_client_to_cluster(**content):
+                return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+            else:
+                return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+        elif content['object_type'] == 'instance':
+            if mongo_handler.mongo_utils.add_client_to_instance(**content):
+                return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+            else:
+                return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
     elif request.method == DELETE:
         if mongo_handler.mongo_utils.delete_client(**content):
             return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)

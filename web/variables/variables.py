@@ -11,6 +11,16 @@ PUT = 'PUT'
 GET = 'GET'
 POST = 'POST'
 
+OK = 'OK'
+FAILURE = 'Failure'
+
+#object types
+OBJECT_TYPE = 'object_type'
+CLUSTER = 'cluster'
+INSTANCE = 'instance'
+FILE = 'file'
+BUCKET = 'bucket'
+
 # providers
 PROVIDER = 'provider'
 AWS = 'aws'
@@ -29,6 +39,7 @@ HELM = 'helm'
 HELM_INSTALLS = 'HELM_INSTALLS'
 PROJECT_NAME = 'PROJECT_NAME'
 CLUSTER_NAME = 'CLUSTER_NAME'
+INSTANCE_NAME = 'INSTANCE_NAME'
 CLIENT_NAME = 'CLIENT_NAME'
 ACCOUNT_ID = 'ACCOUNT_ID'
 CLUSTER_VERSION = 'CLUSTER_VERSION'

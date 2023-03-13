@@ -199,10 +199,16 @@ class AWSEC2DataObject:
 
 
 @dataclass
-class GCPVMDataObject:
+class GCPInstanceDataObject:
     timestamp: int
     project_name: str
-    vm_instances: list
+    instance_name: str
+    internal_ip: str
+    external_ip: str
+    instance_type: str
+    instance_zone: str
+    client_name: str
+    tags: dict
 
 
 @dataclass
@@ -231,6 +237,7 @@ class GCPBucketsObject:
     timestamp: int
     project_name: str
     buckets: list
+
 
 @dataclass
 class AWSEKSDataObject:

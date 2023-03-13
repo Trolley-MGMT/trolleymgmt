@@ -2,6 +2,7 @@ import logging
 import os
 import platform
 import time
+from dataclasses import asdict
 
 import gridfs
 from bson import ObjectId
@@ -32,7 +33,7 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-    USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ
+        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
@@ -168,7 +169,7 @@ def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', dis
     return result.raw_result['updatedExisting']
 
 
-def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
+def retrieve_available_clusters(cluster_type: str, user_name: str = '') -> list:
     logger.info(f'A request to fetch {cluster_type} clusters for {user_name} was received')
     clusters_object = []
     discovered_clusters_object = []
@@ -204,18 +205,21 @@ def retrieve_available_clusters(cluster_type: str, user_name: str) -> list:
     return clusters_object
 
 
-def retrieve_instances(provider_type: str) -> dict:
+def retrieve_instances(provider_type: str) -> list:
     logger.info(f'A request to fetch instance for {provider_type} provider was received')
+    instances_list = []
     if provider_type == AWS:
-        instances_object = aws_discovered_ec2_instances.find_one()
+        instances_object = aws_discovered_ec2_instances.find()
     elif provider_type == GCP:
-        instances_object = gcp_discovered_vm_instances.find_one()
+        instances_object = gcp_discovered_vm_instances.find()
     elif provider_type == AZ:
-        instances_object = az_discovered_vm_instances.find_one()
+        instances_object = az_discovered_vm_instances.find()
     else:
         instances_object = {}
-    del instances_object['_id']
-    return instances_object
+    for instance in instances_object:
+        del instance['_id']
+        instances_list.append(instance)
+    return instances_list
 
 
 def retrieve_cluster_details(cluster_type: str, cluster_name: str, discovered: bool = False) -> dict:
@@ -682,26 +686,22 @@ def insert_gke_cluster_object(gke_cluster_object: dict) -> bool:
         logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
 
 
-def insert_gcp_vm_instances_object(gcp_vm_instances_object: dict) -> bool:
+def insert_gcp_vm_instances_object(gcp_vm_instances_object: list) -> bool:
     """
     @param gcp_vm_instances_object: The gcp vm instances object to save
     """
     try:
-        mongo_query = {'project_name': gcp_vm_instances_object['project_name']}
-        existing_data_object = gcp_discovered_vm_instances.find_one(mongo_query)
-        if existing_data_object:
-            result = gcp_discovered_vm_instances.replace_one(existing_data_object, gcp_vm_instances_object)
-            logger.info(f'gcp_vm_instances_object was updated properly')
-            return result.raw_result['updatedExisting']
-        else:
-            result = gcp_discovered_vm_instances.insert_one(gcp_vm_instances_object)
-            logger.info(result.acknowledged)
-            if result.inserted_id:
-                logger.info(f'gcp_vm_instances_object was inserted properly')
-                return True
-            else:
-                logger.error(f'gcp_vm_instances_object was not inserted properly')
-                return False
+        for gcp_vm_instance in gcp_vm_instances_object:
+            mongo_query = {'instance_name': asdict(gcp_vm_instance)[INSTANCE_NAME.lower()]}
+            existing_data_object = gcp_discovered_vm_instances.find_one(mongo_query)
+            if not existing_data_object:
+                result = gcp_discovered_vm_instances.insert_one(asdict(gcp_vm_instance))
+                logger.info(result.acknowledged)
+                if result.inserted_id:
+                    logger.info(f'gcp_vm_instances_object was inserted properly')
+                else:
+                    logger.error(f'gcp_vm_instances_object was not inserted properly')
+        return True
     except:
         logger.error(f'gcp_vm_instances_object was not inserted properly')
 
@@ -768,10 +768,11 @@ def add_client_data_object(client_data_object: dict) -> bool:
         logger.error(f'client data was not inserted properly')
 
 
-def add_client_to_cluster(cluster_type: str = '', cluster_name: str = '', client_name: str = '',
+def add_client_to_cluster(object_type: str, cluster_type: str = '', cluster_name: str = '', client_name: str = '',
                           discovered: bool = False):
     """
 
+    @param object_type: The type of an object
     @param cluster_type: The type of the cluster to change the availability of
     @param cluster_name: The name of the cluster to set the availability of
     @param client_name: Name of the client we want to associate with the cluster
@@ -782,7 +783,10 @@ def add_client_to_cluster(cluster_type: str = '', cluster_name: str = '', client
     myquery = {CLUSTER_NAME.lower(): cluster_name}
     newvalues = {"$set": {CLIENT_NAME.lower(): client_name}}
     if cluster_type == GKE:
-        result = gke_clusters.update_one(myquery, newvalues)
+        if discovered:
+            result = gcp_discovered_gke_clusters.update_one(myquery, newvalues)
+        else:
+            result = gke_clusters.update_one(myquery, newvalues)
     elif cluster_type == GKE_AUTOPILOT:
         result = gke_autopilot_clusters.update_one(myquery, newvalues)
     elif cluster_type == EKS:
@@ -794,6 +798,29 @@ def add_client_to_cluster(cluster_type: str = '', cluster_name: str = '', client
         result = aks_clusters.update_one(myquery, newvalues)
     else:
         result = gke_clusters.update_one(myquery, newvalues)
+    return result.raw_result['updatedExisting']
+
+
+def add_client_to_instance(object_type: str, provider: str = '', instance_name: str = '', client_name: str = ''):
+    """
+
+    @param object_type: The type of an object
+    @param provider: The name of the provider
+    @param instance_name: The name of the instance we assign the client for
+    @param client_name: Name of the client we want to associate with the cluster
+    @return:
+    """
+
+    myquery = {INSTANCE_NAME.lower(): instance_name}
+    newvalues = {"$set": {CLIENT_NAME.lower(): client_name}}
+    if provider == GCP:
+        result = gcp_discovered_vm_instances.update_one(myquery, newvalues)
+    elif provider == AWS:
+        result = aws_discovered_ec2_instances.update_one(myquery, newvalues)
+    elif provider == AZ:
+        result = az_discovered_vm_instances.update_one(myquery, newvalues)
+    else:
+        return True
     return result.raw_result['updatedExisting']
 
 
