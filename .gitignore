@@ -27,5 +27,6 @@ deployment_utils/.config
 web/__pycache__/
 web/mongo_handler/__pycache__/
 web/variables/__pycache__/
+web/scripts/__pycache__/
 mongo-volume/
 *.pyc
