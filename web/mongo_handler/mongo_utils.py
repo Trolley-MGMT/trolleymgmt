@@ -75,7 +75,7 @@ aks_clusters: Collection = db.aks_clusters
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
 aks_cache: Collection = db.aks_cache
-gcp_cache: Collection = db.gcp_cache
+gke_cache: Collection = db.gke_cache
 helm_cache: Collection = db.helm_cache
 aws_cache: Collection = db.aws_cache
 
@@ -289,14 +289,14 @@ def insert_cache_object(caching_object: dict = None, provider: str = None) -> bo
     @param provider: The dictionary with all the cluster data.
     """
     if provider == GKE:
-        gcp_cache.drop()
+        gke_cache.drop()
         try:
-            mongo_response = gcp_cache.insert_one(caching_object)
+            mongo_response = gke_cache.insert_one(caching_object)
             logger.info(mongo_response.acknowledged)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            logger.error('failure to insert data into gcp_cache table')
+            logger.error('failure to insert data into gke_cache table')
             return False
     elif provider == EKS:
         aws_cache.drop()
@@ -343,7 +343,7 @@ def insert_discovery_object(discovery_object: dict = None, provider: str = None)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
         except:
-            logger.error('failure to insert data into gcp_cache table')
+            logger.error('failure to insert data into gke_cache table')
             return False
     elif provider == EKS:
         eks_discovery.drop()
@@ -392,7 +392,7 @@ def retrieve_client_per_cluster_name(cluster_type: str = '', cluster_name: str =
 
 def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
     if provider == GKE:
-        cache_object = gcp_cache.find()[0]
+        cache_object = gke_cache.find()[0]
     elif provider == EKS:
         cache_object = aws_cache.find()[0]
     elif provider == AKS:
@@ -400,7 +400,7 @@ def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
     elif provider == HELM:
         return helm_cache.find()[0]['helms_installs']
     else:
-        cache_object = gcp_cache.find()[0]
+        cache_object = gke_cache.find()[0]
     return cache_object[cache_type]
 
 

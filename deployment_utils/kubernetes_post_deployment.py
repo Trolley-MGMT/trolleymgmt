@@ -118,6 +118,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
     node_info = k8s_api.list_node()
     nodes_ips = get_nodes_ips(node_info)
     nodes_names = get_nodes_names(node_info)
+    num_nodes = len(nodes_names)
     cluster_version, runtime_version, os_image = get_cluster_parameters(node_info)
     timestamp = int(time.time())
     human_created_timestamp = datetime.utcfromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
@@ -133,7 +134,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version, runtime_version=runtime_version,
-                                          os_image=os_image, region_name=region_name, num_nodes=3)
+                                          os_image=os_image, region_name=region_name, num_nodes=num_nodes)
         insert_gke_deployment(cluster_type=GKE, gke_deployment_object=asdict(gke_deployment_object))
         # send_slack_message(deployment_object=gke_deployment_object)
     elif cluster_type == GKE_AUTOPILOT:
@@ -146,7 +147,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
             human_created_timestamp=human_created_timestamp,
             expiration_timestamp=expiration_timestamp,
             human_expiration_timestamp=human_expiration_timestamp,
-            cluster_version=cluster_version, num_nodes=3)
+            cluster_version=cluster_version, num_nodes=num_nodes)
         insert_gke_deployment(cluster_type=GKE_AUTOPILOT,
                               gke_deployment_object=asdict(gke_autopilot_deployment_object))
     elif cluster_type == EKS:
