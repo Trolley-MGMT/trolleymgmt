@@ -104,11 +104,19 @@ class AKSObject:
     num_nodes: int
     availability: bool = True
 
+@dataclass
+class GKEMachineTypeObject:
+    machine_type: str
+    vCPU: int
+    memory: int
+    zone: str
+
+
 
 @dataclass
 class GKECacheObject:
     zones_list: list
-    machine_types_dict: dict
+    machine_types_list: list
     regions_list: list
     versions_list: list
     gke_image_types: list

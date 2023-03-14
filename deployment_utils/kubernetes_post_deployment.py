@@ -67,7 +67,7 @@ def get_nodes_names(node_info: V1NodeList) -> list:
             nodes_names.append(node_name)
         return nodes_names
     else:
-        return nodes_items[0].metadata.name
+        return [nodes_items[0].metadata.name]
 
 
 def get_cluster_parameters(node_info: V1NodeList) -> tuple:

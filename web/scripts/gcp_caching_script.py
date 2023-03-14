@@ -5,7 +5,7 @@ from dataclasses import asdict
 import getpass as gt
 
 from web.mongo_handler.mongo_utils import insert_cache_object
-from web.mongo_handler.mongo_objects import GKECacheObject
+from web.mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject
 
 from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
@@ -36,22 +36,21 @@ credentials = service_account.Credentials.from_service_account_file(
 service = discovery.build('container', 'v1', credentials=credentials)
 
 
-def fetch_machine_types(zones_list) -> dict:
+def fetch_machine_types(zones_list) -> list:
     logger.info(f'A request to fetch machine types has arrived')
     service = discovery.build('compute', 'beta', credentials=credentials)
-    machine_types_dict = {}
-    for zone in zones_list:
-        request = service.machineTypes().list(project=GCP_PROJECT_ID, zone=zone)
-        while request is not None:
-            response = request.execute()
-            for machine_type in response['items']:
-                if zone not in machine_types_dict.keys():
-                    machine_types_dict[zone] = [machine_type['name']]
-                else:
-                    machine_types_dict[zone].append(machine_type['name'])
-                print(machine_type['description'])
-    return machine_types_dict
-
+    machine_types_list = []
+    zone = 'us-east1-b'
+    # for zone in zones_list:
+    request = service.machineTypes().list(project=GCP_PROJECT_ID, zone=zone)
+    # while request is not None:
+    response = request.execute()
+    for machine in response['items']:
+        machine_type_object = GKEMachineTypeObject(machine_type=machine['name'], vCPU=machine['guestCpus'],
+                                                   memory=machine['memoryMb'], zone=machine['zone'])
+        machine_types_list.append(machine_type_object)
+        print(machine_type_object)
+    return machine_types_list
 
 def fetch_zones() -> list:
     logger.info(f'A request to fetch zones has arrived')
@@ -112,17 +111,23 @@ def create_regions_and_zones_dict(regions_list, zones_list):
     return zones_regions_dict
 
 
+def fetch_vcpus_for_machine_types(machine_types_list, requested_machine_type):
+    for machine in machine_types_list:
+        if machine.machine_type == requested_machine_type:
+            return machine.vCPU
+
+
 def main():
     zones_list = fetch_zones()
-    machine_types_dict = fetch_machine_types(zones_list)
+    machine_types_list = fetch_machine_types(zones_list)
     regions_list = fetch_regions()
     gke_image_types = fetch_gke_image_types(zones_list=zones_list)
     versions_list = fetch_versions(zones_list=zones_list)
     zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
-
+    vcpus = fetch_vcpus_for_machine_types(machine_types_list, 'a2-highgpu-1g')
     gke_caching_object = GKECacheObject(
         zones_list=zones_list,
-        machine_types_dict=machine_types_dict,
+        machine_types_list=machine_types_list,
         versions_list=versions_list,
         regions_list=regions_list,
         gke_image_types=gke_image_types,

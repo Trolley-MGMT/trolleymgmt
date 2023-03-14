@@ -403,6 +403,21 @@ def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
         cache_object = gke_cache.find()[0]
     return cache_object[cache_type]
 
+def retrieve_vcpu_per_machine_type(provider: str = '', machine_type: str = '') -> list:
+    if provider == GKE:
+        cache_object = gke_cache.find()[0]
+    elif provider == EKS:
+        cache_object = aws_cache.find()[0]
+    elif provider == AKS:
+        cache_object = aks_cache.find()[0]
+    elif provider == HELM:
+        return helm_cache.find()[0]['helms_installs']
+    else:
+        cache_object = gke_cache.find()[0]
+    machines_list = cache_object['machine_types_list']
+    for machine in machines_list:
+        if machine['machine_type'] == machine_type:
+            return machine['vCPU']
 
 def retrieve_user(user_email: str):
     """
