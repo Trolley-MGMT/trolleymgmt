@@ -609,10 +609,16 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.length > 0) {
                        $.each(response, function(key, value) {
-                       instancesData.push({
+                        if (provider == 'aws') {
+                            var instanceLocation = value['instance_region']
+                        }
+                        else if (provider == 'gcp') {
+                            var instanceLocation = value['instance_zone']
+                        }
+                        instancesData.push({
                             instanceName: value['instance_name'],
                             instanceType: value['instance_type'],
-                            instanceZone: value['instance_zone'],
+                            instanceZone: instanceLocation,
                             internalIP: value['internal_ip'],
                             externalIP: value['external_ip'],
                             clientName: value['client_name'],

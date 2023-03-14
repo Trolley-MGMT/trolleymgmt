@@ -517,32 +517,26 @@ def insert_cluster_data_object(cluster_data_object: dict) -> bool:
         logger.error(f'cluster_data_object was not inserted properly')
 
 
-def insert_aws_instances_object(aws_instances_object: dict) -> bool:
+def insert_aws_instances_object(aws_ec2_instances_object: list) -> bool:
     """
-    @param aws_instances_object: The aws ec2 instances to save to DB
+    @param aws_ec2_instances_object: The aws ec2 instances to save to DB
     """
     logger.info('is this on?')
-    logger.info(f'{aws_instances_object}')
+    logger.info(f'{aws_ec2_instances_object}')
     try:
-        mongo_query = {ACCOUNT_ID.lower(): aws_instances_object[ACCOUNT_ID.lower()]}
-        logger.info(f'Running the following mongo_query {mongo_query}')
-        existing_data_object = aws_discovered_ec2_instances.find_one(mongo_query)
-        logger.info(f'existing_data_object {existing_data_object}')
-        if existing_data_object:
-            result = aws_discovered_ec2_instances.replace_one(existing_data_object, aws_instances_object)
-            logger.info(f'aws_instances_object was updated properly')
-            return result.raw_result['updatedExisting']
-        else:
-            result = aws_discovered_ec2_instances.insert_one(aws_instances_object)
-            logger.info(result.acknowledged)
-            if result.inserted_id:
-                logger.info(f'aws_instances_object was inserted properly')
-                return True
-            else:
-                logger.error(f'aws_instances_object was not inserted properly')
-                return False
+        for aws_ec2_instance in aws_ec2_instances_object:
+            mongo_query = {'instance_name': asdict(aws_ec2_instance)[INSTANCE_NAME.lower()]}
+            existing_data_object = aws_discovered_ec2_instances.find_one(mongo_query)
+            if not existing_data_object:
+                result = aws_discovered_ec2_instances.insert_one(asdict(aws_ec2_instance))
+                logger.info(result.acknowledged)
+                if result.inserted_id:
+                    logger.info(f'aws_ec2_instance was inserted properly')
+                else:
+                    logger.error(f'aws_ec2_instance was not inserted properly')
+        return True
     except:
-        logger.error(f'aws_instances_object was not inserted properly')
+        logger.error(f'aws_ec2_instance was not inserted properly')
 
 
 def insert_aws_files_object(aws_files_object: dict) -> bool:

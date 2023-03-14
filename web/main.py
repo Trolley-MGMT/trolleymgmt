@@ -271,7 +271,10 @@ def trigger_cloud_provider_discovery():
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     if AWS in content[PROVIDER]:
-        Thread(target=aws_discovery_script.main, args=(True, True, True, True)).start()
+        if content[OBJECT_TYPE] == CLUSTER:
+            Thread(target=aws_discovery_script.main, args=(False, False, False, True)).start()
+        if content[OBJECT_TYPE] == INSTANCE:
+            Thread(target=aws_discovery_script.main, args=(False, False, True, False)).start()
     elif GCP in content[PROVIDER]:
         if content[OBJECT_TYPE] == CLUSTER:
             Thread(target=gcp_discovery_script.main, args=(False, False, False, True)).start()

@@ -222,6 +222,18 @@ class GCPInstanceDataObject:
     client_name: str
     tags: dict
 
+@dataclass
+class AWSEC2InstanceDataObject:
+    timestamp: int
+    account_id: int
+    instance_name: str
+    instance_id: str
+    instance_type: str
+    instance_region: str
+    client_name: str
+    internal_ip: str
+    external_ip: str
+    tags: dict
 
 @dataclass
 class AWSS3FilesObject:

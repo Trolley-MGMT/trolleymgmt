@@ -11,7 +11,8 @@ import time
 
 import boto3
 
-from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, AWSS3BucketsObject
+from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, AWSS3BucketsObject, \
+    AWSEC2InstanceDataObject
 
 from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
     insert_aws_buckets_object, insert_eks_cluster_object
@@ -98,12 +99,24 @@ def fetch_ec2_instances():
         if len(list(ecs_resource.instances.all())) > 0:
             for instance in ecs_resource.instances.all():
                 if instance.state['Name'] == 'running':
-                    instance_object = {
-                        instance.tags[0]['Value']: {'instance_id': instance.id, 'instance_type': instance.instance_type,
-                                                    'aws_region': aws_region, 'instance_tags': instance.tags}}
-                    instances_object.append(instance_object)
-    return AWSEC2DataObject(timestamp=TS, account_id=ACCOUNT_ID,
-                            ec2_instances=instances_object)
+                    instance_name = ''
+                    tags = {}
+                    for i, tag in enumerate(instance.tags):
+                        if tag['Key'] == 'Name':
+                            instance_name = tag['Value']
+                        key = instance.tags[i]['Key'].lower()
+                        value = instance.tags[i]['Value'].lower()
+                        tags[key] = value
+                    aws_ec2_instance = AWSEC2InstanceDataObject(timestamp=TS, account_id=ACCOUNT_ID,
+                                                                instance_id=instance.id,
+                                                                instance_name=instance_name,
+                                                                internal_ip=instance.network_interfaces[0].private_ip_address,
+                                                                external_ip=instance.network_interfaces[0].private_ip_address,
+                                                                instance_type=instance.instance_type,
+                                                                instance_region=aws_region,
+                                                                tags=tags, client_name='')
+                    instances_object.append(aws_ec2_instance)
+    return instances_object
 
 
 def fetch_eks_clusters() -> list:
@@ -160,8 +173,8 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
     if is_fetching_ec2_instances:
         aws_instances_data_object = fetch_ec2_instances()
         print('List of discovered EC2 instances: ')
-        print(asdict(aws_instances_data_object))
-        insert_aws_instances_object(asdict(aws_instances_data_object))
+        print(aws_instances_data_object)
+        insert_aws_instances_object(aws_instances_data_object)
 
 
 if __name__ == '__main__':
