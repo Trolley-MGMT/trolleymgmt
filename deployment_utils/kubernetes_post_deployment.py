@@ -133,7 +133,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version, runtime_version=runtime_version,
-                                          os_image=os_image, region_name=region_name)
+                                          os_image=os_image, region_name=region_name, num_nodes=3)
         insert_gke_deployment(cluster_type=GKE, gke_deployment_object=asdict(gke_deployment_object))
         # send_slack_message(deployment_object=gke_deployment_object)
     elif cluster_type == GKE_AUTOPILOT:
@@ -146,7 +146,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
             human_created_timestamp=human_created_timestamp,
             expiration_timestamp=expiration_timestamp,
             human_expiration_timestamp=human_expiration_timestamp,
-            cluster_version=cluster_version)
+            cluster_version=cluster_version, num_nodes=3)
         insert_gke_deployment(cluster_type=GKE_AUTOPILOT,
                               gke_deployment_object=asdict(gke_autopilot_deployment_object))
     elif cluster_type == EKS:
@@ -157,7 +157,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
-                                          cluster_version=cluster_version)
+                                          cluster_version=cluster_version, num_nodes=3)
         insert_eks_deployment(eks_deployment_object=asdict(eks_deployment_object))
 
     elif cluster_type == AKS:
@@ -168,7 +168,7 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
-                                          cluster_version=cluster_version)
+                                          cluster_version=cluster_version, num_nodes=3)
         insert_aks_deployment(aks_deployment_object=asdict(aks_deployment_object))
     try:
         deployment_yaml_dict = retrieve_deployment_yaml(cluster_type, cluster_name)

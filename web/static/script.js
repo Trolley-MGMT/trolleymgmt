@@ -21,6 +21,7 @@ $(document).ready(function() {
         <thead>
         <tr><th style="width: 10%" class="text-center">Cluster Name</th>
             <th style="width: 10%" class="text-center">Cluster Region</th>
+            <th style="width: 10%" class="text-center">Number of Nodes</th>
             <th style="width: 10%" class="text-center">Kubernetes Version</th>
             <th style="width: 15%" class="text-center">Expiration Time</th>
             <th style="width: 15%" class="text-center">Client Name</th>
@@ -581,6 +582,7 @@ $(document).ready(function() {
                             kubeconfig: value['kubeconfig'],
                             nodesIPs: value['nodes_ips'],
                             regionName: value['region_name'],
+                            numNodes: value['num_nodes'],
                             tags: value['tags'],
                             discovered: value['discovered']
                     });
@@ -641,6 +643,7 @@ $(document).ready(function() {
             clusterHTML += '<tr id="tr_' + value.clusterName + '">';
             clusterHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.clusterName + '"><p>' + value.clusterName + '</p></a></td>';
             clusterHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
+            clusterHTML += '<td class="text-center"><a>' + value.numNodes + '</a></td>';
             clusterHTML += '<td class="text-center"><a>' + value.clusterVersion + '</a></td>';
             clusterHTML += '<td class="text-center"><a>' + value.humanExpirationTimestamp + '</a></td>';
             if (!value.clientName) {
@@ -1116,10 +1119,16 @@ $(document).ready(function() {
         })
     }
 
-    function delete_cluster(clusterType, clusterName, discovered) {
+    function delete_cluster(clusterType, objectName, dataArray) {
+
+        $.each(dataArray, function(key, value) {
+            if (value['clusterName'] === objectName) {
+                discovered = value['discovered']
+            }
+            });
         let cluster_deletion_data = JSON.stringify({
             "cluster_type": clusterType,
-            "cluster_name": clusterName,
+            "cluster_name": objectName,
             "discovered": discovered
         });
 
@@ -1251,16 +1260,16 @@ $(document).ready(function() {
         } if (this.innerText === "Add") {
             assign_client_name(objectType, objectName, dataArray);
         } else if (this.innerText === "More") {
-            console.log("Logic for viewing " + clusterName + " cluster")
+            console.log("Logic for viewing " + objectName + " cluster")
             window.localStorage.removeItem("currentClusterName");
-            window.localStorage.setItem("currentClusterName", clusterName);
+            window.localStorage.setItem("currentClusterName", objectName);
         } else if (this.innerText === "Edit") {
-            console.log("Logic for editing " + clusterName + " cluster")
+            console.log("Logic for editing " + objectName + " cluster")
         } else if (this.innerText === "Back to clusters") {
             window.location.href = "manage-" + clusterType + "-clusters";
         } else if (this.innerText === "Delete") {
-            console.log("Logic for deleting " + clusterName + " cluster")
-            delete_cluster(clusterType, clusterName, discovered)
+            console.log("Logic for deleting " + objectName + " cluster")
+            delete_cluster(clusterType, objectName, dataArray)
         } else if (this.innerText === "Scan for clusters") {
             console.log("Logic for triggering a clusters scan")
             trigger_cloud_provider_discovery(provider, objectType='cluster')

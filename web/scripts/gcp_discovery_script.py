@@ -45,10 +45,11 @@ service = discovery.build('container', 'v1', credentials=credentials)
 def generate_kubeconfig(cluster_name: str, zone: str) -> str:
     if os.path.exists(KUBECONFIG_PATH):
         os.remove(KUBECONFIG_PATH)
+    os.environ['KUBECONFIG'] = KUBECONFIG_PATH
     kubeconfig_generate_command = f'gcloud container clusters get-credentials {cluster_name} --zone={zone}'
-    run(kubeconfig_generate_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     file = Path(KUBECONFIG_PATH)
     file.touch(exist_ok=True)
+    run(kubeconfig_generate_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     with open(KUBECONFIG_PATH, "r") as f:
         kubeconfig = f.read()
         logging.info(f'The kubeconfig content is: {kubeconfig}')
@@ -189,6 +190,10 @@ def fetch_gke_clusters() -> list:
                 cluster_object['node_pools'] = cluster['nodePools']
                 cluster_object['discovered'] = True
                 cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster['name'], zone=cluster['zone'])
+                num_nodes = 0
+                for node_pool in cluster['nodePools']:
+                    num_nodes += node_pool['initialNodeCount']
+                cluster_object['num_nodes'] = num_nodes
                 gke_clusters_object.append(cluster_object)
     return gke_clusters_object
 

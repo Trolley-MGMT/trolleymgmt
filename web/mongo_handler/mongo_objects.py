@@ -41,6 +41,7 @@ class GKEObject:
     runtime_version: str
     os_image: str
     region_name: str
+    num_nodes: int
     availability: bool = True
 
 
@@ -60,6 +61,7 @@ class GKEAutopilotObject:
     zone_name: str
     cluster_version: str
     region_name: str
+    num_nodes: int
     availability: bool = True
 
 
@@ -79,6 +81,7 @@ class EKSObject:
     zone_name: str
     region_name: str
     cluster_version: str
+    num_nodes: int
     availability: bool = True
 
 
@@ -98,6 +101,7 @@ class AKSObject:
     zone_name: str
     region_name: str
     cluster_version: str
+    num_nodes: int
     availability: bool = True
 
 

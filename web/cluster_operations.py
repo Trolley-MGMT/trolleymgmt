@@ -200,7 +200,7 @@ def delete_gke_cluster(cluster_name: str = '', discovered: bool = False):
     @param cluster_name: from built clusters list
     @return:
     """
-    gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name, discovered= discovered)
+    gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name, discovered=discovered)
     gke_zone_name = gke_cluster_details[ZONE_NAME.lower()]
     print(f'Attempting to delete {cluster_name} in {gke_zone_name}')
     json_data = {
