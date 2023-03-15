@@ -11,11 +11,13 @@ import time
 
 import boto3
 
-from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, AWSS3BucketsObject, \
+from web.mongo_handler.mongo_objects import AWSS3FilesObject, AWSS3BucketsObject, \
     AWSEC2InstanceDataObject
 
 from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
-    insert_aws_buckets_object, insert_eks_cluster_object
+    insert_aws_buckets_object, insert_eks_cluster_object, retrieve_instances, retrieve_available_clusters, \
+    retrieve_vcpu_per_machine_type
+from web.variables.variables import AWS, EKS
 
 if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
@@ -91,7 +93,7 @@ def fetch_files(aws_buckets: AWSS3BucketsObject) -> AWSS3FilesObject:
                             files=aws_files_dict)
 
 
-def fetch_ec2_instances():
+def list_all_instances():
     instances_object = []
     aws_regions = fetch_regions()
     for aws_region in aws_regions:
@@ -110,8 +112,10 @@ def fetch_ec2_instances():
                     aws_ec2_instance = AWSEC2InstanceDataObject(timestamp=TS, account_id=ACCOUNT_ID,
                                                                 instance_id=instance.id,
                                                                 instance_name=instance_name,
-                                                                internal_ip=instance.network_interfaces[0].private_ip_address,
-                                                                external_ip=instance.network_interfaces[0].private_ip_address,
+                                                                internal_ip=instance.network_interfaces[
+                                                                    0].private_ip_address,
+                                                                external_ip=instance.network_interfaces[
+                                                                    0].private_ip_address,
                                                                 instance_type=instance.instance_type,
                                                                 instance_region=aws_region,
                                                                 tags=tags, client_name='')
@@ -132,22 +136,47 @@ def fetch_eks_clusters() -> list:
             for cluster_name in eks_clusters_names:
                 cluster_object = {}
                 cluster_data = eks_client.describe_cluster(name=cluster_name)
-                cluster_object['cluster_name'] = cluster_name
-                cluster_object['user_name'] = 'vacant'
-                cluster_object['created_timestamp'] = int(cluster_data['cluster']['createdAt'].timestamp())
-                cluster_object['human_created_timestamp'] = cluster_data['cluster']['createdAt'].strftime(
-                    '%d-%m-%Y %H:%M:%S')
-                cluster_object['expiration_timestamp'] = TS_IN_20_YEARS
-                cluster_object['human_expiration_timestamp'] = datetime.datetime.fromtimestamp(TS_IN_20_YEARS).strftime(
-                    '%d-%m-%Y %H:%M:%S')
-                cluster_object['cluster_version'] = cluster_data['cluster']['version']
-                cluster_object['region_name'] = cluster_data['cluster']['arn'].split(":")[3]
-                cluster_object['tags'] = cluster_data['cluster']['tags']
-                cluster_object['availability'] = True
-                cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster_name, cluster_region=aws_region)
-                cluster_object['nodes_names'] = []
-                cluster_object['nodes_ips'] = []
-                eks_clusters_object.append(cluster_object)
+                if cluster_data['cluster']['status'] == 'ACTIVE':
+                    response = eks_client.list_nodegroups(clusterName=cluster_name)
+                    machine_types = []
+                    totalVCPU = 0
+                    totalNodes = 0
+                    machines_list = []
+                    for node_group in response['nodegroups']:
+                        node_groups_response = eks_client.describe_nodegroup(clusterName=cluster_name,
+                                                                             nodegroupName=node_group)
+                        machines_amount = node_groups_response['nodegroup']['scalingConfig']['desiredSize']
+                        totalNodes += machines_amount
+                        machine_type = node_groups_response['nodegroup']['instanceTypes'][0]
+                        machines_list.append(machine_type)
+                        vCPU = retrieve_vcpu_per_machine_type(EKS, machine_type)
+                        machine_types.append({'machine_type': machine_type,
+                                              'machines_amount': machines_amount,
+                                              'vCPU': vCPU
+                                              })
+                        for machine_type_ in machine_types:
+                            totalVCPU += machine_type_['vCPU']
+                    cluster_object['vCPU'] = totalVCPU
+                    cluster_object['num_nodes'] = totalNodes
+                    cluster_object['machine_type'] = machines_list
+                    cluster_object['cluster_name'] = cluster_name
+                    cluster_object['user_name'] = 'vacant'
+                    cluster_object['created_timestamp'] = int(cluster_data['cluster']['createdAt'].timestamp())
+                    cluster_object['human_created_timestamp'] = cluster_data['cluster']['createdAt'].strftime(
+                        '%d-%m-%Y %H:%M:%S')
+                    cluster_object['expiration_timestamp'] = TS_IN_20_YEARS
+                    cluster_object['human_expiration_timestamp'] = datetime.datetime.fromtimestamp(
+                        TS_IN_20_YEARS).strftime(
+                        '%d-%m-%Y %H:%M:%S')
+                    cluster_object['cluster_version'] = cluster_data['cluster']['version']
+                    cluster_object['region_name'] = cluster_data['cluster']['arn'].split(":")[3]
+                    cluster_object['tags'] = cluster_data['cluster']['tags']
+                    cluster_object['availability'] = True
+                    cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster_name,
+                                                                       cluster_region=aws_region)
+                    cluster_object['nodes_names'] = []
+                    cluster_object['nodes_ips'] = []
+                    eks_clusters_object.append(cluster_object)
     return eks_clusters_object
 
 
@@ -155,11 +184,40 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
          is_fetching_eks_clusters: bool = False):
     global aws_buckets_data_object
     if is_fetching_eks_clusters:
-        aws_discovered_clusters = fetch_eks_clusters()
+        already_discovered_clusters_to_test = []
+        discovered_clusters_to_add = []
+
+        already_discovered_eks_clusters = retrieve_available_clusters(EKS)
+        eks_discovered_clusters = fetch_eks_clusters()
+
+        for already_discovered_cluster in already_discovered_eks_clusters:
+            already_discovered_clusters_to_test.append(already_discovered_cluster['cluster_name'])
+
+        for eks_discovered_cluster in eks_discovered_clusters:
+            if eks_discovered_cluster['cluster_name'] not in already_discovered_clusters_to_test:
+                discovered_clusters_to_add.append(eks_discovered_cluster)
+
         print('List of discovered EKS clusters: ')
-        print(aws_discovered_clusters)
-        for aws_discovered_cluster in aws_discovered_clusters:
-            insert_eks_cluster_object(aws_discovered_cluster)
+        print(eks_discovered_clusters)
+        for eks_discovered_cluster in eks_discovered_clusters:
+            insert_eks_cluster_object(eks_discovered_cluster)
+    if is_fetching_ec2_instances:
+        already_discovered_vm_instances_to_test = []
+        discovered_vm_instances_to_add = []
+
+        already_discovered_vm_instances = retrieve_instances(AWS)
+        aws_discovered_vm_instances_object = list_all_instances()
+
+        for already_discovered_vm in already_discovered_vm_instances:
+            already_discovered_vm_instances_to_test.append(already_discovered_vm['instance_name'])
+
+        for aws_discovered_vm_instance in aws_discovered_vm_instances_object:
+            if aws_discovered_vm_instance.instance_name not in already_discovered_vm_instances_to_test:
+                discovered_vm_instances_to_add.append(aws_discovered_vm_instance)
+
+        print('List of discovered EC2 instances: ')
+        print(discovered_vm_instances_to_add)
+        insert_aws_instances_object(discovered_vm_instances_to_add)
     if is_fetching_buckets:
         aws_buckets_data_object = fetch_buckets()
         print('List of discovered S3 buckets: ')
@@ -170,11 +228,6 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         print('List of discovered S3 files: ')
         print(asdict(aws_files_data_object))
         insert_aws_files_object(asdict(aws_files_data_object))
-    if is_fetching_ec2_instances:
-        aws_instances_data_object = fetch_ec2_instances()
-        print('List of discovered EC2 instances: ')
-        print(aws_instances_data_object)
-        insert_aws_instances_object(aws_instances_data_object)
 
 
 if __name__ == '__main__':

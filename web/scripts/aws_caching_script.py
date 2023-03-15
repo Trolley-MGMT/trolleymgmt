@@ -1,7 +1,7 @@
 from dataclasses import asdict
 import logging
 from web.mongo_handler.mongo_utils import insert_cache_object
-from web.mongo_handler.mongo_objects import AWSCacheObject
+from web.mongo_handler.mongo_objects import AWSCacheObject, EKSMachineTypeObject
 from web.variables.variables import EKS
 
 import boto3
@@ -62,8 +62,36 @@ def fetch_subnets(zones_list: list) -> dict:
     return subnets_dict
 
 
+def fetch_machine_types() -> list:
+    machine_types_list_ = []
+    machine_types_list = []
+    machine_types_response = ec2.describe_instance_type_offerings(
+        LocationType='region'
+    )
+    for instance_response in machine_types_response['InstanceTypeOfferings']:
+        machine_types_list_.append(instance_response['InstanceType'])
+    for machine_type in machine_types_list_:
+        try:
+            machine_type_response = ec2.describe_instance_types(
+                InstanceTypes=[
+                    machine_type
+                ]
+            )
+        except:
+            pass
+        machine_type_object = EKSMachineTypeObject(machine_type=machine_type,
+                                                   vCPU=machine_type_response['InstanceTypes'][0]['VCpuInfo'][
+                                                       'DefaultVCpus'],
+                                                   memory=machine_type_response['InstanceTypes'][0]['MemoryInfo'][
+                                                       'SizeInMiB'])
+        machine_types_list.append(machine_type_object)
+        print(machine_type_response)
+    return machine_types_list
+
+
 def main():
     # add kubernetes versions
+    machine_types_list = fetch_machine_types()
     regions_list = fetch_regions()
     zones_list = fetch_zones()
     regions_zones_dict = {}
@@ -79,7 +107,8 @@ def main():
         zones_list=zones_list,
         regions_list=regions_list,
         subnets_dict=subnets_dict,
-        regions_zones_dict=regions_zones_dict
+        regions_zones_dict=regions_zones_dict,
+        machine_types_list=machine_types_list
     )
     insert_cache_object(caching_object=asdict(aws_caching_object), provider=EKS)
 

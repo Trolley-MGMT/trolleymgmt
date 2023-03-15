@@ -870,6 +870,7 @@ $(document).ready(function() {
                                clientElement += '<div class="card-body pt-0"><div class="row"><div class="col-7"><h2 class="lead"><b>' + value['client_name'] + '</b></h2>'
                                clientElement += '<p class="text-muted text-sm"><b>About: ' + value['client_additional_info'] + ' </p><ul class="ml-4 mb-0 fa-ul text-muted"> <li class="small"><span class="fa-li">'
                                clientElement += '<i class="fas fa-lg fa-building"></i></span> Address: ' + value['client_office_address'] + '</li>'
+//                               clientElement += '<i class="fad fa-browser"></i></i></span> Address: ' + value['client_web_address'] + '</li>'
                                clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Phone #: ' + value['connection_phone_number'] + '</li></ul></div></div></div>'
                                clientElement += '<div class="card-footer"><div class="text-right"><a href="#" class="btn btn-sm bg-teal"><i class="fas fa-trash" id="delete-' + value['client_name'] + '-client"></i></a>'
                                clientElement += '<a href="#" class="btn btn-sm btn-primary"><i class="fas fa-user"></i> View Profile</a></div></div></div></div>'

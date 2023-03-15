@@ -169,7 +169,7 @@ def trigger_trolley_agent_deployment_github_action(cluster_name: str = '',
                                                                           '-d \'{"event_type": "trolley-agent-api-deployment-trigger", "client_payload": ' \
                                                                           '{"cluster_name": "' + cluster_name + '", "cluster_type": "' + cluster_type + '",' \
                                                                                                                                                         '"server_url": "' + trolley_server_url + '", "mongo_user": "' + mongo_user + '", ' \
-                                                                                                                                                                                                                             '"mongo_password": "' + mongo_password + '", "mongo_url": "' + mongo_url + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
+                                                                                                                                                                                                                                     '"mongo_password": "' + mongo_password + '", "mongo_url": "' + mongo_url + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
     logger.info(f'Running the gke build command: {github_command}')
     try:
         response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
@@ -198,6 +198,7 @@ def delete_aks_cluster(cluster_name: str = ''):
 def delete_gke_cluster(cluster_name: str = '', discovered: bool = False):
     """
     @param cluster_name: from built clusters list
+    @param discovered: cluster was discovered by a scan
     @return:
     """
     gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name, discovered=discovered)
@@ -216,13 +217,14 @@ def delete_gke_cluster(cluster_name: str = '', discovered: bool = False):
     logger.info(response)
 
 
-def delete_eks_cluster(cluster_name: str = ''):
+def delete_eks_cluster(cluster_name: str = '', discovered: bool = False):
     """
 
     @param cluster_name: from built clusters list
+    @param discovered: cluster was discovered by a scan
     @return:
     """
-    eks_cluster_details = retrieve_cluster_details(cluster_type=EKS, cluster_name=cluster_name)
+    eks_cluster_details = retrieve_cluster_details(cluster_type=EKS, cluster_name=cluster_name, discovered=discovered)
     eks_cluster_region_name = eks_cluster_details[REGION_NAME.lower()]
     aws_access_key_id, aws_secret_access_key = get_aws_credentials()
     json_data = {

@@ -104,6 +104,7 @@ class AKSObject:
     num_nodes: int
     availability: bool = True
 
+
 @dataclass
 class GKEMachineTypeObject:
     machine_type: str
@@ -111,6 +112,12 @@ class GKEMachineTypeObject:
     memory: int
     zone: str
 
+
+@dataclass
+class EKSMachineTypeObject:
+    machine_type: str
+    vCPU: int
+    memory: int
 
 
 @dataclass
@@ -129,11 +136,7 @@ class AWSCacheObject:
     regions_list: list
     subnets_dict: dict
     regions_zones_dict: dict
-
-
-@dataclass
-class EKSDiscoveryObject:
-    clusters_list: list
+    machine_types_list: list
 
 
 @dataclass
@@ -222,6 +225,7 @@ class GCPInstanceDataObject:
     client_name: str
     tags: dict
 
+
 @dataclass
 class AWSEC2InstanceDataObject:
     timestamp: int
@@ -234,6 +238,7 @@ class AWSEC2InstanceDataObject:
     internal_ip: str
     external_ip: str
     tags: dict
+
 
 @dataclass
 class AWSS3FilesObject:
