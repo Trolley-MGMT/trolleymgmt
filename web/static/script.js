@@ -866,14 +866,17 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
-                               clientElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column" id="client-div-' + value['client_name'] + '> <div class="card bg-light d-flex flex-fill">'
-                               clientElement += '<div class="card-body pt-0"><div class="row"><div class="col-7"><h2 class="lead"><b>' + value['client_name'] + '</b></h2>'
-                               clientElement += '<p class="text-muted text-sm"><b>About: ' + value['client_additional_info'] + ' </p><ul class="ml-4 mb-0 fa-ul text-muted"> <li class="small"><span class="fa-li">'
-                               clientElement += '<i class="fas fa-lg fa-building"></i></span> Address: ' + value['client_office_address'] + '</li>'
-//                               clientElement += '<i class="fad fa-browser"></i></i></span> Address: ' + value['client_web_address'] + '</li>'
-                               clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Phone #: ' + value['connection_phone_number'] + '</li></ul></div></div></div>'
-                               clientElement += '<div class="card-footer"><div class="text-right"><a href="#" class="btn btn-sm bg-teal"><i class="fas fa-trash" id="delete-' + value['client_name'] + '-client"></i></a>'
-                               clientElement += '<a href="#" class="btn btn-sm btn-primary"><i class="fas fa-user"></i> View Profile</a></div></div></div></div>'
+                        clientElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="client-div-' + value['client_name'] + '>'
+                        clientElement += '<div class="card bg-light d-flex flex-fill"><div class="card-body pt-0"><div class="row"><div class="col-7"><h2 class="lead"><br><b>' + value['client_name'] + '</b></h2>'
+                        clientElement += '<p class="text-muted text-sm"><b>About: </b> ' + value['client_additional_info'] + '<br>'
+                        clientElement += '<b>Contact Name: </b> ' + value['connection_name'] + '</p>'
+                        clientElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
+                        clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + value['client_office_address'] + '</li>'
+                        clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Phone #: ' + value['connection_phone_number'] + '</li>'
+                        clientElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Web: <a href=' + value['client_web_address'] + ' target="_blank" >' + value['client_web_address'] + '</li>'
+                        clientElement += '</ul></div></div></div>'
+                        clientElement += '<div class="card-footer"><div class="text-right">'
+                        clientElement += '<a href="#" class="btn btn-sm btn-primary"><i class="fas fa-user"></i> View Profile</a></div></div></div></div>'
                         });
                     }
                     $('#clients-main-div').append(clientElement);
