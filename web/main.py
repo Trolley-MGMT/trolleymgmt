@@ -211,7 +211,7 @@ def validate_provider_data(content: dict) -> bool:
             return True
 
 
-def render_page(page_name: str = '', cluster_name: str = ''):
+def render_page(page_name: str = '', cluster_name: str = '', client_name: str = ''):
     try:
         token, user_object = login_processor()
         base64_data = codecs.encode(user_object['profile_image'].read(), 'base64')
@@ -220,7 +220,7 @@ def render_page(page_name: str = '', cluster_name: str = ''):
         is_login_pass = False
     if is_login_pass:
         data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'],
-                'cluster_name': cluster_name}
+                'cluster_name': cluster_name, 'client_name': client_name}
         profile_image = base64_data.decode('utf-8')
         return render_template(page_name, data=data, image=profile_image)
     else:
@@ -777,6 +777,16 @@ def clusters_data():
 @login_required
 def clients():
     return render_page('clients.html')
+
+
+@app.route('/client-data', methods=[GET, POST])
+@login_required
+def client_data():
+    try:
+        client_name = request.values['client_name']
+    except:
+        client_name = 'nothing'
+    return render_page('client-data.html', client_name=client_name)
 
 
 @app.route('/namespaces-data', methods=[GET, POST])

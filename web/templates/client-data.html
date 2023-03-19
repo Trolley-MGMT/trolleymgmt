@@ -20,6 +20,22 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </script>
 </head>
 
@@ -46,23 +62,6 @@
                 <a class="nav-link" data-widget="navbar-search" href="#" role="button">
                     <i class="fas fa-search"></i>
                 </a>
-                <div class="navbar-search-block">
-                    <form class="form-inline">
-                        <div class="input-group input-group-sm">
-                            <input class="form-control form-control-navbar" type="search"
-                                   placeholder="Search for AKS Cluster"
-                                   aria-label="Search">
-                            <div class="input-group-append">
-                                <button class="btn btn-navbar" type="submit">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
             </li>
         </ul>
     </nav>
@@ -146,7 +145,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="manage-aks-clusters" class="nav-link active">
+                                <a href="manage-aks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
                                 </a>
@@ -225,7 +224,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="products-dashboards" class="nav-link">
+                                <a href="products-dashboards" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Products</p>
                                 </a>
@@ -266,75 +265,169 @@
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
-        <div class="content-header">
+        <section class="content">
             <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                    </div><!-- /.col -->
-                    <div id="clusters-data">
+
+                <h5 class="mb-2 mt-4" id="resources-title">Resources Listing</h5>
+
+                <div class="card card-primary" id="agent-deployment-div" style="display: none;">
+                    <div class="card-header">
+                        <h3 class="card-title">Agent Deployment</h3>
                     </div>
-                </div><!-- /.row -->
-                <div class="col-md-6">
-                    <div class="card card-primary">
-                        <form class="row">
-                            <div class="card-body">
-                                <div class="card-header">
-                                    <h3 class="card-title">Cloud Providers Credentials</h3>
-                                </div>
-
-                                <select class="form-control" id="cloud-providers-dropdown">
-                                    <option>AWS</option>
-                                    <option>GCP</option>
-                                    <option>Azure</option>
-                                </select>
-                                <div id="AWSAccessKeyIDDiv">
-                                    <label for="aws_access_key_id" class="form-label">AWS Access Key</label>
-                                    <input type="text" class="form-control" id="aws_access_key_id"
-                                           placeholder="AKIAIOSFODNN7EXAMPLE" required>
-                                </div>
-                                <div id="AWSSecretAccessKeyDiv">
-                                    <label for="aws_secret_access_key" class="form-label">AWS Secret Access Key</label>
-                                    <input type="text" class="form-control" id="aws_secret_access_key"
-                                           placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" required>
-                                </div>
-                                <div id="AzureCredentialsDiv" style="display:none">
-                                    <label for="azure_credentials" class="form-label">Azure Credentials</label>
-                                    <input type="text" class="form-control" id="azure_credentials"
-                                           placeholder="d8er22sc-0000-5esd-be90-00r3fcywfs9s" required>
-                                </div>
-                                <div id="GoogleCredsJSONDiv" style="display:none">
-                                    <label for="google_creds_json" class="form-label">Google Cloud Credentials</label>
-                                    <textarea class="form-control" rows="3" id="google_creds_json"
-                                              placeholder="Add the JSON here"></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-info" id="add-provider-button">Add Provider
-                                    </button>
-                                </div>
+                    <form>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="trolley_server_url">Server address</label>
+                                <input type="text" class="form-control" id="trolley_server_url"
+                                       placeholder="https://d2ba-2a0d-6fc2-41e0-3d00-8de7-4aec-8b97-f42e.eu.ngrok.io">
                             </div>
-                        </form>
+                        </div>
 
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary" id="agent-deployment-button">Deploy</button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <div class="row" id="agent-data-div" style="display: none;">
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-info">
+                            <div class="inner" id="namespaces">
+                                <p>Namespaces</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <a class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right" id="namespaces-more-info"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-info">
+                            <div class="inner" id="deployments">
+                                <p>Deployments</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right" id="deployments-more-info"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-info">
+                            <div class="inner" id="pods">
+                                <p>Pods</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right" id="pods-more-info"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-info">
+                            <div class="inner" id="containers">
+                                <p>Containers</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right" id="containers-more-info"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-info">
+                            <div class="inner" id="daemonsets">
+                                <p>Daemonsets</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right" id="daemonsets-more-info"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-6">
+
+                        <div class="small-box bg-info">
+                            <div class="inner" id="services">
+                                <p>Services</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">
+                                More info <i class="fas fa-arrow-circle-right" id="services-more-info"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" id="additional-data-div" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-text-width" id="object-name"></i>
+                            </h3>
+                        </div>
+                        <div class="card-body" id="objects-div">
+                        </div>
 
                     </div>
                 </div>
-                <!--                    -->
-            </div><!-- /.container-fluid -->
-        </div>
-        <!-- /.content-header -->
-    </div>
-    <aside class="control-sidebar control-sidebar-dark">
-        <!-- Control sidebar content goes here -->
-    </aside>
-    <!-- /.control-sidebar -->
+                <div class="col-lg-4 align-content-lg-center" id="attach-client-div">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" id="back-to-clusters-button">Back to clusters
+                        </button>
+                    </div>
 
-    <!-- Main Footer -->
-    <footer class="main-footer">
-        <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
-        All rights reserved.
-        <div class="float-right d-none d-sm-inline-block">
-            <b>Version</b> 0.1
-        </div>
-    </footer>
+                </div>
+
+
+            </div>
+        </section>
+    </div>
+
+</div>
+
+</div>
+</section>
+
+</div>
+<!-- /.content-header -->
+</div>
+<aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+</aside>
+<!-- /.control-sidebar -->
+
+<!-- Main Footer -->
+<footer class="main-footer">
+    <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
+    All rights reserved.
+    <div class="float-right d-none d-sm-inline-block">
+        <b>Version</b> 0.1
+    </div>
+</footer>
 </div>
 <!-- ./wrapper -->
 
@@ -352,3 +445,4 @@
 
 </body>
 </html>
+

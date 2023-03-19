@@ -493,7 +493,7 @@ $(document).ready(function() {
             }
             });
             let clusterType = window.localStorage.getItem("clusterType");
-            clientName = $('#clientnames-dropdown-' + objectName).val();
+            clientName = $('#clusters-clientNames-dropdown-' + objectName).val();
 
             var assign_client_data = JSON.stringify({
                 "object_type": objectType,
@@ -507,7 +507,7 @@ $(document).ready(function() {
         else if (objectType == 'instance') {
             $.each(dataArray, function(key, value) {
                 });
-                clientName = $('#clientnames-dropdown-' + objectName).val();
+                clientName = $('#instances-clientNames-dropdown-' + objectName).val();
             var assign_client_data = JSON.stringify({
                 "object_type": objectType,
                 "instance_name": objectName,
@@ -539,9 +539,10 @@ $(document).ready(function() {
             timer: 5000
         })
 
-        $("#clientnames-dropdown-" + objectName).hide();
-        $("#clientnames-button-" + objectName).hide();
-        $("#" + objectName + "-div").append("<a>" + clientName + "</a>");
+        newHTML = '<a id="' + objectType + 's-text-label-clientName-div-' + objectName + '">' + clientName + '</a>'
+        $("#" + objectType + "s-clientNames-dropdown-" + objectName).replaceWith(newHTML);
+        $("#" + objectType + "s-clientNames-button-" + objectName).hide();
+        $("#" + objectType + "s-clientNames-dropdown-test-instance-1").append(newHTML);
     }
 
     function store_client_names() {
@@ -637,7 +638,7 @@ $(document).ready(function() {
     }
 
     function populate_kubernetes_clusters_objects(){
-        var clusterHTML = '';
+        var clustersHTML = '';
         var clusterNames = []
         var kubeconfigs_array = [];
         let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
@@ -647,20 +648,20 @@ $(document).ready(function() {
             var tags_string__ = tags_string_.replace(/[{}]/g, "");
             var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
             var tags_string = tags_string___.replace(/[,]/g, "<br>");
-            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clientnames-dropdown-' + value.clusterName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clientnames-button-' + value.clusterName + '" >Add</button>'
-            clusterHTML += '<tr id="tr_' + value.clusterName + '">';
-            clusterHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.clusterName + '"><p>' + value.clusterName + '</p></a></td>';
-            clusterHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
-            clusterHTML += '<td class="text-center"><a>' + value.numNodes + '</a></td>';
-            clusterHTML += '<td class="text-center"><a>' + value.vCPU + '</a></td>';
-            clusterHTML += '<td class="text-center"><a>' + value.clusterVersion + '</a></td>';
-            clusterHTML += '<td class="text-center"><a>' + value.humanExpirationTimestamp + '</a></td>';
+            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clusters-clientNames-dropdown-' + value.clusterName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clusters-clientNames-button-' + value.clusterName + '" >Add</button>'
+            clustersHTML += '<tr id="tr_' + value.clusterName + '">';
+            clustersHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.clusterName + '"><p>' + value.clusterName + '</p></a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.numNodes + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.vCPU + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.clusterVersion + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.humanExpirationTimestamp + '</a></td>';
             if (!value.clientName) {
-                clusterHTML += '<td class="text-center" id="' + value.clusterName + '-div"><a>' + client_name_assign_element + '</a></td>';
+                clustersHTML += '<td class="text-center" id="clusters-clientName-div-' + value.clusterName + '"><a>' + client_name_assign_element + '</a></td>';
             } else {
-                clusterHTML += '<td class="text-center"><a>' + value.clientName + '</a></td>';
+                clustersHTML += '<td class="text-center" id="clusters-clientName-div-' + value.clusterName + '"><a id="clusters-text-label-clientName-div-' + value.clusterName + '">' + value.clientName + '</a></td>';
             }
-            clusterHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
             let manage_table_buttons = '<td class="project-actions text-right"> \
             <a class="btn btn-danger btn-sm" id="delete-button-' + value.clusterName + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
             <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"> \
@@ -672,12 +673,12 @@ $(document).ready(function() {
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> \
             <button type="button" class="btn btn-primary" id="copyKubeconfig-button-' + value.clusterName + '">Copy Kubeconfig</button> \
             </div> </div> </div> </div>'
-            clusterHTML += manage_table_buttons
+            clustersHTML += manage_table_buttons
             kubeconfigs_array.push({
                 key: value.clusterName,
                 value: value.kubeconfig
             });
-        full_table = clusters_manage_table_header + clusterHTML + clusters_manage_table_footer
+        full_table = clusters_manage_table_header + clustersHTML + clusters_manage_table_footer
 
         });
         if (clusterType == 'aks') {
@@ -691,9 +692,9 @@ $(document).ready(function() {
         $.each(clusterNames, function( index, value ) {
             var clientNames = window.localStorage.getItem("clientNames");
             let clientNamesList = clientNames.split(',')
-            $("#clientnames-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
+            $("#clusters-clientNames-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
             $.each(clientNamesList, function( index, clientNameValue ) {
-                $("#clientnames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
+                $("#clusters-clientNames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
             });
         });
     }
@@ -709,16 +710,16 @@ $(document).ready(function() {
             var tags_string__ = tags_string_.replace(/[{}]/g, "");
             var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
             var tags_string = tags_string___.replace(/[,]/g, "<br>");
-            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clientnames-dropdown-' + value.instanceName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clientnames-button-' + value.instanceName + '" >Add</button>'
+            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="instances-clientNames-dropdown-' + value.instanceName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="instances-clientNames-button-' + value.instanceName + '" >Add</button>'
             instancesHTML += '<tr id="tr_' + value.instanceName + '">';
             instancesHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.instanceName + '"><p>' + value.instanceName + '</p></a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.instanceZone + '</a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.internalIP + '</a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.externalIP + '</a></td>';
             if (!value.clientName) {
-                instancesHTML += '<td class="text-center" id="' + value.instanceName + '-div"><a>' + client_name_assign_element + '</a></td>';
+                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instanceName + '"><a>' + client_name_assign_element + '</a></td>';
             } else {
-                instancesHTML += '<td class="text-center"><a>' + value.clientName + '</a></td>';
+                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instanceName + '"><a id="instances-text-label-clientName-div-' + value.instanceName + '">' + value.clientName + '</a></td>';
             }
             instancesHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
             let manage_table_buttons = '<td class="project-actions text-right"> \
@@ -739,9 +740,9 @@ $(document).ready(function() {
         $.each(instancesNames, function( index, value ) {
             var clientNames = window.localStorage.getItem("clientNames");
             let clientNamesList = clientNames.split(',')
-            $("#clientnames-dropdown-" + value['instanceName']).append($("<option />").val('').text('Add a client'));
+            $("#instances-clientNames-dropdown-" + value['instanceName']).append($("<option />").val('').text('Add a client'));
             $.each(clientNamesList, function( index, clientNameValue ) {
-                $("#clientnames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
+                $("#instances-clientNames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
             });
         });
     }
@@ -876,7 +877,7 @@ $(document).ready(function() {
                         clientElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Web: <a href=' + value['client_web_address'] + ' target="_blank" >' + value['client_web_address'] + '</li>'
                         clientElement += '</ul></div></div></div>'
                         clientElement += '<div class="card-footer"><div class="text-right">'
-                        clientElement += '<a href="#" class="btn btn-sm btn-primary"><i class="fas fa-user"></i> View Profile</a></div></div></div></div>'
+                        clientElement += '<a href="client-data?client_name=' + value['client_name'] + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + value['client_name'] + '-view-profile-button"></i> View Profile</a></div></div></div></div>'
                         });
                     }
                     $('#clients-main-div').append(clientElement);
@@ -890,8 +891,14 @@ $(document).ready(function() {
         })
     }
 
-    function populate_client_names() {
-        var $dropdown = $("#clientnames-dropdown");
+    function populate_client_names(objectType) {
+        if (objectType == 'cluster') {
+            var $dropdown = $("#clusters-clientNames-dropdown");
+        }
+        else if (objectType == 'instance') {
+            var $dropdown = $("#instances-clientNames-dropdown");
+        }
+
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: http + trolley_url + "/fetch_clients_data",
@@ -1253,12 +1260,35 @@ $(document).ready(function() {
             $("#GoogleCredsJSONDiv").hide();
         }
     })
+    $(document).on("click", ".text-center", function() {
+        var HTML = "";
+        var valueID = this.id;
+        var divValue = valueID.split("-")
+        var objectType = divValue[0]
+        var clientName = this.children[0].innerText;
+        if (divValue[1] == "clientName") {
+            var instanceName_ = $(this).parent().attr('id');
+            var instanceName = instanceName_.slice(3);
+            var textLabelId = "#" + objectType + "s-text-label-clientName-div-" + instanceName;
+            $(textLabelId).hide();
+            let clientNames = window.localStorage.getItem("clientNames")
+            let clientNamesList = clientNames.split(',')
+            var newDropDownHTML = '<td class="text-center"><select class="col-lg-8 align-content-lg-center" id="' + objectType + '-clientNames-dropdown-' + instanceName + '"><a>';
+            $.each(clientNamesList, function( index, clientNameValue ) {
+                newDropDownHTML +=  '<option value="' + clientNameValue + '">' + clientNameValue + '</option>'
+            });
+            newDropDownHTML += '</select>'
+            newDropDownHTML += '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-clientNames-button-' + instanceName + '"</a>Add</button></td>'
+            $('#' + objectType + '-clientName-div-' + instanceName).replaceWith(newDropDownHTML);
+            console.log(newDropDownHTML)
+        }
+    })
 
     $(document).on("click", ".btn", function() {
         var valueID = this.id;
         var discovered = "";
         var buttonValue = valueID.split("-")
-        buttonValue.splice(0, 2)
+        buttonValue.splice(0,3)
         let objectName = buttonValue.join("-")
         let objectType = window.localStorage.getItem("objectType");
         if (objectType === 'cluster') {
