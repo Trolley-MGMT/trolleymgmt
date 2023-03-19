@@ -766,6 +766,8 @@ def add_client_data_object(client_data_object: dict) -> bool:
             return result.raw_result['updatedExisting']
         else:
             client_data_object['availability'] = True
+            if "http" not in client_data_object['client_web_address']:
+                client_data_object['client_web_address'] = 'http://' + client_data_object['client_web_address']
             result = clients_data.insert_one(client_data_object)
             if result.inserted_id:
                 logger.info(f'client was inserted properly')
