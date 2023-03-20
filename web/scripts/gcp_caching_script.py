@@ -27,7 +27,7 @@ LOCAL_USER = gt.getuser()
 if 'Darwin' in platform.system():
     CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
 else:
-    CREDENTIALS_PATH = '/home/app/.gcp/gcp_credentials.json'
+    CREDENTIALS_PATH = '/home/runner/work/gcp_credentials.json'
 
 GCP_PROJECT_ID = 'trolley-361905'
 
