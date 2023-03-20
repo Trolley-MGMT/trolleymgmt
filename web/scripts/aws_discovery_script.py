@@ -17,7 +17,7 @@ from web.mongo_handler.mongo_objects import AWSS3FilesObject, AWSS3BucketsObject
 from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
     insert_aws_buckets_object, insert_eks_cluster_object, retrieve_instances, retrieve_available_clusters, \
     retrieve_vcpu_per_machine_type
-from web.variables.variables import AWS, EKS
+# from web.variables.variables import AWS, EKS
 
 if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
@@ -149,7 +149,7 @@ def fetch_eks_clusters() -> list:
                         totalNodes += machines_amount
                         machine_type = node_groups_response['nodegroup']['instanceTypes'][0]
                         machines_list.append(machine_type)
-                        vCPU = retrieve_vcpu_per_machine_type(EKS, machine_type)
+                        vCPU = retrieve_vcpu_per_machine_type('eks', machine_type)
                         machine_types.append({'machine_type': machine_type,
                                               'machines_amount': machines_amount,
                                               'vCPU': vCPU
@@ -187,7 +187,7 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         already_discovered_clusters_to_test = []
         discovered_clusters_to_add = []
 
-        already_discovered_eks_clusters = retrieve_available_clusters(EKS)
+        already_discovered_eks_clusters = retrieve_available_clusters('eks')
         eks_discovered_clusters = fetch_eks_clusters()
 
         for already_discovered_cluster in already_discovered_eks_clusters:
@@ -205,7 +205,7 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         already_discovered_vm_instances_to_test = []
         discovered_vm_instances_to_add = []
 
-        already_discovered_vm_instances = retrieve_instances(AWS)
+        already_discovered_vm_instances = retrieve_instances('aws')
         aws_discovered_vm_instances_object = list_all_instances()
 
         for already_discovered_vm in already_discovered_vm_instances:

@@ -85,7 +85,6 @@ def fetch_machine_types() -> list:
                                                    memory=machine_type_response['InstanceTypes'][0]['MemoryInfo'][
                                                        'SizeInMiB'])
         machine_types_list.append(machine_type_object)
-        print(machine_type_response)
     return machine_types_list
 
 

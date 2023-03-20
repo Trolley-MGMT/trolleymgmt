@@ -23,7 +23,7 @@ from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
 from googleapiclient import discovery
 
-from web.variables.variables import GKE, GCP
+# from web.variables.variables import GKE, GCP
 
 TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
@@ -195,7 +195,7 @@ def fetch_gke_clusters() -> list:
                 for node_pool in cluster['nodePools']:
                     num_nodes += node_pool['initialNodeCount']
                     machine_type = node_pool['config']['machineType']
-                    vCPU = retrieve_vcpu_per_machine_type(GKE, machine_type)
+                    vCPU = retrieve_vcpu_per_machine_type('gke', machine_type)
                     cluster_object['machine_type'] = machine_type
                     cluster_object['vCPU'] = vCPU
                 cluster_object['num_nodes'] = num_nodes
@@ -210,7 +210,7 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         already_discovered_clusters_to_test = []
         discovered_clusters_to_add = []
 
-        already_discovered_gke_clusters = retrieve_available_clusters(GKE)
+        already_discovered_gke_clusters = retrieve_available_clusters('gke')
         gke_discovered_clusters = fetch_gke_clusters()
 
         for already_discovered_cluster in already_discovered_gke_clusters:
@@ -228,7 +228,7 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         already_discovered_vm_instances_to_test = []
         discovered_vm_instances_to_add = []
 
-        already_discovered_vm_instances = retrieve_instances(GCP)
+        already_discovered_vm_instances = retrieve_instances('gcp')
         gcp_discovered_vm_instances_object = list_all_instances(project_id=GCP_PROJECT_NAME)
 
         for already_discovered_vm in already_discovered_vm_instances:

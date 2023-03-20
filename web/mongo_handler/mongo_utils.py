@@ -208,11 +208,11 @@ def retrieve_available_clusters(cluster_type: str, user_name: str = '') -> list:
 def retrieve_instances(provider_type: str) -> list:
     logger.info(f'A request to fetch instance for {provider_type} provider was received')
     instances_list = []
-    if provider_type == AWS:
+    if provider_type == 'aws':
         instances_object = aws_discovered_ec2_instances.find()
-    elif provider_type == GCP:
+    elif provider_type == 'gcp':
         instances_object = gcp_discovered_vm_instances.find()
-    elif provider_type == AZ:
+    elif provider_type == 'az':
         instances_object = az_discovered_vm_instances.find()
     else:
         instances_object = {}

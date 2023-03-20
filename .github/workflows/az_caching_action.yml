@@ -1,4 +1,4 @@
-name: AKS Caching
+name: AZ Caching
 on:
   schedule:
     - cron: "0 1 * * *"

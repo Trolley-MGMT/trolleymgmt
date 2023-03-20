@@ -1,4 +1,4 @@
-name: EKS Caching
+name: AWS Caching
 on:
   schedule:
     - cron: "0 1 * * *"
