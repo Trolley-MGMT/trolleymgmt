@@ -33,7 +33,7 @@ jobs:
           gcloud components install beta --quiet
           cat $GOOGLE_APPLICATION_CREDENTIALS
           export GOOGLE_CREDS_CONTENT=$(cat $GOOGLE_APPLICATION_CREDENTIALS)
-          echo $GOOGLE_CREDS_CONTENT >> /tmp/google_credentials
+          echo $GOOGLE_CREDS_CONTENT >> /home/app/.gcp/gcp_credentials.json
           echo "google_creds_content=$(cat $GOOGLE_APPLICATION_CREDENTIALS)" >> $GITHUB_ENV
 
 
