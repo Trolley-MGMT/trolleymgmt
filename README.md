@@ -36,11 +36,11 @@ It should look something like this: ghp_XXXXXXXXXXXXXXXX
         ```
         pip install -r web/requirements.txt
         ```
-6. To run the flask based Python web app in your IDE of choice you can:
+6. To run the flask based Python web app in your PyCharm IDE of choice you can:
 Set your Environment Variables menu the following:
 
     ```
-    PYTHONUNBUFFERED=1;SECRET_KEY=s3cr3t_k3y;MONGO_USER=<mongo_user>;MONGO_PASSWORD=<mongo_password>;GITHUB_ACTION_TOKEN=ghp_<token>;MONGO_URL=<mongo_url>;PROJECT_NAME=trolley;GITHUB_REPOSITORY=<your_github_user/your_fork>
+    PYTHONUNBUFFERED=1;SECRET_KEY=<44_chars_binary>;GCP_PROJECT_NAME=<gcp_project_name>;GITHUB_ACTION_TOKEN=ghp_<token>;GITHUB_REPOSITORY=Trolley-MGMT/Trolley-Management;KUBECONFIG=/Users/<your_user>/.kube/config_temp;MONGO_PASSWORD=<mongo_password>;MONGO_URL=<mongo_url>;MONGO_USER=<mongo_user>;PROJECT_NAME=trolley
     ```
 
 7. To run the app in your IDE just set the script path to web/main.py and it should work from there

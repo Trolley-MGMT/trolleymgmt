@@ -3,7 +3,7 @@ $(document).ready(function() {
     let user_name = window.localStorage.getItem("userName");
     window.localStorage.setItem("clusterName", data['cluster_name']);
     let clusterName = window.localStorage.getItem("clusterName");
-    let trolley_remote_url = 'trolley-cvhbphlcxq-uc.a.run.app';
+    let trolley_remote_url = '';
     let trolley_local_url = 'localhost';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let debug = true;

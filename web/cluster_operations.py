@@ -158,26 +158,25 @@ def trigger_eks_build_github_action(user_name: str,
 
 def trigger_trolley_agent_deployment_github_action(cluster_name: str = '',
                                                    cluster_type: str = '',
+                                                   region_name: str = '',
                                                    trolley_server_url: str = '',
                                                    mongo_user: str = '',
                                                    mongo_password: str = '',
                                                    mongo_url: str = ''):
-    github_command = 'curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
-                     '-H \'Accept-Encoding: gzip, deflate\' ' \
-                     '-H \'Authorization: token ' + GITHUB_ACTION_TOKEN + '\' ' \
-                                                                          '-H \'Content-type: application/json\' -H \'User-Agent: python-requests/2.27.1\' ' \
-                                                                          '-d \'{"event_type": "trolley-agent-api-deployment-trigger", "client_payload": ' \
-                                                                          '{"cluster_name": "' + cluster_name + '", "cluster_type": "' + cluster_type + '",' \
-                                                                                                                                                        '"server_url": "' + trolley_server_url + '", "mongo_user": "' + mongo_user + '", ' \
-                                                                                                                                                                                                                                     '"mongo_password": "' + mongo_password + '", "mongo_url": "' + mongo_url + '"}}\' ' + GITHUB_ACTIONS_API_URL + ''
-    logger.info(f'Running the gke build command: {github_command}')
-    try:
-        response = run(github_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-        logger.info(f'printing out the response: {response}')
-        return True
-    except subprocess.SubprocessError as e:
-        logger.error(f'The request failed with the following error: {e}')
-        return False
+    json_data = {
+        "event_type": "trolley-agent-api-deployment-trigger",
+        "client_payload": {"cluster_name": cluster_name,
+                           "cluster_type": cluster_type,
+                           "region_name": region_name,
+                           "trolley_server_url": trolley_server_url,
+                           "mongo_user": mongo_user,
+                           "mongo_password": mongo_password,
+                           "mongo_url": mongo_url}
+    }
+    response = requests.post(GITHUB_ACTIONS_API_URL,
+                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
+
+    return response
 
 
 def delete_aks_cluster(cluster_name: str = ''):
