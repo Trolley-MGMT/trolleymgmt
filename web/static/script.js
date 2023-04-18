@@ -3,18 +3,20 @@ $(document).ready(function() {
     let user_name = window.localStorage.getItem("userName");
     window.localStorage.setItem("clusterName", data['cluster_name']);
     let clusterName = window.localStorage.getItem("clusterName");
-    let clusterType = clusterName.split('-')[1]
-    window.localStorage.setItem("clusterType", clusterType);
     let trolley_remote_url = 'trolley-cvhbphlcxq-uc.a.run.app';
     let trolley_local_url = 'localhost';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let debug = true;
+    let query = false;
     let clustersManagePage = false;
     let instancesManagePage = false;
     let buildPage = false;
+    let fullHREF = window.location.href;
     let pathname = window.location.pathname.split('/');
-    let provider = pathname[1].split('-')[1]
-    window.localStorage.setItem("provider", provider);
+
+    if (fullHREF.includes("?")) {
+        query = true;
+    }
 
     let clusters_manage_table_header = `<div class="card-body p-0">
     <table class="table table-striped projects" >
@@ -60,14 +62,22 @@ $(document).ready(function() {
         gitBranch = 'master'
         http = 'https://'
     }
-
-    if (pathname[1].includes('build')) {
+    if (query == true) {
+        buildPage = false;
+        clustersDataPage = false;
+        dataPage = false;
+        clustersManagePage = false;
+        instancesManagePage = false;
+        clientsPage = false;
+        queryPage = true;
+    } else if (pathname[1].includes('build')) {
         buildPage = true;
         clustersDataPage = false;
         dataPage = false;
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
+        queryPage = false;
     } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-aks')) || (pathname[1].includes('manage-gke'))){
         buildPage = false;
         clustersDataPage = false;
@@ -75,6 +85,7 @@ $(document).ready(function() {
         clustersManagePage = true;
         instancesManagePage = false;
         clientsPage = false;
+        queryPage = false;
         window.localStorage.setItem("objectType", "cluster");
     } else if ((pathname[1].includes('manage-aws-ec2')) || (pathname[1].includes('manage-gcp-vm')) || (pathname[1].includes('manage-az-vm'))){
         buildPage = false;
@@ -83,6 +94,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = true;
         clientsPage = false;
+        queryPage = false;
         window.localStorage.setItem("objectType", "instance");
     } else if (pathname[1].includes('clusters-data')) {
         buildPage = false;
@@ -91,6 +103,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
+        queryPage = false;
     } else if (pathname[1].includes('data')) {
         buildPage = false;
         clustersDataPage = false;
@@ -98,6 +111,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
+        queryPage = false;
     } else if (pathname[1].includes('clients')) {
         buildPage = false;
         clustersDataPage = false;
@@ -105,6 +119,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = true;
+        queryPage = false;
     } else {
         buildPage = false;
         clustersDataPage = false;
@@ -112,21 +127,23 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
+        queryPage = false;
     }
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1)) {
         clusterType = 'aks'
         provider = 'az'
         window.localStorage.setItem("clusterType", clusterType);
+        window.localStorage.setItem("provider", provider);
     } else if (($.inArray('build-eks-clusters', pathname) > -1) || ($.inArray('manage-eks-clusters', pathname) > -1)) {
         clusterType = 'eks'
         provider = 'aws'
         window.localStorage.setItem("clusterType", clusterType);
+        window.localStorage.setItem("provider", provider);
     } else if (($.inArray('build-gke-clusters', pathname) > -1) || ($.inArray('manage-gke-clusters', pathname) > -1)) {
         clusterType = 'gke'
         provider = 'gcp'
         window.localStorage.setItem("clusterType", clusterType);
-    } else {
-        clusterType = clusterType
+        window.localStorage.setItem("provider", provider);
     }
 
     populate_logged_in_assets();
@@ -175,8 +192,11 @@ $(document).ready(function() {
             .catch((error) => {
                 console.log(error)
             })
-        populate_kubernetes_agent_data();
         populate_client_names();
+    }
+
+    if (queryPage) {
+        populate_kubernetes_agent_data();
     }
 
     $("#build-cluster-button").click(function() {
@@ -390,18 +410,20 @@ $(document).ready(function() {
 
     $("#agent-deployment-button").click(function() {
         let clusterName = window.localStorage.getItem("clusterName");
-        let clusterType = clusterName.split('-')[1]
+        let clusterType = window.localStorage.getItem("clusterType");
+        let regionName = window.localStorage.getItem("regionName");
         let trolleyServerURL = $('#trolley_server_url').val();
 
         let deploy_trolley_agent_data = JSON.stringify({
             "cluster_name": clusterName,
             "cluster_type": clusterType,
+            "region_name": regionName,
             "trolley_server_url": trolleyServerURL,
         });
 
         url = http + trolley_url + "/deploy_trolley_agent_on_cluster";
 
-        swal_message = 'An trolley agent was deployed on' + clusterName
+        swal_message = 'An trolley agent was deployed on ' + clusterName
 
         const xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
@@ -756,6 +778,10 @@ $(document).ready(function() {
                 if ((response.status === 'Failure') || (response[0].content === null)) {
                         $('#resources-title').replaceWith('Trolley Agent was not found on the cluster. Click to install!');
                         $('#agent-deployment-div').show();
+                        let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
+                        let clusterName = window.localStorage.getItem("clusterName")
+                        const searchObject= clustersData.find((cluster) => cluster.clusterName==clusterName);
+                        window.localStorage.setItem("regionName", searchObject.regionName[0]);
                 } else {
                     if (response.length < 0) {
                     $('#attach-client-div').show();
@@ -1288,9 +1314,11 @@ $(document).ready(function() {
         var valueID = this.id;
         var discovered = "";
         var buttonValue = valueID.split("-")
-        buttonValue.splice(0,3)
+        buttonValue.shift();
+        buttonValue.shift();
         let objectName = buttonValue.join("-")
         let objectType = window.localStorage.getItem("objectType");
+        let clusterType = window.localStorage.getItem("clusterType");
         if (objectType === 'cluster') {
             let clustersData = window.localStorage.getItem("clustersData")
             let clusterNamesArray = [];

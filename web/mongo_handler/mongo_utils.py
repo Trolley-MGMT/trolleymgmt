@@ -3,6 +3,7 @@ import os
 import platform
 import time
 from dataclasses import asdict
+from typing import Any, Mapping
 
 import gridfs
 from bson import ObjectId
@@ -76,6 +77,7 @@ users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
 aks_cache: Collection = db.aks_cache
 gke_cache: Collection = db.gke_cache
+gke_machines_cache: Collection = db.gke_machines_cache
 helm_cache: Collection = db.helm_cache
 aws_cache: Collection = db.aws_cache
 
@@ -283,21 +285,40 @@ def retrieve_expired_clusters(cluster_type: str) -> list:
     return expired_clusters_list
 
 
-def insert_cache_object(caching_object: dict = None, provider: str = None) -> bool:
+def insert_cache_object(caching_object: dict = None, provider: str = None, machine_types: bool = False) -> bool:
     """
     @param caching_object: The dictionary with all the cluster data.
     @param provider: The dictionary with all the cluster data.
+    @param machine_types: The list of all the available machines
     """
     if provider == GKE:
-        gke_cache.drop()
-        try:
-            mongo_response = gke_cache.insert_one(caching_object)
-            logger.info(mongo_response.acknowledged)
-            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
-            return True
-        except:
-            logger.error('failure to insert data into gke_cache table')
-            return False
+        if machine_types:
+            try:
+                myquery = {"region": caching_object['region']}
+                if gke_machines_cache.find_one(myquery):
+                    newvalues = {"$set": {'machines_list': caching_object['machines_list'],
+                                          'region': caching_object['region']}}
+                    mongo_response = gke_machines_cache.update_one(myquery, newvalues)
+                    logger.info(mongo_response.acknowledged)
+                else:
+                    values = {'machines_list': caching_object['machines_list'],
+                              'region': caching_object['region']}
+                    mongo_response = gke_machines_cache.insert_one(values)
+                    logger.info(mongo_response.acknowledged)
+                return True
+            except:
+                logger.error('failure to insert data into gke_machines_cache table')
+                return False
+        else:
+            gke_cache.drop()
+            try:
+                mongo_response = gke_cache.insert_one(caching_object)
+                logger.info(mongo_response.acknowledged)
+                logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+                return True
+            except:
+                logger.error('failure to insert data into gke_cache table')
+                return False
     elif provider == EKS:
         aws_cache.drop()
         try:
@@ -403,9 +424,11 @@ def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
         cache_object = gke_cache.find()[0]
     return cache_object[cache_type]
 
-def retrieve_vcpu_per_machine_type(provider: str = '', machine_type: str = '') -> list:
+
+def retrieve_vcpu_per_machine_type(provider: str = '', machine_type: str = '', region_name: str = '') -> list:
     if provider == GKE:
-        cache_object = gke_cache.find()[0]
+        mongo_query = {'region': region_name}
+        cache_object = gke_machines_cache.find_one(mongo_query)
     elif provider == EKS:
         cache_object = aws_cache.find()[0]
     elif provider == AKS:
@@ -414,10 +437,11 @@ def retrieve_vcpu_per_machine_type(provider: str = '', machine_type: str = '') -
         return helm_cache.find()[0]['helms_installs']
     else:
         cache_object = gke_cache.find()[0]
-    machines_list = cache_object['machine_types_list']
+    machines_list = cache_object['machines_list']
     for machine in machines_list:
         if machine['machine_type'] == machine_type:
             return machine['vCPU']
+
 
 def retrieve_user(user_email: str):
     """
@@ -730,9 +754,9 @@ def insert_aws_agent_data_object(agent_data_object: dict) -> bool:
     return True
 
 
-def add_providers_data_object(providers_data_object: dict) -> bool:
+def insert_provider_data_object(providers_data_object: dict) -> bool:
     """
-    @param providers_data_object: The filename of the image to save
+    @param providers_data_object: The data of the added provider
     """
     try:
         mongo_query = {'provider': providers_data_object['provider']}
@@ -751,6 +775,20 @@ def add_providers_data_object(providers_data_object: dict) -> bool:
                 return False
     except:
         logger.error(f'provider data was not inserted properly')
+
+
+def retrieve_provider_data_object(user_email: str, provider: str) -> Mapping[str, Any]:
+    """
+    @param user_email: The email of the user we fetch the provider data for.
+    @param provider: The provider name.
+    """
+    mongo_query = {'user_email': user_email, 'provider': provider}
+    providers_data_object = providers_data.find_one(mongo_query)
+    if not providers_data_object:
+        logger.info(f'There is no provider data for {provider} provider for {user_email} user_email')
+        return {}
+    del providers_data_object['_id']
+    return providers_data_object
 
 
 def add_client_data_object(client_data_object: dict) -> bool:

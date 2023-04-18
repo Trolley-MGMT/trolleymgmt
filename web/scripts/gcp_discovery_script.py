@@ -1,4 +1,6 @@
 import calendar
+import json
+import sys
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import datetime
 import getpass as gt
@@ -11,19 +13,21 @@ from pathlib import Path
 from subprocess import run, PIPE
 import time
 
+from cryptography.fernet import Fernet
 from google.cloud import compute_v1
 
 from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
 from web.mongo_handler.mongo_utils import insert_gke_cluster_object, insert_gcp_vm_instances_object, \
     insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
-    retrieve_vcpu_per_machine_type
+    retrieve_vcpu_per_machine_type, retrieve_provider_data_object
 
 from google.cloud import storage
 from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
 from googleapiclient import discovery
 
-# from web.variables.variables import GKE, GCP
+key = os.getenv('SECRET_KEY').encode()
+crypter = Fernet(key)
 
 TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
@@ -33,14 +37,13 @@ GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
 if 'Darwin' in platform.system():
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
     CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
+    CREDENTIALS_PATH_TO_SAVE = f'{os.getcwd()}/gcp_credentials.json'
+    # CREDENTIALS_PATH_TO_SAVE = f'/Users/{LOCAL_USER}/Documents/trolley/trolley-creds-to-save.json'
+
 else:
     KUBECONFIG_PATH = '/root/.kube/config'
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/app/.gcp/gcp_credentials.json'
-    CREDENTIALS_PATH = '/home/app/.gcp/gcp_credentials.json'
-
-credentials = service_account.Credentials.from_service_account_file(
-    CREDENTIALS_PATH)
-service = discovery.build('container', 'v1', credentials=credentials)
+    CREDENTIALS_PATH_TO_SAVE = '/home/app/.gcp/gcp_credentials.json'
 
 
 def generate_kubeconfig(cluster_name: str, zone: str) -> str:
@@ -57,29 +60,7 @@ def generate_kubeconfig(cluster_name: str, zone: str) -> str:
         return kubeconfig
 
 
-def fetch_zones() -> list:
-    compute_zones_client = ZonesClient(credentials=credentials)
-    zones_object = compute_zones_client.list(project=GCP_PROJECT_NAME)
-    zones_list = []
-    for zone in zones_object:
-        zones_list.append(zone.name)
-    return zones_list
-
-
-def fetch_regions() -> list:
-    compute_zones_client = ZonesClient(credentials=credentials)
-    zones_object = compute_zones_client.list(project=GCP_PROJECT_NAME)
-    regions_list = []
-    for zone_object in zones_object:
-        zone_object_url = zone_object.region
-        region_name = zone_object_url.split('/')[-1]
-        if region_name not in regions_list:
-            regions_list.append(region_name)
-    return regions_list
-
-
-def list_all_instances(
-        project_id: str, ) -> list:
+def list_all_instances(project_id: str, ) -> list:
     """
     Returns a list of all instances present in a project, grouped by their zone.
 
@@ -149,7 +130,7 @@ def fetch_files(gcp_buckets: GCPBucketsObject):
     return GCPFilesObject(timestamp=TS, project_name=GCP_PROJECT_NAME, files=gcp_files_dict)
 
 
-def fetch_gke_clusters() -> list:
+def fetch_gke_clusters(service) -> list:
     gcp_projects = [GCP_PROJECT_NAME]
     gke_clusters_object = []
     for project in gcp_projects:
@@ -195,7 +176,7 @@ def fetch_gke_clusters() -> list:
                 for node_pool in cluster['nodePools']:
                     num_nodes += node_pool['initialNodeCount']
                     machine_type = node_pool['config']['machineType']
-                    vCPU = retrieve_vcpu_per_machine_type('gke', machine_type)
+                    vCPU = retrieve_vcpu_per_machine_type('gke', machine_type, cluster['locations'][0])
                     cluster_object['machine_type'] = machine_type
                     cluster_object['vCPU'] = vCPU
                 cluster_object['num_nodes'] = num_nodes
@@ -204,14 +185,18 @@ def fetch_gke_clusters() -> list:
 
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_vm_instances: bool = False,
-         is_fetching_gke_clusters: bool = False):
+         is_fetching_gke_clusters: bool = False, user_email: str = ''):
+    credentials = get_credentials(user_email)
+    if not credentials:
+        sys.exit("provider credentials were not found")
+    service = discovery.build('container', 'v1', credentials=credentials)
     global gcp_discovered_buckets
     if is_fetching_gke_clusters:
         already_discovered_clusters_to_test = []
         discovered_clusters_to_add = []
 
         already_discovered_gke_clusters = retrieve_available_clusters('gke')
-        gke_discovered_clusters = fetch_gke_clusters()
+        gke_discovered_clusters = fetch_gke_clusters(service)
 
         for already_discovered_cluster in already_discovered_gke_clusters:
             already_discovered_clusters_to_test.append(already_discovered_cluster['cluster_name'])
@@ -256,6 +241,28 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
     print('Finished the discovery script')
 
 
+def get_credentials(user_email: str) -> str:
+    global credentials
+    provider_data = retrieve_provider_data_object(user_email, 'gcp')
+    if provider_data:
+        try:
+            google_creds = provider_data['google_creds_json']
+            decrypted_credentials_ = crypter.decrypt(google_creds)
+            decrypted_credentials = json.loads(decrypted_credentials_)
+            with open(CREDENTIALS_PATH_TO_SAVE, 'w') as fp:
+                json.dump(decrypted_credentials, fp)
+        except:
+            print("google creds json were not found")
+        credentials_file = Path(CREDENTIALS_PATH_TO_SAVE)
+        if not credentials_file.is_file():
+            logging.warning(f'{CREDENTIALS_PATH_TO_SAVE} file does not exist')
+        credentials = service_account.Credentials.from_service_account_file(
+            CREDENTIALS_PATH_TO_SAVE)
+        return credentials
+    else:
+        return ''
+
+
 if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--fetch-gke-clusters', action='store_true', default=True, help='Fetch GKE clusters or not')
@@ -263,8 +270,11 @@ if __name__ == '__main__':
                         help='Fetch GCP compute instances or not')
     parser.add_argument('--fetch-files', action='store_true', default=True, help='Fetch files or not')
     parser.add_argument('--fetch-buckets', action='store_true', default=True, help='Fetch buckets or not')
+    parser.add_argument('--user-email', default='zagalsky@gmail.com',
+                        help='name of the user to fetch the credentials for')
     args = parser.parse_args()
     main(is_fetching_gke_clusters=args.fetch_gke_clusters,
          is_fetching_vm_instances=args.fetch_vm_instances,
          is_fetching_files=args.fetch_files,
-         is_fetching_buckets=args.fetch_buckets)
+         is_fetching_buckets=args.fetch_buckets,
+         user_email=args.user_email)

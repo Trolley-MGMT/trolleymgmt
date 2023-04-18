@@ -13,10 +13,10 @@ import platform
 from dataclasses import asdict
 from distutils import util
 
-import yaml
+from cryptography.fernet import Fernet
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
-
 from jwt import InvalidTokenError
+import yaml
 from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -32,6 +32,10 @@ from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_
 from web.utils import random_string, apply_yaml
 from web.mongo_handler.mongo_objects import ProviderObject
 from web.scripts import gcp_discovery_script, aws_discovery_script
+
+# key = Fernet.generate_key()
+key = os.getenv('SECRET_KEY').encode()
+crypter = Fernet(key)
 
 REGISTRATION = False
 CUR_DIR = os.getcwd()
@@ -109,19 +113,21 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
 
 
 def encode_provider_details(content: dict) -> ProviderObject:
-    hashed_aws_access_key_id = generate_password_hash(content['aws_access_key_id'], method='sha256')
-    hashed_aws_secret_access_key = generate_password_hash(content['aws_secret_access_key'], method='sha256')
-    hashed_azure_credentials = generate_password_hash(content['azure_credentials'], method='sha256')
-    hashed_google_creds_json = generate_password_hash(content['google_creds_json'], method='sha256')
-    provider_object = ProviderObject(provider=content[PROVIDER], aws_access_key_id=hashed_aws_access_key_id,
-                                     aws_secret_access_key=hashed_aws_secret_access_key,
-                                     azure_credentials=hashed_azure_credentials,
-                                     google_creds_json=hashed_google_creds_json, user_email=content['user_email'])
+    encoded_aws_access_key_id = crypter.encrypt(str.encode(content['aws_access_key_id']))
+    encoded_aws_secret_access_key = crypter.encrypt(str.encode(content['aws_secret_access_key']))
+    encoded_google_creds_json = crypter.encrypt(str.encode(content['google_creds_json']))
+    encoded_azure_credentials = crypter.encrypt(str.encode(content['azure_credentials']))
+    provider_object = ProviderObject(provider=content[PROVIDER], aws_access_key_id=encoded_aws_access_key_id,
+                                     aws_secret_access_key=encoded_aws_secret_access_key,
+                                     azure_credentials=encoded_azure_credentials,
+                                     google_creds_json=encoded_google_creds_json, user_email=content['user_email'])
     return provider_object
 
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
     user_agent = request.headers.get('User-Agent')
+    if request.headers.get('request-source') == 'kubernetes':
+        return '', ''
     logger.info(f'The request comes from {user_agent} user agent')
     if new:
         session.pop('x-access-token', None)
@@ -277,9 +283,9 @@ def trigger_cloud_provider_discovery():
             Thread(target=aws_discovery_script.main, args=(False, False, True, False)).start()
     elif GCP in content[PROVIDER]:
         if content[OBJECT_TYPE] == CLUSTER:
-            Thread(target=gcp_discovery_script.main, args=(False, False, False, True)).start()
+            Thread(target=gcp_discovery_script.main, args=(False, False, False, True, session['user_email'])).start()
         if content[OBJECT_TYPE] == INSTANCE:
-            Thread(target=gcp_discovery_script.main, args=(False, False, True, False)).start()
+            Thread(target=gcp_discovery_script.main, args=(False, False, True, False, session['user_email'])).start()
     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -469,8 +475,8 @@ def provider():
     logger.info(f'A request for {function_name} was requested')
     content['user_email'] = session['user_email']
     if validate_provider_data(content):
-        # encoded_provider_details = encode_provider_details(content)
-        if mongo_handler.mongo_utils.add_providers_data_object(asdict(content)):
+        encoded_provider_details = encode_provider_details(content)
+        if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
             return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)

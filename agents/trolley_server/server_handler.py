@@ -41,8 +41,9 @@ class ServerRequest:
             return f'{self.server_url}/{self.operation}'
 
     def send_server_request(self):
+        headers = {'request-source': 'kubernetes'}
         request_url = self.build_request_url(self)
         try:
-            post(url=request_url, json=asdict(self.cluster_data))
+            post(url=request_url, json=asdict(self.cluster_data), headers=headers)
         except exceptions.RequestException as e:
             logging.error(f'post request failed with the following message: {e}')
