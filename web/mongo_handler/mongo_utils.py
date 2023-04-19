@@ -653,6 +653,14 @@ def insert_eks_cluster_object(eks_cluster_object: dict) -> bool:
     except:
         logger.error(f'aws_discovered_eks_clusters was not inserted properly')
 
+def drop_discovered_clusters(cluster_type: str = '') -> bool:
+    if cluster_type == GKE:
+        gcp_discovered_gke_clusters.drop()
+    elif cluster_type == EKS:
+        aws_discovered_eks_clusters.drop()
+    elif cluster_type == AKS:
+        az_discovered_aks_clusters.drop()
+    return True
 
 def insert_gke_cluster_object(gke_cluster_object: dict) -> bool:
     """

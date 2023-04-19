@@ -10,7 +10,7 @@ def delete_clusters(cluster_type: str):
     expired_clusters_list = retrieve_expired_clusters(cluster_type=cluster_type)
     print(f'clusters to expire: {expired_clusters_list}')
     for expired_cluster in expired_clusters_list:
-        print(f'expiring {expired_clusters_list} cluster')
+        print(f'expiring {expired_cluster} cluster')
         if cluster_type == GKE:
             delete_gke_cluster(cluster_name=expired_cluster['cluster_name'])
         elif cluster_type == AKS:

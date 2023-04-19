@@ -19,11 +19,13 @@ from google.cloud import compute_v1
 from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
 from web.mongo_handler.mongo_utils import insert_gke_cluster_object, insert_gcp_vm_instances_object, \
     insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
-    retrieve_vcpu_per_machine_type, retrieve_provider_data_object
+    retrieve_vcpu_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
 
 from google.cloud import storage
 from google.oauth2 import service_account
 from googleapiclient import discovery
+
+from web.variables.variables import GKE
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
@@ -219,6 +221,8 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
 
         print('List of discovered GKE Clusters: ')
         print(gke_discovered_clusters)
+        if not gke_discovered_clusters:
+            drop_discovered_clusters(cluster_type=GKE)
         for gke_discovered_cluster in gke_discovered_clusters:
             insert_gke_cluster_object(gke_discovered_cluster)
     if is_fetching_vm_instances:
