@@ -125,9 +125,9 @@ Under the Settings menu we have an option to add credentials of the cloud provid
 ![](documentation/credentials.png)
 
 ### Building AKS/GKE/EKS clusters
-![](documentation/build_aks.png)
-![](documentation/build_gke.png)
-![](documentation/build_eks.png)
+![](documentation/build_aks_clusters.png)
+![](documentation/build_gke_clusters.png)
+![](documentation/build_eks_clusters.png)
 
 ### Managing AKS/GKE/EKS clusters
 ![](documentation/manage_aks.png)
