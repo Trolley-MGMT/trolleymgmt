@@ -8,7 +8,7 @@ from subprocess import PIPE, run
 import yaml
 from kubernetes import config
 
-SERVER_URL = os.environ.get('SERVER_URL', 'https://something.eu.ngrok.io')
+SERVER_URL = os.environ.get('TROLLEY_SERVER_URL', 'https://something.eu.ngrok.io')
 CLUSTER_NAME = os.environ.get('CLUSTER_NAME', 'pavelzagalsky-gke-qjeigibl')
 ZONE_NAME = os.environ.get('ZONE_NAME', 'us-east1-b')
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-361905')
