@@ -14,6 +14,8 @@ In order to deploy a cluster on a managed Kubernetes platform such as GKE/AKS an
 Once the build concludes the user will get an Email/Slack alert (tba) with all the info they need.
 Alternatively, the user can go to the management menus and see there all the clusters they deployed.
 
+## High level architecture
+![](documentation/trolley_diagram.png)
 
 ## Deployment
 Trolley deployment can be done in the following ways:
