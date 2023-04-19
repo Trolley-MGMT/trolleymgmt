@@ -8,7 +8,7 @@ from subprocess import PIPE, run
 import yaml
 from kubernetes import config
 
-SERVER_URL = os.environ.get('TROLLEY_SERVER_URL', 'https://something.eu.ngrok.io')
+TROLLEY_SERVER_URL = os.environ.get('TROLLEY_SERVER_URL', 'https://something.eu.ngrok.io')
 CLUSTER_NAME = os.environ.get('CLUSTER_NAME', 'pavelzagalsky-gke-qjeigibl')
 ZONE_NAME = os.environ.get('ZONE_NAME', 'us-east1-b')
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-361905')
@@ -74,7 +74,7 @@ def main():
         if deployment_yaml['kind'] == 'Deployment':
             for env_value in deployment_yaml['spec']['template']['spec']['containers'][0]['env']:
                 if env_value['name'] == 'SERVER_URL':
-                    deployment_yaml['spec']['template']['spec']['containers'][0]['env'][2]['value'] = SERVER_URL
+                    deployment_yaml['spec']['template']['spec']['containers'][0]['env'][2]['value'] = TROLLEY_SERVER_URL
                 if env_value['name'] == 'CLUSTER_NAME':
                     deployment_yaml['spec']['template']['spec']['containers'][0]['env'][3]['value'] = CLUSTER_NAME
                 if env_value['name'] == 'CLUSTER_TYPE':
