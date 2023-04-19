@@ -124,33 +124,28 @@ Under the Settings menu we have an option to add credentials of the cloud provid
 
 ![](documentation/credentials.png)
 
-Building AKS/GKE/EKS clusters
+### Building AKS/GKE/EKS clusters
 ![](documentation/build_aks.png)
 ![](documentation/build_gke.png)
 ![](documentation/build_eks.png)
 
-Managing AKS/GKE/EKS clusters
+### Managing AKS/GKE/EKS clusters
 ![](documentation/manage_aks.png)
 ![](documentation/manage_gke.png)
 ![](documentation/manage_eks.png)
+
+### Managing VM Instances (AWS/GCP/Azure(TBC))
+![](documentation/manage_aws_ec2_instances.png)
+![](documentation/manage_gcp_vm_instances.png)
+
+
 
 Upon pressing the cluster name you will be prompted with an option to install a Trolley Agent or if it was installed, additional cluster info
 ![](documentation/cluster_install_trolley_agent.png)
 The server address is an external IP/URL that runs your Trolley Server. You can use [ngrok](https://ngrok.com/) to tunnel into your local environment for debugging
 ![](documentation/cluster_additional_info.png)
 Clicking on More Info will fetch you more information
-
-![](documentation/menu.png)
-### Registration
-The registration menu will allow the user to register a user that will allow it to build/delete and edit the builds online.
-
-When the user clicks deploy, it triggers a Jenkins build which formulates the specific CLI command and deploys the desired cluster. The built cluster would then register in the mongoDB database and be available to monitor, extract data or delete via the UI. 
-
-
-
 The project is still at a very early stage and would appreciate any contributions and feedback.  
 
-### GCP Authentication TBD
-This needs to be run to allow yaml deployments:
-
-gcloud projects add-iam-policy-binding <project_name> --member=<your_service_account>@developer.gserviceaccount.com --role=roles/container.admin
+### Clients/Users/Teams management TBD
+### Billing Dashboards TBD
