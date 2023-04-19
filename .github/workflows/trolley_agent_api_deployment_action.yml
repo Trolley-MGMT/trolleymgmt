@@ -37,7 +37,7 @@ jobs:
           echo "mongo_user is: ${{ github.event.client_payload.mongo_user }}"
           echo "mongo_password is: ${{ github.event.client_payload.mongo_password }}"
           echo "mongo_url are: ${{ github.event.client_payload.mongo_url }}"
-          echo "server_url is: ${{ github.event.client_payload.server_url }}"
+          echo "trolley_server_url is: ${{ github.event.client_payload.trolley_server_url }}"
           
           CLUSTER_NAME="${{ github.event.client_payload.cluster_name }}"
           echo "CLUSTER_NAME=${CLUSTER_NAME}" >> $GITHUB_ENV
@@ -49,8 +49,8 @@ jobs:
           echo "MONGO_PASSWORD=${MONGO_PASSWORD}" >> $GITHUB_ENV
           MONGO_URL="${{ github.event.client_payload.mongo_url }}"
           echo "MONGO_URL=${MONGO_URL}" >> $GITHUB_ENV
-          SERVER_URL="${{ github.event.client_payload.server_url }}"
-          echo "SERVER_URL=${SERVER_URL}" >> $GITHUB_ENV
+          TROLLEY_SERVER_URL="${{ github.event.client_payload.trolley_server_url }}"
+          echo "TROLLEY_SERVER_URL=${TROLLEY_SERVER_URL}" >> $GITHUB_ENV
 
       - name: Prepare the YAML and deploy
         run: |
