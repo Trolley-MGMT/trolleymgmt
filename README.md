@@ -49,23 +49,97 @@ Set your Environment Variables menu the following:
 ### Docker image build and deployment.
 1. In order to work with the Docker image the following steps must be taken.
 2. Assuming the repository was forked and cloned and docker-compose is installed:
-3. Run the following command from the project's root:
+3. Run the following command from the project's root to build and run the Docker image:
 
 ``
-docker-compose up
+docker-compose up --build
 ``
 
 ## GitHub Actions parameters
-In order to build the clusters we will need to pass AWS/GCP/Azure/Mongo related parameters.
+The project uses GitHub Actions functionality in order to build/monitor and delete various cloud assets.
+In order to work with them properly we will need to pass AWS/GCP/Azure/Mongo related parameters.
 Here are the parameters:
 
+`
+ACTION_TOKEN(mandatory) = "ghp_xxxxxxxxxx"
+`
+
+`
+AWS_ACCESS_KEY_ID(mandatory for aws) = "AKIAIOSFODNN7EXAMPLE"
+`
+
+`
+AWS_SECRET_ACCESS_KEY(mandatory for aws) = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+`
+
+`
+AZURE_CREDENTIALS(mandatory for azure) = "d8er22sc-0000-5esd-be90-example"
+`
+
+`
+DOCKERHUB_TOKEN(mandatory) = "dckr_pat_example-example"
+`
+
+`
+DOCKERHUB_USER(mandatory) = "yourname"
+`
+
+`
+GCP_PROJECT_ID(mandatory for gcp) = "something-something"
+`
+
+`
+GOOGLE_CREDS_JSON(mandatory for gcp) = "{gcp_service_account json}"
+`
+### Mongo parameters are for cases when we have a remote installed MongoDB we want to work with
+`
+MONGO_PASSWORD(optional) = "mongopassword"
+`
+
+`
+MONGO_URL(optional) = "mongourl"
+`
+
+`
+MONGO_USER(optional) = "mongouser"
+`
+
+`
+PROJECT_NAME = "trolley"
+`
+
 ## UI Overview
-The UI currently consists of the following flows [tba]
+The UI currently consists of the following flows:
+
+This is the Registration menu that will allow the user to register with his current team's name
+
 ![](documentation/register.png)
+
+
+This is the Login menu that will allow the users to login to the system
+
 ![](documentation/login.png)
-![](documentation/build_eks.png)
+
+Under the Settings menu we have an option to add credentials of the cloud provider we want to work with.
+
+![](documentation/credentials.png)
+
+Building AKS/GKE/EKS clusters
+![](documentation/build_aks.png)
 ![](documentation/build_gke.png)
+![](documentation/build_eks.png)
+
+Managing AKS/GKE/EKS clusters
+![](documentation/manage_aks.png)
+![](documentation/manage_gke.png)
 ![](documentation/manage_eks.png)
+
+Upon pressing the cluster name you will be prompted with an option to install a Trolley Agent or if it was installed, additional cluster info
+![](documentation/cluster_install_trolley_agent.png)
+The server address is an external IP/URL that runs your Trolley Server. You can use [ngrok](https://ngrok.com/) to tunnel into your local environment for debugging
+![](documentation/cluster_additional_info.png)
+Clicking on More Info will fetch you more information
+
 ![](documentation/menu.png)
 ### Registration
 The registration menu will allow the user to register a user that will allow it to build/delete and edit the builds online.

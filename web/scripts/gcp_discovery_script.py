@@ -22,7 +22,6 @@ from web.mongo_handler.mongo_utils import insert_gke_cluster_object, insert_gcp_
     retrieve_vcpu_per_machine_type, retrieve_provider_data_object
 
 from google.cloud import storage
-from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
 from googleapiclient import discovery
 
@@ -36,15 +35,20 @@ GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
 
 if 'Darwin' in platform.system():
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
-    CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
-    CREDENTIALS_PATH_TO_SAVE = f'{os.getcwd()}/gcp_credentials.json'
-    # CREDENTIALS_PATH_TO_SAVE = f'/Users/{LOCAL_USER}/Documents/trolley/trolley-creds-to-save.json'
+    CREDENTIALS_DEFAULT_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
+    GCP_CREDENTIALS_TEMP_DIRECTORY = f'{os.getcwd()}/.gcp'
+    CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
+
 
 else:
     KUBECONFIG_PATH = '/root/.kube/config'
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/app/.gcp/gcp_credentials.json'
-    CREDENTIALS_PATH_TO_SAVE = '/home/app/.gcp/gcp_credentials.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/app/.gcp/gcp_credentials.json'
+    GCP_CREDENTIALS_TEMP_DIRECTORY = "/app/.gcp"
+    GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
+    CREDENTIALS_DEFAULT_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
+    CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 
+print(f"CREDENTIALS_PATH_TO_SAVE is: {CREDENTIALS_PATH_TO_SAVE}")
 
 def generate_kubeconfig(cluster_name: str, zone: str) -> str:
     if os.path.exists(KUBECONFIG_PATH):
@@ -70,7 +74,7 @@ def list_all_instances(project_id: str, ) -> list:
         A dictionary with zone names as keys (in form of "zones/{zone_name}") and
         iterable collections of Instance objects as values.
     """
-    instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH)
+    instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH_TO_SAVE)
     request = compute_v1.AggregatedListInstancesRequest()
     request.project = project_id
     request.max_results = 50
@@ -171,7 +175,11 @@ def fetch_gke_clusters(service) -> list:
                 cluster_object['node_pools'] = cluster['nodePools']
                 cluster_object['node_pools'] = cluster['nodePools']
                 cluster_object['discovered'] = True
-                cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster['name'], zone=cluster['zone'])
+                try:
+                    cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster['name'], zone=cluster['zone'])
+                except:
+                    print("failed to work with gcloud")
+                    cluster_object['kubeconfig'] = ""
                 num_nodes = 0
                 for node_pool in cluster['nodePools']:
                     num_nodes += node_pool['initialNodeCount']
@@ -186,6 +194,10 @@ def fetch_gke_clusters(service) -> list:
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_vm_instances: bool = False,
          is_fetching_gke_clusters: bool = False, user_email: str = ''):
+
+    print("creating a temp dir for gcp")
+    if not os.path.exists(GCP_CREDENTIALS_TEMP_DIRECTORY):
+        os.mkdir(GCP_CREDENTIALS_TEMP_DIRECTORY)
     credentials = get_credentials(user_email)
     if not credentials:
         sys.exit("provider credentials were not found")
@@ -241,14 +253,15 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
     print('Finished the discovery script')
 
 
-def get_credentials(user_email: str) -> str:
-    global credentials
+def get_credentials(user_email: str):
     provider_data = retrieve_provider_data_object(user_email, 'gcp')
+    print(f"provider_data {provider_data}")
     if provider_data:
         try:
             google_creds = provider_data['google_creds_json']
             decrypted_credentials_ = crypter.decrypt(google_creds)
             decrypted_credentials = json.loads(decrypted_credentials_)
+            print(f"decrypted_credentials {decrypted_credentials}")
             with open(CREDENTIALS_PATH_TO_SAVE, 'w') as fp:
                 json.dump(decrypted_credentials, fp)
         except:
@@ -260,7 +273,16 @@ def get_credentials(user_email: str) -> str:
             CREDENTIALS_PATH_TO_SAVE)
         return credentials
     else:
-        return ''
+        try:
+            credentials_file = Path(CREDENTIALS_DEFAULT_PATH)
+            if not credentials_file.is_file():
+                logging.warning(f'{CREDENTIALS_DEFAULT_PATH} file does not exist')
+            credentials = service_account.Credentials.from_service_account_file(
+                CREDENTIALS_DEFAULT_PATH)
+            return credentials
+        except:
+            print("credentials file was not found")
+            return ''
 
 
 if __name__ == '__main__':

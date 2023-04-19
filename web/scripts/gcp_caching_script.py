@@ -5,7 +5,7 @@ from dataclasses import asdict
 import getpass as gt
 
 from web.mongo_handler.mongo_utils import insert_cache_object
-from web.mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject
+from web.mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, GKEMachinesCacheObject
 
 from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
@@ -27,7 +27,8 @@ LOCAL_USER = gt.getuser()
 if 'Darwin' in platform.system():
     CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
 else:
-    CREDENTIALS_PATH = '/home/runner/work/gcp_credentials.json'
+    GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
+    CREDENTIALS_PATH = f'/{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
 
 GCP_PROJECT_ID = 'trolley-361905'
 
@@ -35,19 +36,6 @@ credentials = service_account.Credentials.from_service_account_file(
     CREDENTIALS_PATH)
 service = discovery.build('container', 'v1', credentials=credentials)
 
-
-def fetch_machine_types(zones_list) -> list:
-    logger.info(f'A request to fetch machine types has arrived')
-    service = discovery.build('compute', 'beta', credentials=credentials)
-    machine_types_list = []
-    zone = 'us-east1-b'
-    request = service.machineTypes().list(project=GCP_PROJECT_ID, zone=zone)
-    response = request.execute()
-    for machine in response['items']:
-        machine_type_object = GKEMachineTypeObject(machine_type=machine['name'], vCPU=machine['guestCpus'],
-                                                   memory=machine['memoryMb'], zone=machine['zone'])
-        machine_types_list.append(machine_type_object)
-    return machine_types_list
 
 def fetch_zones() -> list:
     logger.info(f'A request to fetch zones has arrived')
@@ -108,6 +96,21 @@ def create_regions_and_zones_dict(regions_list, zones_list):
     return zones_regions_dict
 
 
+def fetch_machine_types(zones_list) -> dict:
+    logger.info(f'A request to fetch machine types has arrived')
+    service = discovery.build('compute', 'beta', credentials=credentials)
+    machine_types_list = []
+    machines_for_zone_dict = {}
+    for zone in zones_list:
+        request = service.machineTypes().list(project=GCP_PROJECT_ID, zone=zone)
+        response = request.execute()
+        for machine in response['items']:
+            machine_type_object = GKEMachineTypeObject(machine_type=machine['name'], vCPU=machine['guestCpus'],
+                                                       memory=machine['memoryMb'])
+            machine_types_list.append(machine_type_object)
+        machines_for_zone_dict[zone] = machine_types_list
+    return machines_for_zone_dict
+
 def fetch_vcpus_for_machine_types(machine_types_list, requested_machine_type):
     for machine in machine_types_list:
         if machine.machine_type == requested_machine_type:
@@ -116,19 +119,25 @@ def fetch_vcpus_for_machine_types(machine_types_list, requested_machine_type):
 
 def main():
     zones_list = fetch_zones()
-    machine_types_list = fetch_machine_types(zones_list)
     regions_list = fetch_regions()
     gke_image_types = fetch_gke_image_types(zones_list=zones_list)
     versions_list = fetch_versions(zones_list=zones_list)
     zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
+    machine_types_all_regions = fetch_machine_types(zones_list)
+    for machine_types_region in machine_types_all_regions:
+        gke_machines_caching_object = GKEMachinesCacheObject(
+            region=machine_types_region,
+            machines_list=machine_types_all_regions[machine_types_region]
+        )
+        insert_cache_object(caching_object=asdict(gke_machines_caching_object), provider=GKE, machine_types=True)
     gke_caching_object = GKECacheObject(
         zones_list=zones_list,
-        machine_types_list=machine_types_list,
         versions_list=versions_list,
         regions_list=regions_list,
         gke_image_types=gke_image_types,
         regions_zones_dict=zones_regions_dict)
     insert_cache_object(caching_object=asdict(gke_caching_object), provider=GKE)
+
 
 
 if __name__ == '__main__':

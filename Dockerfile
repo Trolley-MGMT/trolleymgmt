@@ -11,6 +11,9 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
+# installing gcloud
+RUN curl -sSL https://sdk.cloud.google.com | bash
+
 COPY . /app
 COPY web/static /app/static
 COPY web/main.py /app

@@ -33,7 +33,6 @@ from web.utils import random_string, apply_yaml
 from web.mongo_handler.mongo_objects import ProviderObject
 from web.scripts import gcp_discovery_script, aws_discovery_script
 
-# key = Fernet.generate_key()
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
 
@@ -338,13 +337,14 @@ def trigger_gke_deployment():
     cluster_name = f'{user_name}-{GKE}-{random_string(8)}'
     content['cluster_name'] = cluster_name
     if trigger_gke_build_github_action(**content):
-        deployment_yaml_object = deployment_yaml_object_handling(content)
-    else:
-        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
-    if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
-    else:
-        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+        # deployment_yaml_object = deployment_yaml_object_handling(content)
+    # else:
+    #     return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+    # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+    #     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    # else:
+    #     return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
 @app.route('/trigger_eks_deployment', methods=[POST])
@@ -359,16 +359,15 @@ def trigger_eks_deployment():
     user_name = content['user_name']
     cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
-    response = trigger_eks_build_github_action(**content)
-    logger.info(f'This is the response: {response} \n {response.text} \n {response.headers} ')
-    if response.status_code == 204:
-        deployment_yaml_object = deployment_yaml_object_handling(content)
-    else:
-        return Response(json.dumps(response.text), status=400, mimetype=APPLICATION_JSON)
-    if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+    if trigger_eks_build_github_action(**content):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
-    else:
-        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+        # deployment_yaml_object = deployment_yaml_object_handling(content)
+    # else:
+    #     return Response(json.dumps(response.text), status=400, mimetype=APPLICATION_JSON)
+    # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+    #     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    # else:
+    #     return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
 @app.route('/trigger_aks_deployment', methods=[POST])
@@ -384,13 +383,15 @@ def trigger_aks_deployment():
     cluster_name = f'{user_name}-{AKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
     if trigger_aks_build_github_action(**content):
-        deployment_yaml_object = deployment_yaml_object_handling(content)
-    else:
-        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
-    if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
-    else:
-        return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+    # if trigger_aks_build_github_action(**content):
+    #     deployment_yaml_object = deployment_yaml_object_handling(content)
+    # else:
+    #     return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+    # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+    #     return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    # else:
+    #     return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
 @app.route('/delete_expired_clusters', methods=[DELETE])

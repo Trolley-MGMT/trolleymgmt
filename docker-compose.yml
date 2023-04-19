@@ -3,7 +3,7 @@ services:
   web:
     build: .
     ports:
-    - "80:8081"
+    - "80:80"
     volumes:
     - .:/opt
     - /Users/pavelzagalsky/.aws/:/home/app/.aws/:ro # Substitute $HOME with the path to your home directory
@@ -16,7 +16,7 @@ services:
       GITHUB_ACTION_TOKEN:
       PROJECT_NAME: trolley
       GITHUB_REPOSITORY: Trolley-MGMT/Trolley-Management
-      SECRET_KEY: s3cr3t_k3y
+      SECRET_KEY: J-r08vCLGU8uNib01HpUSuh7fbZWJ1FTzCiYxh7TRyo=
       AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials
       AWS_DEFAULT_REGION: us-east-1
       GCP_CREDENTIALS_FILE: /home/app/.gcp/gcp_credentials

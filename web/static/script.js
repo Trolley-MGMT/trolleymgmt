@@ -11,6 +11,7 @@ $(document).ready(function() {
     let clustersManagePage = false;
     let instancesManagePage = false;
     let buildPage = false;
+    let provider = 'something';
     let fullHREF = window.location.href;
     let pathname = window.location.pathname.split('/');
 
@@ -129,17 +130,17 @@ $(document).ready(function() {
         clientsPage = false;
         queryPage = false;
     }
-    if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1)) {
+    if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1) || ($.inArray('manage-az-vm-instances', pathname) > -1)) {
         clusterType = 'aks'
         provider = 'az'
         window.localStorage.setItem("clusterType", clusterType);
         window.localStorage.setItem("provider", provider);
-    } else if (($.inArray('build-eks-clusters', pathname) > -1) || ($.inArray('manage-eks-clusters', pathname) > -1)) {
+    } else if (($.inArray('build-eks-clusters', pathname) > -1) || ($.inArray('manage-eks-clusters', pathname) > -1) || ($.inArray('manage-aws-ec2-instances', pathname) > -1)) {
         clusterType = 'eks'
         provider = 'aws'
         window.localStorage.setItem("clusterType", clusterType);
         window.localStorage.setItem("provider", provider);
-    } else if (($.inArray('build-gke-clusters', pathname) > -1) || ($.inArray('manage-gke-clusters', pathname) > -1)) {
+    } else if (($.inArray('build-gke-clusters', pathname) > -1) || ($.inArray('manage-gke-clusters', pathname) > -1) || ($.inArray('manage-gcp-vm-instances', pathname) > -1)) {
         clusterType = 'gke'
         provider = 'gcp'
         window.localStorage.setItem("clusterType", clusterType);
@@ -170,7 +171,7 @@ $(document).ready(function() {
     }
 
     if (instancesManagePage) {
-        store_instances()
+        store_instances(provider)
             .then((data) => {
                 console.log(data)
                 store_client_names()
@@ -515,7 +516,7 @@ $(document).ready(function() {
             }
             });
             let clusterType = window.localStorage.getItem("clusterType");
-            clientName = $('#clusters-clientNames-dropdown-' + objectName).val();
+            clientName = $('#clusters-dropdown-' + objectName).val();
 
             var assign_client_data = JSON.stringify({
                 "object_type": objectType,
@@ -529,7 +530,7 @@ $(document).ready(function() {
         else if (objectType == 'instance') {
             $.each(dataArray, function(key, value) {
                 });
-                clientName = $('#instances-clientNames-dropdown-' + objectName).val();
+                clientName = $('#instances-dropdown-' + objectName).val();
             var assign_client_data = JSON.stringify({
                 "object_type": objectType,
                 "instance_name": objectName,
@@ -562,9 +563,9 @@ $(document).ready(function() {
         })
 
         newHTML = '<a id="' + objectType + 's-text-label-clientName-div-' + objectName + '">' + clientName + '</a>'
-        $("#" + objectType + "s-clientNames-dropdown-" + objectName).replaceWith(newHTML);
-        $("#" + objectType + "s-clientNames-button-" + objectName).hide();
-        $("#" + objectType + "s-clientNames-dropdown-test-instance-1").append(newHTML);
+        $("#" + objectType + "s-dropdown-" + objectName).replaceWith(newHTML);
+        $("#" + objectType + "s-button-" + objectName).hide();
+        $("#" + objectType + "s-dropdown-test-instance-1").append(newHTML);
     }
 
     function store_client_names() {
@@ -623,7 +624,7 @@ $(document).ready(function() {
         })
     }
 
-    function store_instances() {
+    function store_instances(provider) {
         var instancesData = []
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -670,7 +671,7 @@ $(document).ready(function() {
             var tags_string__ = tags_string_.replace(/[{}]/g, "");
             var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
             var tags_string = tags_string___.replace(/[,]/g, "<br>");
-            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clusters-clientNames-dropdown-' + value.clusterName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clusters-clientNames-button-' + value.clusterName + '" >Add</button>'
+            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clusters-dropdown-' + value.clusterName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clusters-button-' + value.clusterName + '" >Add</button>'
             clustersHTML += '<tr id="tr_' + value.clusterName + '">';
             clustersHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.clusterName + '"><p>' + value.clusterName + '</p></a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
@@ -714,9 +715,9 @@ $(document).ready(function() {
         $.each(clusterNames, function( index, value ) {
             var clientNames = window.localStorage.getItem("clientNames");
             let clientNamesList = clientNames.split(',')
-            $("#clusters-clientNames-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
+            $("#clusters-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
             $.each(clientNamesList, function( index, clientNameValue ) {
-                $("#clusters-clientNames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
+                $("#clusters-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
             });
         });
     }
@@ -732,7 +733,7 @@ $(document).ready(function() {
             var tags_string__ = tags_string_.replace(/[{}]/g, "");
             var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
             var tags_string = tags_string___.replace(/[,]/g, "<br>");
-            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="instances-clientNames-dropdown-' + value.instanceName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="instances-clientNames-button-' + value.instanceName + '" >Add</button>'
+            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="instances-dropdown-' + value.instanceName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="instances-button-' + value.instanceName + '" >Add</button>'
             instancesHTML += '<tr id="tr_' + value.instanceName + '">';
             instancesHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.instanceName + '"><p>' + value.instanceName + '</p></a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.instanceZone + '</a></td>';
@@ -762,9 +763,9 @@ $(document).ready(function() {
         $.each(instancesNames, function( index, value ) {
             var clientNames = window.localStorage.getItem("clientNames");
             let clientNamesList = clientNames.split(',')
-            $("#instances-clientNames-dropdown-" + value['instanceName']).append($("<option />").val('').text('Add a client'));
+            $("#instances-dropdown-" + value['instanceName']).append($("<option />").val('').text('Add a client'));
             $.each(clientNamesList, function( index, clientNameValue ) {
-                $("#instances-clientNames-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
+                $("#instances-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
             });
         });
     }
@@ -919,10 +920,10 @@ $(document).ready(function() {
 
     function populate_client_names(objectType) {
         if (objectType == 'cluster') {
-            var $dropdown = $("#clusters-clientNames-dropdown");
+            var $dropdown = $("#clusters-dropdown");
         }
         else if (objectType == 'instance') {
-            var $dropdown = $("#instances-clientNames-dropdown");
+            var $dropdown = $("#instances-dropdown");
         }
 
         return new Promise((resolve, reject) => {
@@ -1299,12 +1300,12 @@ $(document).ready(function() {
             $(textLabelId).hide();
             let clientNames = window.localStorage.getItem("clientNames")
             let clientNamesList = clientNames.split(',')
-            var newDropDownHTML = '<td class="text-center"><select class="col-lg-8 align-content-lg-center" id="' + objectType + '-clientNames-dropdown-' + instanceName + '"><a>';
+            var newDropDownHTML = '<td class="text-center"><select class="col-lg-8 align-content-lg-center" id="' + objectType + '-dropdown-' + instanceName + '"><a>';
             $.each(clientNamesList, function( index, clientNameValue ) {
                 newDropDownHTML +=  '<option value="' + clientNameValue + '">' + clientNameValue + '</option>'
             });
             newDropDownHTML += '</select>'
-            newDropDownHTML += '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-clientNames-button-' + instanceName + '"</a>Add</button></td>'
+            newDropDownHTML += '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-button-' + instanceName + '"</a>Add</button></td>'
             $('#' + objectType + '-clientName-div-' + instanceName).replaceWith(newDropDownHTML);
             console.log(newDropDownHTML)
         }

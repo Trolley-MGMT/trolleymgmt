@@ -16,10 +16,10 @@ class UserObject:
 @dataclass
 class ProviderObject:
     provider: str
-    aws_access_key_id: str
-    aws_secret_access_key: str
-    azure_credentials: str
-    google_creds_json: str
+    aws_access_key_id: bytes
+    aws_secret_access_key: bytes
+    azure_credentials: bytes
+    google_creds_json: bytes
     user_email: str
 
 
@@ -110,7 +110,6 @@ class GKEMachineTypeObject:
     machine_type: str
     vCPU: int
     memory: int
-    zone: str
 
 
 @dataclass
@@ -123,12 +122,15 @@ class EKSMachineTypeObject:
 @dataclass
 class GKECacheObject:
     zones_list: list
-    machine_types_list: list
     regions_list: list
     versions_list: list
     gke_image_types: list
     regions_zones_dict: dict
 
+@dataclass
+class GKEMachinesCacheObject:
+    region: str
+    machines_list: list
 
 @dataclass
 class AWSCacheObject:
