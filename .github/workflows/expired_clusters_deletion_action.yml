@@ -28,3 +28,5 @@ jobs:
           pip3 install -r web/requirements.txt
           cd web/scripts
           python3 expired_clusters_deletion.py --cluster_type gke
+          python3 expired_clusters_deletion.py --cluster_type eks
+          python3 expired_clusters_deletion.py --cluster_type aks
