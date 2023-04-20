@@ -17,7 +17,8 @@ from cryptography.fernet import Fernet
 from google.cloud import compute_v1
 
 from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
-from web.mongo_handler.mongo_utils import insert_gke_cluster_object, insert_gcp_vm_instances_object, \
+from web.mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, update_discovered_gke_cluster_object, \
+    insert_gcp_vm_instances_object, \
     insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
     retrieve_vcpu_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
 
@@ -51,6 +52,7 @@ else:
     CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 
 print(f"CREDENTIALS_PATH_TO_SAVE is: {CREDENTIALS_PATH_TO_SAVE}")
+
 
 def generate_kubeconfig(cluster_name: str, zone: str) -> str:
     if os.path.exists(KUBECONFIG_PATH):
@@ -146,57 +148,60 @@ def fetch_gke_clusters(service) -> list:
         if 'clusters' in response:
             clusters_list = response['clusters']
             for cluster in clusters_list:
-                cluster_object = {'cluster_name': cluster['name'], 'user_name': 'vacant'}
-                cluster_creation_time_object = cluster['createTime'].split("+")[0].split("T")
-                cluster_creation_date = cluster_creation_time_object[0].split("-")
-                cluster_creation_time = cluster_creation_time_object[1].split(":")
-                t = datetime.datetime(int(cluster_creation_date[0]),
-                                      int(cluster_creation_date[1]),
-                                      int(cluster_creation_date[2]),
-                                      int(cluster_creation_time[0]),
-                                      int(cluster_creation_time[1]),
-                                      int(cluster_creation_time[2]))
-                created_epoch_time = calendar.timegm(t.timetuple())
-                cluster_object['created_timestamp'] = created_epoch_time
-                cluster_object['human_created_timestamp'] = datetime.datetime.fromtimestamp(
-                    created_epoch_time).strftime('%d-%m-%Y %H:%M:%S')
-                cluster_object['expiration_timestamp'] = TS_IN_20_YEARS
-                cluster_object['human_expiration_timestamp'] = datetime.datetime.fromtimestamp(TS_IN_20_YEARS).strftime(
-                    '%d-%m-%Y %H:%M:%S')
-                cluster_object['cluster_version'] = cluster['currentMasterVersion']
-                cluster_object['region_name'] = cluster['locations']
-                cluster_object['zone_name'] = cluster['zone']
-                try:
-                    cluster_object['tags'] = cluster['resourceLabels']
-                except:
-                    pass
-                cluster_object['availability'] = True
-                cluster_object['nodes_names'] = []
-                cluster_object['nodes_ips'] = []
-                cluster_object['os_image'] = cluster['nodeConfig']['imageType']
-                cluster_object['node_pools'] = cluster['nodePools']
-                cluster_object['node_pools'] = cluster['nodePools']
-                cluster_object['discovered'] = True
-                try:
-                    cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster['name'], zone=cluster['zone'])
-                except:
-                    print("failed to work with gcloud")
-                    cluster_object['kubeconfig'] = ""
-                num_nodes = 0
-                for node_pool in cluster['nodePools']:
-                    num_nodes += node_pool['initialNodeCount']
-                    machine_type = node_pool['config']['machineType']
-                    vCPU = retrieve_vcpu_per_machine_type('gke', machine_type, cluster['locations'][0])
-                    cluster_object['machine_type'] = machine_type
-                    cluster_object['vCPU'] = vCPU
-                cluster_object['num_nodes'] = num_nodes
-                gke_clusters_object.append(cluster_object)
+                if cluster['status'] == 'RUNNING':
+                    cluster_object = {'cluster_name': cluster['name'], 'user_name': 'vacant'}
+                    cluster_creation_time_object = cluster['createTime'].split("+")[0].split("T")
+                    cluster_creation_date = cluster_creation_time_object[0].split("-")
+                    cluster_creation_time = cluster_creation_time_object[1].split(":")
+                    t = datetime.datetime(int(cluster_creation_date[0]),
+                                          int(cluster_creation_date[1]),
+                                          int(cluster_creation_date[2]),
+                                          int(cluster_creation_time[0]),
+                                          int(cluster_creation_time[1]),
+                                          int(cluster_creation_time[2]))
+                    created_epoch_time = calendar.timegm(t.timetuple())
+                    cluster_object['created_timestamp'] = created_epoch_time
+                    cluster_object['human_created_timestamp'] = datetime.datetime.fromtimestamp(
+                        created_epoch_time).strftime('%d-%m-%Y %H:%M:%S')
+                    cluster_object['expiration_timestamp'] = TS_IN_20_YEARS
+                    cluster_object['human_expiration_timestamp'] = datetime.datetime.fromtimestamp(
+                        TS_IN_20_YEARS).strftime(
+                        '%d-%m-%Y %H:%M:%S')
+                    cluster_object['cluster_version'] = cluster['currentMasterVersion']
+                    cluster_object['region_name'] = cluster['locations']
+                    cluster_object['zone_name'] = cluster['zone']
+                    try:
+                        cluster_object['tags'] = cluster['resourceLabels']
+                    except:
+                        pass
+                    cluster_object['availability'] = True
+                    cluster_object['nodes_names'] = []
+                    cluster_object['nodes_ips'] = []
+                    cluster_object['os_image'] = cluster['nodeConfig']['imageType']
+                    cluster_object['node_pools'] = cluster['nodePools']
+                    cluster_object['node_pools'] = cluster['nodePools']
+                    cluster_object['discovered'] = True
+                    try:
+                        cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster['name'],
+                                                                           zone=cluster['zone'])
+                    except:
+                        print("failed to work with gcloud")
+                        cluster_object['kubeconfig'] = ""
+                    num_nodes = 0
+                    for node_pool in cluster['nodePools']:
+                        num_nodes += node_pool['initialNodeCount']
+                        machine_type = node_pool['config']['machineType']
+                        vCPU = retrieve_vcpu_per_machine_type('gke', machine_type, cluster['locations'][0])
+                        cluster_object['totalvCPU'] = vCPU * num_nodes
+                        cluster_object['machine_type'] = machine_type
+                        cluster_object['vCPU'] = vCPU
+                    cluster_object['num_nodes'] = num_nodes
+                    gke_clusters_object.append(cluster_object)
     return gke_clusters_object
 
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_vm_instances: bool = False,
          is_fetching_gke_clusters: bool = False, user_email: str = ''):
-
     print("creating a temp dir for gcp")
     if not os.path.exists(GCP_CREDENTIALS_TEMP_DIRECTORY):
         os.mkdir(GCP_CREDENTIALS_TEMP_DIRECTORY)
@@ -206,25 +211,26 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
     service = discovery.build('container', 'v1', credentials=credentials)
     global gcp_discovered_buckets
     if is_fetching_gke_clusters:
-        already_discovered_clusters_to_test = []
         discovered_clusters_to_add = []
-
-        already_discovered_gke_clusters = retrieve_available_clusters('gke')
+        discovered_clusters_to_update = []
+        trolley_built_clusters = retrieve_available_clusters('gke')
         gke_discovered_clusters = fetch_gke_clusters(service)
+        for gke_discovered_cluster in gke_discovered_clusters:
+            for trolley_built_cluster in trolley_built_clusters:
+                if gke_discovered_cluster['cluster_name'] != trolley_built_cluster['cluster_name']:
+                    discovered_clusters_to_add.append(gke_discovered_cluster)
+                else:
+                    discovered_clusters_to_update.append(gke_discovered_cluster)
 
-        for already_discovered_cluster in already_discovered_gke_clusters:
-            already_discovered_clusters_to_test.append(already_discovered_cluster['cluster_name'])
-
-        for gcp_discovered_cluster in gke_discovered_clusters:
-            if gcp_discovered_cluster['cluster_name'] not in already_discovered_clusters_to_test:
-                discovered_clusters_to_add.append(gcp_discovered_cluster)
-
-        print('List of discovered GKE Clusters: ')
-        print(gke_discovered_clusters)
+        print(f'List of discovered GKE clusters: {gke_discovered_clusters}')
+        print(f'List of trolley built GKE clusters: {trolley_built_clusters}')
+        print(f'List of discovered clusters to add: {discovered_clusters_to_add}')
         if not gke_discovered_clusters:
             drop_discovered_clusters(cluster_type=GKE)
-        for gke_discovered_cluster in gke_discovered_clusters:
-            insert_gke_cluster_object(gke_discovered_cluster)
+        for discovered_cluster_to_add in discovered_clusters_to_add:
+            insert_discovered_gke_cluster_object(discovered_cluster_to_add)
+        for discovered_cluster_to_update in discovered_clusters_to_update:
+            update_discovered_gke_cluster_object(discovered_cluster_to_update)
     if is_fetching_vm_instances:
         already_discovered_vm_instances_to_test = []
         discovered_vm_instances_to_add = []

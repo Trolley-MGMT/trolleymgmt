@@ -172,15 +172,27 @@ def retrieve_available_clusters(cluster_type: str, user_name: str = '') -> list:
     clusters_object = []
     discovered_clusters_object = []
     if cluster_type == GKE:
-        cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
-        discovered_clusters_object = gcp_discovered_gke_clusters.find({AVAILABILITY: True})
+        if not user_name:
+            cluster_object = gke_clusters.find({AVAILABILITY: True})
+        else:
+            cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+            discovered_clusters_object = gcp_discovered_gke_clusters.find({AVAILABILITY: True})
     elif cluster_type == GKE_AUTOPILOT:
-        cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+        if not user_name:
+            cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True})
+        else:
+            cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == EKS:
-        cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+        if not user_name:
+            cluster_object = eks_clusters.find({AVAILABILITY: True})
+        else:
+            cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
         discovered_clusters_object = aws_discovered_eks_clusters.find({AVAILABILITY: True})
     elif cluster_type == AKS:
-        cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+        if not user_name:
+            cluster_object = aks_clusters.find({AVAILABILITY: True})
+        else:
+            cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     else:
         cluster_object = []
     for cluster in cluster_object:
@@ -662,7 +674,7 @@ def drop_discovered_clusters(cluster_type: str = '') -> bool:
         az_discovered_aks_clusters.drop()
     return True
 
-def insert_gke_cluster_object(gke_cluster_object: dict) -> bool:
+def insert_discovered_gke_cluster_object(gke_cluster_object: dict) -> bool:
     """
     @param gke_cluster_object: The eks clusters list to save
     """
@@ -686,6 +698,33 @@ def insert_gke_cluster_object(gke_cluster_object: dict) -> bool:
     except:
         logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
 
+def update_discovered_gke_cluster_object(gke_cluster_object: dict) -> bool:
+    """
+    @param gke_cluster_object: The gke cluster list to update
+    """
+    logger.info(f'{gke_cluster_object}')
+    try:
+        mongo_query = {CLUSTER_NAME.lower(): gke_cluster_object[CLUSTER_NAME.lower()]}
+        existing_data_object = gke_clusters.find_one(mongo_query)
+        gke_cluster_object['user_name'] = existing_data_object['user_name']
+        gke_cluster_object['expiration_timestamp'] = existing_data_object['expiration_timestamp']
+        gke_cluster_object['human_expiration_timestamp'] = existing_data_object['human_expiration_timestamp']
+        gke_cluster_object['kubeconfig'] = existing_data_object['kubeconfig']
+        if existing_data_object:
+            result = gke_clusters.replace_one(existing_data_object, gke_cluster_object)
+            logger.info(f'aws_discovered_eks_clusters was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            result = gke_clusters.insert_one(gke_cluster_object)
+            logger.info(result.acknowledged)
+            if result.inserted_id:
+                logger.info(f'gcp_discovered_gke_clusters was inserted properly')
+                return True
+            else:
+                logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
+                return False
+    except:
+        logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
 
 def insert_gcp_vm_instances_object(gcp_vm_instances_object: list) -> bool:
     """

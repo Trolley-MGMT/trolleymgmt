@@ -124,7 +124,6 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
     human_created_timestamp = datetime.utcfromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
     expiration_timestamp = expiration_time * 60 * 60 + timestamp
     human_expiration_timestamp = datetime.utcfromtimestamp(expiration_timestamp).strftime('%d-%m-%Y %H:%M:%S')
-
     if cluster_type == GKE:
         gke_deployment_object = GKEObject(cluster_name=cluster_name, context_name=context_name, user_name=user_name,
                                           kubeconfig=kubeconfig,
