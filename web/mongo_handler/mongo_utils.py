@@ -397,7 +397,7 @@ def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
     return cache_object[cache_type]
 
 
-def retrieve_vcpu_per_machine_type(provider: str = '', machine_type: str = '', region_name: str = '') -> list:
+def retrieve_compute_per_machine_type(provider: str = '', machine_type: str = '', region_name: str = '') -> dict:
     if provider == GKE:
         mongo_query = {'region': region_name}
         cache_object = gke_machines_cache.find_one(mongo_query)
@@ -412,7 +412,7 @@ def retrieve_vcpu_per_machine_type(provider: str = '', machine_type: str = '', r
     machines_list = cache_object['machines_list']
     for machine in machines_list:
         if machine['machine_type'] == machine_type:
-            return machine['vCPU']
+            return machine
 
 
 def retrieve_user(user_email: str):

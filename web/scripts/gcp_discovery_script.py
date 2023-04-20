@@ -15,12 +15,13 @@ import time
 
 from cryptography.fernet import Fernet
 from google.cloud import compute_v1
+from hurry.filesize import size
 
 from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
 from web.mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, update_discovered_gke_cluster_object, \
     insert_gcp_vm_instances_object, \
     insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
-    retrieve_vcpu_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
+    retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
 
 from google.cloud import storage
 from google.oauth2 import service_account
@@ -191,8 +192,12 @@ def fetch_gke_clusters(service) -> list:
                     for node_pool in cluster['nodePools']:
                         num_nodes += node_pool['initialNodeCount']
                         machine_type = node_pool['config']['machineType']
-                        vCPU = retrieve_vcpu_per_machine_type('gke', machine_type, cluster['locations'][0])
+                        vCPU = retrieve_compute_per_machine_type('gke', machine_type, cluster['locations'][0])['vCPU']
+                        memory = retrieve_compute_per_machine_type('gke', machine_type, cluster['locations'][0])[
+                            'memory']
                         cluster_object['totalvCPU'] = vCPU * num_nodes
+                        total_memory = memory * num_nodes * 1024
+                        cluster_object['totalMemory'] = size(total_memory)
                         cluster_object['machine_type'] = machine_type
                         cluster_object['vCPU'] = vCPU
                     cluster_object['num_nodes'] = num_nodes

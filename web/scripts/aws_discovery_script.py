@@ -16,7 +16,7 @@ from web.mongo_handler.mongo_objects import AWSS3FilesObject, AWSS3BucketsObject
 
 from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
     insert_aws_buckets_object, insert_eks_cluster_object, retrieve_instances, retrieve_available_clusters, \
-    retrieve_vcpu_per_machine_type
+    retrieve_compute_per_machine_type
 # from web.variables.variables import AWS, EKS
 
 if 'macOS' in platform.platform():
@@ -149,7 +149,7 @@ def fetch_eks_clusters() -> list:
                         totalNodes += machines_amount
                         machine_type = node_groups_response['nodegroup']['instanceTypes'][0]
                         machines_list.append(machine_type)
-                        vCPU = retrieve_vcpu_per_machine_type('eks', machine_type)
+                        vCPU = retrieve_compute_per_machine_type('eks', machine_type)['vCPU']
                         machine_types.append({'machine_type': machine_type,
                                               'machines_amount': machines_amount,
                                               'vCPU': vCPU

@@ -26,6 +26,7 @@ $(document).ready(function() {
             <th style="width: 10%" class="text-center">Cluster Region</th>
             <th style="width: 10%" class="text-center">Number of Nodes</th>
             <th style="width: 10%" class="text-center">Total vCPU</th>
+            <th style="width: 10%" class="text-center">Total Memory</th>
             <th style="width: 10%" class="text-center">Kubernetes Version</th>
             <th style="width: 15%" class="text-center">Expiration Time</th>
             <th style="width: 15%" class="text-center">Client Name</th>
@@ -609,6 +610,7 @@ $(document).ready(function() {
                             regionName: value['region_name'],
                             numNodes: value['num_nodes'],
                             totalvCPU: value['totalvCPU'],
+                            totalMemory: value['totalMemory'],
                             tags: value['tags'],
                             discovered: value['discovered']
                     });
@@ -677,6 +679,7 @@ $(document).ready(function() {
             clustersHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.numNodes + '</a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.totalvCPU + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.totalMemory + '</a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.clusterVersion + '</a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.humanExpirationTimestamp + '</a></td>';
             if (!value.clientName) {
