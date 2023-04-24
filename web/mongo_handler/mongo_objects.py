@@ -10,6 +10,7 @@ class UserObject:
     hashed_password: str
     team_name: str
     user_email: str
+    confirmation_url: str
     registration_status: str
     user_type: str
     profile_image_id: ObjectId = ObjectId()

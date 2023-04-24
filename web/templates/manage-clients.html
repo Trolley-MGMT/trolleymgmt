@@ -203,7 +203,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="users" class="nav-link active">
+                                <a href="manage-users" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Users Management</p>
                                 </a>
@@ -214,7 +214,7 @@
                     </li>
                     <li class="nav-item" id="clients-div">
                         <a href="#" class="nav-link">
-                            <i class="fa fa-cog"></i>
+                            <i class="fa fa-building"></i>
                             <p>
                                 Clients
                                 <i class="fas fa-angle-left right"></i>
@@ -222,7 +222,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="clients" class="nav-link">
+                                <a href="manage-clients" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Clients Management</p>
                                 </a>
@@ -286,7 +286,7 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0">Users Management</h1>
+                        <h1 class="m-0">Client Management</h1>
                     </div><!-- /.col -->
                 </div><!-- /.row -->
 
@@ -305,12 +305,12 @@
 
                     <div class="card card-primary" id="add-client-card-title-div" style="display: none;">
                         <div class="card-header">
-                            <h3 class="card-title">Add a new User</h3>
+                            <h3 class="card-title">Add a new client</h3>
                         </div>
                         <form>
                             <div class="card-body">
                                 <div class="form-group" id="client">
-                                    <label for="client_name">User Name</label>
+                                    <label for="client_name">Client Name</label>
                                     <input type="text" class="form-control" id="client_name"
                                            placeholder="Enter Client's Name">
                                     <div data-lastpass-icon-root="true"
@@ -388,7 +388,7 @@
                     </div>
 
                 </div>
-                <button type="submit" class="btn btn-info" id="add-client-button">Add a user!</button>
+                <button type="submit" class="btn btn-info" id="add-client-button">Add a new client!</button>
                 <button type="submit" class="btn btn-info" id="submit-client-button" style="display: none;">Submit
                     client data!
                 </button>

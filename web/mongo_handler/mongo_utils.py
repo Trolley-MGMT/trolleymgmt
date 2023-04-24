@@ -1,3 +1,4 @@
+import codecs
 import logging
 import os
 import platform
@@ -73,6 +74,7 @@ az_discovered_buckets: Collection = db.az_discovered_buckets
 az_discovered_files: Collection = db.az_discovered_files
 
 aks_clusters: Collection = db.aks_clusters
+invited_users: Collection = db.invited_users
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
 aks_cache: Collection = db.aks_cache
@@ -431,6 +433,61 @@ def retrieve_user(user_email: str):
     except:
         logger.error(f'There was a problem here')
     return user_object
+
+
+def retrieve_users_data():
+    """
+    This endpoint retrieves data for all the available users
+    """
+
+    user_objects = users.find()
+    users_data = []
+    if not user_objects:
+        return None
+    else:
+        for user_object in user_objects:
+            del user_object["_id"]
+            try:
+                profile_image_id = user_object['profile_image_id']
+                file = fs.find_one({"_id": profile_image_id})
+                user_object['profile_image'] = file
+                base64_data = codecs.encode(user_object['profile_image'].read(), 'base64')
+                profile_image = base64_data.decode('utf-8')
+                user_object['profile_image_str'] = profile_image
+                del user_object['profile_image_id']
+                del user_object['profile_image']
+            except:
+                logger.error(f'There was a problem here')
+            users_data.append(user_object)
+        return users_data
+
+
+def retrieve_invited_user(user_email: str):
+    """
+    @param user_email:  retrieve a returning user data
+    @return:
+    """
+    mongo_query = {USER_EMAIL: user_email}
+    user_object = invited_users.find_one(mongo_query)
+    logger.info(f'found invited_user is: {user_object}')
+    if not user_object:
+        return None
+    try:
+        del user_object["_id"]
+    except:
+        logger.error(f'There was a problem here')
+    return user_object
+
+
+def delete_user(user_email: str):
+    """
+    @param user_email:  retrieve a returning user data
+    @return:
+    """
+
+    mongo_query = {USER_EMAIL: user_email}
+    if users.delete_one(mongo_query):
+        return True
 
 
 def retrieve_deployment_yaml(cluster_type: str, cluster_name: str) -> dict:
@@ -923,3 +980,30 @@ def delete_client(client_name: str) -> bool:
             return False
     except:
         logger.error(f'client data was not deleted properly')
+
+
+def invite_user(user_data_object: dict) -> bool:
+    """
+    @param user_data_object: The client data to add
+    """
+    try:
+        mongo_query = {'user_email': user_data_object['user_email']}
+        existing_user_data_object = users.find_one(mongo_query)
+        if existing_user_data_object:
+            user_email = user_data_object['user_email']
+            logger.warning(f'user {user_email} already exists in the system')
+        else:
+            user_data_object['registration_status'] = "invited"
+            user_data_object['user_type'] = "user"
+            user_data_object['first_name'] = "none"
+            user_data_object['last_name'] = "none"
+
+            result = invited_users.insert_one(user_data_object)
+            if result.inserted_id:
+                logger.info(f'user was inserted properly')
+                return True
+            else:
+                logger.error(f'user was not inserted properly')
+                return False
+    except:
+        logger.error(f'client data was not inserted properly')

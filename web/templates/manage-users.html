@@ -20,6 +20,7 @@
 
 
 
+
     </script>
 </head>
 
@@ -203,7 +204,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="users" class="nav-link">
+                                <a href="manage-users" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Users Management</p>
                                 </a>
@@ -214,7 +215,7 @@
                     </li>
                     <li class="nav-item" id="clients-div">
                         <a href="#" class="nav-link">
-                            <i class="fa fa-building"></i>
+                            <i class="fa fa-cog"></i>
                             <p>
                                 Clients
                                 <i class="fas fa-angle-left right"></i>
@@ -222,7 +223,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="clients" class="nav-link active">
+                                <a href="manage-clients" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Clients Management</p>
                                 </a>
@@ -286,7 +287,7 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0">Client Management</h1>
+                        <h1 class="m-0">Users Management</h1>
                     </div><!-- /.col -->
                 </div><!-- /.row -->
 
@@ -295,7 +296,7 @@
 
                         <div class="card card-solid">
                             <div class="card-body pb-0">
-                                <div class="row" id="clients-main-div">
+                                <div class="row" id="users-main-div">
                                 </div>
                             </div>
 
@@ -303,83 +304,51 @@
 
                     </section>
 
-                    <div class="card card-primary" id="add-client-card-title-div" style="display: none;">
+                    <div class="card card-primary" id="add-user-card-title-div" style="display: none;">
                         <div class="card-header">
-                            <h3 class="card-title">Add a new client</h3>
+                            <h3 class="card-title">Add a new User</h3>
                         </div>
                         <form>
                             <div class="card-body">
-                                <div class="form-group" id="client">
-                                    <label for="client_name">Client Name</label>
-                                    <input type="text" class="form-control" id="client_name"
-                                           placeholder="Enter Client's Name">
+                                <div class="form-group" id="user">
+                                    <label for="user_name">User Name</label>
+                                    <input type="text" class="form-control" id="user_name"
+                                           placeholder="Enter User's Name">
                                     <div data-lastpass-icon-root="true"
                                          style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
-                                </div>
-
-                                <div class="col-lg-8 align-content-lg-center">
-                                    <!-- select -->
-                                    <div class="form-group">
-                                        <label>Select the internal products used</label>
-                                        <select class="form-control" id="client-internal-products-used" multiple>
-                                            <option>Hummus SDK</option>
-                                            <option>Mashawshe XP</option>
-                                            <option>Halva API</option>
-                                            <option>Tahini Auth</option>
-                                            <option>Tabooleh Flow</option>
-                                            <option>Kebab IO</option>
-                                        </select>
-                                    </div>
                                 </div>
 
 
                                 <div class="card card-info">
                                     <form>
                                         <div class="card-body">
-                                            <div class="form-group" id="connection">
-                                                <label for="connection_name">Connection Name</label>
-                                                <input type="text" class="form-control" id="connection_name"
-                                                       placeholder="Enter Connection's Name">
-                                                <div data-lastpass-icon-root="true"
-                                                     style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
-                                            </div>
                                             <div class="form-group">
-                                                <label for="connection_email">Connection's Email address</label>
-                                                <input type="text" class="form-control" id="connection_email"
+                                                <label for="user_email">User's Email address</label>
+                                                <input type="text" class="form-control" id="user_email"
                                                        placeholder="Enter email">
                                                 <div data-lastpass-icon-root="true"
                                                      style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
                                             </div>
                                             <div class="form-group">
-                                                <label for="connection_phone_number">Connection's Phone Number</label>
-                                                <input type="text" class="form-control" id="connection_phone_number"
-                                                       placeholder="Enter phone number">
-                                                <div data-lastpass-icon-root="true"
-                                                     style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
+                                                <label>Select the User's team name</label>
+                                                <select class="form-control" id="user_team_name">
+                                                    <option>Backend</option>
+                                                    <option>Frontend</option>
+                                                    <option>DevOps</option>
+                                                    <option>QA</option>
+                                                    <option>Product</option>
+                                                    <option>UI</option>
+                                                </select>
                                             </div>
                                         </div>
                                     </form>
 
                                 </div>
                                 <div class="form-group">
-                                    <label for="client_web_address">Client's Web Address</label>
-                                    <input type="text" class="form-control" id="client_web_address"
-                                           placeholder="Enter Connection's Web Address">
-                                    <div data-lastpass-icon-root="true"
-                                         style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="client_web_address">Client's Office Address</label>
-                                    <input type="text" class="form-control" id="client_office_address"
-                                           placeholder="Enter Connection's Office Address">
-                                    <div data-lastpass-icon-root="true"
-                                         style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
-                                </div>
-                                <div class="form-group">
                                     <label>Additional info</label>
                                     <textarea class="form-control" rows="6"
-                                              placeholder="Insert additional data for the client"
-                                              id="client_additional_info"></textarea>
+                                              placeholder="Insert additional data for the user"
+                                              id="user_additional_info"></textarea>
                                 </div>
 
                             </div>
@@ -388,9 +357,8 @@
                     </div>
 
                 </div>
-                <button type="submit" class="btn btn-info" id="add-client-button">Add a client!</button>
-                <button type="submit" class="btn btn-info" id="submit-client-button" style="display: none;">Submit
-                    client data!
+                <button type="submit" class="btn btn-info" id="add-user-button">Add a new user!</button>
+                <button type="submit" class="btn btn-info" id="submit-user-button" style="display: none;">Submit user data!
                 </button>
 
                 <!-- /.content-header -->

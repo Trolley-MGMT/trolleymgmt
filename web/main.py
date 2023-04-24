@@ -117,7 +117,7 @@ def deployment_yaml_object_handling(content) -> DeploymentYAMLObject:
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
                       user_email: str = '', team_name: str = '', profile_image_filename: str = '',
-                      registration_status: str = '') -> bool:
+                      confirmation_url: str = '', registration_status: str = '') -> bool:
     """
     This function registers a new user into the DB
     """
@@ -128,8 +128,10 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
     user_name = f'{first_name.lower()}{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
     profile_image_id = mongo_handler.mongo_utils.insert_file(profile_image_filename)
+    if mongo_handler.mongo_utils.retrieve_user(user_email):
+        mongo_handler.mongo_utils.delete_user(user_email)
     user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
-                             team_name=team_name, hashed_password=hashed_password,
+                             team_name=team_name, hashed_password=hashed_password, confirmation_url=confirmation_url,
                              registration_status=registration_status, user_type=user_type,
                              profile_image_id=profile_image_id)
     if mongo_handler.mongo_utils.insert_user(asdict(user_object)):
@@ -550,6 +552,47 @@ def client():
             return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
 
+@app.route('/users', methods=[GET, POST, PUT, DELETE])
+@login_required
+def users():
+    """
+    This endpoint adds a new user
+    """
+    content = request.get_json()
+    function_name = inspect.stack()[0][3]
+    logger.info(f'A request for {function_name} was requested')
+    if request.method == POST:
+        if mongo_handler.mongo_utils.invite_user(content):
+            mail_message = MailSender(content['user_email'])
+            mail_message.send_invitation_mail()
+            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+        else:
+            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+    elif request.method == GET:
+        users_data = mongo_handler.mongo_utils.retrieve_users_data()
+        return Response(users_data, status=200, mimetype=APPLICATION_JSON)
+        # return jsonify(users_data)
+        # users_object = mongo_handler.mongo_utils.retrieve_users_data()
+        # return Response(json.dumps(users_object), status=200, mimetype=APPLICATION_JSON)
+
+    # elif request.method == PUT:
+    #     if content[OBJECT_TYPE] == CLUSTER:
+    #         if mongo_handler.mongo_utils.add_client_to_cluster(**content):
+    #             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+    #         else:
+    #             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+    #     elif content['object_type'] == 'instance':
+    #         if mongo_handler.mongo_utils.add_client_to_instance(**content):
+    #             return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    #         else:
+    #             return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+    # elif request.method == DELETE:
+    #     if mongo_handler.mongo_utils.delete_client(**content):
+    #         return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+    #     else:
+    #         return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+
+
 @app.route('/healthz', methods=[GET, POST])
 def healthz():
     logger.info('A request was received')
@@ -647,6 +690,13 @@ def fetch_clients_data():
     return jsonify(client_names)
 
 
+@app.route('/fetch_users_data', methods=[GET])
+@login_required
+def fetch_users_data():
+    users_data = mongo_handler.mongo_utils.retrieve_users_data()
+    return jsonify(users_data)
+
+
 @app.route('/fetch_client_name_per_cluster', methods=[GET])
 @login_required
 def fetch_client_name_per_cluster():
@@ -679,7 +729,9 @@ def register():
         first_name = request.form['first_name'].lower()
         last_name = request.form['last_name'].lower()
         user_email = request.form['user_email']
-        team_name = request.form['team_name']
+        invited_user = mongo_handler.mongo_utils.retrieve_invited_user(user_email)
+        if invited_user:
+            team_name = invited_user['team_name']
         password = request.form['password']
         if 'image' not in request.files['file'].mimetype:
             file_path = 'trolley_small.png'
@@ -707,14 +759,14 @@ def register():
         else:
             if not mongo_handler.mongo_utils.retrieve_user(user_email):
                 token = generate_confirmation_token(user_email)
-                confirm_url = str(url_for('confirm_email', token=token, _external=True))
-                print(f'confirm_url is: {confirm_url}')
+                confirmation_url = str(url_for('confirmation_email', token=token, _external=True))
+                print(f'confirmation_url is: {confirmation_url}')
 
-                mail_message = MailSender(user_email, confirm_url)
-                mail_message.send_mail()
+                mail_message = MailSender(user_email, confirmation_url)
+                mail_message.send_confirmation_mail()
 
                 if user_registration(first_name, last_name, password, user_email, team_name, file_path,
-                                     registration_status='pending'):
+                                     confirmation_url, registration_status='pending'):
                     return render_template('confirmation.html', email=user_email)
                     # return render_template('login.html',
                     #                        error_message=f'Dear {first_name.capitalize()}, '
@@ -747,11 +799,12 @@ def confirmation():
 
 
 @app.route('/confirm/<token>')
-def confirm_email(token):
+def confirmation_email(token):
     user_email = confirm_token(token)
     if user_email:
         mongo_handler.mongo_utils.update_user_registration_status(user_email=user_email,
                                                                   registration_status='confirmed')
+
         return redirect(url_for('login'))
 
 
@@ -763,9 +816,9 @@ def login():
         first_name = session['first_name']
         user_email = session['user_email']
         token = generate_confirmation_token(user_email)
-        confirm_url = str(url_for('confirm_email', token=token, _external=True))
+        confirm_url = str(url_for('confirmation_email', token=token, _external=True))
         mail_message = MailSender(user_email, confirm_url)
-        mail_message.send_mail()
+        mail_message.send_confirmation_mail()
         return render_template('login.html',
                                error_message=f'Dear {first_name}! '
                                              f'A confirmation mail was sent to {user_email} and was not confirmed. '
@@ -859,16 +912,16 @@ def clusters_data():
     return render_page('clusters-data.html', cluster_name=cluster_name)
 
 
-@app.route('/users', methods=[GET, POST])
+@app.route('/manage-users', methods=[GET, POST])
 @login_required
-def users():
-    return render_page('users.html')
+def manage_users():
+    return render_page('manage-users.html')
 
 
-@app.route('/clients', methods=[GET, POST])
+@app.route('/manage-clients', methods=[GET, POST])
 @login_required
-def clients():
-    return render_page('clients.html')
+def manage_clients():
+    return render_page('manage-clients.html')
 
 
 @app.route('/client-data', methods=[GET, POST])

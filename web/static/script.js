@@ -51,9 +51,7 @@ $(document).ready(function() {
     let instances_manage_table_footer = `</tr></tbody></table></div>`
 
     var clientElement = '';
-    var clientElementHeader = '<div class="row">';
-    var clientElementFooter = '</div>';
-
+    var userElement = '';
 
     if (debug === true) {
         trolley_url = trolley_local_url;
@@ -71,6 +69,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
+        usersPage = false;
         queryPage = true;
     } else if (pathname[1].includes('build')) {
         buildPage = true;
@@ -79,6 +78,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
+        usersPage = false;
         queryPage = false;
     } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-aks')) || (pathname[1].includes('manage-gke'))){
         buildPage = false;
@@ -87,6 +87,7 @@ $(document).ready(function() {
         clustersManagePage = true;
         instancesManagePage = false;
         clientsPage = false;
+        usersPage = false;
         queryPage = false;
         window.localStorage.setItem("objectType", "cluster");
     } else if ((pathname[1].includes('manage-aws-ec2')) || (pathname[1].includes('manage-gcp-vm')) || (pathname[1].includes('manage-az-vm'))){
@@ -96,6 +97,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = true;
         clientsPage = false;
+        usersPage = false;
         queryPage = false;
         window.localStorage.setItem("objectType", "instance");
     } else if (pathname[1].includes('clusters-data')) {
@@ -105,6 +107,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
+        usersPage = false;
         queryPage = false;
     } else if (pathname[1].includes('data')) {
         buildPage = false;
@@ -113,6 +116,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
+        usersPage = false;
         queryPage = false;
     } else if (pathname[1].includes('clients')) {
         buildPage = false;
@@ -121,6 +125,16 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = true;
+        usersPage = false;
+        queryPage = false;
+    } else if (pathname[1].includes('users')) {
+        buildPage = false;
+        clustersDataPage = false;
+        dataPage = false;
+        clustersManagePage = false;
+        instancesManagePage = false;
+        clientsPage = false;
+        usersPage = true;
         queryPage = false;
     } else {
         buildPage = false;
@@ -129,6 +143,7 @@ $(document).ready(function() {
         clustersManagePage = false;
         instancesManagePage = false;
         clientsPage = false;
+        usersPage = false;
         queryPage = false;
     }
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1) || ($.inArray('manage-az-vm-instances', pathname) > -1)) {
@@ -152,6 +167,11 @@ $(document).ready(function() {
 
     if (buildPage) {
         populate_regions();
+    }
+
+    if (usersPage) {
+        populate_users_data();
+
     }
 
     if (clientsPage) {
@@ -363,6 +383,52 @@ $(document).ready(function() {
         $("#clients-main-div").hide();
     })
 
+    $("#add-user-button").click(function() {
+        $("#add-user-card-title-div").show();
+        $("#add-user-button").hide();
+        $("#submit-user-button").show();
+        $("#users-main-div").hide();
+    })
+
+    $("#submit-user-button").click(function() {
+        var userName = $('#user_name').val().toLowerCase();
+        var userEmail = $('#user_email').val();
+        var userTeamName = $('#user_team_name').val();
+        var userAdditionalInfo = $('#user_additional_info').val();
+
+
+        let add_client_data = JSON.stringify({
+            "user_name": userName,
+            "user_email": userEmail,
+            "team_name": userTeamName,
+            "user_additional_info": userAdditionalInfo,
+        });
+
+
+        url = http + trolley_url + "/users";
+
+        swal_message = 'A request to add a user was sent'
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(add_client_data);
+
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: swal_message,
+            showConfirmButton: false,
+            timer: 5000
+        })
+        location.reload();
+    });
+
     $("#submit-client-button").click(function() {
         var clientName = $('#client_name').val().toLowerCase();
         var clientInternalProducts = $('#client-internal-products-used').val();
@@ -505,69 +571,6 @@ $(document).ready(function() {
             $('#objects-div').append('<ul><li>' + value['service'] + '</li></ul>');
             });
     })
-
-    function assign_client_name(objectType, objectName, dataArray) {
-        let discovered = false
-        provider = window.localStorage.getItem("provider", provider)
-        if (objectType === 'cluster')
-        {
-            $.each(dataArray, function(key, value) {
-            if (value['clusterName'] === objectName) {
-                discovered = value['discovered']
-            }
-            });
-            let clusterType = window.localStorage.getItem("clusterType");
-            clientName = $('#clusters-dropdown-' + objectName).val();
-
-            var assign_client_data = JSON.stringify({
-                "object_type": objectType,
-                "cluster_type": clusterType,
-                "cluster_name": objectName,
-                "client_name": clientName,
-                "discovered": discovered
-            });
-        }
-
-        else if (objectType == 'instance') {
-            $.each(dataArray, function(key, value) {
-                });
-                clientName = $('#instances-dropdown-' + objectName).val();
-            var assign_client_data = JSON.stringify({
-                "object_type": objectType,
-                "instance_name": objectName,
-                "client_name": clientName,
-                "provider": provider
-            });
-        }
-
-
-        url = http + trolley_url + "/client";
-
-        swal_message = 'A request to assign a ' + clientName + ' client to ' + clusterName + ' was sent'
-
-        const xhr = new XMLHttpRequest();
-        xhr.open("PUT", url, true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                var json = JSON.parse(xhr.responseText);
-            }
-        };
-        xhr.send(assign_client_data);
-
-        Swal.fire({
-            position: 'top-end',
-            icon: 'success',
-            title: swal_message,
-            showConfirmButton: false,
-            timer: 5000
-        })
-
-        newHTML = '<a id="' + objectType + 's-text-label-clientName-div-' + objectName + '">' + clientName + '</a>'
-        $("#" + objectType + "s-dropdown-" + objectName).replaceWith(newHTML);
-        $("#" + objectType + "s-button-" + objectName).hide();
-        $("#" + objectType + "s-dropdown-test-instance-1").append(newHTML);
-    }
 
     function store_client_names() {
         var clientNames = []
@@ -883,6 +886,41 @@ $(document).ready(function() {
                 error: function(error) {
                     reject(error)
                     alert("Failure fetching regions data")
+                },
+            })
+        })
+    }
+
+    function populate_users_data() {
+
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/fetch_users_data",
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
+                        first_name = value['first_name'].capitalize();
+                        last_name = value['last_name'].capitalize();
+                        userElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="user-div-' + value['user_name'] + '>'
+                        userElement += '<div class="card bg-light d-flex flex-fill"><div class="card-body pt-0"><div class="row"><div class="col-7"><h2 class="lead"><br><b>' + value['user_name'] + '</b></h2>'
+                        userElement += '<p class="text-muted text-sm"><b>User type: </b> ' + value['user_type'] + '<br>'
+                        userElement += '<b>Team Name: </b> ' + value['team_name'] + '</p>'
+                        userElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
+                        userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + value['user_email'] + '</li>'
+                        userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Registration Status: ' + value['registration_status'] + '</li>'
+                        userElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Full Name: ' + first_name  + ' ' + last_name +  '</li>'
+                        userElement += '</ul></div><div class="col-4 text-center"><img src="data:image/png;base64,' + value['profile_image_str'] + 'alt="user-avatar" class="img-circle img-fluid"></div></div></div>'
+                        userElement += '<div class="card-footer"><div class="text-right">'
+                        userElement += '<a href="client-data?client_name=' + value['user_name'] + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + value['user_name'] + '-delete-user-button"></i> Delete User</a></div></div></div></div>'
+                        });
+                    }
+                    $('#users-main-div').append(userElement);
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching client names data")
                 },
             })
         })
@@ -1332,8 +1370,8 @@ $(document).ready(function() {
             let instanceData = window.localStorage.getItem("instancesData")
             let instanceNamesArray = [];
             var dataArray = JSON.parse(instanceData)
-        } if (this.innerText === "Add") {
-            assign_client_name(objectType, objectName, dataArray);
+//        } if (this.innerText === "Add a new client!") {
+//            assign_client_name(objectType, objectName, dataArray);
         } else if (this.innerText === "More") {
             console.log("Logic for viewing " + objectName + " cluster")
             window.localStorage.removeItem("currentClusterName");
