@@ -14,7 +14,8 @@ from dataclasses import asdict
 from distutils import util
 
 from cryptography.fernet import Fernet
-from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
+from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify, flash
+from itsdangerous import URLSafeTimedSerializer
 from jwt import InvalidTokenError
 import yaml
 from werkzeug.datastructures import FileStorage
@@ -26,9 +27,11 @@ from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE
+from web import mail_handler
 from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
     trigger_trolley_agent_deployment_github_action
+from web.mail_handler import MailSender
 from web.utils import random_string, apply_yaml
 from web.mongo_handler.mongo_objects import ProviderObject
 from web.scripts import gcp_discovery_script, aws_discovery_script
@@ -58,10 +61,13 @@ logger.info(f'The current directory is: {CUR_DIR}')
 logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 
 PROJECT_NAME = os.getenv('PROJECT_NAME')
+GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
+GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 
 app = Flask(__name__, template_folder='templates')
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SECURITY_PASSWORD_SALT'] = 'salty_balls'
 logger.info(os.getenv('SECRET_KEY'))
 app.config['UPLOAD_FOLDER'] = ''
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -72,6 +78,24 @@ if MACOS in platform.platform():
     logger.info(f'current directory is: {PROJECT_ROOT}')
 else:
     PROJECT_NAME = os.environ['PROJECT_NAME']
+
+
+def generate_confirmation_token(email) -> str:
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt=app.config['SECURITY_PASSWORD_SALT'])
+
+
+def confirm_token(token, expiration=3600) -> str:
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(
+            token,
+            salt=app.config['SECURITY_PASSWORD_SALT'],
+            max_age=expiration
+        )
+    except:
+        return "Fail"
+    return email
 
 
 def yaml_to_dict(content) -> dict:
@@ -92,15 +116,22 @@ def deployment_yaml_object_handling(content) -> DeploymentYAMLObject:
 
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
-                      user_email: str = '', team_name: str = '', profile_image_filename: str = '') -> bool:
+                      user_email: str = '', team_name: str = '', profile_image_filename: str = '',
+                      registration_status: str = '') -> bool:
     """
     This function registers a new user into the DB
     """
+    if not mongo_handler.mongo_utils.is_users():
+        user_type = 'admin'
+    else:
+        user_type = 'user'
     user_name = f'{first_name.lower()}{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
     profile_image_id = mongo_handler.mongo_utils.insert_file(profile_image_filename)
     user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
-                             team_name=team_name, hashed_password=hashed_password, profile_image_id=profile_image_id)
+                             team_name=team_name, hashed_password=hashed_password,
+                             registration_status=registration_status, user_type=user_type,
+                             profile_image_id=profile_image_id)
     if mongo_handler.mongo_utils.insert_user(asdict(user_object)):
         if 'trolley' in profile_image_filename:
             return True
@@ -141,6 +172,8 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             password = request.form['user_password']
     logger.info(f'The request is being done with: {user_email} user')
     user_object = mongo_handler.mongo_utils.retrieve_user(user_email)
+    session["registration_status"] = user_object['registration_status']
+
     logger.info(f'user_obj is: {user_object}')
     if not user_object:
         logger.error('failed here')
@@ -673,25 +706,71 @@ def register():
                                                  f'Please try again')
         else:
             if not mongo_handler.mongo_utils.retrieve_user(user_email):
-                if user_registration(first_name, last_name, password, user_email, team_name, file_path):
-                    return render_template('login.html',
-                                           error_message=f'Dear {first_name.capitalize()}, '
-                                                         f'Welcome to {PROJECT_NAME.capitalize()}!')
+                token = generate_confirmation_token(user_email)
+                confirm_url = str(url_for('confirm_email', token=token, _external=True))
+                print(f'confirm_url is: {confirm_url}')
+
+                mail_message = MailSender(user_email, confirm_url)
+                mail_message.send_mail()
+
+                if user_registration(first_name, last_name, password, user_email, team_name, file_path,
+                                     registration_status='pending'):
+                    return render_template('confirmation.html', email=user_email)
+                    # return render_template('login.html',
+                    #                        error_message=f'Dear {first_name.capitalize()}, '
+                    #                                      f'Welcome to {PROJECT_NAME.capitalize()}!')
                 else:
-                    return render_template('login.html',
-                                           error_message=f'Dear {first_name.capitalize()}, '
-                                                         f'your password was not entered correctly. '
-                                                         f'Please try again')
+                    return render_template('confirmation.html', email=user_email)
+                    # return render_template('login.html',
+                    #                        error_message=f'Dear {first_name.capitalize()}, '
+                    #                                      f'your password was not entered correctly. '
+                    #                                      f'Please try again')
+                # return render_template('confirmation.html', email=user_email)
+                # if user_registration(first_name, last_name, password, user_email, team_name, file_path):
+                #     return render_template('login.html',
+                #                            error_message=f'Dear {first_name.capitalize()}, '
+                #                                          f'Welcome to {PROJECT_NAME.capitalize()}!')
+                # else:
+                #     return render_template('login.html',
+                #                            error_message=f'Dear {first_name.capitalize()}, '
+                #                                          f'your password was not entered correctly. '
+                #                                          f'Please try again')
             else:
                 return render_template('register.html',
                                        error_message=f'Dear {first_name}, your email was already registered. '
                                                      f'Please try again')
 
 
+@app.route('/confirmation')
+def confirmation():
+    return render_template('confirmation.html')
+
+
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    user_email = confirm_token(token)
+    if user_email:
+        mongo_handler.mongo_utils.update_user_registration_status(user_email=user_email,
+                                                                  registration_status='confirmed')
+        return redirect(url_for('login'))
+
+
 @app.route('/login', methods=[GET, POST])
 @login_required
 def login():
     message = request.args.get('message')
+    if session['registration_status'] != 'confirmed':
+        first_name = session['first_name']
+        user_email = session['user_email']
+        token = generate_confirmation_token(user_email)
+        confirm_url = str(url_for('confirm_email', token=token, _external=True))
+        mail_message = MailSender(user_email, confirm_url)
+        mail_message.send_mail()
+        return render_template('login.html',
+                               error_message=f'Dear {first_name}! '
+                                             f'A confirmation mail was sent to {user_email} and was not confirmed. '
+                                             f'Sending you another one!')
+
     if message is None:
         message = ''
     if request.method == 'GET':
@@ -778,6 +857,12 @@ def clusters_data():
     except:
         cluster_name = 'nothing'
     return render_page('clusters-data.html', cluster_name=cluster_name)
+
+
+@app.route('/users', methods=[GET, POST])
+@login_required
+def users():
+    return render_page('users.html')
 
 
 @app.route('/clients', methods=[GET, POST])

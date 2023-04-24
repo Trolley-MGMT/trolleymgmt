@@ -359,7 +359,6 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             return False
 
 
-
 def retrieve_clients_data() -> list:
     clients_data_list = []
     mongo_query = {AVAILABILITY.lower(): True}
@@ -470,6 +469,29 @@ def insert_user(user_object: dict = None) -> bool:
     """
     users.insert_one(user_object)
     return True
+
+
+def update_user_registration_status(user_email: str = "", registration_status: str = '') -> bool:
+    """
+    @param user_email: The dictionary with all the user data.
+    @param registration_status: The dictionary with all the user data.
+    """
+
+    myquery = {"user_email": user_email}
+    newvalues = {"$set": {'registration_status': registration_status}}
+    result = users.update_one(myquery, newvalues)
+    logger.info(f'users_data_object was updated properly')
+    return result.raw_result['updatedExisting']
+
+
+def is_users() -> bool:
+    """
+    This function checks if there are any users in the DB
+    """
+    if len(list(users.find())) > 0:
+        return True
+    else:
+        return False
 
 
 def insert_file(profile_image_filename: str = '') -> ObjectId:
@@ -665,6 +687,7 @@ def insert_eks_cluster_object(eks_cluster_object: dict) -> bool:
     except:
         logger.error(f'aws_discovered_eks_clusters was not inserted properly')
 
+
 def drop_discovered_clusters(cluster_type: str = '') -> bool:
     if cluster_type == GKE:
         gcp_discovered_gke_clusters.drop()
@@ -673,6 +696,7 @@ def drop_discovered_clusters(cluster_type: str = '') -> bool:
     elif cluster_type == AKS:
         az_discovered_aks_clusters.drop()
     return True
+
 
 def insert_discovered_gke_cluster_object(gke_cluster_object: dict) -> bool:
     """
@@ -697,6 +721,7 @@ def insert_discovered_gke_cluster_object(gke_cluster_object: dict) -> bool:
                 return False
     except:
         logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
+
 
 def update_discovered_gke_cluster_object(gke_cluster_object: dict) -> bool:
     """
@@ -725,6 +750,7 @@ def update_discovered_gke_cluster_object(gke_cluster_object: dict) -> bool:
                 return False
     except:
         logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
+
 
 def insert_gcp_vm_instances_object(gcp_vm_instances_object: list) -> bool:
     """
