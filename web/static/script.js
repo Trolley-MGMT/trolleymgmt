@@ -910,7 +910,8 @@ $(document).ready(function() {
                         userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + value['user_email'] + '</li>'
                         userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Registration Status: ' + value['registration_status'] + '</li>'
                         userElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Full Name: ' + first_name  + ' ' + last_name +  '</li>'
-                        userElement += '</ul></div><div class="col-4 text-center"><img src="data:image/png;base64,' + value['profile_image_str'] + 'alt="user-avatar" class="img-circle img-fluid"></div></div></div>'
+                        userElement += '</ul></div><div class="col-4 text-center"><img src="' + value['profile_image_filename'] +'"' + 'class="img-circle img-fluid"></div></div></div>'
+//                        userElement += '</ul></div><div class="col-4 text-center"><img src="data:image/png;base64,' + value['profile_image_str'] + 'alt="user-avatar" class="img-circle img-fluid"></div></div></div>'
                         userElement += '<div class="card-footer"><div class="text-right">'
                         userElement += '<a href="client-data?client_name=' + value['user_name'] + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + value['user_name'] + '-delete-user-button"></i> Delete User</a></div></div></div></div>'
                         });

@@ -17,6 +17,7 @@ from cryptography.fernet import Fernet
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify, flash
 from itsdangerous import URLSafeTimedSerializer
 from jwt import InvalidTokenError
+from PIL import Image
 import yaml
 from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -125,7 +126,7 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
         user_type = 'admin'
     else:
         user_type = 'user'
-    user_name = f'{first_name.lower()}{last_name.lower()}'
+    user_name = f'{first_name.lower()}_{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
     profile_image_id = mongo_handler.mongo_utils.insert_file(profile_image_filename)
     if mongo_handler.mongo_utils.retrieve_user(user_email):
@@ -133,12 +134,11 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
     user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
                              team_name=team_name, hashed_password=hashed_password, confirmation_url=confirmation_url,
                              registration_status=registration_status, user_type=user_type,
+                             profile_image_filename=f'static/img/{profile_image_filename}',
                              profile_image_id=profile_image_id)
     if mongo_handler.mongo_utils.insert_user(asdict(user_object)):
         if 'trolley' in profile_image_filename:
             return True
-        if os.path.exists(profile_image_filename):
-            os.remove(profile_image_filename)
         return True
     else:
         return False
@@ -732,14 +732,27 @@ def register():
         invited_user = mongo_handler.mongo_utils.retrieve_invited_user(user_email)
         if invited_user:
             team_name = invited_user['team_name']
+        else:
+            team_name = "none"
         password = request.form['password']
         if 'image' not in request.files['file'].mimetype:
-            file_path = 'trolley_small.png'
+            image_file_name = 'thumbnail_trolley_small.png'
         else:
+            cur_dir = os.getcwd()
+            if " " in first_name:
+                first_name = first_name.replace(" ", "_")
+            if " " in last_name:
+                last_name = last_name.replace(" ", "_")
             profile_image = request.files['file']
             image_extension = profile_image.mimetype.split('/')[1]
-            file_path = f'{first_name}{last_name}.{image_extension}'
-            FileStorage(profile_image.save(os.path.join(app.config['UPLOAD_FOLDER'], file_path)))
+            image_file_name = f'thumbnail_{first_name}_{last_name}.{image_extension}'
+            thumbnail_file_path = f'{cur_dir}/static/img/{image_file_name}'
+            full_file_path = os.path.join(app.config['UPLOAD_FOLDER'], image_file_name)
+            full_thumbnail_file_path = os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_file_path)
+            FileStorage(profile_image.save(full_file_path))
+            image = Image.open(full_file_path)
+            image.thumbnail((192, 192))
+            image.save(full_thumbnail_file_path)
 
         # if not REGISTRATION:
         #     return render_template('login.html',
@@ -765,7 +778,7 @@ def register():
                 mail_message = MailSender(user_email, confirmation_url)
                 mail_message.send_confirmation_mail()
 
-                if user_registration(first_name, last_name, password, user_email, team_name, file_path,
+                if user_registration(first_name, last_name, password, user_email, team_name, image_file_name,
                                      confirmation_url, registration_status='pending'):
                     return render_template('confirmation.html', email=user_email)
                     # return render_template('login.html',

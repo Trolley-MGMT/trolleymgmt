@@ -13,7 +13,9 @@ class UserObject:
     confirmation_url: str
     registration_status: str
     user_type: str
+    profile_image_filename: str
     profile_image_id: ObjectId = ObjectId()
+
 
 
 @dataclass

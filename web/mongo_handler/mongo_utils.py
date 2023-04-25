@@ -1,3 +1,4 @@
+import base64
 import codecs
 import logging
 import os
@@ -451,9 +452,9 @@ def retrieve_users_data():
                 profile_image_id = user_object['profile_image_id']
                 file = fs.find_one({"_id": profile_image_id})
                 user_object['profile_image'] = file
-                base64_data = codecs.encode(user_object['profile_image'].read(), 'base64')
-                profile_image = base64_data.decode('utf-8')
-                user_object['profile_image_str'] = profile_image
+                base64_data = base64.b64encode(file.read())
+                profile_image_str = base64_data.decode()
+                user_object['profile_image_str'] = profile_image_str
                 del user_object['profile_image_id']
                 del user_object['profile_image']
             except:

@@ -33,4 +33,6 @@ web/scripts/__pycache__/gcp_discovery_script.cpython-310.pyc
 web/gcp_credentials.json
 web/scripts/gcp_credentials.json
 mongo-volume/
+*.wepb
 *.pyc
+thumbnail*
