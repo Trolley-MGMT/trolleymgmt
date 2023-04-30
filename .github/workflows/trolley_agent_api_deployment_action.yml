@@ -41,6 +41,8 @@ jobs:
           
           CLUSTER_NAME="${{ github.event.client_payload.cluster_name }}"
           echo "CLUSTER_NAME=${CLUSTER_NAME}" >> $GITHUB_ENV
+          ZONE_NAME="${{ github.event.client_payload.zone_name }}"
+          echo "ZONE_NAME=${ZONE_NAME}" >> $GITHUB_ENV
           CLUSTER_TYPE="${{ github.event.client_payload.cluster_type }}"
           echo "CLUSTER_TYPE=${CLUSTER_TYPE}" >> $GITHUB_ENV
           MONGO_USER="${{ github.event.client_payload.mongo_user }}"

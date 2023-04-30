@@ -197,7 +197,7 @@ def fetch_gke_clusters(service) -> list:
                             'memory']
                         cluster_object['totalvCPU'] = vCPU * num_nodes
                         total_memory = memory * num_nodes * 1024
-                        cluster_object['totalMemory'] = size(total_memory)
+                        cluster_object['total_memory'] = size(total_memory)
                         cluster_object['machine_type'] = machine_type
                         cluster_object['vCPU'] = vCPU
                     cluster_object['num_nodes'] = num_nodes

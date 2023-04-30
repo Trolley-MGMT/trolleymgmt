@@ -581,8 +581,8 @@ $(document).ready(function() {
         provider = window.localStorage.getItem("provider", provider)
         if (objectType === 'cluster') {
             $.each(dataArray, function(key, value) {
-                if (value['clusterName'] === objectName) {
-                    discovered = value['discovered']
+                if (value.cluster_name === objectName) {
+                    discovered = value.discovered
                 }
             });
             let clusterType = window.localStorage.getItem("clusterType");
@@ -743,7 +743,7 @@ $(document).ready(function() {
                                 region_name: value['region_name'],
                                 num_nodes: value['num_nodes'],
                                 totalvCPU: value['totalvCPU'],
-                                totalMemory: value['totalMemory'],
+                                total_memory: value['total_memory'],
                                 tags: value['tags'],
                                 discovered: value['discovered']
                             });
@@ -1329,8 +1329,8 @@ $(document).ready(function() {
     function delete_cluster(clusterType, objectName, dataArray) {
 
         $.each(dataArray, function(key, value) {
-            if (value['clusterName'] === objectName) {
-                discovered = value['discovered']
+            if (value.cluster_name === objectName) {
+                discovered = value.discovered
             }
         });
         let cluster_deletion_data = JSON.stringify({

@@ -27,7 +27,6 @@ else:
     trolley_deployment_path = '/home/runner/work/Trolley-Management/Trolley-Management'
     deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/"))
 
-# agents/k8s_agent/agent_deployment_yamls/full_agent_deployment.yml
 log_file_name = 'agent_main.log'
 deployment_yaml_path = f'{deployment_yaml_path_}/agents/k8s_agent/agent_deployment_yamls'
 base_trolley_agent_full_path = f'{deployment_yaml_path}/full_agent_deployment.yml'

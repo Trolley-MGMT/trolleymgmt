@@ -176,11 +176,10 @@ def retrieve_available_clusters(cluster_type: str, user_name: str = '') -> list:
     logger.info(f'A request to fetch {cluster_type} clusters for {user_name} was received')
     clusters_object = []
     discovered_clusters_object = []
-    is_admin_user = is_admin(user_name)
     if cluster_type == GKE:
         if not user_name:
             cluster_object = gke_clusters.find({AVAILABILITY: True})
-        elif is_admin_user:
+        elif is_admin(user_name):
             discovered_clusters_object = gcp_discovered_gke_clusters.find({AVAILABILITY: True})
             cluster_object = gke_clusters.find({AVAILABILITY: True})
         else:
@@ -188,18 +187,18 @@ def retrieve_available_clusters(cluster_type: str, user_name: str = '') -> list:
             discovered_clusters_object = gcp_discovered_gke_clusters.find(
                 {AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == GKE_AUTOPILOT:
-        if not user_name or is_admin_user:
+        if not user_name or is_admin(user_name):
             cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True})
         else:
             cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == EKS:
-        if not user_name or is_admin_user:
+        if not user_name or is_admin(user_name):
             cluster_object = eks_clusters.find({AVAILABILITY: True})
         else:
             cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
         discovered_clusters_object = aws_discovered_eks_clusters.find({AVAILABILITY: True})
     elif cluster_type == AKS:
-        if not user_name or is_admin_user:
+        if not user_name or is_admin(user_name):
             cluster_object = aks_clusters.find({AVAILABILITY: True})
         else:
             cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
