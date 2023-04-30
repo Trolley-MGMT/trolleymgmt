@@ -482,9 +482,16 @@ $(document).ready(function() {
 
     $("#agent-deployment-button").click(function() {
         let clusterName = window.localStorage.getItem("clusterName");
+        let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
         let clusterType = window.localStorage.getItem("clusterType");
-        let regionName = window.localStorage.getItem("regionName");
         let trolleyServerURL = $('#trolley_server_url').val();
+
+        $.each(clustersData, function(key, value) {
+            if (value['cluster_name'] == clusterName) {
+                cluster_name_to_send = value['cluster_name']
+                regionName = value['region_name'][0]
+            }
+        });
 
         let deploy_trolley_agent_data = JSON.stringify({
             "cluster_name": clusterName,
@@ -935,8 +942,6 @@ $(document).ready(function() {
                     $('#agent-deployment-div').show();
                     let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
                     let clusterName = window.localStorage.getItem("clusterName")
-                    const searchObject = clustersData.find((cluster) => cluster.clusterName == clusterName);
-                    window.localStorage.setItem("regionName", searchObject.regionName[0]);
                 } else {
                     if (response.length < 0) {
                         $('#attach-client-div').show();
@@ -1018,8 +1023,8 @@ $(document).ready(function() {
 
         $.each(usersDataArray, function(key, value) {
             if (value.team_name == team_name) {
-            var cap_user_name = value.first_name.capitalize() + " " +  value.last_name.capitalize()
-            $("#user-names-dropdown").append($("<option />").val(value.user_name).text(cap_user_name));
+                var cap_user_name = value.first_name.capitalize() + " " + value.last_name.capitalize()
+                $("#user-names-dropdown").append($("<option />").val(value.user_name).text(cap_user_name));
             }
         });
     }
@@ -1039,9 +1044,9 @@ $(document).ready(function() {
             userElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Full Name: ' + first_name + ' ' + last_name + '</li>'
             userElement += '</ul></div><div class="col-4 text-center"><img src="' + user.profile_image_filename + '"' + 'class="img-circle img-fluid"></div></div></div>'
             userElement += '<div class="card-footer"><div class="text-right">'
-//            '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-button-' + instanceName + '"</a>Add</button>
+            //            '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-button-' + instanceName + '"</a>Add</button>
             userElement += '<button type="submit" class="btn btn-primary btn-sm" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + user.user_name + '-delete-user-button"></i>Delete User</a></div></div></div></div>'
-//            userElement += '<a href="client-data?client_name=' + user.user_name + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + user.user_name + '-delete-user-button"></i>Delete User</a></div></div></div></div>'
+            //            userElement += '<a href="client-data?client_name=' + user.user_name + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + user.user_name + '-delete-user-button"></i>Delete User</a></div></div></div></div>'
         });
         $('#users-main-div').append(userElement);
     }
