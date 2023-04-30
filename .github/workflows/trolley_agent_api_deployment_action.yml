@@ -39,7 +39,6 @@ jobs:
           echo "mongo_url are: ${{ github.event.client_payload.mongo_url }}"
           echo "trolley_server_url is: ${{ github.event.client_payload.trolley_server_url }}"
           echo "zone_name is: ${{ github.event.client_payload.zone_name }}"
-          
           CLUSTER_NAME="${{ github.event.client_payload.cluster_name }}"
           echo "CLUSTER_NAME=${CLUSTER_NAME}" >> $GITHUB_ENV
           ZONE_NAME="${{ github.event.client_payload.zone_name }}"
