@@ -14,7 +14,9 @@ class UserObject:
     registration_status: str
     user_type: str
     profile_image_filename: str
+    availability: bool
     profile_image_id: ObjectId = ObjectId()
+
 
 
 

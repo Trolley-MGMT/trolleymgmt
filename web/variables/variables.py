@@ -70,6 +70,8 @@ FIRST_NAME = 'first_name'
 LAST_NAME = 'last_name'
 HASHED_PASSWORD = 'hashed_password'
 TEAM_NAME = 'team_name'
+ADMIN = 'admin'
+USER = 'user'
 
 
 # EKS

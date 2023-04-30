@@ -36,7 +36,8 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME
+        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
+        ADMIN
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
@@ -76,6 +77,7 @@ az_discovered_files: Collection = db.az_discovered_files
 
 aks_clusters: Collection = db.aks_clusters
 invited_users: Collection = db.invited_users
+teams: Collection = db.teams
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
 aks_cache: Collection = db.aks_cache
@@ -174,25 +176,30 @@ def retrieve_available_clusters(cluster_type: str, user_name: str = '') -> list:
     logger.info(f'A request to fetch {cluster_type} clusters for {user_name} was received')
     clusters_object = []
     discovered_clusters_object = []
+    is_admin_user = is_admin(user_name)
     if cluster_type == GKE:
         if not user_name:
             cluster_object = gke_clusters.find({AVAILABILITY: True})
+        elif is_admin_user:
+            discovered_clusters_object = gcp_discovered_gke_clusters.find({AVAILABILITY: True})
+            cluster_object = gke_clusters.find({AVAILABILITY: True})
         else:
             cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
-            discovered_clusters_object = gcp_discovered_gke_clusters.find({AVAILABILITY: True})
+            discovered_clusters_object = gcp_discovered_gke_clusters.find(
+                {AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == GKE_AUTOPILOT:
-        if not user_name:
+        if not user_name or is_admin_user:
             cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True})
         else:
             cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == EKS:
-        if not user_name:
+        if not user_name or is_admin_user:
             cluster_object = eks_clusters.find({AVAILABILITY: True})
         else:
             cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
         discovered_clusters_object = aws_discovered_eks_clusters.find({AVAILABILITY: True})
     elif cluster_type == AKS:
-        if not user_name:
+        if not user_name or is_admin_user:
             cluster_object = aks_clusters.find({AVAILABILITY: True})
         else:
             cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
@@ -436,12 +443,16 @@ def retrieve_user(user_email: str):
     return user_object
 
 
-def retrieve_users_data():
+def retrieve_users_data(team_name: str = ""):
     """
     This endpoint retrieves data for all the available users
     """
-
-    user_objects = users.find()
+    if team_name:
+        mongo_query = {TEAM_NAME.lower(): team_name}
+        user_object = users.find(mongo_query)
+        user_objects = user_object
+    else:
+        user_objects = users.find()
     users_data = []
     if not user_objects:
         return None
@@ -452,15 +463,29 @@ def retrieve_users_data():
                 profile_image_id = user_object['profile_image_id']
                 file = fs.find_one({"_id": profile_image_id})
                 user_object['profile_image'] = file
-                base64_data = base64.b64encode(file.read())
-                profile_image_str = base64_data.decode()
-                user_object['profile_image_str'] = profile_image_str
                 del user_object['profile_image_id']
+                del user_object['hashed_password']
                 del user_object['profile_image']
             except:
                 logger.error(f'There was a problem here')
-            users_data.append(user_object)
+            if user_object['availability']:
+                users_data.append(user_object)
         return users_data
+
+
+def retrieve_teams_data():
+    """
+    This endpoint retrieves data for all the available teams
+    """
+
+    teams_objects = teams.find()
+    teams_data = []
+    if not teams_objects:
+        return None
+    else:
+        for team_object in teams_objects:
+            teams_data.append(team_object['team_name'])
+        return sorted(teams_data)
 
 
 def retrieve_invited_user(user_email: str):
@@ -480,15 +505,31 @@ def retrieve_invited_user(user_email: str):
     return user_object
 
 
-def delete_user(user_email: str):
+def delete_user(user_email: str = "", user_name: str = ""):
     """
-    @param user_email:  retrieve a returning user data
+    @param user_email:  deleting a user using his email
+    @param user_name:  deleting a user using his user_name
     @return:
     """
+    if user_email:
+        myquery = {USER_EMAIL: user_email}
+        newvalues = {"$set": {'availability': False}}
+        result = users.update_one(myquery, newvalues)
+    elif user_name:
+        myquery = {USER_NAME.lower(): user_name}
+        newvalues = {"$set": {'availability': False}}
+        result = users.update_one(myquery, newvalues)
+    else:
+        myquery = {USER_EMAIL: user_email}
+        newvalues = {"$set": {'availability': False}}
+        result = users.update_one(myquery, newvalues)
+    return result.raw_result['updatedExisting']
 
-    mongo_query = {USER_EMAIL: user_email}
-    if users.delete_one(mongo_query):
-        return True
+    # myquery = {"user_email": user_email}
+    # newvalues = {"$set": {'registration_status': registration_status}}
+    # result = users.update_one(myquery, newvalues)
+    # logger.info(f'users_data_object was updated properly')
+    # return result.raw_result['updatedExisting']
 
 
 def retrieve_deployment_yaml(cluster_type: str, cluster_name: str) -> dict:
@@ -547,6 +588,18 @@ def is_users() -> bool:
     This function checks if there are any users in the DB
     """
     if len(list(users.find())) > 0:
+        return True
+    else:
+        return False
+
+
+def is_admin(user_name: str = "") -> bool:
+    """
+    This function checks if the provided user is an admin
+    """
+    mongo_query = {USER_NAME.lower(): user_name}
+    user_object = users.find_one(mongo_query)
+    if user_object['user_type'] == ADMIN:
         return True
     else:
         return False
@@ -908,20 +961,25 @@ def add_client_data_object(client_data_object: dict) -> bool:
         logger.error(f'client data was not inserted properly')
 
 
-def add_client_to_cluster(object_type: str, cluster_type: str = '', cluster_name: str = '', client_name: str = '',
-                          discovered: bool = False):
+def add_client_to_cluster(object_type: str, cluster_type: str = '', cluster_name: str = '', assigned_object: str = '',
+                          user_name: str = '', client_name: str = '', discovered: bool = False):
     """
 
     @param object_type: The type of an object
     @param cluster_type: The type of the cluster to change the availability of
+    @param assigned_object: The name of the object we want to assign to the cluster (user/client)
     @param cluster_name: The name of the cluster to set the availability of
+    @param user_name: Name of the user we want to associate with the cluster
     @param client_name: Name of the client we want to associate with the cluster
     @param discovered: Signifies whether the cluster was discovered by Trolley agent.
     @return:
     """
 
     myquery = {CLUSTER_NAME.lower(): cluster_name}
-    newvalues = {"$set": {CLIENT_NAME.lower(): client_name}}
+    if assigned_object == 'user':
+        newvalues = {"$set": {USER_NAME.lower(): user_name}}
+    elif assigned_object == 'client':
+        newvalues = {"$set": {CLIENT_NAME.lower(): client_name}}
     if cluster_type == GKE:
         if discovered:
             result = gcp_discovered_gke_clusters.update_one(myquery, newvalues)
@@ -1008,3 +1066,26 @@ def invite_user(user_data_object: dict) -> bool:
                 return False
     except:
         logger.error(f'client data was not inserted properly')
+
+
+def insert_team(team_data_object: dict) -> bool:
+    """
+    @param team_data_object: The team data to add
+    """
+    try:
+        mongo_query = {'team_name': team_data_object['team_name']}
+        existing_team_data_object = teams.find_one(mongo_query)
+        if existing_team_data_object:
+            team_name = team_data_object['team_name']
+            logger.warning(f'team {team_name} already exists in the system')
+            return True
+        else:
+            result = teams.insert_one(team_data_object)
+            if result.inserted_id:
+                logger.info(f'team was inserted properly')
+                return True
+            else:
+                logger.error(f'team was not inserted properly')
+                return False
+    except:
+        logger.error(f'team data was not inserted properly')

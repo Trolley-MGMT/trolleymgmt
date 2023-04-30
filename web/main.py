@@ -27,8 +27,7 @@ from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE
-from web import mail_handler
+    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME
 from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
     trigger_trolley_agent_deployment_github_action
@@ -130,11 +129,11 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
     hashed_password = generate_password_hash(password, method='sha256')
     profile_image_id = mongo_handler.mongo_utils.insert_file(profile_image_filename)
     if mongo_handler.mongo_utils.retrieve_user(user_email):
-        mongo_handler.mongo_utils.delete_user(user_email)
+        mongo_handler.mongo_utils.delete_user(user_email=user_email)
     user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
                              team_name=team_name, hashed_password=hashed_password, confirmation_url=confirmation_url,
                              registration_status=registration_status, user_type=user_type,
-                             profile_image_filename=f'static/img/{profile_image_filename}',
+                             profile_image_filename=f'static/img/{profile_image_filename}', availability=True,
                              profile_image_id=profile_image_id)
     if mongo_handler.mongo_utils.insert_user(asdict(user_object)):
         if 'trolley' in profile_image_filename:
@@ -556,12 +555,12 @@ def client():
 @login_required
 def users():
     """
-    This endpoint adds a new user
+    This endpoint adds/gets a new user
     """
-    content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested')
     if request.method == POST:
+        content = request.get_json()
         if mongo_handler.mongo_utils.invite_user(content):
             mail_message = MailSender(content['user_email'])
             mail_message.send_invitation_mail()
@@ -569,8 +568,33 @@ def users():
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == GET:
-        users_data = mongo_handler.mongo_utils.retrieve_users_data()
-        return Response(users_data, status=200, mimetype=APPLICATION_JSON)
+        team_name = request.args.get(TEAM_NAME.lower())
+        users_data = mongo_handler.mongo_utils.retrieve_users_data(team_name)
+        return jsonify(users_data)
+    elif request.method == DELETE:
+        content = request.get_json()
+        user_name = content[USER_NAME.lower()]
+        users_data = mongo_handler.mongo_utils.delete_user(user_name=user_name)
+        return jsonify(users_data)
+
+
+@app.route('/teams', methods=[GET, POST, PUT, DELETE])
+# @login_required
+def teams():
+    """
+    This endpoint adds a new team
+    """
+    function_name = inspect.stack()[0][3]
+    logger.info(f'A request for {function_name} was requested')
+    if request.method == POST:
+        content = request.get_json()
+        if mongo_handler.mongo_utils.insert_team(content):
+            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+        else:
+            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+    elif request.method == GET:
+        teams_data = mongo_handler.mongo_utils.retrieve_teams_data()
+        return jsonify(teams_data)
         # return jsonify(users_data)
         # users_object = mongo_handler.mongo_utils.retrieve_users_data()
         # return Response(json.dumps(users_object), status=200, mimetype=APPLICATION_JSON)

@@ -14,13 +14,11 @@ $(document).ready(function() {
     let provider = 'something';
     let fullHREF = window.location.href;
     let pathname = window.location.pathname.split('/');
-
     if (fullHREF.includes("?")) {
         query = true;
     }
 
-    let clusters_manage_table_header = `<div class="card-body p-0">
-    <table class="table table-striped projects" >
+    let clusters_manage_table_header = `<table class="table table-striped projects">
         <thead>
         <tr><th style="width: 10%" class="text-center">Cluster Name</th>
             <th style="width: 10%" class="text-center">Cluster Region</th>
@@ -29,12 +27,13 @@ $(document).ready(function() {
             <th style="width: 10%" class="text-center">Total Memory</th>
             <th style="width: 10%" class="text-center">Kubernetes Version</th>
             <th style="width: 15%" class="text-center">Expiration Time</th>
+            <th style="width: 15%" class="text-center">User Name</th>
             <th style="width: 15%" class="text-center">Client Name</th>
             <th style="width: 15%" class="text-center">Tags</th>
             <th style="width: 20%" class="text-center">
             </th></tr></thead><tbody><tr>`
 
-    let clusters_manage_table_footer = `</tr></tbody></table></div>`
+    let clusters_manage_table_footer = `</tr></tbody></table>`
 
     let instances_manage_table_header = `<div class="card-body p-0">
     <table class="table table-striped projects" >
@@ -43,6 +42,7 @@ $(document).ready(function() {
             <th style="width: 10%" class="text-center">Instance Region</th>
             <th style="width: 10%" class="text-center">Internal IP</th>
             <th style="width: 10%" class="text-center">External IP</th>
+            <th style="width: 15%" class="text-center">User Name</th>
             <th style="width: 15%" class="text-center">Client Name</th>
             <th style="width: 15%" class="text-center">Tags</th>
             <th style="width: 20%" class="text-center">
@@ -80,7 +80,7 @@ $(document).ready(function() {
         clientsPage = false;
         usersPage = false;
         queryPage = false;
-    } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-aks')) || (pathname[1].includes('manage-gke'))){
+    } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-aks')) || (pathname[1].includes('manage-gke'))) {
         buildPage = false;
         clustersDataPage = false;
         dataPage = false;
@@ -90,7 +90,7 @@ $(document).ready(function() {
         usersPage = false;
         queryPage = false;
         window.localStorage.setItem("objectType", "cluster");
-    } else if ((pathname[1].includes('manage-aws-ec2')) || (pathname[1].includes('manage-gcp-vm')) || (pathname[1].includes('manage-az-vm'))){
+    } else if ((pathname[1].includes('manage-aws-ec2')) || (pathname[1].includes('manage-gcp-vm')) || (pathname[1].includes('manage-az-vm'))) {
         buildPage = false;
         clustersDataPage = false;
         dataPage = false;
@@ -162,6 +162,9 @@ $(document).ready(function() {
         window.localStorage.setItem("clusterType", clusterType);
         window.localStorage.setItem("provider", provider);
     }
+    store_client_names()
+    store_users_data()
+    store_team_names()
 
     populate_logged_in_assets();
 
@@ -182,8 +185,10 @@ $(document).ready(function() {
         store_clusters()
             .then((data) => {
                 console.log(data)
-                store_client_names()
                 populate_kubernetes_clusters_objects()
+                populate_team_names()
+                let teamNames = window.localStorage.getItem("teamNames");
+                populate_user_names(teamNames.split(",")[0])
             })
             .catch((error) => {
                 console.log(error)
@@ -195,7 +200,6 @@ $(document).ready(function() {
         store_instances(provider)
             .then((data) => {
                 console.log(data)
-                store_client_names()
                 populate_instances_objects()
             })
             .catch((error) => {
@@ -345,17 +349,17 @@ $(document).ready(function() {
         swal_message = 'A request to add a provider was sent'
         var forms = document.querySelectorAll('.needs-validation')
 
-          // Loop over them and prevent submission
-          Array.prototype.slice.call(forms)
-            .forEach(function (form) {
-              form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                  event.preventDefault()
-                  event.stopPropagation()
-                }
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
 
-                form.classList.add('was-validated')
-              }, false)
+                    form.classList.add('was-validated')
+                }, false)
             })
         const xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
@@ -393,7 +397,7 @@ $(document).ready(function() {
     $("#submit-user-button").click(function() {
         var userName = $('#user_name').val().toLowerCase();
         var userEmail = $('#user_email').val();
-        var userTeamName = $('#user_team_name').val();
+        var userTeamName = $('#user_team_name').val().toLowerCase();
         var userAdditionalInfo = $('#user_additional_info').val();
 
 
@@ -519,7 +523,7 @@ $(document).ready(function() {
         const namespacesArray = namespaces.split(",");
         $.each(namespacesArray, function(key, value) {
             $('#objects-div').append('<ul><li>' + value + '</li></ul>');
-            });
+        });
     })
 
     $("#deployments-more-info").click(function() {
@@ -529,7 +533,7 @@ $(document).ready(function() {
         deploymentsArray = JSON.parse(deployments)
         $.each(deploymentsArray, function(key, value) {
             $('#objects-div').append('<ul><li>' + value['deployment'] + '</li></ul>');
-            });
+        });
     })
 
     $("#pods-more-info").click(function() {
@@ -539,7 +543,7 @@ $(document).ready(function() {
         podsArray = JSON.parse(pods)
         $.each(podsArray, function(key, value) {
             $('#objects-div').append('<ul><li>' + value['pod'] + '</li></ul>');
-            });
+        });
     })
 
     $("#containers-more-info").click(function() {
@@ -549,7 +553,7 @@ $(document).ready(function() {
         containersArray = JSON.parse(containers);
         $.each(containersArray, function(key, value) {
             $('#objects-div').append('<ul><li>' + value['container_name'] + '</li></ul>');
-            });
+        });
     })
 
     $("#daemonsets-more-info").click(function() {
@@ -559,7 +563,7 @@ $(document).ready(function() {
         daemonsetsArray = JSON.parse(daemonsets);
         $.each(daemonsetsArray, function(key, value) {
             $('#objects-div').append('<ul><li>' + value['daemonsets'] + '</li></ul>');
-            });
+        });
     })
 
     $("#services-more-info").click(function() {
@@ -569,8 +573,77 @@ $(document).ready(function() {
         servicesArray = JSON.parse(services);
         $.each(servicesArray, function(key, value) {
             $('#objects-div').append('<ul><li>' + value['service'] + '</li></ul>');
-            });
+        });
     })
+
+    function assign_object(objectType, objectName, dataArray, assignedObject) {
+        let discovered = false
+        provider = window.localStorage.getItem("provider", provider)
+        if (objectType === 'cluster') {
+            $.each(dataArray, function(key, value) {
+                if (value['clusterName'] === objectName) {
+                    discovered = value['discovered']
+                }
+            });
+            let clusterType = window.localStorage.getItem("clusterType");
+            if (assignedObject == "user") {
+                clientName = ""
+                userName = $('#clusters-dropdown-' + objectName).val();
+            } else if (assignedObject == "client") {
+                clientName = $('#clusters-dropdown-' + objectName).val();
+                userName = ""
+            }
+            var assign_client_data = JSON.stringify({
+                "object_type": objectType,
+                "cluster_type": clusterType,
+                "cluster_name": objectName,
+                "assigned_object": assignedObject,
+                "user_name": userName,
+                "client_name": clientName,
+                "discovered": discovered
+            });
+        } else if (objectType == 'instance') {
+            $.each(dataArray, function(key, value) {});
+            clientName = $('#instances-dropdown-' + objectName).val();
+            var assign_client_data = JSON.stringify({
+                "object_type": objectType,
+                "instance_name": objectName,
+                "client_name": clientName,
+                "provider": provider
+            });
+        }
+
+
+        url = http + trolley_url + "/client";
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(assign_client_data);
+
+
+        if (assignedObject == "user") {
+            var user_name_array = userName.split("_")
+            var cap_user_name_ = ""
+            $.each(user_name_array, function(key, value) {
+                cap_user_name_ += value.capitalize() + " "
+            });
+            cap_user_name = cap_user_name_.slice(0, -1)
+            newHTML = '<a id="' + objectType + '-text-label-userName-div-' + objectName + '">' + cap_user_name + '</a>'
+            $("#" + objectType + "s-dropdown-" + objectName).replaceWith(newHTML);
+            $("#" + objectType + "s-button-" + objectName).hide();
+
+        } else if (assignedObject == "client") {
+            newHTML = '<a id="' + objectType + '-text-label-clientName-div-' + objectName + '">' + clientName + '</a>'
+            $("#" + objectType + "s-dropdown-" + objectName).replaceWith(newHTML);
+            $("#" + objectType + "s-button-" + objectName).hide();
+        }
+    }
 
     function store_client_names() {
         var clientNames = []
@@ -581,7 +654,7 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
-                            clientNames.push(value['client_name'])
+                            clientNames.push(value['client_name'].capitalize())
                         });
                     }
                     window.localStorage.setItem("clientNames", clientNames);
@@ -589,6 +662,62 @@ $(document).ready(function() {
                 },
                 error: function(error) {
                     reject(error)
+                },
+            })
+        })
+    }
+
+    function store_users_data() {
+        var usersData = []
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/users",
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
+                            usersData.push({
+                                first_name: value['first_name'],
+                                last_name: value['last_name'],
+                                user_name: value['user_name'],
+                                team_name: value['team_name'],
+                                user_email: value['user_email'],
+                                profile_image_filename: value['profile_image_filename'],
+                                registration_status: value['registration_status'],
+                                user_type: value['user_type'],
+                            });
+                        });
+                    }
+                    window.localStorage.setItem("usersData", JSON.stringify(usersData));
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                },
+            })
+        })
+    }
+
+
+
+    function store_team_names() {
+        var teamNames = []
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/teams",
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
+                            teamNames.push(value)
+                        });
+                    }
+                    window.localStorage.setItem("teamNames", teamNames);
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure fetching regions data")
                 },
             })
         })
@@ -602,22 +731,23 @@ $(document).ready(function() {
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
-                       $.each(response, function(key, value) {
-                       clustersData.push({
-                            clusterName: value['cluster_name'],
-                            clientName: value['client_name'],
-                            clusterVersion: value['cluster_version'],
-                            humanExpirationTimestamp: value['human_expiration_timestamp'],
-                            kubeconfig: value['kubeconfig'],
-                            nodesIPs: value['nodes_ips'],
-                            regionName: value['region_name'],
-                            numNodes: value['num_nodes'],
-                            totalvCPU: value['totalvCPU'],
-                            totalMemory: value['totalMemory'],
-                            tags: value['tags'],
-                            discovered: value['discovered']
-                    });
-                    });
+                        $.each(response, function(key, value) {
+                            clustersData.push({
+                                cluster_name: value['cluster_name'],
+                                user_name: value['user_name'],
+                                client_name: value['client_name'],
+                                cluster_version: value['cluster_version'],
+                                human_expiration_timestamp: value['human_expiration_timestamp'],
+                                kubeconfig: value['kubeconfig'],
+                                nodes_ips: value['nodes_ips'],
+                                region_name: value['region_name'],
+                                num_nodes: value['num_nodes'],
+                                totalvCPU: value['totalvCPU'],
+                                totalMemory: value['totalMemory'],
+                                tags: value['tags'],
+                                discovered: value['discovered']
+                            });
+                        });
                     }
                     window.localStorage.setItem("clustersData", JSON.stringify(clustersData));
                     resolve(response)
@@ -629,6 +759,26 @@ $(document).ready(function() {
         })
     }
 
+    function populate_clusters_per_user(userName) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + userName,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        populate_kubernetes_clusters_objects(response)
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure populating clusters per user")
+                },
+            })
+        })
+
+    }
+
     function store_instances(provider) {
         var instancesData = []
         return new Promise((resolve, reject) => {
@@ -637,23 +787,22 @@ $(document).ready(function() {
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
-                       $.each(response, function(key, value) {
-                        if (provider == 'aws') {
-                            var instanceLocation = value['instance_region']
-                        }
-                        else if (provider == 'gcp') {
-                            var instanceLocation = value['instance_zone']
-                        }
-                        instancesData.push({
-                            instanceName: value['instance_name'],
-                            instanceType: value['instance_type'],
-                            instanceZone: instanceLocation,
-                            internalIP: value['internal_ip'],
-                            externalIP: value['external_ip'],
-                            clientName: value['client_name'],
-                            tags: value['tags']
-                    });
-                    });
+                        $.each(response, function(key, value) {
+                            if (provider == 'aws') {
+                                var instanceLocation = value['instance_region']
+                            } else if (provider == 'gcp') {
+                                var instanceLocation = value['instance_zone']
+                            }
+                            instancesData.push({
+                                instanceName: value['instance_name'],
+                                instanceType: value['instance_type'],
+                                instanceZone: instanceLocation,
+                                internalIP: value['internal_ip'],
+                                externalIP: value['external_ip'],
+                                clientName: value['client_name'],
+                                tags: value['tags']
+                            });
+                        });
                     }
                     window.localStorage.setItem("instancesData", JSON.stringify(instancesData));
                     resolve(response)
@@ -665,49 +814,57 @@ $(document).ready(function() {
         })
     }
 
-    function populate_kubernetes_clusters_objects(){
+    function populate_kubernetes_clusters_objects(passedClustersData) {
         var clustersHTML = '';
+        var clustersData = '';
         var clusterNames = []
         var kubeconfigs_array = [];
-        let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
+        if (passedClustersData === undefined) {
+            clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
+        } else {
+            clustersData = passedClustersData
+        }
+
         $.each(clustersData, function(key, value) {
-            clusterNames.push(value.clusterName)
+            var user_name_array = value.user_name.split("_")
+            var cap_user_name_ = ""
+            $.each(user_name_array, function(key, value) {
+                cap_user_name_ += value.capitalize() + " "
+            });
+            cap_user_name = cap_user_name_.slice(0, -1)
+            clusterNames.push(value.cluster_name)
             var tags_string_ = JSON.stringify(value.tags);
             var tags_string__ = tags_string_.replace(/[{}]/g, "");
             var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
             var tags_string = tags_string___.replace(/[,]/g, "<br>");
-            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clusters-dropdown-' + value.clusterName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clusters-button-' + value.clusterName + '" >Add</button>'
-            clustersHTML += '<tr id="tr_' + value.clusterName + '">';
-            clustersHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.clusterName + '"><p>' + value.clusterName + '</p></a></td>';
-            clustersHTML += '<td class="text-center"><a>' + value.regionName + '</a></td>';
-            clustersHTML += '<td class="text-center"><a>' + value.numNodes + '</a></td>';
+            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clusters-dropdown-' + value.cluster_name + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clusters-button-' + value.cluster_name + '" >Add</button>'
+            clustersHTML += '<tr id="tr_' + value.cluster_name + '">';
+            clustersHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.cluster_name + '"><p>' + value.cluster_name + '</p></a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.region_name + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.num_nodes + '</a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.totalvCPU + '</a></td>';
-            clustersHTML += '<td class="text-center"><a>' + value.totalMemory + '</a></td>';
-            clustersHTML += '<td class="text-center"><a>' + value.clusterVersion + '</a></td>';
-            clustersHTML += '<td class="text-center"><a>' + value.humanExpirationTimestamp + '</a></td>';
-            if (!value.clientName) {
-                clustersHTML += '<td class="text-center" id="clusters-clientName-div-' + value.clusterName + '"><a>' + client_name_assign_element + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.total_memory + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.cluster_version + '</a></td>';
+            clustersHTML += '<td class="text-center"><a>' + value.human_expiration_timestamp + '</a></td>';
+            if (!value.cluster_name) {
+                clustersHTML += '<td class="text-center" id="clusters-userName--div-' + value.cluster_name + '"><a>' + client_name_assign_element + '</a></td>';
             } else {
-                clustersHTML += '<td class="text-center" id="clusters-clientName-div-' + value.clusterName + '"><a id="clusters-text-label-clientName-div-' + value.clusterName + '">' + value.clientName + '</a></td>';
+                clustersHTML += '<td class="text-center" id="clusters-userName-div-' + value.cluster_name + '"><a id="clusters-text-label-userName-div-' + value.cluster_name + '">' + cap_user_name + '</a></td>';
+            }
+            if (!value.cluster_name) {
+                clustersHTML += '<td class="text-center" id="clusters-clientName-div-' + value.cluster_name + '"><a>' + client_name_assign_element + '</a></td>';
+            } else {
+                clustersHTML += '<td class="text-center" id="clusters-clientName-div-' + value.cluster_name + '"><a id="clusters-text-label-clientName-div-' + value.cluster_name + '">' + value.client_name.capitalize() + '</a></td>';
             }
             clustersHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
             let manage_table_buttons = '<td class="project-actions text-right"> \
-            <a class="btn btn-danger btn-sm" id="delete-button-' + value.clusterName + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
-            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"> \
-            <div class="modal-dialog modal-lg" role="document"> <div class="modal-content"> <div class="modal-header"> \
-            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5> \
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"> \
-            <span aria-hidden="true">&times;</span></button> </div> <div class="modal-body"> \
-            Testing stuff</div> <div class="modal-footer"> \
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> \
-            <button type="button" class="btn btn-primary" id="copyKubeconfig-button-' + value.clusterName + '">Copy Kubeconfig</button> \
-            </div> </div> </div> </div>'
+            <a class="btn btn-danger btn-sm" id="delete-button-' + value.cluster_name + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> </div>'
             clustersHTML += manage_table_buttons
             kubeconfigs_array.push({
-                key: value.clusterName,
+                key: value.cluster_name,
                 value: value.kubeconfig
             });
-        full_table = clusters_manage_table_header + clustersHTML + clusters_manage_table_footer
+            full_table = clusters_manage_table_header + clustersHTML + clusters_manage_table_footer
 
         });
         if (clusterType == 'aks') {
@@ -717,18 +874,9 @@ $(document).ready(function() {
         } else if (clusterType == 'gke') {
             $('#gke-clusters-management-table').append(full_table);
         }
-
-        $.each(clusterNames, function( index, value ) {
-            var clientNames = window.localStorage.getItem("clientNames");
-            let clientNamesList = clientNames.split(',')
-            $("#clusters-dropdown-" + value['clusterName']).append($("<option />").val('').text('Add a client'));
-            $.each(clientNamesList, function( index, clientNameValue ) {
-                $("#clusters-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
-            });
-        });
     }
 
-    function populate_instances_objects(){
+    function populate_instances_objects() {
         var instancesHTML = '';
         var instancesNames = []
         var kubeconfigs_array = [];
@@ -745,17 +893,17 @@ $(document).ready(function() {
             instancesHTML += '<td class="text-center"><a>' + value.instanceZone + '</a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.internalIP + '</a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.externalIP + '</a></td>';
-            if (!value.clientName) {
+            if (!value.client_name) {
                 instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instanceName + '"><a>' + client_name_assign_element + '</a></td>';
             } else {
-                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instanceName + '"><a id="instances-text-label-clientName-div-' + value.instanceName + '">' + value.clientName + '</a></td>';
+                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instanceName + '"><a id="instances-text-label-clientName-div-' + value.instanceName + '">' + value.client_name + '</a></td>';
             }
             instancesHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
             let manage_table_buttons = '<td class="project-actions text-right"> \
             <a class="btn btn-danger btn-sm" id="delete-button-' + value.instanceName + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
             </div> </div> </div> </div>'
             instancesHTML += manage_table_buttons
-        full_table = instances_manage_table_header + instancesHTML + instances_manage_table_footer
+            full_table = instances_manage_table_header + instancesHTML + instances_manage_table_footer
 
         });
         if (provider == 'aws') {
@@ -766,11 +914,11 @@ $(document).ready(function() {
             $('#gcp-vm-instances-management-table').append(full_table);
         }
 
-        $.each(instancesNames, function( index, value ) {
+        $.each(instancesNames, function(index, value) {
             var clientNames = window.localStorage.getItem("clientNames");
             let clientNamesList = clientNames.split(',')
             $("#instances-dropdown-" + value['instanceName']).append($("<option />").val('').text('Add a client'));
-            $.each(clientNamesList, function( index, clientNameValue ) {
+            $.each(clientNamesList, function(index, clientNameValue) {
                 $("#instances-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
             });
         });
@@ -783,31 +931,31 @@ $(document).ready(function() {
             url: url,
             success: function(response) {
                 if ((response.status === 'Failure') || (response[0].content === null)) {
-                        $('#resources-title').replaceWith('Trolley Agent was not found on the cluster. Click to install!');
-                        $('#agent-deployment-div').show();
-                        let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
-                        let clusterName = window.localStorage.getItem("clusterName")
-                        const searchObject= clustersData.find((cluster) => cluster.clusterName==clusterName);
-                        window.localStorage.setItem("regionName", searchObject.regionName[0]);
+                    $('#resources-title').replaceWith('Trolley Agent was not found on the cluster. Click to install!');
+                    $('#agent-deployment-div').show();
+                    let clustersData = jQuery.parseJSON(window.localStorage.getItem("clustersData"));
+                    let clusterName = window.localStorage.getItem("clusterName")
+                    const searchObject = clustersData.find((cluster) => cluster.clusterName == clusterName);
+                    window.localStorage.setItem("regionName", searchObject.regionName[0]);
                 } else {
                     if (response.length < 0) {
-                    $('#attach-client-div').show();
+                        $('#attach-client-div').show();
                     } else {
-                    $.each(response, function(key, value) {
-                        $('#agent-data-div').show();
-                        $('#namespaces').append('<h3>' + value.namespaces.length + '</h3>');
-                        $('#deployments').append('<h3>' + value.deployments.length + '</h3>');
-                        $('#pods').append('<h3>' + value.pods.length + '</h3>');
-                        $('#containers').append('<h3>' + value.containers.length + '</h3>');
-                        $('#daemonsets').append('<h3>' + value.daemonsets.length + '</h3>');
-                        $('#services').append('<h3>' + value.services.length + '</h3>');
-                        window.localStorage.setItem("namespaces", value.namespaces);
-                        window.localStorage.setItem("deployments", JSON.stringify(value.deployments));
-                        window.localStorage.setItem("pods", JSON.stringify(value.pods));
-                        window.localStorage.setItem("containers", JSON.stringify(value.containers));
-                        window.localStorage.setItem("daemonsets", JSON.stringify(value.daemonsets));
-                        window.localStorage.setItem("services", JSON.stringify(value.services));
-                    })
+                        $.each(response, function(key, value) {
+                            $('#agent-data-div').show();
+                            $('#namespaces').append('<h3>' + value.namespaces.length + '</h3>');
+                            $('#deployments').append('<h3>' + value.deployments.length + '</h3>');
+                            $('#pods').append('<h3>' + value.pods.length + '</h3>');
+                            $('#containers').append('<h3>' + value.containers.length + '</h3>');
+                            $('#daemonsets').append('<h3>' + value.daemonsets.length + '</h3>');
+                            $('#services').append('<h3>' + value.services.length + '</h3>');
+                            window.localStorage.setItem("namespaces", value.namespaces);
+                            window.localStorage.setItem("deployments", JSON.stringify(value.deployments));
+                            window.localStorage.setItem("pods", JSON.stringify(value.pods));
+                            window.localStorage.setItem("containers", JSON.stringify(value.containers));
+                            window.localStorage.setItem("daemonsets", JSON.stringify(value.daemonsets));
+                            window.localStorage.setItem("services", JSON.stringify(value.services));
+                        })
                     }
                 }
             },
@@ -815,42 +963,6 @@ $(document).ready(function() {
                 console.log('error loading orchestration items')
             }
         })
-    }
-
-    function populate_regions_() {
-        if (clusterType == 'aks') {
-            var $dropdown = $("#aks-locations-dropdown");
-        } else if (clusterType == 'eks') {
-            var $dropdown = $("#eks-locations-dropdown");
-        } else if (clusterType == 'gke') {
-            var $dropdown = $("#gke-regions-dropdown");
-        }
-        url = http + trolley_url + "/fetch_regions?cluster_type=" + clusterType;
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(response) {
-                if (response.status === 'Failure') {
-                    alert("Failure to fetch regions data")
-                } else {
-                    if (clusterType == 'aks') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value).text(key));
-                        });
-                    } else if (clusterType == 'eks') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value).text(value));
-                        });
-                        populate_zones('eu-north-1')
-                    } else if (clusterType == 'gke') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value).text(value));
-                        });
-                        populate_zones('us-east1')
-                    }
-                }
-            }
-        }, )
     }
 
     function populate_regions() {
@@ -891,40 +1003,47 @@ $(document).ready(function() {
         })
     }
 
-    function populate_users_data() {
 
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                url: http + trolley_url + "/fetch_users_data",
-                type: 'GET',
-                success: function(response) {
-                    if (response.length > 0) {
-                        $.each(response, function(key, value) {
-                        first_name = value['first_name'].capitalize();
-                        last_name = value['last_name'].capitalize();
-                        userElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="user-div-' + value['user_name'] + '>'
-                        userElement += '<div class="card bg-light d-flex flex-fill"><div class="card-body pt-0"><div class="row"><div class="col-7"><h2 class="lead"><br><b>' + value['user_name'] + '</b></h2>'
-                        userElement += '<p class="text-muted text-sm"><b>User type: </b> ' + value['user_type'] + '<br>'
-                        userElement += '<b>Team Name: </b> ' + value['team_name'] + '</p>'
-                        userElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
-                        userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + value['user_email'] + '</li>'
-                        userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Registration Status: ' + value['registration_status'] + '</li>'
-                        userElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Full Name: ' + first_name  + ' ' + last_name +  '</li>'
-                        userElement += '</ul></div><div class="col-4 text-center"><img src="' + value['profile_image_filename'] +'"' + 'class="img-circle img-fluid"></div></div></div>'
-//                        userElement += '</ul></div><div class="col-4 text-center"><img src="data:image/png;base64,' + value['profile_image_str'] + 'alt="user-avatar" class="img-circle img-fluid"></div></div></div>'
-                        userElement += '<div class="card-footer"><div class="text-right">'
-                        userElement += '<a href="client-data?client_name=' + value['user_name'] + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + value['user_name'] + '-delete-user-button"></i> Delete User</a></div></div></div></div>'
-                        });
-                    }
-                    $('#users-main-div').append(userElement);
-                    resolve(response)
-                },
-                error: function(error) {
-                    reject(error)
-                    alert("Failure fetching client names data")
-                },
-            })
-        })
+    function populate_team_names() {
+        var teamNames = window.localStorage.getItem("teamNames");
+        let teamNamesList = teamNames.split(',')
+        $.each(teamNamesList, function(key, value) {
+            $("#team-names-dropdown").append($("<option />").val(value).text(value.capitalize()));
+        });
+    }
+
+    function populate_user_names(team_name) {
+        var usersData = window.localStorage.getItem("usersData");
+        var usersDataArray = JSON.parse(usersData)
+
+        $.each(usersDataArray, function(key, value) {
+            if (value.team_name == team_name) {
+            var cap_user_name = value.first_name.capitalize() + " " +  value.last_name.capitalize()
+            $("#user-names-dropdown").append($("<option />").val(value.user_name).text(cap_user_name));
+            }
+        });
+    }
+
+    function populate_users_data() {
+        usersDataArray = jQuery.parseJSON(window.localStorage.getItem("usersData"));
+        $.each(usersDataArray, function(index, user) {
+            first_name = user.first_name.capitalize();
+            last_name = user.last_name.capitalize();
+            userElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="user-div-' + user.user_name + '>'
+            userElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="col-7"><h2 class="lead"><br><b>' + user.first_name.capitalize() + " " + user.last_name.capitalize() + '</b></h2>'
+            userElement += '<p class="text-muted text-sm"><b>User type: </b> ' + user.user_type + '<br>'
+            userElement += '<b>Team Name: </b> ' + user.team_name + '</p>'
+            userElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
+            userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + user.user_email + '</li>'
+            userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Registration Status: ' + user.registration_status + '</li>'
+            userElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Full Name: ' + first_name + ' ' + last_name + '</li>'
+            userElement += '</ul></div><div class="col-4 text-center"><img src="' + user.profile_image_filename + '"' + 'class="img-circle img-fluid"></div></div></div>'
+            userElement += '<div class="card-footer"><div class="text-right">'
+//            '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-button-' + instanceName + '"</a>Add</button>
+            userElement += '<button type="submit" class="btn btn-primary btn-sm" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + user.user_name + '-delete-user-button"></i>Delete User</a></div></div></div></div>'
+//            userElement += '<a href="client-data?client_name=' + user.user_name + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + user.user_name + '-delete-user-button"></i>Delete User</a></div></div></div></div>'
+        });
+        $('#users-main-div').append(userElement);
     }
 
     function populate_clients_data() {
@@ -936,17 +1055,17 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
-                        clientElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="client-div-' + value['client_name'] + '>'
-                        clientElement += '<div class="card bg-light d-flex flex-fill"><div class="card-body pt-0"><div class="row"><div class="col-7"><h2 class="lead"><br><b>' + value['client_name'] + '</b></h2>'
-                        clientElement += '<p class="text-muted text-sm"><b>About: </b> ' + value['client_additional_info'] + '<br>'
-                        clientElement += '<b>Contact Name: </b> ' + value['connection_name'] + '</p>'
-                        clientElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
-                        clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + value['client_office_address'] + '</li>'
-                        clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Phone #: ' + value['connection_phone_number'] + '</li>'
-                        clientElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Web: <a href=' + value['client_web_address'] + ' target="_blank" >' + value['client_web_address'] + '</li>'
-                        clientElement += '</ul></div></div></div>'
-                        clientElement += '<div class="card-footer"><div class="text-right">'
-                        clientElement += '<a href="client-data?client_name=' + value['client_name'] + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + value['client_name'] + '-view-profile-button"></i> View Profile</a></div></div></div></div>'
+                            clientElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="client-div-' + value['client_name'].capitalize() + '>'
+                            clientElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="col-7"><h2 class="lead"><br><b>' + value['client_name'].capitalize() + '</b></h2>'
+                            clientElement += '<p class="text-muted text-sm"><b>About: </b> ' + value['client_additional_info'] + '<br>'
+                            clientElement += '<b>Contact Name: </b> ' + value['connection_name'] + '</p>'
+                            clientElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
+                            clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + value['client_office_address'] + '</li>'
+                            clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Phone #: ' + value['connection_phone_number'] + '</li>'
+                            clientElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Web: <a href=' + value['client_web_address'] + ' target="_blank" >' + value['client_web_address'] + '</li>'
+                            clientElement += '</ul></div></div></div>'
+                            clientElement += '<div class="card-footer"><div class="text-right">'
+                            clientElement += '<a href="client-data?client_name=' + value['client_name'] + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + value['client_name'].capitalize() + '-view-profile-button"></i> View Profile</a></div></div></div></div>'
                         });
                     }
                     $('#clients-main-div').append(clientElement);
@@ -963,8 +1082,7 @@ $(document).ready(function() {
     function populate_client_names(objectType) {
         if (objectType == 'cluster') {
             var $dropdown = $("#clusters-dropdown");
-        }
-        else if (objectType == 'instance') {
+        } else if (objectType == 'instance') {
             var $dropdown = $("#instances-dropdown");
         }
 
@@ -975,7 +1093,7 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value['client_name']).text(value['client_name']));
+                            $dropdown.append($("<option />").val(value['client_name']).text(value['client_name'].capitalize()));
                         });
                     }
                     resolve(response)
@@ -1003,20 +1121,20 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.length > 0) {
                         if (clusterType == 'aks') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value.name).text(value.displayName));
-                        });
-                    } else if (clusterType == 'eks') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value).text(value));
-                        });
-                    } else if (clusterType == 'gke') {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value).text(value));
-                        });
-                        populate_kubernetes_versions('asia-east1-b')
-                        populate_kubernetes_image_types('asia-east1-b')
-                    }
+                            $.each(response, function(key, value) {
+                                $dropdown.append($("<option />").val(value.name).text(value.displayName));
+                            });
+                        } else if (clusterType == 'eks') {
+                            $.each(response, function(key, value) {
+                                $dropdown.append($("<option />").val(value).text(value));
+                            });
+                        } else if (clusterType == 'gke') {
+                            $.each(response, function(key, value) {
+                                $dropdown.append($("<option />").val(value).text(value));
+                            });
+                            populate_kubernetes_versions('asia-east1-b')
+                            populate_kubernetes_image_types('asia-east1-b')
+                        }
                     }
                     resolve(response)
                 },
@@ -1097,7 +1215,7 @@ $(document).ready(function() {
     }
 
     function populate_kubernetes_versions(selected_location) {
-         if (clusterType == 'aks') {
+        if (clusterType == 'aks') {
             var $dropdown = $("#aks-versions-dropdown");
             var url = http + trolley_url + "/fetch_aks_versions?az_region=" + selected_location;
         } else if (clusterType == 'eks') {
@@ -1115,7 +1233,7 @@ $(document).ready(function() {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
-                    });
+                        });
                     }
                     resolve(response)
                 },
@@ -1146,7 +1264,7 @@ $(document).ready(function() {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
-                    });
+                        });
                     }
                     resolve(response)
                 },
@@ -1166,9 +1284,9 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
-                        console.log(key);
-                        console.log(value);
-                    });
+                            console.log(key);
+                            console.log(value);
+                        });
                     }
                     resolve(response)
                 },
@@ -1214,7 +1332,7 @@ $(document).ready(function() {
             if (value['clusterName'] === objectName) {
                 discovered = value['discovered']
             }
-            });
+        });
         let cluster_deletion_data = JSON.stringify({
             "cluster_type": clusterType,
             "cluster_name": objectName,
@@ -1241,6 +1359,25 @@ $(document).ready(function() {
             showConfirmButton: true,
             timer: 5000
         })
+
+    }
+
+    function delete_user(userName) {
+        let user_deletion_data = JSON.stringify({
+            "user_name": userName
+        });
+
+
+        url = http + trolley_url + "/users";
+        const xhr = new XMLHttpRequest();
+        xhr.open("DELETE", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(user_deletion_data);
 
     }
 
@@ -1273,11 +1410,11 @@ $(document).ready(function() {
 
     function populate_logged_in_assets() {
         Object.defineProperty(String.prototype, 'capitalize', {
-        value: function() {
-            return this.charAt(0).toUpperCase() + this.slice(1);
-        },
-        enumerable: false
-    });
+            value: function() {
+                return this.charAt(0).toUpperCase() + this.slice(1);
+            },
+            enumerable: false
+        });
         $("#userNameLabel").text(data['first_name'].capitalize());
     }
 
@@ -1308,6 +1445,23 @@ $(document).ready(function() {
         populate_kubernetes_image_types(gke_zones);
     })
 
+    $('#team-names-dropdown').change(function() {
+        var teamName = $('#team-names-dropdown').val();
+        $("#user-names-dropdown").empty();
+        populate_user_names(teamName);
+        var userName = $('#user-names-dropdown').val();
+        $("#gke-clusters-management-table").empty()
+        populate_clusters_per_user(userName);
+    })
+
+    $('#user-names-dropdown').change(function() {
+        $("#gke-clusters-management-table").empty()
+        var userName = $('#user-names-dropdown').val();
+        populate_clusters_per_user(userName);
+    })
+
+
+
     $('#cloud-providers-dropdown').change(function() {
         var cloud_provider = $('#cloud-providers-dropdown').val();
         if (cloud_provider == "AWS") {
@@ -1315,42 +1469,65 @@ $(document).ready(function() {
             $("#AWSSecretAccessKeyDiv").show();
             $("#AzureCredentialsDiv").hide();
             $("#GoogleCredsJSONDiv").hide();
-        }
-        else if (cloud_provider == "GCP") {
+        } else if (cloud_provider == "GCP") {
             $("#AWSAccessKeyIDDiv").hide();
             $("#AWSSecretAccessKeyDiv").hide();
             $("#AzureCredentialsDiv").hide();
             $("#GoogleCredsJSONDiv").show();
-        }
-        else if (cloud_provider == "Azure") {
+        } else if (cloud_provider == "Azure") {
             $("#AWSAccessKeyIDDiv").hide();
             $("#AWSSecretAccessKeyDiv").hide();
             $("#AzureCredentialsDiv").show();
             $("#GoogleCredsJSONDiv").hide();
         }
     })
+
     $(document).on("click", ".text-center", function() {
         var HTML = "";
-        var valueID = this.id;
-        var divValue = valueID.split("-")
+        let valueID = this.id;
+        if (valueID.length == 0) {
+            valueID = window.localStorage.getItem("valueID");
+            let divValue = valueID.split("-")
+        } else {
+            divValue = valueID.split("-");
+        }
         var objectType = divValue[0]
         var clientName = this.children[0].innerText;
         if (divValue[1] == "clientName") {
+            window.localStorage.setItem("assignedObject", "client");
             var instanceName_ = $(this).parent().attr('id');
             var instanceName = instanceName_.slice(3);
-            var textLabelId = "#" + objectType + "s-text-label-clientName-div-" + instanceName;
+            var textLabelId = "#" + objectType + "-text-label-clientName-div-" + instanceName;
             $(textLabelId).hide();
             let clientNames = window.localStorage.getItem("clientNames")
             let clientNamesList = clientNames.split(',')
             var newDropDownHTML = '<td class="text-center"><select class="col-lg-8 align-content-lg-center" id="' + objectType + '-dropdown-' + instanceName + '"><a>';
-            $.each(clientNamesList, function( index, clientNameValue ) {
-                newDropDownHTML +=  '<option value="' + clientNameValue + '">' + clientNameValue + '</option>'
+            $.each(clientNamesList, function(index, clientNameValue) {
+                newDropDownHTML += '<option value="' + clientNameValue + '">' + clientNameValue + '</option>'
             });
             newDropDownHTML += '</select>'
             newDropDownHTML += '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-button-' + instanceName + '"</a>Add</button></td>'
             $('#' + objectType + '-clientName-div-' + instanceName).replaceWith(newDropDownHTML);
             console.log(newDropDownHTML)
+        } else if (divValue[1] == "userName") {
+            window.localStorage.setItem("assignedObject", "user");
+            var instanceName_ = $(this).parent().attr('id');
+            var instanceName = instanceName_.slice(3);
+            var textLabelId = "#" + objectType + "-text-label-userName-div-" + instanceName;
+            $(textLabelId).hide();
+            let usersData = window.localStorage.getItem("usersData")
+            var usersDataArray = JSON.parse(usersData)
+            var newDropDownHTML = '<td class="text-center"><select class="col-lg-8 align-content-lg-center" id="' + objectType + '-dropdown-' + instanceName + '"><a>';
+            $.each(usersDataArray, function(index, user) {
+                newDropDownHTML += '<option value="' + user.user_name + '">' + user.first_name.capitalize() + " " + user.last_name.capitalize() + '</option>'
+            });
+            newDropDownHTML += '</select>'
+            newDropDownHTML += '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-button-' + instanceName + '"</a>Add</button></td>'
+            $('#' + objectType + '-userName-div-' + instanceName).replaceWith(newDropDownHTML);
+            console.log(newDropDownHTML)
         }
+        window.localStorage.setItem("valueID", valueID);
+        let thisID = window.localStorage.getItem("valueID");
     })
 
     $(document).on("click", ".btn", function() {
@@ -1366,13 +1543,14 @@ $(document).ready(function() {
             let clustersData = window.localStorage.getItem("clustersData")
             let clusterNamesArray = [];
             var dataArray = JSON.parse(clustersData)
-        }
-        else if (objectType === 'instance') {
+        } else if (objectType === 'instance') {
             let instanceData = window.localStorage.getItem("instancesData")
             let instanceNamesArray = [];
             var dataArray = JSON.parse(instanceData)
-//        } if (this.innerText === "Add a new client!") {
-//            assign_client_name(objectType, objectName, dataArray);
+        }
+        if (this.innerText === "Add") {
+            let assignedObject = window.localStorage.getItem("assignedObject")
+            assign_object(objectType, objectName, dataArray, assignedObject);
         } else if (this.innerText === "More") {
             console.log("Logic for viewing " + objectName + " cluster")
             window.localStorage.removeItem("currentClusterName");
@@ -1384,12 +1562,17 @@ $(document).ready(function() {
         } else if (this.innerText === "Delete") {
             console.log("Logic for deleting " + objectName + " cluster")
             delete_cluster(clusterType, objectName, dataArray)
+        } else if (this.innerText === "Delete User") {
+            userToDelete = this.firstChild.id.split("-")[0]
+            console.log("Logic for deleting " + userToDelete + " user")
+            delete_user(userToDelete)
+            location.reload()
         } else if (this.innerText === "Scan for clusters") {
             console.log("Logic for triggering a clusters scan")
-            trigger_cloud_provider_discovery(provider, objectType='cluster')
+            trigger_cloud_provider_discovery(provider, objectType = 'cluster')
         } else if (this.innerText === "Scan for VMs") {
             console.log("Logic for triggering a VMs scan")
-            trigger_cloud_provider_discovery(provider, objectType='instance')
+            trigger_cloud_provider_discovery(provider, objectType = 'instance')
         } else if (this.innerText === "Copy Kubeconfig") {
             clusterName = window.localStorage.getItem("currentClusterName");
             console.log("Logic for copying kubeconfig for " + clusterName + " cluster")
@@ -1405,7 +1588,7 @@ $(document).ready(function() {
                 showConfirmButton: false,
                 timer: 1000
             })
-        } else if ((this.lastChild.id.split("-")).includes("delete")){
+        } else if ((this.lastChild.id.split("-")).includes("delete")) {
             var clientName = this.lastChild.id.split("-")[1]
             delete_client(clientName)
             location.reload()
