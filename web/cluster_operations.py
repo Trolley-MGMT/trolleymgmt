@@ -50,8 +50,6 @@ GITHUB_ACTION_REQUEST_HEADER = {
     'Authorization': f'token {GITHUB_ACTION_TOKEN}'
 }
 
-logger.info(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
-print(f'GitHub Action Token: {GITHUB_ACTION_TOKEN}')
 logger.info(f'GitHub Repository is: {GITHUB_REPOSITORY}')
 logger.info(f'GITHUB_ACTIONS_API_URL is: {GITHUB_ACTIONS_API_URL}')
 logger.info(f'GITHUB_ACTION_REQUEST_HEADER_DOCKER is: {GITHUB_ACTION_REQUEST_HEADER_DOCKER}')

@@ -58,7 +58,6 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 logger.info(f'The current directory is: {CUR_DIR}')
-logger.info(f'The content of the directory is: {os.listdir(CUR_DIR)}')
 
 PROJECT_NAME = os.getenv('PROJECT_NAME')
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
@@ -68,7 +67,6 @@ app = Flask(__name__, template_folder='templates')
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SECURITY_PASSWORD_SALT'] = 'salty_balls'
-logger.info(os.getenv('SECRET_KEY'))
 app.config['UPLOAD_FOLDER'] = ''
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
@@ -182,7 +180,6 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
     session['user_email'] = user_email
     session['user_password'] = password
     try:
-        logger.info('trying here')
         session['first_name'] = user_object['first_name'].capitalize()
     except:
         logger.error('failed here')
@@ -194,9 +191,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                                failure_message=f'{user_email} was not found in the system '
                                                f'or you provided a wrong password, please try again')
     try:
-        logger.info(f'checking the password for {user_object}')
         if check_password_hash(user_object['hashed_password'], password):
-            logger.info(f'The hashed password is correct')
             try:
                 token = jwt.encode(
                     {'user_id': str(user_object['_id']),
@@ -207,11 +202,9 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                 logger.info(f'Failed to create a token')
                 token = ''
             session['x-access-token'] = token
-            logger.info(f'The decoded token is: {token}')
             return token, user_object
         else:
             logger.info('The hashed password is incorrect')
-            logger.info(f'The hashed password is incorrect')
             return '', user_object
     except:
         logger.info(f'The hashed password is incorrect')
@@ -285,7 +278,8 @@ def get_instances_data():
     Ths endpoint allows providing basic instances data that was gathered.
     """
     provider_type = request.args.get(PROVIDER)
-    instances_list = mongo_handler.mongo_utils.retrieve_instances(provider_type)
+    user_name = request.args.get(USER_NAME.lower())
+    instances_list = mongo_handler.mongo_utils.retrieve_instances(provider_type, user_name)
     return Response(json.dumps(instances_list), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -535,18 +529,18 @@ def client():
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == PUT:
         if content[OBJECT_TYPE] == CLUSTER:
-            if mongo_handler.mongo_utils.add_client_to_cluster(**content):
+            if mongo_handler.mongo_utils.add_data_to_cluster(**content):
                 return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
             else:
                 return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-        elif content['object_type'] == 'instance':
-            if mongo_handler.mongo_utils.add_client_to_instance(**content):
-                return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+        elif content[OBJECT_TYPE] == INSTANCE:
+            if mongo_handler.mongo_utils.add_data_to_instance(**content):
+                return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
             else:
-                return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
+                return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == DELETE:
         if mongo_handler.mongo_utils.delete_client(**content):
-            return Response(json.dumps('OK'), status=200, mimetype=APPLICATION_JSON)
+            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps('Failure'), status=400, mimetype=APPLICATION_JSON)
 
@@ -1001,5 +995,3 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80, debug=True)
-# app.run(host='0.0.0.0', port=8081, debug=True, ssl_context=('cert.pem', 'key.pem'))
-# web.run(host='0.0.0.0', port=8081, debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'))

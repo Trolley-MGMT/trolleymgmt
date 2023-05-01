@@ -27,7 +27,7 @@ from google.cloud import storage
 from google.oauth2 import service_account
 from googleapiclient import discovery
 
-from web.variables.variables import GKE
+from web.variables.variables import GKE, GCP
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
@@ -79,7 +79,10 @@ def list_all_instances(project_id: str, ) -> list:
         A dictionary with zone names as keys (in form of "zones/{zone_name}") and
         iterable collections of Instance objects as values.
     """
-    instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH_TO_SAVE)
+    if os.path.exists(CREDENTIALS_PATH_TO_SAVE):
+        instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH_TO_SAVE)
+    else:
+        instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_DEFAULT_PATH)
     request = compute_v1.AggregatedListInstancesRequest()
     request.project = project_id
     request.max_results = 50
@@ -104,10 +107,11 @@ def list_all_instances(project_id: str, ) -> list:
                     except:
                         external_ip = ''
                     instance_object = GCPInstanceDataObject(timestamp=TS, project_name=project_id,
-                                                            instance_name=instance.name, internal_ip=internal_ip,
+                                                            instance_name=instance.name, user_name="vacant",
+                                                            client_name="vacant", availability=True, internal_ip=internal_ip,
                                                             external_ip=external_ip, tags=dict(instance.labels),
-                                                            instance_type=instance.machine_type.split("/")[-1],
-                                                            instance_zone=instance.zone.split("/")[-1], client_name='')
+                                                            machine_type=instance.machine_type.split("/")[-1],
+                                                            instance_zone=instance.zone.split("/")[-1])
                     instances_object.append(instance_object)
     return instances_object
 
@@ -240,11 +244,12 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         already_discovered_vm_instances_to_test = []
         discovered_vm_instances_to_add = []
 
-        already_discovered_vm_instances = retrieve_instances('gcp')
+        already_discovered_vm_instances = retrieve_instances(GCP)
         gcp_discovered_vm_instances_object = list_all_instances(project_id=GCP_PROJECT_NAME)
 
         for already_discovered_vm in already_discovered_vm_instances:
-            already_discovered_vm_instances_to_test.append(already_discovered_vm['instance_name'])
+            if already_discovered_vm in gcp_discovered_vm_instances_object:
+                discovered_vm_instances_to_add.append(already_discovered_vm['instance_name'])
 
         for gcp_discovered_vm_instance in gcp_discovered_vm_instances_object:
             if gcp_discovered_vm_instance.instance_name not in already_discovered_vm_instances_to_test:

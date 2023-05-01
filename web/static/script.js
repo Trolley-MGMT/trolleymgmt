@@ -40,6 +40,7 @@ $(document).ready(function() {
         <thead>
         <tr><th style="width: 10%" class="text-center">Instance Name</th>
             <th style="width: 10%" class="text-center">Instance Region</th>
+            <th style="width: 10%" class="text-center">Machine Type</th>
             <th style="width: 10%" class="text-center">Internal IP</th>
             <th style="width: 10%" class="text-center">External IP</th>
             <th style="width: 15%" class="text-center">User Name</th>
@@ -186,13 +187,13 @@ $(document).ready(function() {
             .then((data) => {
                 console.log(data)
                 populate_kubernetes_clusters_objects()
-                populate_team_names()
-                let teamNames = window.localStorage.getItem("teamNames");
-                populate_user_names(teamNames.split(",")[0])
             })
             .catch((error) => {
                 console.log(error)
             })
+        populate_team_names()
+        let teamNames = window.localStorage.getItem("teamNames");
+        populate_user_names(teamNames.split(",")[0])
 
     }
 
@@ -205,7 +206,9 @@ $(document).ready(function() {
             .catch((error) => {
                 console.log(error)
             })
-
+        populate_team_names()
+        let teamNames = window.localStorage.getItem("teamNames");
+        populate_user_names(teamNames.split(",")[0])
     }
 
     if (clustersDataPage) {
@@ -586,7 +589,7 @@ $(document).ready(function() {
     function assign_object(objectType, objectName, dataArray, assignedObject) {
         let discovered = false
         provider = window.localStorage.getItem("provider", provider)
-        if (objectType === 'cluster') {
+        if (objectType == 'cluster') {
             $.each(dataArray, function(key, value) {
                 if (value.cluster_name === objectName) {
                     discovered = value.discovered
@@ -610,11 +613,19 @@ $(document).ready(function() {
                 "discovered": discovered
             });
         } else if (objectType == 'instance') {
-            $.each(dataArray, function(key, value) {});
-            clientName = $('#instances-dropdown-' + objectName).val();
+        if (assignedObject == "user") {
+                clientName = ""
+                userName = $('#instances-dropdown-' + objectName).val();
+            } else if (assignedObject == "client") {
+                clientName = $('#instances-dropdown-' + objectName).val();
+                userName = ""
+            }
+
             var assign_client_data = JSON.stringify({
                 "object_type": objectType,
                 "instance_name": objectName,
+                "assigned_object": assignedObject,
+                "user_name": userName,
                 "client_name": clientName,
                 "provider": provider
             });
@@ -786,6 +797,26 @@ $(document).ready(function() {
 
     }
 
+     function populate_instances_per_user(provider, userName) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/get_instances_data?provider=" + provider + "&user_name=" + userName,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        populate_instances_objects(response)
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                    alert("Failure populating instances per user")
+                },
+            })
+        })
+
+    }
+
     function store_instances(provider) {
         var instancesData = []
         return new Promise((resolve, reject) => {
@@ -801,12 +832,13 @@ $(document).ready(function() {
                                 var instanceLocation = value['instance_zone']
                             }
                             instancesData.push({
-                                instanceName: value['instance_name'],
-                                instanceType: value['instance_type'],
-                                instanceZone: instanceLocation,
-                                internalIP: value['internal_ip'],
-                                externalIP: value['external_ip'],
-                                clientName: value['client_name'],
+                                instance_name: value['instance_name'],
+                                machine_type: value['machine_type'],
+                                instance_zone: instanceLocation,
+                                internal_ip: value['internal_ip'],
+                                external_ip: value['external_ip'],
+                                client_name: value['client_name'],
+                                user_name: value['user_name'],
                                 tags: value['tags']
                             });
                         });
@@ -854,7 +886,7 @@ $(document).ready(function() {
             clustersHTML += '<td class="text-center"><a>' + value.cluster_version + '</a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.human_expiration_timestamp + '</a></td>';
             if (!value.cluster_name) {
-                clustersHTML += '<td class="text-center" id="clusters-userName--div-' + value.cluster_name + '"><a>' + client_name_assign_element + '</a></td>';
+                clustersHTML += '<td class="text-center" id="clusters-userName-div-' + value.cluster_name + '"><a>' + client_name_assign_element + '</a></td>';
             } else {
                 clustersHTML += '<td class="text-center" id="clusters-userName-div-' + value.cluster_name + '"><a id="clusters-text-label-userName-div-' + value.cluster_name + '">' + cap_user_name + '</a></td>';
             }
@@ -883,31 +915,48 @@ $(document).ready(function() {
         }
     }
 
-    function populate_instances_objects() {
+    function populate_instances_objects(passedInstancesData) {
         var instancesHTML = '';
         var instancesNames = []
         var kubeconfigs_array = [];
-        let instancesData = jQuery.parseJSON(window.localStorage.getItem("instancesData"));
+        if (passedInstancesData === undefined) {
+            instancesData = jQuery.parseJSON(window.localStorage.getItem("instancesData"));
+        } else {
+            instancesData = passedInstancesData
+        }
+
         $.each(instancesData, function(key, value) {
-            instancesNames.push(value.instanceName)
+            var user_name_array = value.user_name.split("_")
+            var cap_user_name_ = ""
+            $.each(user_name_array, function(key, value) {
+                cap_user_name_ += value.capitalize() + " "
+            });
+            cap_user_name = cap_user_name_.slice(0, -1)
+            instancesNames.push(value.instance_name)
             var tags_string_ = JSON.stringify(value.tags);
             var tags_string__ = tags_string_.replace(/[{}]/g, "");
             var tags_string___ = tags_string__.replace(/[/"/"]/g, "");
             var tags_string = tags_string___.replace(/[,]/g, "<br>");
-            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="instances-dropdown-' + value.instanceName + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="instances-button-' + value.instanceName + '" >Add</button>'
-            instancesHTML += '<tr id="tr_' + value.instanceName + '">';
-            instancesHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.instanceName + '"><p>' + value.instanceName + '</p></a></td>';
-            instancesHTML += '<td class="text-center"><a>' + value.instanceZone + '</a></td>';
-            instancesHTML += '<td class="text-center"><a>' + value.internalIP + '</a></td>';
-            instancesHTML += '<td class="text-center"><a>' + value.externalIP + '</a></td>';
-            if (!value.client_name) {
-                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instanceName + '"><a>' + client_name_assign_element + '</a></td>';
+            var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="instances-dropdown-' + value.instance_name + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="instances-button-' + value.instance_name + '" >Add</button>'
+            instancesHTML += '<tr id="tr_' + value.instance_name + '">';
+            instancesHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.instance_name + '"><p>' + value.instance_name + '</p></a></td>';
+            instancesHTML += '<td class="text-center"><a>' + value.instance_zone + '</a></td>';
+            instancesHTML += '<td class="text-center"><a>' + value.machine_type + '</a></td>';
+            instancesHTML += '<td class="text-center"><a>' + value.internal_ip + '</a></td>';
+            instancesHTML += '<td class="text-center"><a>' + value.external_ip + '</a></td>';
+            if (!value.instance_name) {
+                instancesHTML += '<td class="text-center" id="instances-userName-div-' + value.instance_name + '"><a>' + client_name_assign_element + '</a></td>';
             } else {
-                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instanceName + '"><a id="instances-text-label-clientName-div-' + value.instanceName + '">' + value.client_name + '</a></td>';
+                instancesHTML += '<td class="text-center" id="instances-userName-div-' + value.instance_name + '"><a id="clusters-text-label-userName-div-' + value.instance_name + '">' + cap_user_name + '</a></td>';
+            }
+            if (!value.instance_name) {
+                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instance_name + '"><a>' + client_name_assign_element + '</a></td>';
+            } else {
+                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instance_name + '"><a id="instances-text-label-clientName-div-' + value.instance_name + '">' + value.client_name + '</a></td>';
             }
             instancesHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
             let manage_table_buttons = '<td class="project-actions text-right"> \
-            <a class="btn btn-danger btn-sm" id="delete-button-' + value.instanceName + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
+            <a class="btn btn-danger btn-sm" id="delete-button-' + value.instance_name + '" href="#"><i class="fas fa-trash"></i>Delete</a> </td> \
             </div> </div> </div> </div>'
             instancesHTML += manage_table_buttons
             full_table = instances_manage_table_header + instancesHTML + instances_manage_table_footer
@@ -1044,9 +1093,7 @@ $(document).ready(function() {
             userElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Full Name: ' + first_name + ' ' + last_name + '</li>'
             userElement += '</ul></div><div class="col-4 text-center"><img src="' + user.profile_image_filename + '"' + 'class="img-circle img-fluid"></div></div></div>'
             userElement += '<div class="card-footer"><div class="text-right">'
-            //            '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-button-' + instanceName + '"</a>Add</button>
             userElement += '<button type="submit" class="btn btn-primary btn-sm" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + user.user_name + '-delete-user-button"></i>Delete User</a></div></div></div></div>'
-            //            userElement += '<a href="client-data?client_name=' + user.user_name + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + user.user_name + '-delete-user-button"></i>Delete User</a></div></div></div></div>'
         });
         $('#users-main-div').append(userElement);
     }
@@ -1455,14 +1502,29 @@ $(document).ready(function() {
         $("#user-names-dropdown").empty();
         populate_user_names(teamName);
         var userName = $('#user-names-dropdown').val();
-        $("#gke-clusters-management-table").empty()
-        populate_clusters_per_user(userName);
+        var provider = window.localStorage.getItem("provider")
+        if (window.localStorage.getItem("objectType") == 'cluster') {
+            $("#gke-clusters-management-table").empty()
+            populate_clusters_per_user(userName);
+        }
+        else if (window.localStorage.getItem("objectType") == 'instance') {
+            $("#gcp-vm-instances-management-table").empty()
+            populate_instances_per_user(provider, userName);
+        }
     })
 
     $('#user-names-dropdown').change(function() {
         $("#gke-clusters-management-table").empty()
         var userName = $('#user-names-dropdown').val();
-        populate_clusters_per_user(userName);
+        var provider = window.localStorage.getItem("provider")
+        if (window.localStorage.getItem("objectType") == 'cluster') {
+            $("#gke-clusters-management-table").empty()
+            populate_clusters_per_user(userName);
+        }
+        else if (window.localStorage.getItem("objectType") == 'instance') {
+            $("#gcp-vm-instances-management-table").empty()
+            populate_instances_per_user(provider, userName);
+        }
     })
 
 

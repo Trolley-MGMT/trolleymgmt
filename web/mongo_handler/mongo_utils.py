@@ -37,7 +37,7 @@ except:
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
-        ADMIN
+        ADMIN, USER, CLIENT
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
@@ -224,14 +224,24 @@ def retrieve_available_clusters(cluster_type: str, user_name: str = '') -> list:
     return clusters_object
 
 
-def retrieve_instances(provider_type: str) -> list:
+def retrieve_instances(provider_type: str, user_name: str = "") -> list:
     logger.info(f'A request to fetch instance for {provider_type} provider was received')
     instances_list = []
-    if provider_type == 'aws':
-        instances_object = aws_discovered_ec2_instances.find()
-    elif provider_type == 'gcp':
-        instances_object = gcp_discovered_vm_instances.find()
-    elif provider_type == 'az':
+    if provider_type == AWS:
+        if not user_name:
+            instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True})
+        elif is_admin(user_name):
+            instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True})
+        else:
+            instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+    elif provider_type == GCP:
+        if not user_name:
+            instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True})
+        elif is_admin(user_name):
+            instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True})
+        else:
+            instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+    elif provider_type == AZ:
         instances_object = az_discovered_vm_instances.find()
     else:
         instances_object = {}
@@ -867,17 +877,29 @@ def insert_gcp_vm_instances_object(gcp_vm_instances_object: list) -> bool:
     @param gcp_vm_instances_object: The gcp vm instances object to save
     """
     try:
-        for gcp_vm_instance in gcp_vm_instances_object:
-            mongo_query = {'instance_name': asdict(gcp_vm_instance)[INSTANCE_NAME.lower()]}
-            existing_data_object = gcp_discovered_vm_instances.find_one(mongo_query)
-            if not existing_data_object:
-                result = gcp_discovered_vm_instances.insert_one(asdict(gcp_vm_instance))
-                logger.info(result.acknowledged)
-                if result.inserted_id:
-                    logger.info(f'gcp_vm_instances_object was inserted properly')
+        if len(gcp_vm_instances_object) == 0:
+            gcp_already_discovered_vm_instances_object = gcp_discovered_vm_instances.find()
+            for gcp_discovered_vm_instance in gcp_already_discovered_vm_instances_object:
+                myquery = {INSTANCE_NAME.lower(): gcp_discovered_vm_instance['instance_name']}
+                newvalues = {"$set": {AVAILABILITY.lower(): False}}
+                result = gcp_discovered_vm_instances.update_one(myquery, newvalues)
+            return True
+        else:
+            for gcp_vm_instance in gcp_vm_instances_object:
+                mongo_query = {'instance_name': asdict(gcp_vm_instance)[INSTANCE_NAME.lower()]}
+                gcp_discovered_vm_instances_object = gcp_discovered_vm_instances.find_one(mongo_query)
+                if not gcp_discovered_vm_instances_object:
+                    result = gcp_discovered_vm_instances.insert_one(asdict(gcp_vm_instance))
+                    logger.info(result.acknowledged)
+                    if result.inserted_id:
+                        logger.info(f'gcp_vm_instances_object was inserted properly')
+                    else:
+                        logger.error(f'gcp_vm_instances_object was not inserted properly')
                 else:
-                    logger.error(f'gcp_vm_instances_object was not inserted properly')
-        return True
+                    myquery = {INSTANCE_NAME.lower(): gcp_discovered_vm_instances_object['instance_name']}
+                    newvalues = {"$set": {AVAILABILITY.lower(): True}}
+                    result = gcp_discovered_vm_instances.update_one(myquery, newvalues)
+            return True
     except:
         logger.error(f'gcp_vm_instances_object was not inserted properly')
 
@@ -960,8 +982,8 @@ def add_client_data_object(client_data_object: dict) -> bool:
         logger.error(f'client data was not inserted properly')
 
 
-def add_client_to_cluster(object_type: str, cluster_type: str = '', cluster_name: str = '', assigned_object: str = '',
-                          user_name: str = '', client_name: str = '', discovered: bool = False):
+def add_data_to_cluster(object_type: str, cluster_type: str = '', cluster_name: str = '', assigned_object: str = '',
+                        user_name: str = '', client_name: str = '', discovered: bool = False):
     """
 
     @param object_type: The type of an object
@@ -975,9 +997,9 @@ def add_client_to_cluster(object_type: str, cluster_type: str = '', cluster_name
     """
 
     myquery = {CLUSTER_NAME.lower(): cluster_name}
-    if assigned_object == 'user':
+    if assigned_object == USER:
         newvalues = {"$set": {USER_NAME.lower(): user_name}}
-    elif assigned_object == 'client':
+    elif assigned_object == CLIENT:
         newvalues = {"$set": {CLIENT_NAME.lower(): client_name}}
     if cluster_type == GKE:
         if discovered:
@@ -998,18 +1020,24 @@ def add_client_to_cluster(object_type: str, cluster_type: str = '', cluster_name
     return result.raw_result['updatedExisting']
 
 
-def add_client_to_instance(object_type: str, provider: str = '', instance_name: str = '', client_name: str = ''):
+def add_data_to_instance(object_type: str, provider: str = '', instance_name: str = '', assigned_object: str = '',
+                         user_name: str = '', client_name: str = ''):
     """
 
     @param object_type: The type of an object
     @param provider: The name of the provider
     @param instance_name: The name of the instance we assign the client for
+    @param assigned_object: The name of the object we want to assign to the instance (user/client)
+    @param user_name: Name of the user we want to associate with the cluster
     @param client_name: Name of the client we want to associate with the cluster
     @return:
     """
 
     myquery = {INSTANCE_NAME.lower(): instance_name}
-    newvalues = {"$set": {CLIENT_NAME.lower(): client_name}}
+    if assigned_object == USER:
+        newvalues = {"$set": {USER_NAME.lower(): user_name}}
+    elif assigned_object == CLIENT:
+        newvalues = {"$set": {CLIENT_NAME.lower(): client_name}}
     if provider == GCP:
         result = gcp_discovered_vm_instances.update_one(myquery, newvalues)
     elif provider == AWS:

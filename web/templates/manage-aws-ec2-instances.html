@@ -20,6 +20,7 @@
 
 
 
+
     </script>
 </head>
 
@@ -283,36 +284,61 @@
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                    </div><!-- /.col -->
-                    <div id="clusters-data">
-                    </div>
-                </div><!-- /.row -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Manage EC2 Instances</h3>
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                </div><!-- /.col -->
+                <div id="clusters-data">
+                </div>
+            </div><!-- /.row -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Manage EC2 Instances</h3>
 
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                                <i class="fas fa-times"></i>
-                            </button>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card card-warning">
+                        <div class="card-body">
+                            <form>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label>Select Team</label>
+                                            <select class="form-control" id="team-names-dropdown">
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label>Select User</label>
+                                            <select class="form-control" id="user-names-dropdown">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </form>
                         </div>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped projects" id="aws-ec2-instances-management-table">
-                        </table>
-                    </div>
-                    <!--                    -->
-                </div><!-- /.container-fluid -->
-                <div>
-                    <button type="submit" class="btn btn-info" id="trigger-instances-discovery">Scan for VMs
-                    </button>
                 </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped projects" id="aws-ec2-instances-management-table">
+                    </table>
+                </div>
+                <!--                    -->
+            </div><!-- /.container-fluid -->
+            <div>
+                <button type="submit" class="btn btn-info" id="trigger-instances-discovery">Scan for VMs
+                </button>
             </div>
+        </div>
         <!-- /.content-header -->
     </div>
     <!-- /.content-wrapper -->

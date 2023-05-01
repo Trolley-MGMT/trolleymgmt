@@ -227,11 +227,13 @@ class GCPInstanceDataObject:
     timestamp: int
     project_name: str
     instance_name: str
+    machine_type: str
     internal_ip: str
     external_ip: str
-    instance_type: str
     instance_zone: str
     client_name: str
+    user_name: str
+    availability: bool
     tags: dict
 
 
@@ -244,6 +246,8 @@ class AWSEC2InstanceDataObject:
     instance_type: str
     instance_region: str
     client_name: str
+    user_name: str
+    availability: bool
     internal_ip: str
     external_ip: str
     tags: dict
