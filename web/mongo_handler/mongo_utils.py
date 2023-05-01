@@ -1,5 +1,3 @@
-import base64
-import codecs
 import logging
 import os
 import platform
@@ -126,7 +124,6 @@ def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = 
 def insert_eks_deployment(eks_deployment_object: dict = None) -> bool:
     """
     @param eks_deployment_object: The dictionary with all the cluster data.
-    @param cluster_type: The type of the cluster we want to add to the DB. Ex: EKS
     """
     eks_clusters.insert_one(eks_deployment_object)
     return True
@@ -440,7 +437,6 @@ def retrieve_user(user_email: str):
     """
     mongo_query = {USER_EMAIL: user_email}
     user_object = users.find_one(mongo_query)
-    logger.info(f'found user_object is: {user_object}')
     if not user_object:
         return None
     try:
@@ -882,7 +878,7 @@ def insert_gcp_vm_instances_object(gcp_vm_instances_object: list) -> bool:
             for gcp_discovered_vm_instance in gcp_already_discovered_vm_instances_object:
                 myquery = {INSTANCE_NAME.lower(): gcp_discovered_vm_instance['instance_name']}
                 newvalues = {"$set": {AVAILABILITY.lower(): False}}
-                result = gcp_discovered_vm_instances.update_one(myquery, newvalues)
+                gcp_discovered_vm_instances.update_one(myquery, newvalues)
             return True
         else:
             for gcp_vm_instance in gcp_vm_instances_object:
@@ -898,7 +894,7 @@ def insert_gcp_vm_instances_object(gcp_vm_instances_object: list) -> bool:
                 else:
                     myquery = {INSTANCE_NAME.lower(): gcp_discovered_vm_instances_object['instance_name']}
                     newvalues = {"$set": {AVAILABILITY.lower(): True}}
-                    result = gcp_discovered_vm_instances.update_one(myquery, newvalues)
+                    gcp_discovered_vm_instances.update_one(myquery, newvalues)
             return True
     except:
         logger.error(f'gcp_vm_instances_object was not inserted properly')
@@ -1058,8 +1054,7 @@ def delete_client(client_name: str) -> bool:
         newvalues = {"$set": {AVAILABILITY.lower(): False}}
         existing_clients_data_object = clients_data.find_one(mongo_query)
         if existing_clients_data_object:
-            result = clients_data.update_one(mongo_query, newvalues)
-            logger.info(f'clients_name was deleted')
+            clients_data.update_one(mongo_query, newvalues)
             return True
         else:
             logger.error(f'client does not exist')

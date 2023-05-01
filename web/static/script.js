@@ -166,7 +166,6 @@ $(document).ready(function() {
     store_client_names()
     store_users_data()
     store_team_names()
-
     populate_logged_in_assets();
 
     if (buildPage) {
@@ -185,7 +184,6 @@ $(document).ready(function() {
     if (clustersManagePage) {
         store_clusters()
             .then((data) => {
-                console.log(data)
                 populate_kubernetes_clusters_objects()
             })
             .catch((error) => {
@@ -200,7 +198,6 @@ $(document).ready(function() {
     if (instancesManagePage) {
         store_instances(provider)
             .then((data) => {
-                console.log(data)
                 populate_instances_objects()
             })
             .catch((error) => {
@@ -214,7 +211,6 @@ $(document).ready(function() {
     if (clustersDataPage) {
         store_clusters()
             .then((data) => {
-                console.log(data)
                 store_client_names()
                 populate_kubernetes_clusters_objects()
             })
@@ -667,7 +663,7 @@ $(document).ready(function() {
         var clientNames = []
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: http + trolley_url + "/fetch_clients_data",
+                url: http + trolley_url + "/client",
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -715,8 +711,6 @@ $(document).ready(function() {
             })
         })
     }
-
-
 
     function store_team_names() {
         var teamNames = []
@@ -797,7 +791,7 @@ $(document).ready(function() {
 
     }
 
-     function populate_instances_per_user(provider, userName) {
+    function populate_instances_per_user(provider, userName) {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: http + trolley_url + "/get_instances_data?provider=" + provider + "&user_name=" + userName,
@@ -878,7 +872,7 @@ $(document).ready(function() {
             var tags_string = tags_string___.replace(/[,]/g, "<br>");
             var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="clusters-dropdown-' + value.cluster_name + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="clusters-button-' + value.cluster_name + '" >Add</button>'
             clustersHTML += '<tr id="tr_' + value.cluster_name + '">';
-            clustersHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.cluster_name + '"><p>' + value.cluster_name + '</p></a></td>';
+            clustersHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.cluster_name + '">' + value.cluster_name + '</a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.region_name + '</a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.num_nodes + '</a></td>';
             clustersHTML += '<td class="text-center"><a>' + value.totalvCPU + '</a></td>';
@@ -939,7 +933,7 @@ $(document).ready(function() {
             var tags_string = tags_string___.replace(/[,]/g, "<br>");
             var client_name_assign_element = '<select class="col-lg-8 align-content-lg-center" id="instances-dropdown-' + value.instance_name + '"></select> <button type="submit" class="btn btn-primary btn-sm" id="instances-button-' + value.instance_name + '" >Add</button>'
             instancesHTML += '<tr id="tr_' + value.instance_name + '">';
-            instancesHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.instance_name + '"><p>' + value.instance_name + '</p></a></td>';
+            instancesHTML += '<td class="text-center"><a href="clusters-data?cluster_name=' + value.instance_name + '">' + value.instance_name + '</a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.instance_zone + '</a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.machine_type + '</a></td>';
             instancesHTML += '<td class="text-center"><a>' + value.internal_ip + '</a></td>';
@@ -952,7 +946,7 @@ $(document).ready(function() {
             if (!value.instance_name) {
                 instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instance_name + '"><a>' + client_name_assign_element + '</a></td>';
             } else {
-                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instance_name + '"><a id="instances-text-label-clientName-div-' + value.instance_name + '">' + value.client_name + '</a></td>';
+                instancesHTML += '<td class="text-center" id="instances-clientName-div-' + value.instance_name + '"><a id="instances-text-label-clientName-div-' + value.instance_name + '">' + value.client_name.capitalize() + '</a></td>';
             }
             instancesHTML += '<td class="text-center"><a>' + tags_string + '</a></td>';
             let manage_table_buttons = '<td class="project-actions text-right"> \
@@ -1057,7 +1051,6 @@ $(document).ready(function() {
         })
     }
 
-
     function populate_team_names() {
         var teamNames = window.localStorage.getItem("teamNames");
         let teamNamesList = teamNames.split(',')
@@ -1102,7 +1095,7 @@ $(document).ready(function() {
 
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: http + trolley_url + "/fetch_clients_data",
+                url: http + trolley_url + "/client",
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -1328,28 +1321,6 @@ $(document).ready(function() {
         })
     }
 
-    function populate_k8s_agent_data(clusterName) {
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                url: http + trolley_url + "/get_agent_cluster_data?cluster_name=" + clusterName,
-                type: 'GET',
-                success: function(response) {
-                    if (response.length > 0) {
-                        $.each(response, function(key, value) {
-                            console.log(key);
-                            console.log(value);
-                        });
-                    }
-                    resolve(response)
-                },
-                error: function(error) {
-                    reject(error)
-                    alert("Failure fetching K8S agent data")
-                },
-            })
-        })
-    }
-
     function trigger_cloud_provider_discovery(provider, objectType) {
         let cloud_provider_discovery_data = JSON.stringify({
             "provider": provider,
@@ -1527,8 +1498,6 @@ $(document).ready(function() {
         }
     })
 
-
-
     $('#cloud-providers-dropdown').change(function() {
         var cloud_provider = $('#cloud-providers-dropdown').val();
         if (cloud_provider == "AWS") {
@@ -1575,7 +1544,6 @@ $(document).ready(function() {
             newDropDownHTML += '</select>'
             newDropDownHTML += '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-button-' + instanceName + '"</a>Add</button></td>'
             $('#' + objectType + '-clientName-div-' + instanceName).replaceWith(newDropDownHTML);
-            console.log(newDropDownHTML)
         } else if (divValue[1] == "userName") {
             window.localStorage.setItem("assignedObject", "user");
             var instanceName_ = $(this).parent().attr('id');
@@ -1591,7 +1559,6 @@ $(document).ready(function() {
             newDropDownHTML += '</select>'
             newDropDownHTML += '<button type="submit" class="btn btn-primary btn-sm" id="' + objectType + '-button-' + instanceName + '"</a>Add</button></td>'
             $('#' + objectType + '-userName-div-' + instanceName).replaceWith(newDropDownHTML);
-            console.log(newDropDownHTML)
         }
         window.localStorage.setItem("valueID", valueID);
         let thisID = window.localStorage.getItem("valueID");
@@ -1619,30 +1586,22 @@ $(document).ready(function() {
             let assignedObject = window.localStorage.getItem("assignedObject")
             assign_object(objectType, objectName, dataArray, assignedObject);
         } else if (this.innerText === "More") {
-            console.log("Logic for viewing " + objectName + " cluster")
             window.localStorage.removeItem("currentClusterName");
             window.localStorage.setItem("currentClusterName", objectName);
-        } else if (this.innerText === "Edit") {
-            console.log("Logic for editing " + objectName + " cluster")
         } else if (this.innerText === "Back to clusters") {
             window.location.href = "manage-" + clusterType + "-clusters";
         } else if (this.innerText === "Delete") {
-            console.log("Logic for deleting " + objectName + " cluster")
             delete_cluster(clusterType, objectName, dataArray)
         } else if (this.innerText === "Delete User") {
             userToDelete = this.firstChild.id.split("-")[0]
-            console.log("Logic for deleting " + userToDelete + " user")
             delete_user(userToDelete)
             location.reload()
         } else if (this.innerText === "Scan for clusters") {
-            console.log("Logic for triggering a clusters scan")
             trigger_cloud_provider_discovery(provider, objectType = 'cluster')
         } else if (this.innerText === "Scan for VMs") {
-            console.log("Logic for triggering a VMs scan")
             trigger_cloud_provider_discovery(provider, objectType = 'instance')
         } else if (this.innerText === "Copy Kubeconfig") {
             clusterName = window.localStorage.getItem("currentClusterName");
-            console.log("Logic for copying kubeconfig for " + clusterName + " cluster")
             kubeconfig_data = window.localStorage.getItem("kubeconfigs")
             var kubeconfig_data_jsond = JSON.parse(kubeconfig_data);
             let clusterObj = kubeconfig_data_jsond.find(o => o.key === clusterName);

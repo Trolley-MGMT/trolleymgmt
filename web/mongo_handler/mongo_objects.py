@@ -242,8 +242,8 @@ class AWSEC2InstanceDataObject:
     timestamp: int
     account_id: int
     instance_name: str
+    machine_type: str
     instance_id: str
-    instance_type: str
     instance_region: str
     client_name: str
     user_name: str

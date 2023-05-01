@@ -116,9 +116,8 @@ def list_all_instances():
                                                                     0].private_ip_address,
                                                                 external_ip=instance.network_interfaces[
                                                                     0].private_ip_address,
-                                                                instance_type=instance.instance_type,
-                                                                instance_region=aws_region,
-                                                                tags=tags, client_name='')
+                                                                instance_region=aws_region, machine_type=instance.instance_type,
+                                                                tags=tags, client_name='vacant', user_name='vacant', availability=True)
                     instances_object.append(aws_ec2_instance)
     return instances_object
 
