@@ -771,8 +771,8 @@ def register():
             full_thumbnail_file_path = os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_file_path)
             FileStorage(profile_image.save(full_file_path))
             image = Image.open(full_file_path)
-            image.thumbnail((192, 192))
-            image.save(full_thumbnail_file_path)
+            new_image = image.resize((192, 192))
+            new_image.save(full_thumbnail_file_path)
 
         # if not REGISTRATION:
         #     return render_template('login.html',

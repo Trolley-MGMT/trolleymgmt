@@ -821,7 +821,7 @@ $(document).ready(function() {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
                             if (provider == 'aws') {
-                                var instanceLocation = value['instance_region']
+                                var instanceLocation = value['instance_zone']
                             } else if (provider == 'gcp') {
                                 var instanceLocation = value['instance_zone']
                             }
@@ -1077,7 +1077,7 @@ $(document).ready(function() {
             first_name = user.first_name.capitalize();
             last_name = user.last_name.capitalize();
             userElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="user-div-' + user.user_name + '>'
-            userElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="col-7"><h2 class="lead"><br><b>' + user.first_name.capitalize() + " " + user.last_name.capitalize() + '</b></h2>'
+            userElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="card-body pt-0"><div class="col-7"><h2 class="lead"><br><b>' + user.first_name.capitalize() + " " + user.last_name.capitalize() + '</b></h2>'
             userElement += '<p class="text-muted text-sm"><b>User type: </b> ' + user.user_type + '<br>'
             userElement += '<b>Team Name: </b> ' + user.team_name + '</p>'
             userElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
@@ -1085,8 +1085,11 @@ $(document).ready(function() {
             userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Registration Status: ' + user.registration_status + '</li>'
             userElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Full Name: ' + first_name + ' ' + last_name + '</li>'
             userElement += '</ul></div><div class="col-4 text-center"><img src="' + user.profile_image_filename + '"' + 'class="img-circle img-fluid"></div></div></div>'
-            userElement += '<div class="card-footer"><div class="text-right">'
-            userElement += '<button type="submit" class="btn btn-primary btn-sm" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + user.user_name + '-delete-user-button"></i>Delete User</a></div></div></div></div>'
+            userElement += '<div class="card-footer"><div class="text-center ">'
+            userElement += '<button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-user" id="' + user.user_name + '-info-user-button"></i>More Info</a>'
+            userElement += '<div class="text-right">'
+            userElement += '<button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-user" id="' + user.user_name + '-delete-user-button"></i>Delete User</a></div>'
+            userElement += '</div></div></div></div></div>'
         });
         $('#users-main-div').append(userElement);
     }
@@ -1475,11 +1478,21 @@ $(document).ready(function() {
         var userName = $('#user-names-dropdown').val();
         var provider = window.localStorage.getItem("provider")
         if (window.localStorage.getItem("objectType") == 'cluster') {
-            $("#gke-clusters-management-table").empty()
+            if (provider == "gcp") {
+                $("#gke-clusters-management-table").empty()
+            }
+            else if (provider == "aws") {
+                $("#eks-clusters-management-table").empty()
+            }
             populate_clusters_per_user(userName);
         }
         else if (window.localStorage.getItem("objectType") == 'instance') {
-            $("#gcp-vm-instances-management-table").empty()
+            if (provider == "gcp") {
+                $("#gcp-vm-instances-management-table").empty()
+            }
+            else if (provider == "aws") {
+                $("#aws-ec2-instances-management-table").empty()
+            }
             populate_instances_per_user(provider, userName);
         }
     })
@@ -1489,11 +1502,21 @@ $(document).ready(function() {
         var userName = $('#user-names-dropdown').val();
         var provider = window.localStorage.getItem("provider")
         if (window.localStorage.getItem("objectType") == 'cluster') {
-            $("#gke-clusters-management-table").empty()
+            if (provider == "gcp") {
+                $("#gke-clusters-management-table").empty()
+            }
+            else if (provider == "aws") {
+                $("#eks-clusters-management-table").empty()
+            }
             populate_clusters_per_user(userName);
         }
         else if (window.localStorage.getItem("objectType") == 'instance') {
-            $("#gcp-vm-instances-management-table").empty()
+            if (provider == "gcp") {
+                $("#gcp-vm-instances-management-table").empty()
+            }
+            else if (provider == "aws") {
+                $("#aws-ec2-instances-management-table").empty()
+            }
             populate_instances_per_user(provider, userName);
         }
     })

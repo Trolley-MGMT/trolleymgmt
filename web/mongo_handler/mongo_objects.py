@@ -244,7 +244,7 @@ class AWSEC2InstanceDataObject:
     instance_name: str
     machine_type: str
     instance_id: str
-    instance_region: str
+    instance_zone: str
     client_name: str
     user_name: str
     availability: bool
