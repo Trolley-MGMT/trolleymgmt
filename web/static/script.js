@@ -192,7 +192,7 @@ $(document).ready(function() {
         populate_team_names()
         let teamNames = window.localStorage.getItem("teamNames");
         populate_user_names(teamNames.split(",")[0])
-
+        populate_client_names()
     }
 
     if (instancesManagePage) {
@@ -206,6 +206,7 @@ $(document).ready(function() {
         populate_team_names()
         let teamNames = window.localStorage.getItem("teamNames");
         populate_user_names(teamNames.split(",")[0])
+        populate_client_names()
     }
 
     if (clustersDataPage) {
@@ -609,7 +610,7 @@ $(document).ready(function() {
                 "discovered": discovered
             });
         } else if (objectType == 'instance') {
-        if (assignedObject == "user") {
+            if (assignedObject == "user") {
                 clientName = ""
                 userName = $('#instances-dropdown-' + objectName).val();
             } else if (assignedObject == "client") {
@@ -771,10 +772,10 @@ $(document).ready(function() {
         })
     }
 
-    function populate_clusters_per_user(userName) {
+    function populate_clusters(userName, clientName) {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: http + trolley_url + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + userName,
+                url: http + trolley_url + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + userName + "&client_name=" + clientName,
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -788,13 +789,12 @@ $(document).ready(function() {
                 },
             })
         })
-
     }
 
-    function populate_instances_per_user(provider, userName) {
+    function populate_instances(provider, userName, clientName) {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: http + trolley_url + "/get_instances_data?provider=" + provider + "&user_name=" + userName,
+                url: http + trolley_url + "/get_instances_data?provider=" + provider + "&user_name=" + userName + "&client_name=" + clientName,
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -1059,6 +1059,14 @@ $(document).ready(function() {
         });
     }
 
+    function populate_client_names() {
+        var clientNames = window.localStorage.getItem("clientNames");
+        let clientNamesList = clientNames.split(',')
+        $.each(clientNamesList, function(key, value) {
+            $("#client-names-dropdown").append($("<option />").val(value).text(value.capitalize()));
+        });
+    }
+
     function populate_user_names(team_name) {
         var usersData = window.localStorage.getItem("usersData");
         var usersDataArray = JSON.parse(usersData)
@@ -1104,7 +1112,7 @@ $(document).ready(function() {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
                             clientElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="client-div-' + value['client_name'].capitalize() + '>'
-                            clientElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="col-7"><h2 class="lead"><br><b>' + value['client_name'].capitalize() + '</b></h2>'
+                            clientElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="card-body pt-0"><div class="col-7"><h2 class="lead"><br><b>' + value['client_name'].capitalize() + '</b></h2>'
                             clientElement += '<p class="text-muted text-sm"><b>About: </b> ' + value['client_additional_info'] + '<br>'
                             clientElement += '<b>Contact Name: </b> ' + value['connection_name'] + '</p>'
                             clientElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
@@ -1113,37 +1121,10 @@ $(document).ready(function() {
                             clientElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Web: <a href=' + value['client_web_address'] + ' target="_blank" >' + value['client_web_address'] + '</li>'
                             clientElement += '</ul></div></div></div>'
                             clientElement += '<div class="card-footer"><div class="text-right">'
-                            clientElement += '<a href="client-data?client_name=' + value['client_name'] + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + value['client_name'].capitalize() + '-view-profile-button"></i> View Profile</a></div></div></div></div>'
+                            clientElement += '<a href="client-data?client_name=' + value['client_name'] + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + value['client_name'].capitalize() + '-view-profile-button"></i> View Profile</a></div></div></div></div></div>'
                         });
                     }
                     $('#clients-main-div').append(clientElement);
-                    resolve(response)
-                },
-                error: function(error) {
-                    reject(error)
-                    alert("Failure fetching client names data")
-                },
-            })
-        })
-    }
-
-    function populate_client_names(objectType) {
-        if (objectType == 'cluster') {
-            var $dropdown = $("#clusters-dropdown");
-        } else if (objectType == 'instance') {
-            var $dropdown = $("#instances-dropdown");
-        }
-
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                url: http + trolley_url + "/fetch_clients_data",
-                type: 'GET',
-                success: function(response) {
-                    if (response.length > 0) {
-                        $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value['client_name']).text(value['client_name'].capitalize()));
-                        });
-                    }
                     resolve(response)
                 },
                 error: function(error) {
@@ -1471,6 +1452,46 @@ $(document).ready(function() {
         populate_kubernetes_image_types(gke_zones);
     })
 
+    $('#filter-type-dropdown').change(function() {
+        var objectsSelector = $('#filter-type-dropdown').val();
+        if (objectsSelector == "Users") {
+            $("#teams-users-dropdowns-box").show();
+            $("#clients-dropdowns-box").hide();
+            var userName = $('#user-names-dropdown').val();
+        } else if (objectsSelector == "Clients") {
+            $("#teams-users-dropdowns-box").hide();
+            $("#clients-dropdowns-box").show();
+            var clientName = $('#client-names-dropdown').val();
+        }
+        if (window.localStorage.getItem("objectType") == 'cluster') {
+            if (provider == "gcp") {
+                $("#gke-clusters-management-table").empty()
+            } else if (provider == "aws") {
+                $("#eks-clusters-management-table").empty()
+            }
+
+        if (objectsSelector == "Users") {
+            var clientName = "";
+        } else if (objectsSelector == "Clients") {
+            var userName = "";
+        }
+        populate_clusters(userName, clientName);
+
+        } else if (window.localStorage.getItem("objectType") == 'instance') {
+            if (provider == "gcp") {
+                $("#gcp-vm-instances-management-table").empty()
+            } else if (provider == "aws") {
+                $("#aws-ec2-instances-management-table").empty()
+            }
+        if (objectsSelector == "Users") {
+            var clientName = "";
+        } else if (objectsSelector == "Clients") {
+            var userName = "";
+        }
+        populate_instances(provider, userName, clientName);
+        }
+    })
+
     $('#team-names-dropdown').change(function() {
         var teamName = $('#team-names-dropdown').val();
         $("#user-names-dropdown").empty();
@@ -1480,44 +1501,61 @@ $(document).ready(function() {
         if (window.localStorage.getItem("objectType") == 'cluster') {
             if (provider == "gcp") {
                 $("#gke-clusters-management-table").empty()
-            }
-            else if (provider == "aws") {
+            } else if (provider == "aws") {
                 $("#eks-clusters-management-table").empty()
             }
-            populate_clusters_per_user(userName);
-        }
-        else if (window.localStorage.getItem("objectType") == 'instance') {
+            populate_clusters(userName, clientName);;
+        } else if (window.localStorage.getItem("objectType") == 'instance') {
             if (provider == "gcp") {
                 $("#gcp-vm-instances-management-table").empty()
-            }
-            else if (provider == "aws") {
+            } else if (provider == "aws") {
                 $("#aws-ec2-instances-management-table").empty()
             }
-            populate_instances_per_user(provider, userName);
+            populate_instances(provider, userName, clientName);
         }
     })
 
     $('#user-names-dropdown').change(function() {
         $("#gke-clusters-management-table").empty()
+        var clientName = "";
         var userName = $('#user-names-dropdown').val();
         var provider = window.localStorage.getItem("provider")
         if (window.localStorage.getItem("objectType") == 'cluster') {
             if (provider == "gcp") {
                 $("#gke-clusters-management-table").empty()
-            }
-            else if (provider == "aws") {
+            } else if (provider == "aws") {
                 $("#eks-clusters-management-table").empty()
             }
-            populate_clusters_per_user(userName);
-        }
-        else if (window.localStorage.getItem("objectType") == 'instance') {
+            populate_clusters(userName, clientName);;
+        } else if (window.localStorage.getItem("objectType") == 'instance') {
             if (provider == "gcp") {
                 $("#gcp-vm-instances-management-table").empty()
-            }
-            else if (provider == "aws") {
+            } else if (provider == "aws") {
                 $("#aws-ec2-instances-management-table").empty()
             }
-            populate_instances_per_user(provider, userName);
+            populate_instances(provider, userName, clientName);
+        }
+    })
+
+    $('#client-names-dropdown').change(function() {
+        $("#gke-clusters-management-table").empty()
+        var clientName = $('#client-names-dropdown').val();
+        var userName = "";
+        var provider = window.localStorage.getItem("provider")
+        if (window.localStorage.getItem("objectType") == 'cluster') {
+            if (provider == "gcp") {
+                $("#gke-clusters-management-table").empty()
+            } else if (provider == "aws") {
+                $("#eks-clusters-management-table").empty()
+            }
+            populate_clusters(userName, clientName);
+        } else if (window.localStorage.getItem("objectType") == 'instance') {
+            if (provider == "gcp") {
+                $("#gcp-vm-instances-management-table").empty()
+            } else if (provider == "aws") {
+                $("#aws-ec2-instances-management-table").empty()
+            }
+            populate_instances(provider, userName, clientName);
         }
     })
 

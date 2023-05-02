@@ -28,7 +28,7 @@ from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-    NAMES, REGION_NAME
+    NAMES, REGION_NAME, CLIENT_NAME
 from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
     trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
     trigger_trolley_agent_deployment_github_action
@@ -263,8 +263,9 @@ def get_clusters_data():
     Ths endpoint allows providing basic clusters data that was gathered upon the clusters' creation.
     """
     cluster_type = request.args.get(CLUSTER_TYPE)
+    client_name = request.args.get(CLIENT_NAME.lower())
     user_name = request.args.get(USER_NAME.lower())
-    clusters_list = mongo_handler.mongo_utils.retrieve_available_clusters(cluster_type, user_name)
+    clusters_list = mongo_handler.mongo_utils.retrieve_available_clusters(cluster_type, client_name, user_name)
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -275,8 +276,9 @@ def get_instances_data():
     Ths endpoint allows providing basic instances data that was gathered.
     """
     provider_type = request.args.get(PROVIDER)
+    client_name = request.args.get(CLIENT_NAME.lower())
     user_name = request.args.get(USER_NAME.lower())
-    instances_list = mongo_handler.mongo_utils.retrieve_instances(provider_type, user_name)
+    instances_list = mongo_handler.mongo_utils.retrieve_instances(provider_type, client_name, user_name)
     return Response(json.dumps(instances_list), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -544,7 +546,7 @@ def client():
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == GET:
         client_names = mongo_handler.mongo_utils.retrieve_clients_data()
-        return jsonify(client_names)
+        return jsonify(sorted(client_names, key=lambda d: d['client_name']) )
 
 
 # @app.route('/fetch_clients_data', methods=[GET])
@@ -573,7 +575,7 @@ def users():
     elif request.method == GET:
         team_name = request.args.get(TEAM_NAME.lower())
         users_data = mongo_handler.mongo_utils.retrieve_users_data(team_name)
-        return jsonify(users_data)
+        return jsonify(sorted(users_data, key=lambda d: d['user_name']))
     elif request.method == DELETE:
         content = request.get_json()
         user_name = content[USER_NAME.lower()]
@@ -708,13 +710,6 @@ def fetch_helm_installs():
     logger.info(f'A request to fetch helm installs for {names} names has arrived')
     helm_installs_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=HELM_INSTALLS_LIST, provider=HELM)
     return jsonify(helm_installs_list)
-
-
-# @app.route('/fetch_clients_data', methods=[GET])
-# @login_required
-# def fetch_clients_data():
-#     client_names = mongo_handler.mongo_utils.retrieve_clients_data()
-#     return jsonify(client_names)
 
 
 @app.route('/fetch_client_name_per_cluster', methods=[GET])

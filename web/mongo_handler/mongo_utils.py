@@ -169,42 +169,47 @@ def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', dis
     return result.raw_result['updatedExisting']
 
 
-def retrieve_available_clusters(cluster_type: str, user_name: str = '') -> list:
+def retrieve_available_clusters(cluster_type: str, client_name: str = '', user_name: str = '') -> list:
     logger.info(f'A request to fetch {cluster_type} clusters for {user_name} was received')
-    clusters_object = []
+    all_clusters_object = []
     discovered_clusters_object = []
     if cluster_type == GKE:
-        if not user_name:
-            cluster_object = gke_clusters.find({AVAILABILITY: True})
+        if not user_name and not client_name:
+            clusters_object = gke_clusters.find({AVAILABILITY: True})
         elif is_admin(user_name):
             discovered_clusters_object = gcp_discovered_gke_clusters.find({AVAILABILITY: True})
-            cluster_object = gke_clusters.find({AVAILABILITY: True})
+            clusters_object = gke_clusters.find({AVAILABILITY: True})
         else:
-            cluster_object = gke_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
-            discovered_clusters_object = gcp_discovered_gke_clusters.find(
-                {AVAILABILITY: True, USER_NAME.lower(): user_name})
+            if user_name:
+                clusters_object = gke_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+                discovered_clusters_object = gcp_discovered_gke_clusters.find(
+                    {AVAILABILITY: True, USER_NAME.lower(): user_name})
+            elif client_name:
+                clusters_object = gke_clusters.find({AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
+                discovered_clusters_object = gcp_discovered_gke_clusters.find(
+                    {AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
     elif cluster_type == GKE_AUTOPILOT:
         if not user_name or is_admin(user_name):
-            cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True})
+            clusters_object = gke_autopilot_clusters.find({AVAILABILITY: True})
         else:
-            cluster_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+            clusters_object = gke_autopilot_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     elif cluster_type == EKS:
         if not user_name or is_admin(user_name):
-            cluster_object = eks_clusters.find({AVAILABILITY: True})
+            clusters_object = eks_clusters.find({AVAILABILITY: True})
         else:
-            cluster_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+            clusters_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
         discovered_clusters_object = aws_discovered_eks_clusters.find({AVAILABILITY: True})
     elif cluster_type == AKS:
         if not user_name or is_admin(user_name):
-            cluster_object = aks_clusters.find({AVAILABILITY: True})
+            clusters_object = aks_clusters.find({AVAILABILITY: True})
         else:
-            cluster_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+            clusters_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     else:
-        cluster_object = []
-    for cluster in cluster_object:
+        clusters_object = []
+    for cluster in clusters_object:
         del cluster['_id']
         cluster['discovered'] = False
-        clusters_object.append(cluster)
+        all_clusters_object.append(cluster)
         if 'client_name' not in cluster.keys():
             cluster['client_name'] = ''
         if 'tags' not in cluster.keys():
@@ -213,31 +218,37 @@ def retrieve_available_clusters(cluster_type: str, user_name: str = '') -> list:
         for cluster in discovered_clusters_object:
             del cluster['_id']
             cluster['discovered'] = True
-            clusters_object.append(cluster)
+            all_clusters_object.append(cluster)
             if 'client_name' not in cluster.keys():
                 cluster['client_name'] = ''
             if 'tags' not in cluster.keys():
                 cluster['tags'] = []
-    return clusters_object
+    return all_clusters_object
 
 
-def retrieve_instances(provider_type: str, user_name: str = "") -> list:
+def retrieve_instances(provider_type: str, client_name: str = '', user_name: str = "") -> list:
     logger.info(f'A request to fetch instance for {provider_type} provider was received')
     instances_list = []
     if provider_type == AWS:
-        if not user_name:
+        if not user_name and not client_name:
             instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True})
         elif is_admin(user_name):
             instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True})
         else:
-            instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+            if user_name:
+                instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+            elif client_name:
+                instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
     elif provider_type == GCP:
-        if not user_name:
+        if not user_name and not client_name:
             instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True})
         elif is_admin(user_name):
             instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True})
         else:
-            instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+            if user_name:
+                instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+            elif client_name:
+                instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
     elif provider_type == AZ:
         instances_object = az_discovered_vm_instances.find()
     else:
@@ -602,6 +613,8 @@ def is_admin(user_name: str = "") -> bool:
     """
     This function checks if the provided user is an admin
     """
+    if not user_name:
+        return False
     mongo_query = {USER_NAME.lower(): user_name}
     user_object = users.find_one(mongo_query)
     if user_object['user_type'] == ADMIN:
@@ -966,7 +979,7 @@ def add_client_data_object(client_data_object: dict) -> bool:
         else:
             client_data_object['availability'] = True
             if "http" not in client_data_object['client_web_address']:
-                client_data_object['client_web_address'] = 'http://' + client_data_object['client_web_address']
+                client_data_object['client_web_address'] = 'https://' + client_data_object['client_web_address']
             result = clients_data.insert_one(client_data_object)
             if result.inserted_id:
                 logger.info(f'client was inserted properly')

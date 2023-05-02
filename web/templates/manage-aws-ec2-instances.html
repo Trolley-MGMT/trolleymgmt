@@ -16,6 +16,8 @@
     <link href="static/img/trolley.png" rel="icon">
     <script>
       var data = {{ data|tojson }};
+
+
     </script>
 </head>
 
@@ -298,8 +300,27 @@
                         </button>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card card-warning">
+                        <div class="card-body">
+                            <form>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label>Select Filter (Client/User)</label>
+                                            <select class="form-control" id="filter-type-dropdown">
+                                                <option>Users</option>
+                                                <option>Clients</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card card-warning" id="teams-users-dropdowns-box">
                         <div class="card-body">
                             <form>
                                 <div class="row">
@@ -314,6 +335,24 @@
                                         <div class="form-group">
                                             <label>Select User</label>
                                             <select class="form-control" id="user-names-dropdown">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card card-warning" id="clients-dropdowns-box" style="display: none;">
+                        <div class="card-body">
+                            <form>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label>Select Client</label>
+                                            <select class="form-control" id="client-names-dropdown">
                                             </select>
                                         </div>
                                     </div>
