@@ -27,8 +27,8 @@ $(document).ready(function() {
             <th style="width: 10%" class="text-center">Total Memory</th>
             <th style="width: 10%" class="text-center">Kubernetes Version</th>
             <th style="width: 15%" class="text-center">Expiration Time</th>
-            <th style="width: 15%" class="text-center">User Name</th>
-            <th style="width: 15%" class="text-center">Client Name</th>
+            <th style="width: 15%" class="text-center" id="user-name-table">User Name</th>
+            <th style="width: 15%" class="text-center" id="client-name-table">Client Name</th>
             <th style="width: 15%" class="text-center">Tags</th>
             <th style="width: 20%" class="text-center">
             </th></tr></thead><tbody><tr>`
@@ -43,8 +43,8 @@ $(document).ready(function() {
             <th style="width: 10%" class="text-center">Machine Type</th>
             <th style="width: 10%" class="text-center">Internal IP</th>
             <th style="width: 10%" class="text-center">External IP</th>
-            <th style="width: 15%" class="text-center">User Name</th>
-            <th style="width: 15%" class="text-center">Client Name</th>
+            <th style="width: 15%" class="text-center" id="user-name-table">User Name</th>
+            <th style="width: 15%" class="text-center" id="client-name-table">Client Name</th>
             <th style="width: 15%" class="text-center">Tags</th>
             <th style="width: 20%" class="text-center">
             </th></tr></thead><tbody><tr>`
@@ -181,6 +181,7 @@ $(document).ready(function() {
         populate_clients_data();
 
     }
+
     if (clustersManagePage) {
         store_clusters()
             .then((data) => {
@@ -729,7 +730,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure fetching regions data")
                 },
             })
@@ -784,7 +784,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure populating clusters per user")
                 },
             })
@@ -803,7 +802,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure populating instances per user")
                 },
             })
@@ -907,6 +905,29 @@ $(document).ready(function() {
         } else if (clusterType == 'gke') {
             $('#gke-clusters-management-table').append(full_table);
         }
+        object_filter_type = window.localStorage.getItem("objectsFilterType");
+        if (object_filter_type == "users") {
+            $("#user-name-table").show();
+            $("#client-name-table").hide();
+
+            $.each(clustersData, function(key, value) {
+            client_name_text_to_hide = "#clusters-text-label-clientName-div-" + value.cluster_name
+            client_name_div_to_hide = "#clusters-clientName-div-" + value.cluster_name
+                $(client_name_text_to_hide).hide();
+                $(client_name_div_to_hide).hide();
+            });
+        }
+        else if (object_filter_type == "clients") {
+            $("#user-name-table").hide();
+            $("#client-name-table").show();
+
+            $.each(clustersData, function(key, value) {
+            user_name_text_to_hide = "#clusters-text-label-userName-div-" + value.cluster_name
+            user_name_div_to_hide = "#clusters-userName-div-" + value.cluster_name
+                $(user_name_text_to_hide).hide();
+                $(user_name_div_to_hide).hide();
+            });
+        }
     }
 
     function populate_instances_objects(passedInstancesData) {
@@ -972,6 +993,31 @@ $(document).ready(function() {
                 $("#instances-dropdown-" + value).append($("<option />").val(clientNameValue).text(clientNameValue));
             });
         });
+
+        object_filter_type = window.localStorage.getItem("objectsFilterType");
+        if (object_filter_type == "users") {
+            $("#user-name-table").show();
+            $("#client-name-table").hide();
+
+            $.each(instancesData, function(key, value) {
+            client_name_text_to_hide = "#instanes-text-label-clientName-div-" + value.instance_name
+            client_name_div_to_hide = "#instances-clientName-div-" + value.instance_name
+                $(client_name_text_to_hide).hide();
+                $(client_name_div_to_hide).hide();
+            });
+        }
+        else if (object_filter_type == "clients") {
+            $("#user-name-table").hide();
+            $("#client-name-table").show();
+
+            $.each(instancesData, function(key, value) {
+            user_name_text_to_hide = "#instances-text-label-userName-div-" + value.instance_name
+            user_name_div_to_hide = "#instances-userName-div-" + value.instance_name
+                $(user_name_text_to_hide).hide();
+                $(user_name_div_to_hide).hide();
+            });
+        }
+
     }
 
     function populate_kubernetes_agent_data() {
@@ -1044,7 +1090,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure fetching regions data")
                 },
             })
@@ -1128,7 +1173,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure fetching client names data")
                 },
             })
@@ -1168,7 +1212,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure fetching zones data")
                 },
             })
@@ -1208,7 +1251,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure fetching subnets data")
                 },
             })
@@ -1236,7 +1278,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure fetching VPCs names data")
                 },
             })
@@ -1267,7 +1308,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure fetching Kubernetes versions data")
                 },
             })
@@ -1298,7 +1338,6 @@ $(document).ready(function() {
                     resolve(response)
                 },
                 error: function(error) {
-                    reject(error)
                     alert("Failure fetching Kubernetes image types")
                 },
             })
@@ -1457,11 +1496,17 @@ $(document).ready(function() {
         if (objectsSelector == "Users") {
             $("#teams-users-dropdowns-box").show();
             $("#clients-dropdowns-box").hide();
+            $("#user-name-table").show();
+            $("#client-name-table").hide();
             var userName = $('#user-names-dropdown').val();
+            window.localStorage.setItem("objectsFilterType", "users");
         } else if (objectsSelector == "Clients") {
             $("#teams-users-dropdowns-box").hide();
             $("#clients-dropdowns-box").show();
+            $("#user-name-table").hide();
+            $("#client-name-table").show();
             var clientName = $('#client-names-dropdown').val();
+            window.localStorage.setItem("objectsFilterType", "clients");
         }
         if (window.localStorage.getItem("objectType") == 'cluster') {
             if (provider == "gcp") {
@@ -1470,12 +1515,12 @@ $(document).ready(function() {
                 $("#eks-clusters-management-table").empty()
             }
 
-        if (objectsSelector == "Users") {
-            var clientName = "";
-        } else if (objectsSelector == "Clients") {
-            var userName = "";
-        }
-        populate_clusters(userName, clientName);
+            if (objectsSelector == "Users") {
+                var clientName = "";
+            } else if (objectsSelector == "Clients") {
+                var userName = "";
+            }
+            populate_clusters(userName, clientName);
 
         } else if (window.localStorage.getItem("objectType") == 'instance') {
             if (provider == "gcp") {
@@ -1483,16 +1528,17 @@ $(document).ready(function() {
             } else if (provider == "aws") {
                 $("#aws-ec2-instances-management-table").empty()
             }
-        if (objectsSelector == "Users") {
-            var clientName = "";
-        } else if (objectsSelector == "Clients") {
-            var userName = "";
-        }
-        populate_instances(provider, userName, clientName);
+            if (objectsSelector == "Users") {
+                var clientName = "";
+            } else if (objectsSelector == "Clients") {
+                var userName = "";
+            }
+            populate_instances(provider, userName, clientName);
         }
     })
 
     $('#team-names-dropdown').change(function() {
+        var clientName = ""
         var teamName = $('#team-names-dropdown').val();
         $("#user-names-dropdown").empty();
         populate_user_names(teamName);
@@ -1504,7 +1550,7 @@ $(document).ready(function() {
             } else if (provider == "aws") {
                 $("#eks-clusters-management-table").empty()
             }
-            populate_clusters(userName, clientName);;
+            populate_clusters(userName, clientName);
         } else if (window.localStorage.getItem("objectType") == 'instance') {
             if (provider == "gcp") {
                 $("#gcp-vm-instances-management-table").empty()
