@@ -49,6 +49,10 @@ class GKEObject:
     os_image: str
     region_name: str
     num_nodes: int
+    vCPU: int
+    totalvCPU: int
+    total_memory: str
+    machine_type: str
     availability: bool = True
 
 

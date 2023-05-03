@@ -42,16 +42,16 @@ crypter = Fernet(key)
 
 REGISTRATION = False
 
-file_name = 'server_main.log'
+log_file_name = 'server.log'
 if MACOS in platform.platform():
-    log_path = f'{os.getcwd()}/{file_name}'
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
 else:
-    log_path = f'/var/log/{file_name}'
+    log_file_path = f'/var/log/{log_file_name}'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('server_main.log')
+handler = logging.FileHandler(log_file_path)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -112,7 +112,7 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
         user_type = 'admin'
     else:
         user_type = 'user'
-    user_name = f'{first_name.lower()}_{last_name.lower()}'
+    user_name = f'{first_name.lower()}-{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
     profile_image_id = mongo_handler.mongo_utils.insert_file(profile_image_filename)
     if mongo_handler.mongo_utils.retrieve_user(user_email):

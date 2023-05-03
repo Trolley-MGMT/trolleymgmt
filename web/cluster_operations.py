@@ -2,19 +2,23 @@ import getpass
 import logging
 import os
 import platform
-import subprocess
-from subprocess import run, PIPE
+
 
 import requests
 
-from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME, MACOS
 from mongo_handler.mongo_utils import retrieve_cluster_details
+
+log_file_name = 'server.log'
+if MACOS in platform.platform():
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
+else:
+    log_file_path = f'/var/log/{log_file_name}'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('../cluster_operations.log')
-handler.setLevel(logging.DEBUG)
+handler = logging.FileHandler(log_file_name)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -41,9 +45,6 @@ else:
 GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
 GITHUB_ACTIONS_API_URL = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/dispatches'
-GITHUB_ACTION_REQUEST_HEADER_DOCKER = """curl -X POST -H \'Accept: application / vnd.github.everest - preview + json\' ' \
-                     '-H \'Accept-Encoding: gzip, deflate\' ' \
-                     """
 GITHUB_ACTION_REQUEST_HEADER = {
     'Content-type': 'application/json',
     'Accept': 'application/vnd.github+json',
@@ -52,7 +53,6 @@ GITHUB_ACTION_REQUEST_HEADER = {
 
 logger.info(f'GitHub Repository is: {GITHUB_REPOSITORY}')
 logger.info(f'GITHUB_ACTIONS_API_URL is: {GITHUB_ACTIONS_API_URL}')
-logger.info(f'GITHUB_ACTION_REQUEST_HEADER_DOCKER is: {GITHUB_ACTION_REQUEST_HEADER_DOCKER}')
 
 
 def get_aws_credentials() -> tuple:

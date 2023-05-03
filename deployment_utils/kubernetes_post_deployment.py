@@ -1,12 +1,14 @@
 import logging
 import os
 import platform
+import re
 import time
 from dataclasses import asdict
 from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 import yaml
+from hurry.filesize import size
 from kubernetes import client, config
 from kubernetes.client import V1NodeList
 
@@ -104,7 +106,6 @@ def get_cluster_parameters(node_info: V1NodeList) -> tuple:
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = None, resource_group=''):
-
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
@@ -119,6 +120,10 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
     nodes_ips = get_nodes_ips(node_info)
     nodes_names = get_nodes_names(node_info)
     num_nodes = len(nodes_names)
+    machine_type = node_info.items[0].metadata.labels['node.kubernetes.io/instance-type']
+    vCPU = int(node_info.items[0].status.capacity['cpu'])
+    total_memory_ = node_info.items[0].status.capacity['memory']
+    total_memory = size(int(re.sub(r'[^0-9]', '', total_memory_)))
     cluster_version, runtime_version, os_image = get_cluster_parameters(node_info)
     timestamp = int(time.time())
     human_created_timestamp = datetime.utcfromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
@@ -133,7 +138,9 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version, runtime_version=runtime_version,
-                                          os_image=os_image, region_name=region_name, num_nodes=num_nodes)
+                                          os_image=os_image, region_name=region_name, num_nodes=num_nodes,
+                                          machine_type=machine_type, vCPU=vCPU, total_memory=total_memory,
+                                          totalvCPU=vCPU * num_nodes)
         insert_gke_deployment(cluster_type=GKE, gke_deployment_object=asdict(gke_deployment_object))
         # send_slack_message(deployment_object=gke_deployment_object)
     elif cluster_type == GKE_AUTOPILOT:
