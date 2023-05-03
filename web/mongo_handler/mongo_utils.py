@@ -491,12 +491,8 @@ def retrieve_users_data(team_name: str = ""):
         for user_object in user_objects:
             del user_object["_id"]
             try:
-                profile_image_id = user_object['profile_image_id']
-                file = fs.find_one({"_id": profile_image_id})
-                user_object['profile_image'] = file
                 del user_object['profile_image_id']
                 del user_object['hashed_password']
-                del user_object['profile_image']
             except:
                 logger.error(f'There was a problem here')
             if user_object['availability']:

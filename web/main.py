@@ -41,8 +41,6 @@ key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
 
 REGISTRATION = False
-CUR_DIR = os.getcwd()
-PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
 
 file_name = 'server_main.log'
 if MACOS in platform.platform():
@@ -58,9 +56,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-logger.info(f'The current directory is: {CUR_DIR}')
 
-PROJECT_NAME = os.getenv('PROJECT_NAME')
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 
@@ -70,13 +66,6 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SECURITY_PASSWORD_SALT'] = 'salty_balls'
 app.config['UPLOAD_FOLDER'] = ''
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-
-if MACOS in platform.platform():
-    CUR_DIR = os.getcwd()
-    PROJECT_ROOT = "/".join(CUR_DIR.split('/'))
-    logger.info(f'current directory is: {PROJECT_ROOT}')
-else:
-    PROJECT_NAME = os.environ['PROJECT_NAME']
 
 
 def generate_confirmation_token(email) -> str:
