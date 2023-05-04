@@ -10,10 +10,7 @@ from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME, MACOS
 from mongo_handler.mongo_utils import retrieve_cluster_details
 
 log_file_name = 'server.log'
-if MACOS in platform.platform():
-    log_file_path = f'{os.getcwd()}/{log_file_name}'
-else:
-    log_file_path = f'/var/log/{log_file_name}'
+log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

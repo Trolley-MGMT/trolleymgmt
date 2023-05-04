@@ -43,10 +43,7 @@ crypter = Fernet(key)
 REGISTRATION = False
 
 log_file_name = 'server.log'
-if MACOS in platform.platform():
-    log_file_path = f'{os.getcwd()}/{log_file_name}'
-else:
-    log_file_path = f'/var/log/{log_file_name}'
+log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
