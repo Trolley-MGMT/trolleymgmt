@@ -1,12 +1,33 @@
 $(document).ready(function() {
-    window.localStorage.setItem("userName", data['user_name']);
-    let user_name = window.localStorage.getItem("userName");
-    window.localStorage.setItem("clusterName", data['cluster_name']);
-    let clusterName = window.localStorage.getItem("clusterName");
+    let debug = true;
     let trolley_remote_url = '';
     let trolley_local_url = 'localhost';
     let trolley_url = 'http://www.pavelzagalsky.com';
-    let debug = true;
+    let stored_user_type = window.localStorage.getItem("userType");
+    if (isEmpty(stored_user_type) == true) {
+        window.localStorage.setItem("userType", data['user_type']);
+    }
+    else {
+        let user_type = window.localStorage.getItem("userType");
+    }
+    window.localStorage.setItem("userName", data['user_name']);
+
+    let user_name = window.localStorage.getItem("userName");
+    window.localStorage.setItem("clusterName", data['cluster_name']);
+    let clusterName = window.localStorage.getItem("clusterName");
+    window.localStorage.setItem("objectsFilterType", "users");
+    if (debug === true) {
+        trolley_url = trolley_local_url;
+        gitBranch = 'master'
+        http = 'http://'
+    } else {
+        trolley_url = trolley_remote_url
+        gitBranch = 'master'
+        http = 'https://'
+    }
+    store_client_names()
+    store_users_data()
+    store_team_names()
     let query = false;
     let clustersManagePage = false;
     let instancesManagePage = false;
@@ -54,15 +75,6 @@ $(document).ready(function() {
     var clientElement = '';
     var userElement = '';
 
-    if (debug === true) {
-        trolley_url = trolley_local_url;
-        gitBranch = 'master'
-        http = 'http://'
-    } else {
-        trolley_url = trolley_remote_url
-        gitBranch = 'master'
-        http = 'https://'
-    }
     if (query == true) {
         buildPage = false;
         clustersDataPage = false;
@@ -190,10 +202,17 @@ $(document).ready(function() {
             .catch((error) => {
                 console.log(error)
             })
-        populate_team_names()
-        let teamNames = window.localStorage.getItem("teamNames");
-        populate_user_names(teamNames.split(",")[0])
-        populate_client_names()
+        let user_type = window.localStorage.getItem("userType");
+        if (user_type == 'admin') {
+            $("#teams-users-dropdowns-box").show();
+            $("#client-user-select-dropdowns-box").show();
+            $("#client-name-table").show();
+            populate_team_names()
+            let teamNames = window.localStorage.getItem("teamNames");
+            populate_user_names(teamNames.split(",")[0])
+            populate_client_names()
+        }
+
     }
 
     if (instancesManagePage) {
@@ -204,10 +223,16 @@ $(document).ready(function() {
             .catch((error) => {
                 console.log(error)
             })
-        populate_team_names()
-        let teamNames = window.localStorage.getItem("teamNames");
-        populate_user_names(teamNames.split(",")[0])
-        populate_client_names()
+        let user_type = window.localStorage.getItem("userType");
+        if (user_type == 'admin') {
+            $("#teams-users-dropdowns-box").show();
+            $("#client-user-select-dropdowns-box").show();
+            $("#client-name-table").show();
+            populate_team_names()
+            let teamNames = window.localStorage.getItem("teamNames");
+            populate_user_names(teamNames.split(",")[0])
+            populate_client_names()
+        }
     }
 
     if (clustersDataPage) {
@@ -644,7 +669,7 @@ $(document).ready(function() {
 
 
         if (assignedObject == "user") {
-            var user_name_array = userName.split("_")
+            var user_name_array = userName.split("-")
             var cap_user_name_ = ""
             $.each(user_name_array, function(key, value) {
                 cap_user_name_ += value.capitalize() + " "
@@ -685,9 +710,10 @@ $(document).ready(function() {
 
     function store_users_data() {
         var usersData = []
+        var logged_user_name = window.localStorage.getItem("userName")
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: http + trolley_url + "/users",
+                url: http + trolley_url + "/users?logged_user_name=" + logged_user_name,
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -700,7 +726,7 @@ $(document).ready(function() {
                                 user_email: value['user_email'],
                                 profile_image_filename: value['profile_image_filename'],
                                 registration_status: value['registration_status'],
-                                user_type: value['user_type'],
+                                user_type: value['user_type']
                             });
                         });
                     }
@@ -857,7 +883,7 @@ $(document).ready(function() {
         }
 
         $.each(clustersData, function(key, value) {
-            var user_name_array = value.user_name.split("_")
+            var user_name_array = value.user_name.split("-")
             var cap_user_name_ = ""
             $.each(user_name_array, function(key, value) {
                 cap_user_name_ += value.capitalize() + " "
@@ -905,30 +931,61 @@ $(document).ready(function() {
         } else if (clusterType == 'gke') {
             $('#gke-clusters-management-table').append(full_table);
         }
+
         object_filter_type = window.localStorage.getItem("objectsFilterType");
         if (object_filter_type == "users") {
-            $("#user-name-table").show();
-            $("#client-name-table").hide();
+            let user_type = window.localStorage.getItem("userType");
+            if (user_type != "admin") {
+                $("#user-name-table").hide();
+                $("#client-name-table").hide();
 
-            $.each(clustersData, function(key, value) {
-            client_name_text_to_hide = "#clusters-text-label-clientName-div-" + value.cluster_name
-            client_name_div_to_hide = "#clusters-clientName-div-" + value.cluster_name
-                $(client_name_text_to_hide).hide();
-                $(client_name_div_to_hide).hide();
-            });
-        }
-        else if (object_filter_type == "clients") {
-            $("#user-name-table").hide();
-            $("#client-name-table").show();
+                $.each(clustersData, function(key, value) {
+                    client_name_text_to_hide = "#clusters-text-label-clientName-div-" + value.cluster_name
+                    client_name_div_to_hide = "#clusters-clientName-div-" + value.cluster_name
+                    $(client_name_text_to_hide).hide();
+                    $(client_name_div_to_hide).hide();
+                    user_name_text_to_hide = "#clusters-text-label-userName-div-" + value.cluster_name
+                    user_name_div_to_hide = "#clusters-userName-div-" + value.cluster_name
+                    $(user_name_text_to_hide).hide();
+                    $(user_name_div_to_hide).hide();
+                })
+            } else {
+                $("#user-name-table").show();
+                $("#client-name-table").hide();
+                $.each(clustersData, function(key, value) {
+                    client_name_text_to_hide = "#clusters-text-label-clientName-div-" + value.cluster_name
+                    client_name_div_to_hide = "#clusters-clientName-div-" + value.cluster_name
+                    $(client_name_text_to_hide).hide();
+                    $(client_name_div_to_hide).hide();
+                });
+            }}
+        if (object_filter_type == "clients") {
+            let user_type = window.localStorage.getItem("userType");
+            if (user_type != "admin") {
+                $("#user-name-table").hide();
+                $("#client-name-table").hide();
 
-            $.each(clustersData, function(key, value) {
-            user_name_text_to_hide = "#clusters-text-label-userName-div-" + value.cluster_name
-            user_name_div_to_hide = "#clusters-userName-div-" + value.cluster_name
-                $(user_name_text_to_hide).hide();
-                $(user_name_div_to_hide).hide();
-            });
+                $.each(clustersData, function(key, value) {
+                    client_name_text_to_hide = "#clusters-text-label-clientName-div-" + value.cluster_name
+                    client_name_div_to_hide = "#clusters-clientName-div-" + value.cluster_name
+                    $(client_name_text_to_hide).hide();
+                    $(client_name_div_to_hide).hide();
+                    user_name_text_to_hide = "#clusters-text-label-userName-div-" + value.cluster_name
+                    user_name_div_to_hide = "#clusters-userName-div-" + value.cluster_name
+                    $(user_name_text_to_hide).hide();
+                    $(user_name_div_to_hide).hide();
+                })
+            } else {
+                $("#user-name-table").hide();
+                $("#client-name-table").show();
+                $.each(clustersData, function(key, value) {
+                    user_name_text_to_hide = "#clusters-text-label-userName-div-" + value.cluster_name
+                    user_name_div_to_hide = "#clusters-userName-div-" + value.cluster_name
+                    $(user_name_text_to_hide).hide();
+                    $(user_name_div_to_hide).hide();
+                });
+            }}
         }
-    }
 
     function populate_instances_objects(passedInstancesData) {
         var instancesHTML = '';
@@ -941,7 +998,7 @@ $(document).ready(function() {
         }
 
         $.each(instancesData, function(key, value) {
-            var user_name_array = value.user_name.split("_")
+            var user_name_array = value.user_name.split("-")
             var cap_user_name_ = ""
             $.each(user_name_array, function(key, value) {
                 cap_user_name_ += value.capitalize() + " "
@@ -1769,4 +1826,8 @@ $(document).ready(function() {
             .addClass('menu-open').prev('a')
             .addClass('active');
     });
+
+  function isEmpty(val){
+    return (val === undefined || val == null || val.length <= 0) ? true : false;
+}
 });

@@ -479,14 +479,17 @@ def retrieve_user(user_email: str):
     return user_object
 
 
-def retrieve_users_data(team_name: str = ""):
+def retrieve_users_data(logged_user_name: str = ""):
     """
     This endpoint retrieves data for all the available users
     """
-    if team_name:
-        mongo_query = {TEAM_NAME.lower(): team_name}
-        user_object = users.find(mongo_query)
-        user_objects = user_object
+    if logged_user_name:
+        if is_admin(logged_user_name):
+            user_objects = users.find()
+        else:
+            mongo_query = {USER_NAME.lower(): logged_user_name}
+            user_object = users.find(mongo_query)
+            user_objects = user_object
     else:
         user_objects = users.find()
     users_data = []
@@ -503,6 +506,25 @@ def retrieve_users_data(team_name: str = ""):
             if user_object['availability']:
                 users_data.append(user_object)
         return users_data
+
+def update_user(user_email: str, update_type: str, update_value: str) -> bool:
+    """
+    @param user_email: The name of the user to update
+    @param update_type: The type of the update. eg. team_name
+    @param update_value: The value of the update. eg. "qa"
+    """
+    try:
+        mongo_query = {USER_EMAIL.lower(): user_email}
+        existing_user_object = users.find_one(mongo_query)
+        if existing_user_object:
+            newvalues = {"$set": {update_type: update_value}}
+            # result = users.replace_one(existing_user_object, existing_user_object)
+            result = users.update_one(mongo_query, newvalues)
+
+            return True
+    except:
+        print("dsf")
+        return False
 
 
 def retrieve_teams_data():
@@ -637,6 +659,17 @@ def is_admin(user_name: str = "") -> bool:
         return True
     else:
         return False
+
+def check_user_type(user_email: str = "") -> str:
+    """
+    This function checks the user_type of provided email
+    """
+    mongo_query = {USER_EMAIL.lower(): user_email}
+    user_object = users.find_one(mongo_query)
+    if user_object:
+        return user_object['user_type']
+    else:
+        return ''
 
 
 def insert_file(profile_image_filename: str = '') -> ObjectId:
@@ -1062,7 +1095,7 @@ def add_data_to_instance(object_type: str, provider: str = '', instance_name: st
     if assigned_object == USER:
         newvalues = {"$set": {USER_NAME.lower(): user_name}}
     elif assigned_object == CLIENT:
-        newvalues = {"$set": {CLIENT_NAME.lower(): client_name}}
+        newvalues = {"$set": {CLIENT_NAME.lower(): client_name.lower()}}
     if provider == GCP:
         result = gcp_discovered_vm_instances.update_one(myquery, newvalues)
     elif provider == AWS:

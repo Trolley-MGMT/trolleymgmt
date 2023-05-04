@@ -53,7 +53,6 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 
@@ -94,6 +93,7 @@ def yaml_to_dict(content) -> dict:
     else:
         deployment_yaml_dict = yaml.safe_load(full_deployment_yaml)
     return deployment_yaml_dict
+
 
 def deployment_yaml_object_handling(content) -> DeploymentYAMLObject:
     return DeploymentYAMLObject(content['cluster_type'], content['cluster_name'], yaml_to_dict(content))
@@ -532,7 +532,7 @@ def client():
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == GET:
         client_names = mongo_handler.mongo_utils.retrieve_clients_data()
-        return jsonify(sorted(client_names, key=lambda d: d['client_name']) )
+        return jsonify(sorted(client_names, key=lambda d: d['client_name']))
 
 
 # @app.route('/fetch_clients_data', methods=[GET])
@@ -560,7 +560,8 @@ def users():
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == GET:
         team_name = request.args.get(TEAM_NAME.lower())
-        users_data = mongo_handler.mongo_utils.retrieve_users_data(team_name)
+        logged_user_name = request.args.get('logged_user_name')
+        users_data = mongo_handler.mongo_utils.retrieve_users_data(logged_user_name)
         return jsonify(sorted(users_data, key=lambda d: d['user_name']))
     elif request.method == DELETE:
         content = request.get_json()
@@ -833,6 +834,7 @@ def login():
         confirm_url = str(url_for('confirmation_email', token=token, _external=True))
         mail_message = MailSender(user_email, confirm_url)
         mail_message.send_confirmation_mail()
+        mongo_handler.mongo_utils.update_user(user_email, update_type="confirmation_url", update_value=confirm_url)
         return render_template('login.html',
                                error_message=f'Dear {first_name}! '
                                              f'A confirmation mail was sent to {user_email} and was not confirmed. '
@@ -847,7 +849,9 @@ def login():
         base64_data = codecs.encode(user_object['profile_image'].read(), 'base64')
         profile_image = base64_data.decode('utf-8')
         if token:
-            data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name']}
+            user_email = user_object['user_email']
+            user_type = mongo_handler.mongo_utils.check_user_type(user_email)
+            data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'], 'user_type': user_type}
             return render_template('index.html', data=data, image=profile_image)
         else:
             user_email = user_object['user_email']
