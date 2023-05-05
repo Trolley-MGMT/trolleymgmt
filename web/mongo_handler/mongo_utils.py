@@ -213,17 +213,25 @@ def retrieve_available_clusters(cluster_type: str, client_name: str = '', user_n
                 clusters_object = eks_clusters.find({AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
                 discovered_clusters_object = aws_discovered_eks_clusters.find(
                     {AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
-
-        # if not user_name or is_admin(user_name):
-        #     clusters_object = eks_clusters.find({AVAILABILITY: True})
-        # else:
-        #     clusters_object = eks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
-        # discovered_clusters_object = aws_discovered_eks_clusters.find({AVAILABILITY: True})
     elif cluster_type == AKS:
-        if not user_name or is_admin(user_name):
+        if not user_name and not client_name:
+            clusters_object = aks_clusters.find({AVAILABILITY: True})
+        elif is_admin(user_name):
+            discovered_clusters_object = az_discovered_aks_clusters.find({AVAILABILITY: True})
             clusters_object = aks_clusters.find({AVAILABILITY: True})
         else:
-            clusters_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+            if user_name:
+                clusters_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
+                discovered_clusters_object = az_discovered_aks_clusters.find(
+                    {AVAILABILITY: True, USER_NAME.lower(): user_name})
+            elif client_name:
+                clusters_object = aks_clusters.find({AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
+                discovered_clusters_object = az_discovered_aks_clusters.find(
+                    {AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
+        # if not user_name or is_admin(user_name):
+        #     clusters_object = aks_clusters.find({AVAILABILITY: True})
+        # else:
+        #     clusters_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     else:
         clusters_object = []
     for cluster in clusters_object:

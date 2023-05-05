@@ -844,7 +844,7 @@ $(document).ready(function() {
         var instancesData = []
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: http + trolley_url + "/get_instances_data?provider=" + provider,
+                url: http + trolley_url + "/get_instances_data?provider=" + provider + "&user_name=" + data['user_name'],
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -1678,6 +1678,8 @@ $(document).ready(function() {
     })
 
     $('#user-names-dropdown').change(function() {
+        $("#aks-clusters-management-table").empty()
+        $("#eks-clusters-management-table").empty()
         $("#gke-clusters-management-table").empty()
         var clientName = "";
         var userName = $('#user-names-dropdown').val();
@@ -1700,6 +1702,8 @@ $(document).ready(function() {
     })
 
     $('#client-names-dropdown').change(function() {
+        $("#aks-clusters-management-table").empty()
+        $("#eks-clusters-management-table").empty()
         $("#gke-clusters-management-table").empty()
         var clientName = $('#client-names-dropdown').val();
         var userName = "";
