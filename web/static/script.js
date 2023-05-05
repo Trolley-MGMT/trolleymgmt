@@ -9,9 +9,14 @@ $(document).ready(function() {
     }
     else {
         let user_type = window.localStorage.getItem("userType");
+        if (user_type == "admin") {
+            $("#users-div").show()
+            $("#clients-div").show()
+            $("#dashboards-div").show()
+            $("#settings-div").show()
+        }
     }
     window.localStorage.setItem("userName", data['user_name']);
-
     let user_name = window.localStorage.getItem("userName");
     window.localStorage.setItem("clusterName", data['cluster_name']);
     let clusterName = window.localStorage.getItem("clusterName");
@@ -1053,27 +1058,81 @@ $(document).ready(function() {
 
         object_filter_type = window.localStorage.getItem("objectsFilterType");
         if (object_filter_type == "users") {
-            $("#user-name-table").show();
-            $("#client-name-table").hide();
+            let user_type = window.localStorage.getItem("userType");
+            if (user_type != "admin") {
+                $("#user-name-table").hide();
+                $("#client-name-table").hide();
 
-            $.each(instancesData, function(key, value) {
-            client_name_text_to_hide = "#instanes-text-label-clientName-div-" + value.instance_name
-            client_name_div_to_hide = "#instances-clientName-div-" + value.instance_name
-                $(client_name_text_to_hide).hide();
-                $(client_name_div_to_hide).hide();
-            });
-        }
-        else if (object_filter_type == "clients") {
-            $("#user-name-table").hide();
-            $("#client-name-table").show();
+                $.each(instancesData, function(key, value) {
+                    client_name_text_to_hide = "#instances-text-label-clientName-div-" + value.instance_name
+                    client_name_div_to_hide = "#instances-clientName-div-" + value.instance_name
+                    $(client_name_text_to_hide).hide();
+                    $(client_name_div_to_hide).hide();
+                    user_name_text_to_hide = "#instances-text-label-userName-div-" + value.instance_name
+                    user_name_div_to_hide = "#instances-userName-div-" + value.instance_name
+                    $(user_name_text_to_hide).hide();
+                    $(user_name_div_to_hide).hide();
+                })
+            } else {
+                $("#user-name-table").show();
+                $("#client-name-table").hide();
+                $.each(instancesData, function(key, value) {
+                    client_name_text_to_hide = "#instances-text-label-clientName-div-" + value.instance_name
+                    client_name_div_to_hide = "#instances-clientName-div-" + value.instance_name
+                    $(client_name_text_to_hide).hide();
+                    $(client_name_div_to_hide).hide();
+                });
+            }}
+        if (object_filter_type == "clients") {
+            let user_type = window.localStorage.getItem("userType");
+            if (user_type != "admin") {
+                $("#user-name-table").hide();
+                $("#client-name-table").hide();
 
-            $.each(instancesData, function(key, value) {
-            user_name_text_to_hide = "#instances-text-label-userName-div-" + value.instance_name
-            user_name_div_to_hide = "#instances-userName-div-" + value.instance_name
-                $(user_name_text_to_hide).hide();
-                $(user_name_div_to_hide).hide();
-            });
-        }
+                $.each(instancesData, function(key, value) {
+                    client_name_text_to_hide = "#instances-text-label-clientName-div-" + value.instance_name
+                    client_name_div_to_hide = "#instances-clientName-div-" + value.instance_name
+                    $(client_name_text_to_hide).hide();
+                    $(client_name_div_to_hide).hide();
+                    user_name_text_to_hide = "#instances-text-label-userName-div-" + value.instance_name
+                    user_name_div_to_hide = "#instances-userName-div-" + value.instance_name
+                    $(user_name_text_to_hide).hide();
+                    $(user_name_div_to_hide).hide();
+                })
+            } else {
+                $("#user-name-table").hide();
+                $("#client-name-table").show();
+                $.each(instancesData, function(key, value) {
+                    user_name_text_to_hide = "#instances-text-label-userName-div-" + value.instance_name
+                    user_name_div_to_hide = "#instances-userName-div-" + value.instance_name
+                    $(user_name_text_to_hide).hide();
+                    $(user_name_div_to_hide).hide();
+                });
+            }}
+
+//        object_filter_type = window.localStorage.getItem("objectsFilterType");
+//        if (object_filter_type == "users") {
+//            $("#user-name-table").show();
+//            $("#client-name-table").hide();
+//
+//            $.each(instancesData, function(key, value) {
+//            client_name_text_to_hide = "#instanes-text-label-clientName-div-" + value.instance_name
+//            client_name_div_to_hide = "#instances-clientName-div-" + value.instance_name
+//                $(client_name_text_to_hide).hide();
+//                $(client_name_div_to_hide).hide();
+//            });
+//        }
+//        else if (object_filter_type == "clients") {
+//            $("#user-name-table").hide();
+//            $("#client-name-table").show();
+//
+//            $.each(instancesData, function(key, value) {
+//            user_name_text_to_hide = "#instances-text-label-userName-div-" + value.instance_name
+//            user_name_div_to_hide = "#instances-userName-div-" + value.instance_name
+//                $(user_name_text_to_hide).hide();
+//                $(user_name_div_to_hide).hide();
+//            });
+//        }
 
     }
 
