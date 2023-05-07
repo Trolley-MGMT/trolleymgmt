@@ -37,11 +37,12 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-    USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
-    ADMIN, USER, CLIENT, MACOS, TEAM_ADDITIONAL_INFO
+        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
+        ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
+        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
+        ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO
 
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-361905')
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
@@ -1187,7 +1188,8 @@ def insert_team(team_data_object: dict) -> bool:
             return True
         if not existing_team_data_object[AVAILABILITY.lower()]:
             mongo_query = {TEAM_NAME.lower(): team_data_object[TEAM_NAME.lower()]}
-            newvalues = {"$set": {AVAILABILITY.lower(): True, TEAM_ADDITIONAL_INFO: team_data_object[TEAM_ADDITIONAL_INFO]}}
+            newvalues = {
+                "$set": {AVAILABILITY.lower(): True, TEAM_ADDITIONAL_INFO: team_data_object[TEAM_ADDITIONAL_INFO]}}
             teams.update_one(mongo_query, newvalues)
         else:
             result = teams.insert_one(team_data_object)
