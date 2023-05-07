@@ -851,6 +851,7 @@ def login():
     if message is None:
         message = ''
     if request.method == 'GET':
+        logger.info(f'message is: {message}')
         return render_template('login.html', failure_message=message)
     if request.method == 'POST':
         token, user_object = login_processor(new=True)
@@ -860,9 +861,11 @@ def login():
             user_email = user_object['user_email']
             user_type = mongo_handler.mongo_utils.check_user_type(user_email)
             data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'], 'user_type': user_type}
+            logger.info(f'data content is: {data}')
             return render_template('index.html', data=data, image=profile_image)
         else:
             user_email = user_object['user_email']
+            logger.info(f'user_email is: {user_email}')
             return render_template('login.html',
                                    error_message=f'Dear {user_email}, your password was not entered correctly. '
                                                  f'Please try again')
