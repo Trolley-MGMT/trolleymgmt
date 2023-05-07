@@ -259,7 +259,7 @@ $(document).ready(function() {
             populate_team_names()
             let teamNames = window.localStorage.getItem("teamsData");
             teamName = JSON.parse(teamNames)[0].team_name
-            populate_user_names(team_name)
+            populate_user_names(teamName)
             populate_client_names()
         }
     }
