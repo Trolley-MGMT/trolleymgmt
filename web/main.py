@@ -163,6 +163,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
         return '', {'user_email': user_email}
     session['user_email'] = user_email
     session['user_password'] = password
+    logger.info(f'user_email is: {user_email} and password is: {password}')
     try:
         session['first_name'] = user_object['first_name'].capitalize()
     except:
@@ -171,6 +172,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                          failure_message=f'username or password were not found in the system '
                                          f' please try again'))
     if not user_email or not password:
+        logger.error(f'no user_email or password were found')
         return render_template('login.html',
                                failure_message=f'{user_email} was not found in the system '
                                                f'or you provided a wrong password, please try again')
