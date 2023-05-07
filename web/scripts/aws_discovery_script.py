@@ -19,17 +19,15 @@ from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aw
     retrieve_compute_per_machine_type
 # from web.variables.variables import AWS, EKS
 
-if 'macOS' in platform.platform():
-    log_path = f'{os.getcwd()}'
-else:
-    log_path = '/var/log/'
 file_name = 'server.log'
+log_file_path = f'{os.getcwd()}/{file_name}'
+
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(f"{log_path}/{file_name}"),
+        logging.FileHandler(log_file_path),
         logging.StreamHandler(sys.stdout)
     ]
 )
