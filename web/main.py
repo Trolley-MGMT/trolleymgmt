@@ -206,8 +206,8 @@ def login_required(f):
         try:
             login_processor()
             return f(*args, **kwargs)
-        except:
-            logger.error(f'login_processor has failed')
+        except Exception as e:
+            logger.error(f'login_processor has failed with {e}')
             return render_template('login.html')
 
     return decorated_function
