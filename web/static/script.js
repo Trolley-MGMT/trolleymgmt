@@ -1,6 +1,6 @@
 $(document).ready(function() {
-    let debug = true;
-    let trolley_remote_url = '';
+    let debug = false;
+    let trolley_remote_url = '34.123.171.234:8081';
     let trolley_local_url = 'localhost';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
@@ -28,7 +28,7 @@ $(document).ready(function() {
     } else {
         trolley_url = trolley_remote_url
         gitBranch = 'master'
-        http = 'https://'
+        http = 'http://'
     }
     store_client_names()
     store_users_data()
