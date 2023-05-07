@@ -33,6 +33,7 @@ $(document).ready(function() {
     store_client_names()
     store_users_data()
     store_teams_data()
+    store_clients_data()
     let query = false;
     let clustersManagePage = false;
     let instancesManagePage = false;
@@ -548,7 +549,7 @@ $(document).ready(function() {
         });
 
 
-        url = http + trolley_url + "/client";
+        url = http + trolley_url + "/clients";
 
         swal_message = 'A request to add a client was sent'
 
@@ -721,7 +722,7 @@ $(document).ready(function() {
         }
 
 
-        url = http + trolley_url + "/client";
+        url = http + trolley_url + "/clients";
 
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", url, true);
@@ -756,7 +757,7 @@ $(document).ready(function() {
         var clientNames = []
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: http + trolley_url + "/client",
+                url: http + trolley_url + "/clients",
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -830,6 +831,39 @@ $(document).ready(function() {
             })
         })
     }
+
+    function store_clients_data() {
+        var clientsData = []
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/clients",
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
+                            clientsData.push({
+                                client_name: value['client_name'],
+                                client_additional_info: value['client_additional_info'],
+                                connection_name: value['connection_name'],
+                                client_office_address: value['client_office_address'],
+                                connection_phone_number: value['connection_phone_number'],
+                                client_web_address: value['client_web_address'],
+
+                            });
+                        });
+                    }
+                    window.localStorage.setItem("clientsData", JSON.stringify(clientsData));
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                },
+            })
+        })
+    }
+
+
+
 
     function store_clusters() {
         var clustersData = []
@@ -1324,35 +1358,24 @@ $(document).ready(function() {
     }
 
     function populate_clients_data() {
-
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                url: http + trolley_url + "/client",
-                type: 'GET',
-                success: function(response) {
-                    if (response.length > 0) {
-                        $.each(response, function(key, value) {
-                            clientElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="client-div-' + value['client_name'].capitalize() + '>'
-                            clientElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="card-body pt-0"><div class="col-7"><h2 class="lead"><br><b>' + value['client_name'].capitalize() + '</b></h2>'
-                            clientElement += '<p class="text-muted text-sm"><b>About: </b> ' + value['client_additional_info'] + '<br>'
-                            clientElement += '<b>Contact Name: </b> ' + value['connection_name'] + '</p>'
-                            clientElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
-                            clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + value['client_office_address'] + '</li>'
-                            clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Phone #: ' + value['connection_phone_number'] + '</li>'
-                            clientElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Web: <a href=' + value['client_web_address'] + ' target="_blank" >' + value['client_web_address'] + '</li>'
-                            clientElement += '</ul></div></div></div>'
-                            clientElement += '<div class="card-footer"><div class="text-right">'
-                            clientElement += '<a href="client-data?client_name=' + value['client_name'] + '" class="btn btn-sm btn-primary"><i class="fas fa-user" id="' + value['client_name'].capitalize() + '-view-profile-button"></i> View Profile</a></div></div></div></div></div>'
-                        });
-                    }
-                    $('#clients-main-div').append(clientElement);
-                    resolve(response)
-                },
-                error: function(error) {
-                    alert("Failure fetching client names data")
-                },
-            })
-        })
+        clientsDataArray = jQuery.parseJSON(window.localStorage.getItem("clientsData"));
+            $.each(clientsDataArray, function(index, client) {
+                client_name = client.client_name.capitalize();
+                clientElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="client-div-' + client.client_name.capitalize() + '>'
+                clientElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="card-body pt-0"><div class="col-7"><h2 class="lead"><br><b>' + client.client_name.capitalize() + '</b></h2>'
+                clientElement += '<p class="text-muted text-sm"><b>About: </b> ' + client.client_additional_info + '<br>'
+                clientElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
+                clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + client.client_office_address + '</li>'
+                clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Phone #: ' + client.connection_phone_number + '</li>'
+                clientElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Web: <a href=' + client.client_web_address + ' target="_blank" >' + client.client_web_address + '</a></li>'
+                clientElement += '</ul></div></div></div>'
+                clientElement += '<div class="card-footer"><div class="text-center ">'
+                clientElement += '<button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-user" id="' + client.client_name + '-info-client-button"></i>More Info</a>'
+                clientElement += '<div class="text-right">'
+                clientElement += '<button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-user" id="' + client.client_name + '-delete-client-button"></i>Delete Client</a></div>'
+                clientElement += '</div></div></div></div></div>'
+            });
+            $('#clients-main-div').append(clientElement);
     }
 
     function populate_zones(region_name) {
@@ -1629,7 +1652,7 @@ $(document).ready(function() {
         });
 
         swal_message = 'A ' + clientName + ' was requested for deletion'
-        url = http + trolley_url + "/client";
+        url = http + trolley_url + "/clients";
         const xhr = new XMLHttpRequest();
         xhr.open("DELETE", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -1911,6 +1934,10 @@ $(document).ready(function() {
             teamToDelete = this.firstChild.id.split("-")[0]
             delete_team(teamToDelete)
             location.reload()
+        } else if (this.innerText === "Delete Client") {
+            clientToDelete = this.firstChild.id.split("-")[0]
+            delete_client(clientToDelete)
+            location.reload()
         } else if (this.innerText === "Scan for clusters") {
             trigger_cloud_provider_discovery(provider, objectType = 'cluster')
         } else if (this.innerText === "Scan for VMs") {
@@ -1929,11 +1956,7 @@ $(document).ready(function() {
                 showConfirmButton: false,
                 timer: 1000
             })
-        } else if ((this.lastChild.id.split("-")).includes("delete")) {
-            var clientName = this.lastChild.id.split("-")[1]
-            delete_client(clientName)
-            location.reload()
-        }
+        } 
     })
 
     function copyToClipboard(textToCopy) {

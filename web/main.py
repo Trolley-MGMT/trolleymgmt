@@ -498,7 +498,7 @@ def provider():
         return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
 
 
-@app.route('/client', methods=[GET, POST, PUT, DELETE])
+@app.route('/clients', methods=[GET, POST, PUT, DELETE])
 @login_required
 def client():
     """
