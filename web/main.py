@@ -156,6 +156,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             user_email = request.form['user_email']
             password = request.form['user_password']
     user_object = mongo_handler.mongo_utils.retrieve_user(user_email)
+    logger.info(f'user_object is: {user_object}')
     session["registration_status"] = user_object['registration_status']
     if not user_object:
         logger.error('failed here')
@@ -180,6 +181,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
                     {'user_id': str(user_object['_id']),
                      'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)},
                     app.config['SECRET_KEY'])
+                logger.info(f'token is: {token}')
             except InvalidTokenError as error:
                 logger.error(error)
                 logger.info(f'Failed to create a token')
@@ -187,10 +189,10 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             session['x-access-token'] = token
             return token, user_object
         else:
-            logger.info('The hashed password is incorrect')
+            logger.error('The hashed password is incorrect')
             return '', user_object
     except:
-        logger.info(f'The hashed password is incorrect')
+        logger.error(f'The hashed password is incorrect')
         redirect(url_for('login',
                          failure_message=f'username or password were not found in the system '
                                          f' please try again'))
