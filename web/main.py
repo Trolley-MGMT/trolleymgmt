@@ -8,15 +8,13 @@ import datetime
 from functools import wraps
 from threading import Thread
 
-import jwt
-import platform
 from dataclasses import asdict
 from distutils import util
 
 from cryptography.fernet import Fernet
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
 from itsdangerous import URLSafeTimedSerializer
-from jwt import InvalidTokenError
+from jwt import encode, InvalidTokenError
 from PIL import Image
 import yaml
 from werkzeug.datastructures import FileStorage
@@ -163,7 +161,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
         return '', {'user_email': user_email}
     session['user_email'] = user_email
     session['user_password'] = password
-    logger.info(f'user_email is: {user_email} and password is: {password}')
+    logger.info(f'user_email is: {user_email}')
     try:
         session['first_name'] = user_object['first_name'].capitalize()
     except:
@@ -179,11 +177,10 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
     try:
         if check_password_hash(user_object['hashed_password'], password):
             try:
-                token = jwt.encode(
+                token = encode(
                     {'user_id': str(user_object['_id']),
                      'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)},
                     app.config['SECRET_KEY'])
-                logger.info(f'token is: {token}')
             except InvalidTokenError as error:
                 logger.error(error)
                 logger.info(f'Failed to create a token')
