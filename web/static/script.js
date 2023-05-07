@@ -4,10 +4,12 @@ $(document).ready(function() {
     let trolley_local_url = 'localhost:8081';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
+    let user_type = "user"
     if (isEmpty(stored_user_type) == true) {
         window.localStorage.setItem("userType", data['user_type']);
+        user_type = data['user_type']);
     } else {
-        let user_type = window.localStorage.getItem("userType");
+        user_type = window.localStorage.getItem("userType");
     }
     if (user_type == "admin") {
         $("#users-div").show()
