@@ -16,6 +16,7 @@
     <link href="static/img/trolley.png" rel="icon">
     <script>
       var data = {{ data|tojson }};
+
     </script>
 </head>
 
@@ -191,7 +192,7 @@
                     </li>
                     <li class="nav-item" id="users-div" style="display: none;">
                         <a href="#" class="nav-link">
-                            <i class="fa fa-users"></i>
+                            <i class="fa fa-user"></i>
                             <p>
                                 Users
                                 <i class="fas fa-angle-left right"></i>
@@ -202,6 +203,25 @@
                                 <a href="manage-users" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Users Management</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item" id="teams-div" style="display: none;">
+                        <a href="#" class="nav-link">
+                            <i class="fa fa-users"></i>
+                            <p>
+                                Teams
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview" style="display: none;">
+                            <li class="nav-item">
+                                <a href="manage-teams" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Teams Management</p>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -318,15 +338,15 @@
                         </select>
                     </div>
                 </div>
-<!--                <div class="col-lg-4 align-content-lg-center">-->
-<!--                    &lt;!&ndash; select &ndash;&gt;-->
-<!--                    <div class="form-group">-->
-<!--                        <label>Select Helm Installations</label>-->
-<!--                        <br>-->
-<!--                        <select class="col-lg-8 align-content-lg-center" multiple id="helm-installs-dropdown">-->
-<!--                        </select>-->
-<!--                    </div>-->
-<!--                </div>-->
+                <!--                <div class="col-lg-4 align-content-lg-center">-->
+                <!--                    &lt;!&ndash; select &ndash;&gt;-->
+                <!--                    <div class="form-group">-->
+                <!--                        <label>Select Helm Installations</label>-->
+                <!--                        <br>-->
+                <!--                        <select class="col-lg-8 align-content-lg-center" multiple id="helm-installs-dropdown">-->
+                <!--                        </select>-->
+                <!--                    </div>-->
+                <!--                </div>-->
                 <div class="col-lg-2 align-content-lg-center">
                     <!-- select -->
                     <div class="form-group">
@@ -347,13 +367,13 @@
                     </div>
                 </div>
                 <br>
-<!--                <div class="col-lg-4 align-content-lg-center">-->
-<!--                    <div class="form-group">-->
-<!--                        <label>Deployment YAML</label>-->
-<!--                        <textarea class="form-control" rows="6" id="deployment-yaml"-->
-<!--                                  placeholder="Insert your deployment yaml here"></textarea>-->
-<!--                    </div>-->
-<!--                </div>-->
+                <!--                <div class="col-lg-4 align-content-lg-center">-->
+                <!--                    <div class="form-group">-->
+                <!--                        <label>Deployment YAML</label>-->
+                <!--                        <textarea class="form-control" rows="6" id="deployment-yaml"-->
+                <!--                                  placeholder="Insert your deployment yaml here"></textarea>-->
+                <!--                    </div>-->
+                <!--                </div>-->
                 <button type="submit" class="btn btn-info" id="build-cluster-button">Build Cluster!</button>
             </div><!-- /.container-fluid -->
         </div>

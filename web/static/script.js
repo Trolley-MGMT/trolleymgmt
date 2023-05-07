@@ -6,11 +6,11 @@ $(document).ready(function() {
     let stored_user_type = window.localStorage.getItem("userType");
     if (isEmpty(stored_user_type) == true) {
         window.localStorage.setItem("userType", data['user_type']);
-    }
-    else {
+    } else {
         let user_type = window.localStorage.getItem("userType");
         if (user_type == "admin") {
             $("#users-div").show()
+            $("#teams-div").show()
             $("#clients-div").show()
             $("#dashboards-div").show()
             $("#settings-div").show()
@@ -32,7 +32,7 @@ $(document).ready(function() {
     }
     store_client_names()
     store_users_data()
-    store_team_names()
+    store_teams_data()
     let query = false;
     let clustersManagePage = false;
     let instancesManagePage = false;
@@ -79,6 +79,7 @@ $(document).ready(function() {
 
     var clientElement = '';
     var userElement = '';
+    var teamElement = '';
 
     if (query == true) {
         buildPage = false;
@@ -88,6 +89,7 @@ $(document).ready(function() {
         instancesManagePage = false;
         clientsPage = false;
         usersPage = false;
+        teamsPage = false;
         queryPage = true;
     } else if (pathname[1].includes('build')) {
         buildPage = true;
@@ -97,6 +99,7 @@ $(document).ready(function() {
         instancesManagePage = false;
         clientsPage = false;
         usersPage = false;
+        teamsPage = false;
         queryPage = false;
     } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-aks')) || (pathname[1].includes('manage-gke'))) {
         buildPage = false;
@@ -106,6 +109,7 @@ $(document).ready(function() {
         instancesManagePage = false;
         clientsPage = false;
         usersPage = false;
+        teamsPage = false;
         queryPage = false;
         window.localStorage.setItem("objectType", "cluster");
     } else if ((pathname[1].includes('manage-aws-ec2')) || (pathname[1].includes('manage-gcp-vm')) || (pathname[1].includes('manage-az-vm'))) {
@@ -116,6 +120,7 @@ $(document).ready(function() {
         instancesManagePage = true;
         clientsPage = false;
         usersPage = false;
+        teamsPage = false;
         queryPage = false;
         window.localStorage.setItem("objectType", "instance");
     } else if (pathname[1].includes('clusters-data')) {
@@ -126,6 +131,7 @@ $(document).ready(function() {
         instancesManagePage = false;
         clientsPage = false;
         usersPage = false;
+        teamsPage = false;
         queryPage = false;
     } else if (pathname[1].includes('data')) {
         buildPage = false;
@@ -135,15 +141,7 @@ $(document).ready(function() {
         instancesManagePage = false;
         clientsPage = false;
         usersPage = false;
-        queryPage = false;
-    } else if (pathname[1].includes('clients')) {
-        buildPage = false;
-        clustersDataPage = false;
-        dataPage = false;
-        clustersManagePage = false;
-        instancesManagePage = false;
-        clientsPage = true;
-        usersPage = false;
+        teamsPage = false;
         queryPage = false;
     } else if (pathname[1].includes('users')) {
         buildPage = false;
@@ -153,6 +151,27 @@ $(document).ready(function() {
         instancesManagePage = false;
         clientsPage = false;
         usersPage = true;
+        teamsPage = false;
+        queryPage = false;
+    } else if (pathname[1].includes('teams')) {
+        buildPage = false;
+        clustersDataPage = false;
+        dataPage = false;
+        clustersManagePage = false;
+        instancesManagePage = false;
+        clientsPage = false;
+        usersPage = false;
+        teamsPage = true;
+        queryPage = false;
+    } else if (pathname[1].includes('clients')) {
+        buildPage = false;
+        clustersDataPage = false;
+        dataPage = false;
+        clustersManagePage = false;
+        instancesManagePage = false;
+        clientsPage = true;
+        usersPage = false;
+        teamsPage = false;
         queryPage = false;
     } else {
         buildPage = false;
@@ -162,6 +181,7 @@ $(document).ready(function() {
         instancesManagePage = false;
         clientsPage = false;
         usersPage = false;
+        teamsPage = false;
         queryPage = false;
     }
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1) || ($.inArray('manage-az-vm-instances', pathname) > -1)) {
@@ -180,9 +200,7 @@ $(document).ready(function() {
         window.localStorage.setItem("clusterType", clusterType);
         window.localStorage.setItem("provider", provider);
     }
-    store_client_names()
-    store_users_data()
-    store_team_names()
+
     populate_logged_in_assets();
 
     if (buildPage) {
@@ -191,14 +209,15 @@ $(document).ready(function() {
 
     if (usersPage) {
         populate_users_data();
-
     }
 
     if (clientsPage) {
         populate_clients_data();
-
     }
 
+    if (teamsPage) {
+        populate_teams_data();
+    }
     if (clustersManagePage) {
         store_clusters()
             .then((data) => {
@@ -425,6 +444,13 @@ $(document).ready(function() {
         $("#users-main-div").hide();
     })
 
+    $("#add-team-button").click(function() {
+        $("#add-team-card-title-div").show();
+        $("#add-team-button").hide();
+        $("#submit-team-button").show();
+        $("#teams-main-div").hide();
+    })
+
     $("#submit-user-button").click(function() {
         var userName = $('#user_name').val().toLowerCase();
         var userEmail = $('#user_email').val();
@@ -453,6 +479,41 @@ $(document).ready(function() {
             }
         };
         xhr.send(add_client_data);
+
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: swal_message,
+            showConfirmButton: false,
+            timer: 5000
+        })
+        location.reload();
+    });
+
+    $("#submit-team-button").click(function() {
+        var teamName = $('#team_name').val().toLowerCase();
+        var teamAdditionalInfo = $('#team_additional_info').val();
+
+
+        let add_team_data = JSON.stringify({
+            "team_name": teamName,
+            "team_additional_info": teamAdditionalInfo,
+        });
+
+
+        url = http + trolley_url + "/teams";
+
+        swal_message = 'A request to add a team was sent'
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(add_team_data);
 
         Swal.fire({
             position: 'top-end',
@@ -745,8 +806,8 @@ $(document).ready(function() {
         })
     }
 
-    function store_team_names() {
-        var teamNames = []
+    function store_teams_data() {
+        var teamsData = []
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: http + trolley_url + "/teams",
@@ -754,14 +815,17 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.length > 0) {
                         $.each(response, function(key, value) {
-                            teamNames.push(value)
+                            teamsData.push({
+                                team_name: value['team_name'],
+                                team_additional_info: value['team_additional_info']
+                            });
                         });
                     }
-                    window.localStorage.setItem("teamNames", teamNames);
+                    window.localStorage.setItem("teamsData", JSON.stringify(teamsData));
                     resolve(response)
                 },
                 error: function(error) {
-                    alert("Failure fetching regions data")
+                    reject(error)
                 },
             })
         })
@@ -963,7 +1027,8 @@ $(document).ready(function() {
                     $(client_name_text_to_hide).hide();
                     $(client_name_div_to_hide).hide();
                 });
-            }}
+            }
+        }
         if (object_filter_type == "clients") {
             let user_type = window.localStorage.getItem("userType");
             if (user_type != "admin") {
@@ -989,8 +1054,9 @@ $(document).ready(function() {
                     $(user_name_text_to_hide).hide();
                     $(user_name_div_to_hide).hide();
                 });
-            }}
+            }
         }
+    }
 
     function populate_instances_objects(passedInstancesData) {
         var instancesHTML = '';
@@ -1082,7 +1148,8 @@ $(document).ready(function() {
                     $(client_name_text_to_hide).hide();
                     $(client_name_div_to_hide).hide();
                 });
-            }}
+            }
+        }
         if (object_filter_type == "clients") {
             let user_type = window.localStorage.getItem("userType");
             if (user_type != "admin") {
@@ -1108,32 +1175,8 @@ $(document).ready(function() {
                     $(user_name_text_to_hide).hide();
                     $(user_name_div_to_hide).hide();
                 });
-            }}
-
-//        object_filter_type = window.localStorage.getItem("objectsFilterType");
-//        if (object_filter_type == "users") {
-//            $("#user-name-table").show();
-//            $("#client-name-table").hide();
-//
-//            $.each(instancesData, function(key, value) {
-//            client_name_text_to_hide = "#instanes-text-label-clientName-div-" + value.instance_name
-//            client_name_div_to_hide = "#instances-clientName-div-" + value.instance_name
-//                $(client_name_text_to_hide).hide();
-//                $(client_name_div_to_hide).hide();
-//            });
-//        }
-//        else if (object_filter_type == "clients") {
-//            $("#user-name-table").hide();
-//            $("#client-name-table").show();
-//
-//            $.each(instancesData, function(key, value) {
-//            user_name_text_to_hide = "#instances-text-label-userName-div-" + value.instance_name
-//            user_name_div_to_hide = "#instances-userName-div-" + value.instance_name
-//                $(user_name_text_to_hide).hide();
-//                $(user_name_div_to_hide).hide();
-//            });
-//        }
-
+            }
+        }
     }
 
     function populate_kubernetes_agent_data() {
@@ -1213,10 +1256,10 @@ $(document).ready(function() {
     }
 
     function populate_team_names() {
-        var teamNames = window.localStorage.getItem("teamNames");
-        let teamNamesList = teamNames.split(',')
-        $.each(teamNamesList, function(key, value) {
-            $("#team-names-dropdown").append($("<option />").val(value).text(value.capitalize()));
+        var teamsData = window.localStorage.getItem("teamsData");
+        var teamsDataArray = JSON.parse(teamsData)
+        $.each(teamsDataArray, function(key, value) {
+            $("#team-names-dropdown").append($("<option />").val(value['team_name']).text(value['team_name'].capitalize()));
         });
     }
 
@@ -1247,12 +1290,11 @@ $(document).ready(function() {
             last_name = user.last_name.capitalize();
             userElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="user-div-' + user.user_name + '>'
             userElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="card-body pt-0"><div class="col-7"><h2 class="lead"><br><b>' + user.first_name.capitalize() + " " + user.last_name.capitalize() + '</b></h2>'
-            userElement += '<p class="text-muted text-sm"><b>User type: </b> ' + user.user_type + '<br>'
-            userElement += '<b>Team Name: </b> ' + user.team_name + '</p>'
+            userElement += '<p class="text-muted text-sm"><b>User type: </b> ' + user.user_type.capitalize() + '<br>'
+            userElement += '<b>Team Name: </b> ' + user.team_name.capitalize() + '</p>'
             userElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
-            userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + user.user_email + '</li>'
-            userElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Registration Status: ' + user.registration_status + '</li>'
-            userElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Full Name: ' + first_name + ' ' + last_name + '</li>'
+            userElement += '<li class="small"><span class="fa-li"><i class="fa regular fa-at"></i></span> Email Address: <a href="mailto:' + user.user_email + '">' + user.user_email + '</a></li>'
+            userElement += '<li class="small"><span class="fa-li"><i class="fas fa-tasks"></i></span> Registration Status: ' + user.registration_status.capitalize() + '</li>'
             userElement += '</ul></div><div class="col-4 text-center"><img src="' + user.profile_image_filename + '"' + 'class="img-circle img-fluid"></div></div></div>'
             userElement += '<div class="card-footer"><div class="text-center ">'
             userElement += '<button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-user" id="' + user.user_name + '-info-user-button"></i>More Info</a>'
@@ -1261,6 +1303,24 @@ $(document).ready(function() {
             userElement += '</div></div></div></div></div>'
         });
         $('#users-main-div').append(userElement);
+    }
+
+    function populate_teams_data() {
+        teamsDataArray = jQuery.parseJSON(window.localStorage.getItem("teamsData"));
+        $.each(teamsDataArray, function(index, team) {
+            team_name = team.team_name.capitalize();
+            teamElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="team-div-' + team.team_name.capitalize() + '>'
+            teamElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="card-body pt-0"><div class="col-7"><h2 class="lead"><br><b>' + team.team_name.capitalize() + '</b></h2>'
+            teamElement += '<p class="text-muted text-sm"><b>About: </b> ' + team.team_additional_info + '<br>'
+            teamElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
+            teamElement += '</ul></div></div></div>'
+            teamElement += '<div class="card-footer"><div class="text-center ">'
+            teamElement += '<button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-user" id="' + team.team_name + '-info-team-button"></i>More Info</a>'
+            teamElement += '<div class="text-right">'
+            teamElement += '<button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-user" id="' + team.team_name + '-delete-team-button"></i>Delete Team</a></div>'
+            teamElement += '</div></div></div></div></div>'
+        });
+        $('#teams-main-div').append(teamElement);
     }
 
     function populate_clients_data() {
@@ -1543,6 +1603,26 @@ $(document).ready(function() {
 
     }
 
+
+    function delete_team(teamName) {
+        let team_deletion_data = JSON.stringify({
+            "team_name": teamName
+        });
+
+
+        url = http + trolley_url + "/teams";
+        const xhr = new XMLHttpRequest();
+        xhr.open("DELETE", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(team_deletion_data);
+
+    }
+
     function delete_client(clientName) {
         let client_deletion_data = JSON.stringify({
             "client_name": clientName
@@ -1629,6 +1709,8 @@ $(document).ready(function() {
                 $("#gke-clusters-management-table").empty()
             } else if (provider == "aws") {
                 $("#eks-clusters-management-table").empty()
+            } else if (provider == "az") {
+                $("#aks-clusters-management-table").empty()
             }
 
             if (objectsSelector == "Users") {
@@ -1643,6 +1725,8 @@ $(document).ready(function() {
                 $("#gcp-vm-instances-management-table").empty()
             } else if (provider == "aws") {
                 $("#aws-ec2-instances-management-table").empty()
+            } else if (provider == "az") {
+                $("#az-vm-instances-management-table").empty()
             }
             if (objectsSelector == "Users") {
                 var clientName = "";
@@ -1823,6 +1907,10 @@ $(document).ready(function() {
             userToDelete = this.firstChild.id.split("-")[0]
             delete_user(userToDelete)
             location.reload()
+        } else if (this.innerText === "Delete Team") {
+            teamToDelete = this.firstChild.id.split("-")[0]
+            delete_team(teamToDelete)
+            location.reload()
         } else if (this.innerText === "Scan for clusters") {
             trigger_cloud_provider_discovery(provider, objectType = 'cluster')
         } else if (this.innerText === "Scan for VMs") {
@@ -1890,7 +1978,7 @@ $(document).ready(function() {
             .addClass('active');
     });
 
-  function isEmpty(val){
-    return (val === undefined || val == null || val.length <= 0) ? true : false;
-}
+    function isEmpty(val) {
+        return (val === undefined || val == null || val.length <= 0) ? true : false;
+    }
 });

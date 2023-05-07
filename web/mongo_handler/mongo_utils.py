@@ -10,10 +10,8 @@ from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-
 file_name = 'server.log'
 log_file_path = f'{os.getcwd()}/{file_name}'
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -40,7 +38,7 @@ except:
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
     USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
-    ADMIN, USER, CLIENT, MACOS
+    ADMIN, USER, CLIENT, MACOS, TEAM_ADDITIONAL_INFO
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, ACCOUNT_ID
@@ -266,7 +264,8 @@ def retrieve_instances(provider_type: str, client_name: str = '', user_name: str
             if user_name:
                 instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
             elif client_name:
-                instances_object = aws_discovered_ec2_instances.find({AVAILABILITY: True, CLIENT_NAME.lower(): client_name.lower()})
+                instances_object = aws_discovered_ec2_instances.find(
+                    {AVAILABILITY: True, CLIENT_NAME.lower(): client_name.lower()})
     elif provider_type == GCP:
         if not user_name and not client_name:
             instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True})
@@ -276,7 +275,8 @@ def retrieve_instances(provider_type: str, client_name: str = '', user_name: str
             if user_name:
                 instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
             elif client_name:
-                instances_object = gcp_discovered_vm_instances.find({AVAILABILITY: True, CLIENT_NAME.lower(): client_name.lower()})
+                instances_object = gcp_discovered_vm_instances.find(
+                    {AVAILABILITY: True, CLIENT_NAME.lower(): client_name.lower()})
     elif provider_type == AZ:
         instances_object = az_discovered_vm_instances.find()
     else:
@@ -515,6 +515,7 @@ def retrieve_users_data(logged_user_name: str = ""):
                 users_data.append(user_object)
         return users_data
 
+
 def update_user(user_email: str, update_type: str, update_value: str) -> bool:
     """
     @param user_email: The name of the user to update
@@ -546,8 +547,10 @@ def retrieve_teams_data():
         return None
     else:
         for team_object in teams_objects:
-            teams_data.append(team_object['team_name'])
-        return sorted(teams_data)
+            if team_object[AVAILABILITY]:
+                del team_object["_id"]
+                teams_data.append(team_object)
+        return teams_data
 
 
 def retrieve_invited_user(user_email: str):
@@ -587,11 +590,16 @@ def delete_user(user_email: str = "", user_name: str = ""):
         result = users.update_one(myquery, newvalues)
     return result.raw_result['updatedExisting']
 
-    # myquery = {"user_email": user_email}
-    # newvalues = {"$set": {'registration_status': registration_status}}
-    # result = users.update_one(myquery, newvalues)
-    # logger.info(f'users_data_object was updated properly')
-    # return result.raw_result['updatedExisting']
+
+def delete_team(team_name: str = ""):
+    """
+    @param team_name:  deleting a team using its name
+    @return:
+    """
+    myquery = {TEAM_NAME.lower(): team_name}
+    newvalues = {"$set": {'availability': False}}
+    result = teams.update_one(myquery, newvalues)
+    return result.raw_result['updatedExisting']
 
 
 def retrieve_deployment_yaml(cluster_type: str, cluster_name: str) -> dict:
@@ -667,6 +675,7 @@ def is_admin(user_name: str = "") -> bool:
         return True
     else:
         return False
+
 
 def check_user_type(user_email: str = "") -> str:
     """
@@ -1167,10 +1176,14 @@ def insert_team(team_data_object: dict) -> bool:
     try:
         mongo_query = {'team_name': team_data_object['team_name']}
         existing_team_data_object = teams.find_one(mongo_query)
-        if existing_team_data_object:
+        if existing_team_data_object[AVAILABILITY.lower()]:
             team_name = team_data_object['team_name']
             logger.warning(f'team {team_name} already exists in the system')
             return True
+        if not existing_team_data_object[AVAILABILITY.lower()]:
+            mongo_query = {TEAM_NAME.lower(): team_data_object[TEAM_NAME.lower()]}
+            newvalues = {"$set": {AVAILABILITY.lower(): True, TEAM_ADDITIONAL_INFO: team_data_object[TEAM_ADDITIONAL_INFO]}}
+            teams.update_one(mongo_query, newvalues)
         else:
             result = teams.insert_one(team_data_object)
             if result.inserted_id:

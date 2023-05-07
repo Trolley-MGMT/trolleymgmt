@@ -17,6 +17,7 @@
     <script>
       var data = {{ data|tojson }};
       console.log(data)
+
     </script>
 </head>
 
@@ -190,7 +191,7 @@
                     </li>
                     <li class="nav-item" id="users-div" style="display: none;">
                         <a href="#" class="nav-link">
-                            <i class="fa fa-users"></i>
+                            <i class="fa fa-user"></i>
                             <p>
                                 Users
                                 <i class="fas fa-angle-left right"></i>
@@ -201,6 +202,25 @@
                                 <a href="manage-users" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Users Management</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item" id="teams-div" style="display: none;">
+                        <a href="#" class="nav-link">
+                            <i class="fa fa-users"></i>
+                            <p>
+                                Teams
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview" style="display: none;">
+                            <li class="nav-item">
+                                <a href="manage-teams" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Teams Management</p>
                                 </a>
                             </li>
                             <li class="nav-item">

@@ -586,7 +586,15 @@ def teams():
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == GET:
         teams_data = mongo_handler.mongo_utils.retrieve_teams_data()
-        return jsonify(teams_data)
+        return jsonify(sorted(teams_data, key=lambda d: d['team_name']))
+    elif request.method == DELETE:
+        content = request.get_json()
+        team_name = content[TEAM_NAME.lower()]
+        if mongo_handler.mongo_utils.delete_team(team_name=team_name):
+            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+        else:
+            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+
         # return jsonify(users_data)
         # users_object = mongo_handler.mongo_utils.retrieve_users_data()
         # return Response(json.dumps(users_object), status=200, mimetype=APPLICATION_JSON)
@@ -935,6 +943,11 @@ def clusters_data():
 def manage_users():
     return render_page('manage-users.html')
 
+
+@app.route('/manage-teams', methods=[GET, POST])
+@login_required
+def manage_teams():
+    return render_page('manage-teams.html')
 
 @app.route('/manage-clients', methods=[GET, POST])
 @login_required

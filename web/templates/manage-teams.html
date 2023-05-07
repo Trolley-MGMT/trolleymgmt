@@ -17,8 +17,6 @@
     <script>
       var data = {{ data|tojson }};
 
-
-
     </script>
 </head>
 
@@ -185,7 +183,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="manage-gcp-vm-instances" class="nav-link active">
+                                <a href="manage-gcp-vm-instances" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GCP VM Instances</p>
                                 </a>
@@ -194,7 +192,7 @@
                     </li>
                     <li class="nav-item" id="users-div" style="display: none;">
                         <a href="#" class="nav-link">
-                            <i class="fa fa-user"></i>
+                            <i class="fa fa-users"></i>
                             <p>
                                 Users
                                 <i class="fas fa-angle-left right"></i>
@@ -221,7 +219,7 @@
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
                             <li class="nav-item">
-                                <a href="manage-teams" class="nav-link">
+                                <a href="manage-teams" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Teams Management</p>
                                 </a>
@@ -300,130 +298,93 @@
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                </div><!-- /.col -->
-                <div id="clusters-data">
-                </div>
-            </div><!-- /.row -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Manage GCP VM Instances</h3>
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">Teams Management</h1>
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
 
-                    <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card card-warning" id="client-user-select-dropdowns-box" style="display: none;">
-                        <div class="card-body">
-                            <form>
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <div class="form-group">
-                                            <label>Select Filter (Client/User)</label>
-                                            <select class="form-control" id="filter-type-dropdown">
-                                                <option>Users</option>
-                                                <option>Clients</option>
-                                            </select>
-                                        </div>
-                                    </div>
+                <div class="col-md-12">
+                    <section class="content">
+
+                        <div class="card card-solid">
+                            <div class="card-body pb-0">
+                                <div class="row" id="teams-main-div">
                                 </div>
-                            </form>
+                            </div>
+
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card card-warning" id="teams-users-dropdowns-box" style="display: none;">
-                        <div class="card-body">
-                            <form>
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            <label>Select Team</label>
-                                            <select class="form-control" id="team-names-dropdown">
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            <label>Select User</label>
-                                            <select class="form-control" id="user-names-dropdown">
-                                            </select>
-                                        </div>
-                                    </div>
+
+                    </section>
+
+                    <div class="card card-primary" id="add-team-card-title-div" style="display: none;">
+                        <div class="card-header">
+                            <h3 class="card-title">Add a new team</h3>
+                        </div>
+                        <form>
+                            <div class="card-body">
+                                <div class="form-group" id="team">
+                                    <label for="team_name">Team Name</label>
+                                    <input type="text" class="form-control" id="team_name"
+                                           placeholder="Enter Team's Name">
+                                    <div data-lastpass-icon-root="true"
+                                         style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
                                 </div>
 
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card card-warning" id="clients-dropdowns-box" style="display: none;">
-                        <div class="card-body">
-                            <form>
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            <label>Select Client</label>
-                                            <select class="form-control" id="client-names-dropdown">
-                                            </select>
-                                        </div>
-                                    </div>
+
+                                </div>
+                                <div class="form-group">
+                                    <label>Additional info</label>
+                                    <textarea class="form-control" rows="6"
+                                              placeholder="Insert additional data for the team"
+                                              id="team_additional_info"></textarea>
                                 </div>
 
-                            </form>
-                        </div>
+                            </div>
+
+                        </form>
                     </div>
+
                 </div>
-                <div class="card-body p-0">
-                    <table class="table table-striped projects" id="gcp-vm-instances-management-table">
-                    </table>
-                </div>
-                <!--                    -->
-            </div><!-- /.container-fluid -->
-            <div>
-                <button type="submit" class="btn btn-info" id="trigger-instances-discovery">Scan for VMs
+                <button type="submit" class="btn btn-info" id="add-team-button">Add a new team!</button>
+                <button type="submit" class="btn btn-info" id="submit-team-button" style="display: none;">Submit
+                    team data!
                 </button>
+
+                <!-- /.content-header -->
             </div>
+
+            <aside class="control-sidebar control-sidebar-dark">
+                <!-- Control sidebar content goes here -->
+            </aside>
+            <!-- /.control-sidebar -->
+
+            <!-- Main Footer -->
+            <footer class="main-footer">
+                <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
+                All rights reserved.
+                <div class="float-right d-none d-sm-inline-block">
+                    <b>Version</b> 0.2
+                </div>
+            </footer>
         </div>
-        <!-- /.content-header -->
+        <!-- ./wrapper -->
+
+        <!-- REQUIRED SCRIPTS -->
+        <!-- jQuery -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script type="text/javascript" src="{{url_for('static', filename='script.js')}}"></script>
+        <!-- Bootstrap 4 -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+                crossorigin="anonymous"></script>
+        <!-- AdminLTE App -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
     </div>
-    <!-- /.content-wrapper -->
-
-    <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
-        <!-- Control sidebar content goes here -->
-    </aside>
-    <!-- /.control-sidebar -->
-
-    <!-- Main Footer -->
-    <footer class="main-footer">
-        <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">trolley</a></strong>
-        All rights reserved.
-        <div class="float-right d-none d-sm-inline-block">
-            <b>Version</b> 0.2
-        </div>
-    </footer>
 </div>
-<!-- ./wrapper -->
-
-<!-- REQUIRED SCRIPTS -->
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script type="text/javascript" src="{{url_for('static', filename='script.js')}}"></script>
-<!-- Bootstrap 4 -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-        crossorigin="anonymous"></script>
-<!-- AdminLTE App -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 </body>
 </html>

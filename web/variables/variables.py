@@ -75,6 +75,9 @@ TEAM_NAME = 'team_name'
 ADMIN = 'admin'
 USER = 'user'
 CLIENT = 'client'
+TEAM_ADDITIONAL_INFO = "team_additional_info"
+CLIENT_ADDITIONAL_INFO = "client_additional_info"
+USER_ADDITIONAL_INFO = "user_additional_info"
 
 
 # EKS
