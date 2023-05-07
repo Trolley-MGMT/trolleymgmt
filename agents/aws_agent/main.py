@@ -19,7 +19,7 @@ if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
 else:
     log_path = '/var/log/'
-file_name = 'aws_agent_main.log'
+file_name = 'server.log'
 
 logging.basicConfig(
     level=logging.INFO,
