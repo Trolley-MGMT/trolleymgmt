@@ -835,6 +835,7 @@ def confirmation_email(token):
 @login_required
 def login():
     message = request.args.get('message')
+    logger.info(f'a login request was received with {message} message')
     if session['registration_status'] != 'confirmed':
         first_name = session['first_name']
         user_email = session['user_email']
