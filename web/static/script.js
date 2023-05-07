@@ -255,8 +255,9 @@ $(document).ready(function() {
             $("#client-user-select-dropdowns-box").show();
             $("#client-name-table").show();
             populate_team_names()
-            let teamNames = window.localStorage.getItem("teamNames");
-            populate_user_names(teamNames.split(",")[0])
+            let teamNames = window.localStorage.getItem("teamsData");
+            teamName = JSON.parse(teamNames)[0].team_name
+            populate_user_names(team_name)
             populate_client_names()
         }
     }
