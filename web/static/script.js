@@ -1,7 +1,7 @@
 $(document).ready(function() {
     let debug = false;
     let trolley_remote_url = '34.123.171.234:8081';
-    let trolley_local_url = 'localhost';
+    let trolley_local_url = 'localhost:8081';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
     if (isEmpty(stored_user_type) == true) {
@@ -233,8 +233,9 @@ $(document).ready(function() {
             $("#client-user-select-dropdowns-box").show();
             $("#client-name-table").show();
             populate_team_names()
-            let teamNames = window.localStorage.getItem("teamNames");
-            populate_user_names(teamNames.split(",")[0])
+            let teamNames = window.localStorage.getItem("teamsData");
+            teamName = JSON.parse(teamNames)[0].team_name
+            populate_user_names(teamName)
             populate_client_names()
         }
 
