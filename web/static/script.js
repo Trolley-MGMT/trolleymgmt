@@ -1956,7 +1956,7 @@ $(document).ready(function() {
                 showConfirmButton: false,
                 timer: 1000
             })
-        } 
+        }
     })
 
     function copyToClipboard(textToCopy) {

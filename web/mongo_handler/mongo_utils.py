@@ -51,6 +51,11 @@ MONGO_USER = os.environ['MONGO_USER']
 MONGO_URL = os.environ['MONGO_URL']
 MONGO_PORT = int(os.getenv('MONGO_PORT', 27017))
 
+logger.info(MONGO_PASSWORD)
+logger.info(MONGO_USER)
+logger.info(MONGO_URL)
+logger.info(MONGO_PORT)
+
 if "mongodb.net" in MONGO_URL:
     client = MongoClient(f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority")
 else:
