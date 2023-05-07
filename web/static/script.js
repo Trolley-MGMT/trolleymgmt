@@ -7,7 +7,7 @@ $(document).ready(function() {
     let user_type = "user"
     if (isEmpty(stored_user_type) == true) {
         window.localStorage.setItem("userType", data['user_type']);
-        user_type = data['user_type']);
+        user_type = data['user_type'];
     } else {
         user_type = window.localStorage.getItem("userType");
     }
