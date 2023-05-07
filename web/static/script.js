@@ -8,13 +8,13 @@ $(document).ready(function() {
         window.localStorage.setItem("userType", data['user_type']);
     } else {
         let user_type = window.localStorage.getItem("userType");
-        if (user_type == "admin") {
-            $("#users-div").show()
-            $("#teams-div").show()
-            $("#clients-div").show()
-            $("#dashboards-div").show()
-            $("#settings-div").show()
-        }
+    }
+    if (user_type == "admin") {
+        $("#users-div").show()
+        $("#teams-div").show()
+        $("#clients-div").show()
+        $("#dashboards-div").show()
+        $("#settings-div").show()
     }
     window.localStorage.setItem("userName", data['user_name']);
     let user_name = window.localStorage.getItem("userName");
