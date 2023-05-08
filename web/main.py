@@ -157,6 +157,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
     logger.info("checking stuff")
     logger.info(os.getcwd())
     logger.info(help('modules'))
+    logger.info(mongo_handler)
     user_agent = request.headers.get('User-Agent')
     if request.headers.get('request-source') == 'kubernetes':
         return '', ''
