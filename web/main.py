@@ -35,7 +35,7 @@ if 'Darwin' in platform.system():
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
     from mongo_handler.mongo_objects import ProviderObject
-    # from scripts import gcp_discovery_script, aws_discovery_script
+    from scripts import gcp_discovery_script, aws_discovery_script
 else:
     from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
     from variables.variables import POST, GET, EKS, \
@@ -49,7 +49,7 @@ else:
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
     from mongo_handler.mongo_objects import ProviderObject
-    # from scripts import gcp_discovery_script, aws_discovery_script
+    from scripts import gcp_discovery_script, aws_discovery_script
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
@@ -297,26 +297,26 @@ def get_agent_cluster_data():
     return Response(json.dumps(cluster_object), status=200, mimetype=APPLICATION_JSON)
 
 
-# @app.route('/trigger_cloud_provider_discovery', methods=[POST])
-# @login_required
-# def trigger_cloud_provider_discovery():
-#     """
-#     This endpoint allows triggering a cloud provider discovery
-#     """
-#     content = request.get_json()
-#     function_name = inspect.stack()[0][3]
-#     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
-#     if AWS in content[PROVIDER]:
-#         if content[OBJECT_TYPE] == CLUSTER:
-#             Thread(target=aws_discovery_script.main, args=(False, False, False, True)).start()
-#         if content[OBJECT_TYPE] == INSTANCE:
-#             Thread(target=aws_discovery_script.main, args=(False, False, True, False)).start()
-#     elif GCP in content[PROVIDER]:
-#         if content[OBJECT_TYPE] == CLUSTER:
-#             Thread(target=gcp_discovery_script.main, args=(False, False, False, True, session['user_email'])).start()
-#         if content[OBJECT_TYPE] == INSTANCE:
-#             Thread(target=gcp_discovery_script.main, args=(False, False, True, False, session['user_email'])).start()
-#     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+@app.route('/trigger_cloud_provider_discovery', methods=[POST])
+@login_required
+def trigger_cloud_provider_discovery():
+    """
+    This endpoint allows triggering a cloud provider discovery
+    """
+    content = request.get_json()
+    function_name = inspect.stack()[0][3]
+    logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+    if AWS in content[PROVIDER]:
+        if content[OBJECT_TYPE] == CLUSTER:
+            Thread(target=aws_discovery_script.main, args=(False, False, False, True)).start()
+        if content[OBJECT_TYPE] == INSTANCE:
+            Thread(target=aws_discovery_script.main, args=(False, False, True, False)).start()
+    elif GCP in content[PROVIDER]:
+        if content[OBJECT_TYPE] == CLUSTER:
+            Thread(target=gcp_discovery_script.main, args=(False, False, False, True, session['user_email'])).start()
+        if content[OBJECT_TYPE] == INSTANCE:
+            Thread(target=gcp_discovery_script.main, args=(False, False, True, False, session['user_email'])).start()
+    return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
 
 
 @app.route('/deploy_yaml_on_cluster', methods=[POST])
