@@ -22,20 +22,20 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
 if 'Darwin' in platform.system():
-    import web.mongo_handler.mongo_utils
-    from web.mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
-    from web.variables.variables import POST, GET, EKS, \
+    import mongo_handler.mongo_utils
+    from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
+    from variables.variables import POST, GET, EKS, \
         APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
         ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
         NAMES, REGION_NAME, CLIENT_NAME
-    from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
+    from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
         trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
         trigger_trolley_agent_deployment_github_action
-    from web.mail_handler import MailSender
-    from web.utils import random_string, apply_yaml
-    from web.mongo_handler.mongo_objects import ProviderObject
-    from web.scripts import gcp_discovery_script, aws_discovery_script
+    from mail_handler import MailSender
+    from utils import random_string, apply_yaml
+    from mongo_handler.mongo_objects import ProviderObject
+    from scripts import gcp_discovery_script, aws_discovery_script
 else:
     from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
     from variables.variables import POST, GET, EKS, \
@@ -119,21 +119,21 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
     """
     This function registers a new user into the DB
     """
-    if not web.mongo_handler.mongo_utils.is_users():
+    if not mongo_handler.mongo_utils.is_users():
         user_type = 'admin'
     else:
         user_type = 'user'
     user_name = f'{first_name.lower()}-{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
-    profile_image_id = web.mongo_handler.mongo_utils.insert_file(profile_image_filename)
-    if web.mongo_handler.mongo_utils.retrieve_user(user_email):
-        web.mongo_handler.mongo_utils.delete_user(user_email=user_email)
+    profile_image_id = mongo_handler.mongo_utils.insert_file(profile_image_filename)
+    if mongo_handler.mongo_utils.retrieve_user(user_email):
+        mongo_handler.mongo_utils.delete_user(user_email=user_email)
     user_object = UserObject(first_name=first_name, last_name=last_name, user_name=user_name, user_email=user_email,
                              team_name=team_name, hashed_password=hashed_password, confirmation_url=confirmation_url,
                              registration_status=registration_status, user_type=user_type,
                              profile_image_filename=f'static/img/{profile_image_filename}', availability=True,
                              profile_image_id=profile_image_id)
-    if web.mongo_handler.mongo_utils.insert_user(asdict(user_object)):
+    if mongo_handler.mongo_utils.insert_user(asdict(user_object)):
         if 'trolley' in profile_image_filename:
             return True
         return True
@@ -169,7 +169,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
         except:
             user_email = request.form['user_email']
             password = request.form['user_password']
-    user_object = web.mongo_handler.mongo_utils.retrieve_user(user_email)
+    user_object = mongo_handler.mongo_utils.retrieve_user(user_email)
     logger.info(f'user_object is: {user_object}')
     session["registration_status"] = user_object['registration_status']
     if not user_object:
@@ -269,7 +269,7 @@ def get_clusters_data():
     cluster_type = request.args.get(CLUSTER_TYPE)
     client_name = request.args.get(CLIENT_NAME.lower())
     user_name = request.args.get(USER_NAME.lower())
-    clusters_list = web.mongo_handler.mongo_utils.retrieve_available_clusters(cluster_type, client_name, user_name)
+    clusters_list = mongo_handler.mongo_utils.retrieve_available_clusters(cluster_type, client_name, user_name)
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -282,7 +282,7 @@ def get_instances_data():
     provider_type = request.args.get(PROVIDER)
     client_name = request.args.get(CLIENT_NAME.lower())
     user_name = request.args.get(USER_NAME.lower())
-    instances_list = web.mongo_handler.mongo_utils.retrieve_instances(provider_type, client_name, user_name)
+    instances_list = mongo_handler.mongo_utils.retrieve_instances(provider_type, client_name, user_name)
     return Response(json.dumps(instances_list), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -293,7 +293,7 @@ def get_agent_cluster_data():
     This endpoint allows providing an additional cluster data that is being collected by the deployed Trolley Agent
     """
     cluster_name = request.args.get(CLUSTER_NAME.lower())
-    cluster_object = web.mongo_handler.mongo_utils.retrieve_agent_cluster_details(cluster_name)
+    cluster_object = mongo_handler.mongo_utils.retrieve_agent_cluster_details(cluster_name)
     return Response(json.dumps(cluster_object), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -372,7 +372,7 @@ def trigger_gke_deployment():
         # deployment_yaml_object = deployment_yaml_object_handling(content)
     # else:
     #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-    # if web.mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+    # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
     #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     # else:
     #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -395,7 +395,7 @@ def trigger_eks_deployment():
         # deployment_yaml_object = deployment_yaml_object_handling(content)
     # else:
     #     return Response(json.dumps(response.text), status=400, mimetype=APPLICATION_JSON)
-    # if web.mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+    # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
     #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     # else:
     #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -419,7 +419,7 @@ def trigger_aks_deployment():
     #     deployment_yaml_object = deployment_yaml_object_handling(content)
     # else:
     #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-    # if web.mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
+    # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
     #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     # else:
     #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -432,11 +432,11 @@ def delete_expired_clusters():
     Ths endpoint allows deletion of clusters that passed their expiration time
     """
     content = request.get_json()
-    expired_clusters_list = web.mongo_handler.mongo_utils.retrieve_expired_clusters(cluster_type=content['cluster_type'])
+    expired_clusters_list = mongo_handler.mongo_utils.retrieve_expired_clusters(cluster_type=content['cluster_type'])
     for expired_cluster in expired_clusters_list:
         delete_gke_cluster(cluster_name=expired_cluster['cluster_name'])
         time.sleep(5)
-        web.mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'],
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'],
                                                            cluster_name=content['cluster_name'],
                                                            availability=False)
     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
@@ -454,21 +454,21 @@ def delete_cluster():
     if content[CLUSTER_TYPE] == GKE:
         del content[CLUSTER_TYPE]
         delete_gke_cluster(**content)
-        web.mongo_handler.mongo_utils.set_cluster_availability(cluster_type=GKE,
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=GKE,
                                                            cluster_name=content['cluster_name'],
                                                            discovered=content['discovered'],
                                                            availability=False)
     elif content[CLUSTER_TYPE] == EKS:
         del content[CLUSTER_TYPE]
         delete_eks_cluster(**content)
-        web.mongo_handler.mongo_utils.set_cluster_availability(cluster_type=EKS,
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=EKS,
                                                            cluster_name=content['cluster_name'],
                                                            discovered=content['discovered'],
                                                            availability=False)
     elif content[CLUSTER_TYPE] == AKS:
         del content[CLUSTER_TYPE]
         delete_aks_cluster(**content)
-        web.mongo_handler.mongo_utils.set_cluster_availability(cluster_type=AKS,
+        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=AKS,
                                                            cluster_name=content['cluster_name'],
                                                            discovered=content['discovered'],
                                                            availability=False)
@@ -485,12 +485,12 @@ def insert_cluster_data():
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested')
     if content['agent_type'] == 'k8s':
-        if web.mongo_handler.mongo_utils.insert_cluster_data_object(content):
+        if mongo_handler.mongo_utils.insert_cluster_data_object(content):
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif content['agent_type'] == 'aws':
-        if web.mongo_handler.mongo_utils.insert_cluster_data_object(content):
+        if mongo_handler.mongo_utils.insert_cluster_data_object(content):
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -508,7 +508,7 @@ def provider():
     content['user_email'] = session['user_email']
     if validate_provider_data(content):
         encoded_provider_details = encode_provider_details(content)
-        if web.mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
+        if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -526,37 +526,37 @@ def client():
     logger.info(f'A request for {function_name} was requested')
     if request.method == POST:
         content = request.get_json()
-        if web.mongo_handler.mongo_utils.add_client_data_object(content):
+        if mongo_handler.mongo_utils.add_client_data_object(content):
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == PUT:
         content = request.get_json()
         if content[OBJECT_TYPE] == CLUSTER:
-            if web.mongo_handler.mongo_utils.add_data_to_cluster(**content):
+            if mongo_handler.mongo_utils.add_data_to_cluster(**content):
                 return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
             else:
                 return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
         elif content[OBJECT_TYPE] == INSTANCE:
-            if web.mongo_handler.mongo_utils.add_data_to_instance(**content):
+            if mongo_handler.mongo_utils.add_data_to_instance(**content):
                 return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
             else:
                 return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == DELETE:
         content = request.get_json()
-        if web.mongo_handler.mongo_utils.delete_client(**content):
+        if mongo_handler.mongo_utils.delete_client(**content):
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == GET:
-        client_names = web.mongo_handler.mongo_utils.retrieve_clients_data()
+        client_names = mongo_handler.mongo_utils.retrieve_clients_data()
         return jsonify(sorted(client_names, key=lambda d: d['client_name']))
 
 
 # @app.route('/fetch_clients_data', methods=[GET])
 # @login_required
 # def fetch_clients_data():
-#     client_names = web.mongo_handler.mongo_utils.retrieve_clients_data()
+#     client_names = mongo_handler.mongo_utils.retrieve_clients_data()
 #     return jsonify(client_names)
 
 
@@ -570,7 +570,7 @@ def users():
     logger.info(f'A request for {function_name} was requested')
     if request.method == POST:
         content = request.get_json()
-        if web.mongo_handler.mongo_utils.invite_user(content):
+        if mongo_handler.mongo_utils.invite_user(content):
             mail_message = MailSender(content['user_email'])
             mail_message.send_invitation_mail()
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
@@ -579,13 +579,13 @@ def users():
     elif request.method == GET:
         logged_user_name = request.args.get('logged_user_name')
         logger.info(f'logged_user_name is {logged_user_name}')
-        users_data = web.mongo_handler.mongo_utils.retrieve_users_data(logged_user_name)
+        users_data = mongo_handler.mongo_utils.retrieve_users_data(logged_user_name)
         logger.info(f'users_data is: {users_data}')
         return jsonify(sorted(users_data, key=lambda d: d['user_name']))
     elif request.method == DELETE:
         content = request.get_json()
         user_name = content[USER_NAME.lower()]
-        users_data = web.mongo_handler.mongo_utils.delete_user(user_name=user_name)
+        users_data = mongo_handler.mongo_utils.delete_user(user_name=user_name)
         return jsonify(users_data)
 
 
@@ -599,38 +599,38 @@ def teams():
     logger.info(f'A request for {function_name} was requested')
     if request.method == POST:
         content = request.get_json()
-        if web.mongo_handler.mongo_utils.insert_team(content):
+        if mongo_handler.mongo_utils.insert_team(content):
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == GET:
-        teams_data = web.mongo_handler.mongo_utils.retrieve_teams_data()
+        teams_data = mongo_handler.mongo_utils.retrieve_teams_data()
         return jsonify(sorted(teams_data, key=lambda d: d['team_name']))
     elif request.method == DELETE:
         content = request.get_json()
         team_name = content[TEAM_NAME.lower()]
-        if web.mongo_handler.mongo_utils.delete_team(team_name=team_name):
+        if mongo_handler.mongo_utils.delete_team(team_name=team_name):
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
 
         # return jsonify(users_data)
-        # users_object = web.mongo_handler.mongo_utils.retrieve_users_data()
+        # users_object = mongo_handler.mongo_utils.retrieve_users_data()
         # return Response(json.dumps(users_object), status=200, mimetype=APPLICATION_JSON)
 
     # elif request.method == PUT:
     #     if content[OBJECT_TYPE] == CLUSTER:
-    #         if web.mongo_handler.mongo_utils.add_client_to_cluster(**content):
+    #         if mongo_handler.mongo_utils.add_client_to_cluster(**content):
     #             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     #         else:
     #             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     #     elif content['object_type'] == 'instance':
-    #         if web.mongo_handler.mongo_utils.add_client_to_instance(**content):
+    #         if mongo_handler.mongo_utils.add_client_to_instance(**content):
     #             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     #         else:
     #             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     # elif request.method == DELETE:
-    #     if web.mongo_handler.mongo_utils.delete_client(**content):
+    #     if mongo_handler.mongo_utils.delete_client(**content):
     #         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     #     else:
     #         return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -658,13 +658,13 @@ def fetch_regions():
     cluster_type = request.args.get(CLUSTER_TYPE)
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
     if cluster_type == AKS:
-        regions = web.mongo_handler.mongo_utils.retrieve_cache(cache_type=LOCATIONS_DICT, provider=AKS)
+        regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=LOCATIONS_DICT, provider=AKS)
     elif cluster_type == GKE:
-        regions = web.mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=GKE)
+        regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=GKE)
     elif cluster_type == EKS:
-        regions = web.mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=EKS)
+        regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=EKS)
     else:
-        regions = web.mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=GKE)
+        regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=GKE)
     if len(regions) == 0:
         return jsonify("Regions data was not found"), 400
     else:
@@ -681,13 +681,13 @@ def fetch_zones():
     if cluster_type == AKS:
         return jsonify('')
     elif cluster_type == GKE:
-        gke_zones = web.mongo_handler.mongo_utils.retrieve_cache(cache_type=ZONES_LIST, provider=GKE)
+        gke_zones = mongo_handler.mongo_utils.retrieve_cache(cache_type=ZONES_LIST, provider=GKE)
         for zone in gke_zones:
             if region_name in zone:
                 zones_list.append(zone)
         return jsonify(zones_list)
     elif cluster_type == EKS:
-        eks_zones = web.mongo_handler.mongo_utils.retrieve_cache(cache_type=ZONES_LIST, provider=EKS)
+        eks_zones = mongo_handler.mongo_utils.retrieve_cache(cache_type=ZONES_LIST, provider=EKS)
         available_eks_zones = []
         for eks_zone in eks_zones:
             if region_name in eks_zone:
@@ -707,7 +707,7 @@ def fetch_subnets():
         return jsonify('')
     elif cluster_type == EKS:
         subnets = []
-        subnets_dict = web.mongo_handler.mongo_utils.retrieve_cache(cache_type='subnets_dict', provider=EKS)
+        subnets_dict = mongo_handler.mongo_utils.retrieve_cache(cache_type='subnets_dict', provider=EKS)
         for subnet in subnets_dict:
             if subnet in zone_names:
                 subnets.append(subnets_dict[subnet])
@@ -722,7 +722,7 @@ def fetch_subnets():
 def fetch_helm_installs():
     names = bool(util.strtobool(request.args.get(NAMES)))
     logger.info(f'A request to fetch helm installs for {names} names has arrived')
-    helm_installs_list = web.mongo_handler.mongo_utils.retrieve_cache(cache_type=HELM_INSTALLS_LIST, provider=HELM)
+    helm_installs_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=HELM_INSTALLS_LIST, provider=HELM)
     return jsonify(helm_installs_list)
 
 
@@ -731,14 +731,14 @@ def fetch_helm_installs():
 def fetch_client_name_per_cluster():
     cluster_type = request.args.get(CLUSTER.lower())
     cluster_name = request.args.get(CLUSTER_NAME.lower())
-    client_names = web.mongo_handler.mongo_utils.retrieve_client_per_cluster_name(cluster_type, cluster_name)
+    client_names = mongo_handler.mongo_utils.retrieve_client_per_cluster_name(cluster_type, cluster_name)
     return jsonify(client_names)
 
 
 @app.route('/fetch_gke_versions', methods=[GET])
 @login_required
 def fetch_gke_versions():
-    gke_versions_list = web.mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_VERSIONS_LIST, provider=GKE)
+    gke_versions_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_VERSIONS_LIST, provider=GKE)
     return jsonify(gke_versions_list)
 
 
@@ -746,7 +746,7 @@ def fetch_gke_versions():
 @login_required
 def fetch_gke_image_types():
     logger.info(f'A request to fetch available GKE image types has arrived')
-    gke_image_types_list = web.mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_IMAGE_TYPES, provider=GKE)
+    gke_image_types_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_IMAGE_TYPES, provider=GKE)
     return jsonify(gke_image_types_list)
 
 
@@ -758,7 +758,7 @@ def register():
         first_name = request.form['first_name'].lower()
         last_name = request.form['last_name'].lower()
         user_email = request.form['user_email']
-        invited_user = web.mongo_handler.mongo_utils.retrieve_invited_user(user_email)
+        invited_user = mongo_handler.mongo_utils.retrieve_invited_user(user_email)
         if invited_user:
             team_name = invited_user['team_name']
         else:
@@ -799,7 +799,7 @@ def register():
                                    error_message=f'Dear {first_name}, your password was not entered correctly. '
                                                  f'Please try again')
         else:
-            if not web.mongo_handler.mongo_utils.retrieve_user(user_email):
+            if not mongo_handler.mongo_utils.retrieve_user(user_email):
                 token = generate_confirmation_token(user_email)
                 confirmation_url = str(url_for('confirmation_email', token=token, _external=True))
                 print(f'confirmation_url is: {confirmation_url}')
@@ -844,7 +844,7 @@ def confirmation():
 def confirmation_email(token):
     user_email = confirm_token(token)
     if user_email:
-        web.mongo_handler.mongo_utils.update_user_registration_status(user_email=user_email,
+        mongo_handler.mongo_utils.update_user_registration_status(user_email=user_email,
                                                                   registration_status='confirmed')
 
         return redirect(url_for('login'))
@@ -862,7 +862,7 @@ def login():
         confirm_url = str(url_for('confirmation_email', token=token, _external=True))
         mail_message = MailSender(user_email, confirm_url)
         mail_message.send_confirmation_mail()
-        web.mongo_handler.mongo_utils.update_user(user_email, update_type="confirmation_url", update_value=confirm_url)
+        mongo_handler.mongo_utils.update_user(user_email, update_type="confirmation_url", update_value=confirm_url)
         return render_template('login.html',
                                error_message=f'Dear {first_name}! '
                                              f'A confirmation mail was sent to {user_email} and was not confirmed. '
@@ -879,7 +879,7 @@ def login():
         profile_image = base64_data.decode('utf-8')
         if token:
             user_email = user_object['user_email']
-            user_type = web.mongo_handler.mongo_utils.check_user_type(user_email)
+            user_type = mongo_handler.mongo_utils.check_user_type(user_email)
             data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'], 'user_type': user_type}
             logger.info(f'data content is: {data}')
             return render_template('index.html', data=data, image=profile_image)
