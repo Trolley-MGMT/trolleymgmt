@@ -155,10 +155,10 @@ def encode_provider_details(content: dict) -> ProviderObject:
 
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
-    logger.info("checking stuff")
-    logger.info(os.getcwd())
-    logger.info(help('modules'))
-    logger.info(mongo_handler)
+    # logger.info("checking stuff")
+    # logger.info(os.getcwd())
+    # logger.info(help('modules'))
+    # logger.info(mongo_handler)
     user_agent = request.headers.get('User-Agent')
     if request.headers.get('request-source') == 'kubernetes':
         return '', ''
@@ -1025,7 +1025,7 @@ def logout():
 
 
 if __name__ == "__main__":
-    logger.info(os.getcwd())
-    logger.info(help('modules'))
-    print(help('modules'))
+    # logger.info(os.getcwd())
+    # logger.info(help('modules'))
+    # print(help('modules'))
     app.run(host='0.0.0.0', port=8080, debug=True)
