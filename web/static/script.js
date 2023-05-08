@@ -1,20 +1,22 @@
 $(document).ready(function() {
-    let debug = false;
+    let debug = true;
     let trolley_remote_url = '34.123.171.234:8081';
     let trolley_local_url = 'localhost:8081';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
+    let user_type = "user"
     if (isEmpty(stored_user_type) == true) {
         window.localStorage.setItem("userType", data['user_type']);
+        user_type = data['user_type'];
     } else {
-        let user_type = window.localStorage.getItem("userType");
-        if (user_type == "admin") {
-            $("#users-div").show()
-            $("#teams-div").show()
-            $("#clients-div").show()
-            $("#dashboards-div").show()
-            $("#settings-div").show()
-        }
+        user_type = window.localStorage.getItem("userType");
+    }
+    if (user_type == "admin") {
+        $("#users-div").show()
+        $("#teams-div").show()
+        $("#clients-div").show()
+        $("#dashboards-div").show()
+        $("#settings-div").show()
     }
     window.localStorage.setItem("userName", data['user_name']);
     let user_name = window.localStorage.getItem("userName");
@@ -257,7 +259,7 @@ $(document).ready(function() {
             populate_team_names()
             let teamNames = window.localStorage.getItem("teamsData");
             teamName = JSON.parse(teamNames)[0].team_name
-            populate_user_names(team_name)
+            populate_user_names(teamName)
             populate_client_names()
         }
     }
@@ -863,9 +865,6 @@ $(document).ready(function() {
             })
         })
     }
-
-
-
 
     function store_clusters() {
         var clustersData = []
@@ -1627,7 +1626,6 @@ $(document).ready(function() {
         xhr.send(user_deletion_data);
 
     }
-
 
     function delete_team(teamName) {
         let team_deletion_data = JSON.stringify({
