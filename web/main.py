@@ -853,6 +853,9 @@ def confirmation_email(token):
 @app.route('/login', methods=[GET, POST])
 @login_required
 def login():
+    logger.info(os.getcwd())
+    logger.info(help('modules'))
+    print(help('modules'))
     message = request.args.get('message')
     logger.info(f'a login request was received with {message} message')
     if session['registration_status'] != 'confirmed':
@@ -1018,4 +1021,6 @@ def logout():
 
 if __name__ == "__main__":
     logger.info(os.getcwd())
+    logger.info(help('modules'))
+    print(help('modules'))
     app.run(host='0.0.0.0', port=8080, debug=True)
