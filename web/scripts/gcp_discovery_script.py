@@ -17,12 +17,20 @@ from cryptography.fernet import Fernet
 from google.cloud import compute_v1
 from hurry.filesize import size
 
-from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
-from web.mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, update_discovered_gke_cluster_object, \
-    insert_gcp_vm_instances_object, \
-    insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
-    retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
-
+if 'Darwin' in platform.system():
+    from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
+    from web.mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, \
+        update_discovered_gke_cluster_object, \
+        insert_gcp_vm_instances_object, \
+        insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
+        retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
+else:
+    from mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
+    from mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, \
+        update_discovered_gke_cluster_object, \
+        insert_gcp_vm_instances_object, \
+        insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
+        retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
 from google.cloud import storage
 from google.oauth2 import service_account
 from googleapiclient import discovery
@@ -110,7 +118,8 @@ def list_all_instances(project_id: str, ) -> list:
                         external_ip = ''
                     instance_object = GCPInstanceDataObject(timestamp=TS, project_name=project_id,
                                                             instance_name=instance.name, user_name="vacant",
-                                                            client_name="vacant", availability=True, internal_ip=internal_ip,
+                                                            client_name="vacant", availability=True,
+                                                            internal_ip=internal_ip,
                                                             external_ip=external_ip, tags=dict(instance.labels),
                                                             machine_type=instance.machine_type.split("/")[-1],
                                                             instance_zone=instance.zone.split("/")[-1])
