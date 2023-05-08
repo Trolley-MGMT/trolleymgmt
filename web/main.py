@@ -155,6 +155,8 @@ def encode_provider_details(content: dict) -> ProviderObject:
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
     logger.info("checking stuff")
+    logger.info(os.getcwd())
+    logger.info(help('modules'))
     user_agent = request.headers.get('User-Agent')
     if request.headers.get('request-source') == 'kubernetes':
         return '', ''
