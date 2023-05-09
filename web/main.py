@@ -25,10 +25,10 @@ if 'Darwin' in platform.system():
     import mongo_handler.mongo_utils
     from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
     from variables.variables import POST, GET, EKS, \
-        APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
-        ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-        CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-        NAMES, REGION_NAME, CLIENT_NAME
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
+    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
+    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
+    NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY
     from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
         trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
         trigger_trolley_agent_deployment_github_action
@@ -120,7 +120,12 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
     This function registers a new user into the DB
     """
     if not mongo_handler.mongo_utils.is_users():
+        # If there are no users in the DB and this is the first registration, the user will be assigned as an admin user
+        # and as a part of the IT Team
         user_type = 'admin'
+        team_name = 'it'
+        content = {TEAM_NAME: team_name, AVAILABILITY: True, "team_additional_info": "it folks"}
+        mongo_handler.mongo_utils.insert_team(content)
     else:
         user_type = 'user'
     user_name = f'{first_name.lower()}-{last_name.lower()}'
@@ -762,6 +767,10 @@ def register():
         first_name = request.form['first_name'].lower()
         last_name = request.form['last_name'].lower()
         user_email = request.form['user_email']
+        if '@' not in user_email:
+            return render_template('register.html',
+                                   error_message=f'Dear {first_name}, your email was not entered correctly. '
+                                                 f'Please try again')
         invited_user = mongo_handler.mongo_utils.retrieve_invited_user(user_email)
         if invited_user:
             team_name = invited_user['team_name']
@@ -857,9 +866,6 @@ def confirmation_email(token):
 @app.route('/login', methods=[GET, POST])
 @login_required
 def login():
-    logger.info(os.getcwd())
-    logger.info(help('modules'))
-    print(help('modules'))
     message = request.args.get('message')
     logger.info(f'a login request was received with {message} message')
     if session['registration_status'] != 'confirmed':

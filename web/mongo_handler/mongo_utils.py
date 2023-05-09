@@ -44,8 +44,7 @@ else:
         USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
         ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO
 
-PROJECT_NAME = "trolley-dev"
-# PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-361905')
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-361905')
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
 
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
@@ -60,12 +59,8 @@ logger.info(MONGO_PORT)
 ATLAS_FULL_URL = f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority"
 
 
-logger.info(f'The full url for atlas is: {ATLAS_FULL_URL}')
-print(f'The full url for atlas is: {ATLAS_FULL_URL}')
-
 if "mongodb.net" in MONGO_URL:
     print('mongodb.net was chosen')
-    print(f'The full url for atlas is: {ATLAS_FULL_URL}')
     client = MongoClient(ATLAS_FULL_URL)
 else:
     print('mongodb.net was not chosen')
@@ -193,7 +188,8 @@ def retrieve_available_clusters(cluster_type: str, client_name: str = '', user_n
     discovered_clusters_object = []
     if cluster_type == GKE:
         if not user_name and not client_name:
-            clusters_object = gke_clusters.find({AVAILABILITY: True})
+            return []
+            # clusters_object = gke_clusters.find({AVAILABILITY: True})
         elif is_admin(user_name):
             discovered_clusters_object = gcp_discovered_gke_clusters.find({AVAILABILITY: True})
             clusters_object = gke_clusters.find({AVAILABILITY: True})

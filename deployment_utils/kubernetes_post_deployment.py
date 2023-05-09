@@ -164,7 +164,9 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
-                                          cluster_version=cluster_version, num_nodes=3)
+                                          cluster_version=cluster_version, num_nodes=num_nodes,
+                                          machine_type=machine_type, vCPU=vCPU, total_memory=total_memory,
+                                          totalvCPU=vCPU * num_nodes)
         insert_eks_deployment(eks_deployment_object=asdict(eks_deployment_object))
 
     elif cluster_type == AKS:

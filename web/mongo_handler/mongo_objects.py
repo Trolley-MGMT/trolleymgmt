@@ -93,6 +93,10 @@ class EKSObject:
     region_name: str
     cluster_version: str
     num_nodes: int
+    vCPU: int
+    totalvCPU: int
+    total_memory: str
+    machine_type: str
     availability: bool = True
 
 

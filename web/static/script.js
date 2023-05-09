@@ -4,10 +4,17 @@ $(document).ready(function() {
     let trolley_local_url = 'localhost:8080';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
-    let user_type = "user"
+    let user_type = ""
     if (isEmpty(stored_user_type) == true) {
-        window.localStorage.setItem("userType", data['user_type']);
-        user_type = data['user_type'];
+        try {
+            window.localStorage.setItem("userType", data['user_type']);
+            user_type = data['user_type'];
+        }
+        catch {
+            user_type = "user"
+        }
+
+
     } else {
         user_type = window.localStorage.getItem("userType");
     }
@@ -222,15 +229,8 @@ $(document).ready(function() {
         populate_teams_data();
     }
     if (clustersManagePage) {
-        store_clusters()
-            .then((data) => {
-                populate_kubernetes_clusters_objects()
-            })
-            .catch((error) => {
-                console.log(error)
-            })
-        let user_type = window.localStorage.getItem("userType");
-        if (user_type == 'admin') {
+        let userType = window.localStorage.getItem("userType");
+        if (userType == 'admin') {
             $("#teams-users-dropdowns-box").show();
             $("#client-user-select-dropdowns-box").show();
             $("#client-name-table").show();
@@ -239,8 +239,19 @@ $(document).ready(function() {
             teamName = JSON.parse(teamNames)[0].team_name
             populate_user_names(teamName)
             populate_client_names()
+            var userName = $('#user-names-dropdown').val();
+            if (isEmpty(userName) == true) {
+                userName = ""
+            } else {
+                userName = $('#user-names-dropdown').val();
+            }
+            clientName = ""
         }
-
+        else if (userType == 'user') {
+            userName = window.localStorage.getItem("userName");
+            clientName = ""
+        }
+        populate_clusters(userName, clientName);
     }
 
     if (instancesManagePage) {
@@ -447,6 +458,7 @@ $(document).ready(function() {
         $("#add-user-button").hide();
         $("#submit-user-button").show();
         $("#users-main-div").hide();
+        populate_team_names()
     })
 
     $("#add-team-button").click(function() {
@@ -459,7 +471,7 @@ $(document).ready(function() {
     $("#submit-user-button").click(function() {
         var userName = $('#user_name').val().toLowerCase();
         var userEmail = $('#user_email').val();
-        var userTeamName = $('#user_team_name').val().toLowerCase();
+        var userTeamName = $('#team-names-dropdown').val().toLowerCase();
         var userAdditionalInfo = $('#user_additional_info').val();
 
 
@@ -1797,7 +1809,7 @@ $(document).ready(function() {
             } else if (provider == "aws") {
                 $("#eks-clusters-management-table").empty()
             }
-            populate_clusters(userName, clientName);;
+            populate_clusters(userName, clientName);
         } else if (window.localStorage.getItem("objectType") == 'instance') {
             if (provider == "gcp") {
                 $("#gcp-vm-instances-management-table").empty()
