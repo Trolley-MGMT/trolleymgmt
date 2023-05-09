@@ -53,6 +53,8 @@ else:
     CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 
 print(f"CREDENTIALS_PATH_TO_SAVE is: {CREDENTIALS_PATH_TO_SAVE}")
+# print(os.getcwd())
+# print(help('modules'))
 
 
 def generate_kubeconfig(cluster_name: str, zone: str) -> str:

@@ -1,7 +1,7 @@
 $(document).ready(function() {
     let debug = true;
     let trolley_remote_url = '34.123.171.234:8081';
-    let trolley_local_url = 'localhost:8081';
+    let trolley_local_url = 'localhost:8080';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
     let user_type = "user"

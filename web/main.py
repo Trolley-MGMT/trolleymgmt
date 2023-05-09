@@ -3,6 +3,7 @@ import inspect
 import json
 import logging
 import os
+import platform
 import time
 import datetime
 from functools import wraps
@@ -20,20 +21,36 @@ import yaml
 from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
-import mongo_handler.mongo_utils
-from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
-from variables.variables import POST, GET, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, MACOS, REGIONS_LIST, \
-    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-    NAMES, REGION_NAME, CLIENT_NAME
-from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
-    trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
-    trigger_trolley_agent_deployment_github_action
-from web.mail_handler import MailSender
-from web.utils import random_string, apply_yaml
-from web.mongo_handler.mongo_objects import ProviderObject
-from web.scripts import gcp_discovery_script, aws_discovery_script
+if 'Darwin' in platform.system():
+    import mongo_handler.mongo_utils
+    from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
+    from variables.variables import POST, GET, EKS, \
+        APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
+        ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
+        CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
+        NAMES, REGION_NAME, CLIENT_NAME
+    from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
+        trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
+        trigger_trolley_agent_deployment_github_action
+    from mail_handler import MailSender
+    from utils import random_string, apply_yaml
+    from mongo_handler.mongo_objects import ProviderObject
+    from scripts import gcp_discovery_script, aws_discovery_script
+else:
+    import mongo_handler.mongo_utils
+    from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
+    from variables.variables import POST, GET, EKS, \
+        APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
+        ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
+        CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
+        NAMES, REGION_NAME, CLIENT_NAME
+    from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
+        trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
+        trigger_trolley_agent_deployment_github_action
+    from mail_handler import MailSender
+    from utils import random_string, apply_yaml
+    from mongo_handler.mongo_objects import ProviderObject
+    from scripts import gcp_discovery_script, aws_discovery_script
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
@@ -138,6 +155,10 @@ def encode_provider_details(content: dict) -> ProviderObject:
 
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
+    # logger.info("checking stuff")
+    # logger.info(os.getcwd())
+    # logger.info(help('modules'))
+    # logger.info(mongo_handler)
     user_agent = request.headers.get('User-Agent')
     if request.headers.get('request-source') == 'kubernetes':
         return '', ''
@@ -837,6 +858,9 @@ def confirmation_email(token):
 @app.route('/login', methods=[GET, POST])
 @login_required
 def login():
+    logger.info(os.getcwd())
+    logger.info(help('modules'))
+    print(help('modules'))
     message = request.args.get('message')
     logger.info(f'a login request was received with {message} message')
     if session['registration_status'] != 'confirmed':
@@ -1001,4 +1025,7 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8081, debug=True)
+    # logger.info(os.getcwd())
+    # logger.info(help('modules'))
+    # print(help('modules'))
+    app.run(host='0.0.0.0', port=8080, debug=True)
