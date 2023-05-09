@@ -55,7 +55,6 @@ else:
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
 
-REGISTRATION = False
 
 log_file_name = 'server.log'
 log_file_path = f'{os.getcwd()}/{log_file_name}'
