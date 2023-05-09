@@ -58,6 +58,7 @@ logger.info(MONGO_URL)
 logger.info(MONGO_PORT)
 ATLAS_FULL_URL = f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority"
 
+
 logger.info(f'The full url for atlas is: {ATLAS_FULL_URL}')
 print(f'The full url for atlas is: {ATLAS_FULL_URL}')
 
