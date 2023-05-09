@@ -56,6 +56,10 @@ logger.info(MONGO_PASSWORD)
 logger.info(MONGO_USER)
 logger.info(MONGO_URL)
 logger.info(MONGO_PORT)
+ATLAS_FULL_URL = f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority"
+
+logger.info(f'The full url for atlas is: {ATLAS_FULL_URL}')
+print(f'The full url for atlas is: {ATLAS_FULL_URL}')
 
 if "mongodb.net" in MONGO_URL:
     client = MongoClient(f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority")
@@ -1182,16 +1186,18 @@ def insert_team(team_data_object: dict) -> bool:
     try:
         mongo_query = {'team_name': team_data_object['team_name']}
         existing_team_data_object = teams.find_one(mongo_query)
-        if existing_team_data_object[AVAILABILITY.lower()]:
-            team_name = team_data_object['team_name']
-            logger.warning(f'team {team_name} already exists in the system')
-            return True
-        if not existing_team_data_object[AVAILABILITY.lower()]:
-            mongo_query = {TEAM_NAME.lower(): team_data_object[TEAM_NAME.lower()]}
-            newvalues = {
-                "$set": {AVAILABILITY.lower(): True, TEAM_ADDITIONAL_INFO: team_data_object[TEAM_ADDITIONAL_INFO]}}
-            teams.update_one(mongo_query, newvalues)
+        if existing_team_data_object:
+            if existing_team_data_object[AVAILABILITY.lower()]:
+                team_name = team_data_object['team_name']
+                logger.warning(f'team {team_name} already exists in the system')
+                return True
+            if not existing_team_data_object[AVAILABILITY.lower()]:
+                mongo_query = {TEAM_NAME.lower(): team_data_object[TEAM_NAME.lower()]}
+                newvalues = {
+                    "$set": {AVAILABILITY.lower(): True, TEAM_ADDITIONAL_INFO: team_data_object[TEAM_ADDITIONAL_INFO]}}
+                teams.update_one(mongo_query, newvalues)
         else:
+            team_data_object[AVAILABILITY] = True
             result = teams.insert_one(team_data_object)
             if result.inserted_id:
                 logger.info(f'team was inserted properly')
