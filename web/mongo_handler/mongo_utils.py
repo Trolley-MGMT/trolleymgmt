@@ -63,8 +63,11 @@ logger.info(f'The full url for atlas is: {ATLAS_FULL_URL}')
 print(f'The full url for atlas is: {ATLAS_FULL_URL}')
 
 if "mongodb.net" in MONGO_URL:
-    client = MongoClient(f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority")
+    print('mongodb.net was chosen')
+    print(f'The full url for atlas is: {ATLAS_FULL_URL}')
+    client = MongoClient(ATLAS_FULL_URL)
 else:
+    print('mongodb.net was not chosen')
     client = MongoClient(host=MONGO_URL, port=MONGO_PORT, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
 db = client[PROJECT_NAME]
 
