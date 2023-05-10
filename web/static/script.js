@@ -29,11 +29,21 @@ $(document).ready(function() {
         $("#trigger-clusters-discovery").show()
         $("#trigger-instances-discovery").show()
     }
-    window.localStorage.setItem("userName", data['user_name']);
-    let user_name = window.localStorage.getItem("userName");
-    window.localStorage.setItem("clusterName", data['cluster_name']);
-    let clusterName = window.localStorage.getItem("clusterName");
-    window.localStorage.setItem("objectsFilterType", "users");
+    try {
+            window.localStorage.setItem("userName", data['user_name']);
+            let user_name = window.localStorage.getItem("userName");
+            window.localStorage.setItem("clusterName", data['cluster_name']);
+            let clusterName = window.localStorage.getItem("clusterName");
+            window.localStorage.setItem("objectsFilterType", "users");
+        }
+    catch {
+            console.log("sdf")
+        }
+//    window.localStorage.setItem("userName", data['user_name']);
+//    let user_name = window.localStorage.getItem("userName");
+//    window.localStorage.setItem("clusterName", data['cluster_name']);
+//    let clusterName = window.localStorage.getItem("clusterName");
+//    window.localStorage.setItem("objectsFilterType", "users");
     if (debug === true) {
         trolley_url = trolley_local_url;
         gitBranch = 'master'
