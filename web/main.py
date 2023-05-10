@@ -53,18 +53,18 @@ if 'Darwin' in platform.system():
     from mongo_handler.mongo_objects import ProviderObject
     from scripts import gcp_discovery_script, aws_discovery_script
 else:
-    from web.mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject, ProviderObject
-    from web.variables.variables import POST, GET, EKS, \
+    from trolleymgmt.web.main.mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject, ProviderObject
+    from trolleymgmt.web.variables.variables import POST, GET, EKS, \
         APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
         ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
         NAMES, REGION_NAME, CLIENT_NAME
-    from web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
+    from trolleymgmt.web.cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
         trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
         trigger_trolley_agent_deployment_github_action
-    from web.mail_handler import MailSender
-    from web.utils import random_string, apply_yaml
-    from web.scripts import gcp_discovery_script, aws_discovery_script
+    from trolleymgmt.web.mail_handler import MailSender
+    from trolleymgmt.web.utils import random_string, apply_yaml
+    from trolleymgmt.web.scripts import gcp_discovery_script, aws_discovery_script
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
