@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    let debug = true;
+    let debug = false;
     let trolley_remote_url = 'pavelzagalsky.pythonanywhere.com';
     let trolley_local_url = 'localhost:8080';
     let trolley_url = 'http://www.pavelzagalsky.com';
