@@ -1,25 +1,26 @@
 $(document).ready(function() {
-    let debug = false;
+    let debug = true;
     let trolley_remote_url = 'pavelzagalsky.pythonanywhere.com';
-//    let trolley_remote_url = '34.123.171.234:8081';
     let trolley_local_url = 'localhost:8080';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
-    let user_type = ""
+    let userType = "";
+    let userName = "";
+    let clusterName = "";
     if (isEmpty(stored_user_type) == true) {
         try {
             window.localStorage.setItem("userType", data['user_type']);
-            user_type = data['user_type'];
+            userType = data['user_type'];
         }
         catch {
-            user_type = "user"
+            userType = "user"
         }
 
 
     } else {
-        user_type = window.localStorage.getItem("userType");
+        userType = window.localStorage.getItem("userType");
     }
-    if (user_type == "admin") {
+    if (userType == "admin") {
         $("#users-div").show()
         $("#teams-div").show()
         $("#clients-div").show()
@@ -31,19 +32,15 @@ $(document).ready(function() {
     }
     try {
             window.localStorage.setItem("userName", data['user_name']);
-            let user_name = window.localStorage.getItem("userName");
+            userName = window.localStorage.getItem("userName");
             window.localStorage.setItem("clusterName", data['cluster_name']);
-            let clusterName = window.localStorage.getItem("clusterName");
+            clusterName = window.localStorage.getItem("clusterName");
             window.localStorage.setItem("objectsFilterType", "users");
         }
     catch {
             console.log("sdf")
         }
-//    window.localStorage.setItem("userName", data['user_name']);
-//    let user_name = window.localStorage.getItem("userName");
-//    window.localStorage.setItem("clusterName", data['cluster_name']);
-//    let clusterName = window.localStorage.getItem("clusterName");
-//    window.localStorage.setItem("objectsFilterType", "users");
+
     if (debug === true) {
         trolley_url = trolley_local_url;
         gitBranch = 'master'
@@ -253,7 +250,7 @@ $(document).ready(function() {
             teamName = JSON.parse(teamNames)[0].team_name
             populate_user_names(teamName)
             populate_client_names()
-            var userName = $('#user-names-dropdown').val();
+            userName = $('#user-names-dropdown').val();
             if (isEmpty(userName) == true) {
                 userName = ""
             } else {
@@ -276,8 +273,8 @@ $(document).ready(function() {
             .catch((error) => {
                 console.log(error)
             })
-        let user_type = window.localStorage.getItem("userType");
-        if (user_type == 'admin') {
+        let userType = window.localStorage.getItem("userType");
+        if (userType == 'admin') {
             $("#teams-users-dropdowns-box").show();
             $("#client-user-select-dropdowns-box").show();
             $("#client-name-table").show();
@@ -331,7 +328,7 @@ $(document).ready(function() {
         DeploymentYAML = $('#deployment-yaml').val();
 
         let trigger_aks_deployment_data = JSON.stringify({
-            "user_name": user_name,
+            "user_name": userName,
             "num_nodes": AKSNodesAmount,
             "version": AKSKubernetesVersion,
             "expiration_time": AKSExpirationTime,
@@ -341,7 +338,7 @@ $(document).ready(function() {
         });
 
         let trigger_eks_deployment_data = JSON.stringify({
-            "user_name": user_name,
+            "user_name": userName,
             "num_nodes": EKSNodesAmount,
             "version": EKSKubernetesVersion,
             "expiration_time": EKSExpirationTime,
@@ -354,7 +351,7 @@ $(document).ready(function() {
 
         let trigger_gke_deployment_data = JSON.stringify({
             "cluster_type": 'gke',
-            "user_name": user_name,
+            "user_name": userName,
             "num_nodes": GKENodesAmount,
             "version": GKEKubernetesVersion,
             "image_type": GKEImageType,
@@ -766,13 +763,13 @@ $(document).ready(function() {
 
 
         if (assignedObject == "user") {
-            var user_name_array = userName.split("-")
-            var cap_user_name_ = ""
-            $.each(user_name_array, function(key, value) {
-                cap_user_name_ += value.capitalize() + " "
+            var userNameArray = userName.split("-")
+            var capUserName_ = ""
+            $.each(userNameArray, function(key, value) {
+                capUserName_ += value.capitalize() + " "
             });
-            cap_user_name = cap_user_name_.slice(0, -1)
-            newHTML = '<a id="' + objectType + '-text-label-userName-div-' + objectName + '">' + cap_user_name + '</a>'
+            capUserName = capUserName_.slice(0, -1)
+            newHTML = '<a id="' + objectType + '-text-label-userName-div-' + objectName + '">' + capUserName + '</a>'
             $("#" + objectType + "s-dropdown-" + objectName).replaceWith(newHTML);
             $("#" + objectType + "s-button-" + objectName).hide();
 
@@ -1064,8 +1061,8 @@ $(document).ready(function() {
 
         object_filter_type = window.localStorage.getItem("objectsFilterType");
         if (object_filter_type == "users") {
-            let user_type = window.localStorage.getItem("userType");
-            if (user_type != "admin") {
+            let userType = window.localStorage.getItem("userType");
+            if (userType != "admin") {
                 $("#user-name-table").hide();
                 $("#client-name-table").hide();
 
@@ -1091,8 +1088,8 @@ $(document).ready(function() {
             }
         }
         if (object_filter_type == "clients") {
-            let user_type = window.localStorage.getItem("userType");
-            if (user_type != "admin") {
+            let userType = window.localStorage.getItem("userType");
+            if (userType != "admin") {
                 $("#user-name-table").hide();
                 $("#client-name-table").hide();
 
@@ -1185,8 +1182,8 @@ $(document).ready(function() {
 
         object_filter_type = window.localStorage.getItem("objectsFilterType");
         if (object_filter_type == "users") {
-            let user_type = window.localStorage.getItem("userType");
-            if (user_type != "admin") {
+            let userType = window.localStorage.getItem("userType");
+            if (userType != "admin") {
                 $("#user-name-table").hide();
                 $("#client-name-table").hide();
 
@@ -1212,8 +1209,8 @@ $(document).ready(function() {
             }
         }
         if (object_filter_type == "clients") {
-            let user_type = window.localStorage.getItem("userType");
-            if (user_type != "admin") {
+            let userType = window.localStorage.getItem("userType");
+            if (userType != "admin") {
                 $("#user-name-table").hide();
                 $("#client-name-table").hide();
 
