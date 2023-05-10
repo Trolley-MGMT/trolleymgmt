@@ -1,8 +1,11 @@
 import logging
+import os
 import platform
 
 from dataclasses import asdict
 import getpass as gt
+
+from dotenv import load_dotenv
 
 from web.mongo_handler.mongo_utils import insert_cache_object
 from web.mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, GKEMachinesCacheObject
@@ -21,6 +24,10 @@ handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+project_folder = os.path.expanduser(os.getcwd())
+load_dotenv(os.path.join(project_folder, '.env'))
+logger.info(f'project_folder is: {project_folder}')
 
 LOCAL_USER = gt.getuser()
 

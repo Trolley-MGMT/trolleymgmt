@@ -5,6 +5,7 @@ import platform
 
 
 import requests
+from dotenv import load_dotenv
 
 if 'Darwin' in platform.system():
     from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
@@ -23,6 +24,10 @@ handler = logging.FileHandler(log_file_name)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+project_folder = os.path.expanduser(os.getcwd())
+load_dotenv(os.path.join(project_folder, '.env'))
+logger.info(f'project_folder is: {project_folder}')
 
 # horrible hack to solve the Dockerfile issues. Please find a better solution
 run_env = 'not_github'

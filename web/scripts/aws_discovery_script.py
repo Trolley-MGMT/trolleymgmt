@@ -10,6 +10,7 @@ import sys
 import time
 
 import boto3
+from dotenv import load_dotenv
 
 from web.mongo_handler.mongo_objects import AWSS3FilesObject, AWSS3BucketsObject, \
     AWSEC2InstanceDataObject
@@ -28,6 +29,11 @@ handler = logging.FileHandler(log_file_path)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+
+project_folder = os.path.expanduser(os.getcwd())
+load_dotenv(os.path.join(project_folder, '.env'))
+logger.info(f'project_folder is: {project_folder}')
 
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "30"))
 DEFAULT_AWS_REGION = os.environ.get('DEFAULT_AWS_REGION', "us-east-1")

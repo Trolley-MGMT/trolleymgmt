@@ -7,6 +7,7 @@ from typing import Any, Mapping
 
 import gridfs
 from bson import ObjectId
+from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
@@ -43,6 +44,10 @@ else:
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
         ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO
+
+project_folder = os.path.expanduser(os.getcwd())
+load_dotenv(os.path.join(project_folder, '.env'))
+logger.info(f'project_folder is: {project_folder}')
 
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-361905')
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')

@@ -10,9 +10,6 @@ import datetime
 from functools import wraps
 from threading import Thread
 
-project_folder = os.path.expanduser('~')  # adjust as appropriate
-load_dotenv(os.path.join(project_folder, '.env'))
-
 from dataclasses import asdict
 from distutils import util
 
@@ -24,6 +21,21 @@ from PIL import Image
 import yaml
 from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
+
+log_file_name = 'server.log'
+log_file_path = f'{os.getcwd()}/{log_file_name}'
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.FileHandler(log_file_path)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+project_folder = os.path.expanduser(os.getcwd())
+load_dotenv(os.path.join(project_folder, '.env'))
+logger.info(f'project_folder is: {project_folder}')
 
 if 'Darwin' in platform.system():
     import mongo_handler.mongo_utils
@@ -56,18 +68,6 @@ else:
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
-
-
-log_file_name = 'server.log'
-log_file_path = f'{os.getcwd()}/{log_file_name}'
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-handler = logging.FileHandler(log_file_path)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
