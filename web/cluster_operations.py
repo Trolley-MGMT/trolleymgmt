@@ -10,8 +10,8 @@ if 'Darwin' in platform.system():
     from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
     from web.mongo_handler.mongo_utils import retrieve_cluster_details
 else:
-    from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
-    from mongo_handler.mongo_utils import retrieve_cluster_details
+    from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+    from web.mongo_handler.mongo_utils import retrieve_cluster_details
 
 log_file_name = 'server.log'
 log_file_path = f'{os.getcwd()}/{log_file_name}'
