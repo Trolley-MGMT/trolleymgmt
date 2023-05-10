@@ -166,8 +166,6 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
     if request.headers.get('request-source') == 'kubernetes':
         return '', ''
     logger.info(f'The request comes from {user_agent} user agent')
-    logger.info(f'The request comes with {user_email} email')
-    logger.info(f'Session contents {session}')
     if new:
         session.pop('x-access-token', None)
         session.pop('user_email', None)
@@ -179,6 +177,7 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
         except:
             user_email = request.form['user_email']
             password = request.form['user_password']
+    logger.info(f'The request comes with {user_email} email')
     user_object = mongo_handler.mongo_utils.retrieve_user(user_email)
     logger.info(f'user_object is: {user_object}')
     session["registration_status"] = user_object['registration_status']
