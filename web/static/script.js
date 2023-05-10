@@ -24,6 +24,9 @@ $(document).ready(function() {
         $("#clients-div").show()
         $("#dashboards-div").show()
         $("#settings-div").show()
+        $("#settings-div").show()
+        $("#trigger-clusters-discovery").show()
+        $("#trigger-instances-discovery").show()
     }
     window.localStorage.setItem("userName", data['user_name']);
     let user_name = window.localStorage.getItem("userName");
