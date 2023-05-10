@@ -17,26 +17,28 @@ from web.mongo_handler.mongo_objects import AWSS3FilesObject, AWSS3BucketsObject
 from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
     insert_aws_buckets_object, insert_eks_cluster_object, retrieve_instances, retrieve_available_clusters, \
     retrieve_compute_per_machine_type
-# from web.variables.variables import AWS, EKS
 
-file_name = 'server.log'
-log_file_path = f'{os.getcwd()}/{file_name}'
+log_file_name = 'server.log'
+log_file_path = f'{os.getcwd()}/{log_file_name}'
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler(log_file_path),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+handler = logging.FileHandler(log_file_path)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "30"))
 DEFAULT_AWS_REGION = os.environ.get('DEFAULT_AWS_REGION', "us-east-1")
-EC2_CLIENT = boto3.client('ec2', region_name=DEFAULT_AWS_REGION)
-S3_CLIENT = boto3.client('s3')
-EKS_CLIENT = boto3.client('eks', region_name=DEFAULT_AWS_REGION)
-ACCOUNT_ID = int(boto3.client('sts').get_caller_identity().get('Account'))
+try:
+    EC2_CLIENT = boto3.client('ec2', region_name=DEFAULT_AWS_REGION)
+    S3_CLIENT = boto3.client('s3')
+    EKS_CLIENT = boto3.client('eks', region_name=DEFAULT_AWS_REGION)
+    ACCOUNT_ID = int(boto3.client('sts').get_caller_identity().get('Account'))
+except Exception as e:
+    logger.error(f'AWS was not installed on this machine')
+
 TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
