@@ -65,7 +65,7 @@ else:
         trigger_trolley_agent_deployment_github_action
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
-    from web.scripts import gcp_discovery_script, aws_discovery_script
+    from scripts import gcp_discovery_script, aws_discovery_script
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
@@ -162,14 +162,12 @@ def encode_provider_details(content: dict) -> ProviderObject:
 
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
-    # logger.info("checking stuff")
-    # logger.info(os.getcwd())
-    # logger.info(help('modules'))
-    # logger.info(mongo_handler)
     user_agent = request.headers.get('User-Agent')
     if request.headers.get('request-source') == 'kubernetes':
         return '', ''
     logger.info(f'The request comes from {user_agent} user agent')
+    logger.info(f'The request comes with {user_email} email')
+    logger.info(f'Session contents {session}')
     if new:
         session.pop('x-access-token', None)
         session.pop('user_email', None)
