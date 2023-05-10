@@ -500,6 +500,10 @@ def retrieve_user(user_email: str):
     @param user_email:  retrieve a returning user data
     @return:
     """
+    print(f'Listing all the collections')
+    logger.info(f'Listing all the collections')
+    print(db.list_collection_names())
+    logger.info(db.list_collection_names())
     mongo_query = {USER_EMAIL: user_email}
     logger.info(f'Running the {mongo_query}')
     logger.info(f'MONGO_USER is: {MONGO_USER}')
