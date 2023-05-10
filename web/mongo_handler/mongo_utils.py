@@ -67,6 +67,16 @@ ATLAS_FULL_URL = f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites
 if "mongodb.net" in MONGO_URL:
     print('mongodb.net was chosen')
     client = MongoClient(ATLAS_FULL_URL)
+    logger.info(f'MONGO_USER is: {MONGO_USER}')
+    print(f'MONGO_USER is: {MONGO_USER}')
+    logger.info(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
+    print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
+    logger.info(f'MONGO_URL is: {MONGO_URL}')
+    print(f'MONGO_URL is: {MONGO_URL}')
+    logger.info(f'MONGO_PORT is: {MONGO_PORT}')
+    print(f'MONGO_PORT is: {MONGO_PORT}')
+    logger.info(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
+    print(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
 else:
     print('mongodb.net was not chosen')
     client = MongoClient(host=MONGO_URL, port=MONGO_PORT, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
@@ -492,6 +502,16 @@ def retrieve_user(user_email: str):
     """
     mongo_query = {USER_EMAIL: user_email}
     logger.info(f'Running the {mongo_query}')
+    logger.info(f'MONGO_USER is: {MONGO_USER}')
+    print(f'MONGO_USER is: {MONGO_USER}')
+    logger.info(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
+    print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
+    logger.info(f'MONGO_URL is: {MONGO_URL}')
+    print(f'MONGO_URL is: {MONGO_URL}')
+    logger.info(f'MONGO_PORT is: {MONGO_PORT}')
+    print(f'MONGO_PORT is: {MONGO_PORT}')
+    logger.info(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
+    print(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
     user_object = users.find_one(mongo_query)
     logger.info(f'The result of the query is: {user_object}')
     if not user_object:
