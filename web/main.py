@@ -1,4 +1,5 @@
 import codecs
+from dotenv import load_dotenv
 import inspect
 import json
 import logging
@@ -8,6 +9,9 @@ import time
 import datetime
 from functools import wraps
 from threading import Thread
+
+project_folder = os.path.expanduser('~')  # adjust as appropriate
+load_dotenv(os.path.join(project_folder, '.env'))
 
 from dataclasses import asdict
 from distutils import util
