@@ -53,6 +53,7 @@ if 'Darwin' in platform.system():
     from mongo_handler.mongo_objects import ProviderObject
     from scripts import gcp_discovery_script, aws_discovery_script
 else:
+    import mongo_handler.mongo_utils
     from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject, ProviderObject
     from variables.variables import POST, GET, EKS, \
         APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
