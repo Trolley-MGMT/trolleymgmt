@@ -17,14 +17,15 @@ MONGO_USER = os.environ.get('MONGO_USER', 'pavelzagalsky-gke-qjeigibl')
 MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD', 'password')
 MONGO_URL = os.environ.get('MONGO_URL', 'localhost')
 KUBECONFIG_PATH = os.environ.get('KUBECONFIG_PATH', '/home/runner/.kube/config')
+GITHUB_ACTION_REPOSITORY = os.environ.get('GITHUB_ACTION_REPOSITORY')
 
 if 'macOS' in platform.platform():
     log_path = f'{os.getcwd()}'
     trolley_deployment_path = f'{os.getcwd()}'
     deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/")[:-1])
 else:
-    log_path = '/home/runner/work/Trolley-Management/Trolley-Management'
-    trolley_deployment_path = '/home/runner/work/Trolley-Management/Trolley-Management'
+    log_path = f'/home/runner/work/{GITHUB_ACTION_REPOSITORY}'
+    trolley_deployment_path = f'/home/runner/work/{GITHUB_ACTION_REPOSITORY}'
     deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/"))
 
 log_file_name = 'agent_main.log'
