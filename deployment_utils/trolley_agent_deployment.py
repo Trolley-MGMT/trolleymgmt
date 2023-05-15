@@ -17,18 +17,15 @@ MONGO_USER = os.environ.get('MONGO_USER', 'pavelzagalsky-gke-qjeigibl')
 MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD', 'password')
 MONGO_URL = os.environ.get('MONGO_URL', 'localhost')
 KUBECONFIG_PATH = os.environ.get('KUBECONFIG_PATH', '/home/runner/.kube/config')
-GITHUB_ACTION_REPOSITORY = os.environ.get('GITHUB_ACTION_REPOSITORY')
 
 if 'macOS' in platform.platform():
-    log_path = f'{os.getcwd()}'
-    trolley_deployment_path = f'{os.getcwd()}'
-    deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/")[:-1])
+    home_path = f'{os.getcwd()}'
+    deployment_yaml_path_ = "/".join(home_path.split("/")[:-1])
 else:
-    log_path = f'/home/runner/work/{GITHUB_ACTION_REPOSITORY}'
-    print(f'log_path is: {log_path}')
-    trolley_deployment_path = f'/home/runner/work/{GITHUB_ACTION_REPOSITORY}'
-    print(f'trolley_deployment_path is: {trolley_deployment_path}')
-    deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/"))
+    home_path = '/home/runner/work'
+    print(f'home_path is: {home_path}')
+    print(f'trolley_deployment_path is: {home_path}')
+    deployment_yaml_path_ = "/".join(home_path.split("/"))
     print(f'deployment_yaml_path is: {deployment_yaml_path_}')
 
 log_file_name = 'agent_main.log'
@@ -43,7 +40,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(f"{log_path}/{log_file_name}"),
+        logging.FileHandler(f"{home_path}/{log_file_name}"),
         logging.StreamHandler(sys.stdout)
     ]
 )
