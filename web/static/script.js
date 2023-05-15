@@ -4,11 +4,6 @@ $(document).ready(function() {
     let trolley_local_url = 'localhost:8080';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
-    store_settings();
-    var settingsData = window.localStorage.getItem("settings");
-    var settingsDataArray = JSON.parse(settingsData)
-    let githubRepository = settingsDataArray[0].github_repository
-    let githubActionsToken = settingsDataArray[0].github_actions_token
     let userType = "";
     let userName = "";
     let clusterName = "";
@@ -55,6 +50,12 @@ $(document).ready(function() {
         gitBranch = 'master'
         http = 'https://'
     }
+
+    store_settings();
+    var settingsData = window.localStorage.getItem("settings");
+    var settingsDataArray = JSON.parse(settingsData)
+    let githubRepository = settingsDataArray[0].github_repository
+    let githubActionsToken = settingsDataArray[0].github_actions_token
     store_client_names()
     store_users_data()
     store_teams_data()
@@ -701,6 +702,7 @@ $(document).ready(function() {
         $.each(clustersData, function(key, value) {
             if (value['cluster_name'] == clusterName) {
                 cluster_name_to_send = value['cluster_name']
+                zoneName = value['zone_name']
                 regionName = value['region_name']
             }
         });
@@ -708,7 +710,8 @@ $(document).ready(function() {
         let deploy_trolley_agent_data = JSON.stringify({
             "cluster_name": clusterName,
             "cluster_type": clusterType,
-            "gke_region": regionName,
+            "zone_name": zoneName,
+            "region_name": regionName,
             "trolley_server_url": trolleyServerURL,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken
@@ -1002,6 +1005,7 @@ $(document).ready(function() {
                                 kubeconfig: value['kubeconfig'],
                                 nodes_ips: value['nodes_ips'],
                                 region_name: value['region_name'],
+                                zone_name: value['zone_name'],
                                 num_nodes: value['num_nodes'],
                                 totalvCPU: value['totalvCPU'],
                                 total_memory: value['total_memory'],

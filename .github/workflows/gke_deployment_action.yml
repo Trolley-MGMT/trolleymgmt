@@ -18,6 +18,7 @@ jobs:
         run: |
           echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
           echo "cluster_version is: ${{ github.event.client_payload.cluster_version }}"
+          echo "region_name is: ${{ github.event.client_payload.region_name }}"
           echo "zone_name is: ${{ github.event.client_payload.zone_name }}"
           echo "image_type is: ${{ github.event.client_payload.image_type }}"
           echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"

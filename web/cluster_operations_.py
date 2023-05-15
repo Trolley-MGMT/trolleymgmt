@@ -48,7 +48,7 @@ else:
 class ClusterOperation:
     def __init__(self, github_actions_token: str = "", github_repository: str = "", user_name: str = "", cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
-                 gke_region: str = "", gke_zone: str = "",
+                 region_name: str = "", zone_name: str = "",
                  eks_subnets: str = "", eks_location: str = "", eks_zones: str = "",
                  num_nodes: int = "", image_type: str = "", expiration_time: int = 0,
                  mongo_url: str = "", mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = ""):
@@ -63,8 +63,8 @@ class ClusterOperation:
         self.cluster_type = cluster_type
         self.cluster_version = cluster_version
         self.aks_location = aks_location
-        self.gke_region = gke_region
-        self.gke_zone = gke_zone
+        self.region_name = region_name
+        self.zone_name = zone_name
         self.eks_subnets = eks_subnets
         self.eks_zones = eks_zones
         self.eks_location = eks_location
@@ -103,8 +103,8 @@ class ClusterOperation:
             "client_payload": {"cluster_name": self.cluster_name,
                                "user_name": self.user_name,
                                "cluster_version": self.cluster_version,
-                               "region_name": self.gke_region,
-                               "zone_name": self.gke_zone,
+                               "region_name": self.region_name,
+                               "zone_name": self.zone_name,
                                "image_type": self.image_type,
                                "num_nodes": str(self.num_nodes),
                                "expiration_time": self.expiration_time}
@@ -162,15 +162,11 @@ class ClusterOperation:
             return False
 
     def trigger_trolley_agent_deployment_github_action(self):
-        if self.cluster_type == GKE:
-            zone_name = self.gke_region
-        else:
-            zone_name = self.gke_region
         json_data = {
             "event_type": "trolley-agent-api-deployment-trigger",
             "client_payload": {"cluster_name": self.cluster_name,
                                "cluster_type": self.cluster_type,
-                               "zone_name": zone_name,
+                               "zone_name": self.zone_name,
                                "trolley_server_url": self.trolley_server_url,
                                "mongo_user": self.mongo_user,
                                "mongo_password": self.mongo_password,

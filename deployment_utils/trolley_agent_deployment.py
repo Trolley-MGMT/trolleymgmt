@@ -25,13 +25,19 @@ if 'macOS' in platform.platform():
     deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/")[:-1])
 else:
     log_path = f'/home/runner/work/{GITHUB_ACTION_REPOSITORY}'
+    print(f'log_path is: {log_path}')
     trolley_deployment_path = f'/home/runner/work/{GITHUB_ACTION_REPOSITORY}'
+    print(f'trolley_deployment_path is: {trolley_deployment_path}')
     deployment_yaml_path_ = "/".join(trolley_deployment_path.split("/"))
+    print(f'deployment_yaml_path is: {deployment_yaml_path_}')
 
 log_file_name = 'agent_main.log'
 deployment_yaml_path = f'{deployment_yaml_path_}/agents/k8s_agent/agent_deployment_yamls'
+print(f'deployment_yaml_path is: {deployment_yaml_path}')
 base_trolley_agent_full_path = f'{deployment_yaml_path}/full_agent_deployment.yml'
+print(f'base_trolley_agent_full_path is: {base_trolley_agent_full_path}')
 edited_trolley_agent_full_path = f'{deployment_yaml_path}/edited_agent_deployment.yml'
+print(f'edited_trolley_agent_full_path is: {edited_trolley_agent_full_path}')
 
 logging.basicConfig(
     level=logging.INFO,
