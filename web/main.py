@@ -476,7 +476,9 @@ def delete_cluster():
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     if content[CLUSTER_TYPE] == GKE:
         del content[CLUSTER_TYPE]
-        delete_gke_cluster(**content)
+        cluster_operations = ClusterOperation(**content)
+        cluster_operations.delete_gke_cluster()
+        # delete_gke_cluster(**content)
         mongo_handler.mongo_utils.set_cluster_availability(cluster_type=GKE,
                                                            cluster_name=content['cluster_name'],
                                                            discovered=content['discovered'],

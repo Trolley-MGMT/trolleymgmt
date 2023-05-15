@@ -1736,7 +1736,9 @@ $(document).ready(function() {
         let cluster_deletion_data = JSON.stringify({
             "cluster_type": clusterType,
             "cluster_name": objectName,
-            "discovered": discovered
+            "discovered": discovered,
+            "github_repository": githubRepository,
+            "github_actions_token": githubActionsToken
         });
 
         swal_message = 'A ' + clusterName + ' ' + clusterType + ' cluster was requested for deletion'

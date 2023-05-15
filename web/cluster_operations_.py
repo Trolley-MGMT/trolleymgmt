@@ -50,7 +50,7 @@ class ClusterOperation:
                  cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
                  region_name: str = "", zone_name: str = "",
                  eks_subnets: str = "", eks_location: str = "", eks_zones: str = "",
-                 num_nodes: int = "", image_type: str = "", expiration_time: int = 0,
+                 num_nodes: int = "", image_type: str = "", expiration_time: int = 0, discovered: bool = False,
                  mongo_url: str = "", mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = ""):
         self.mongo_url = mongo_url
         self.mongo_password = mongo_password
@@ -71,6 +71,7 @@ class ClusterOperation:
         self.num_nodes = num_nodes
         self.image_type = image_type
         self.expiration_time = expiration_time
+        self.discovered = discovered
 
         self.github_action_request_header = {
             'Content-type': 'application/json',
@@ -177,64 +178,58 @@ class ClusterOperation:
 
         return response
 
-    @staticmethod
-    def delete_aks_cluster(self, cluster_name: str = ''):
-        """
-
-        @param cluster_name: from built clusters list
-        @return:
-        """
+    def delete_aks_cluster(self):
         json_data = {
             "event_type": "aks-delete-api-trigger",
-            "client_payload": {"cluster_name": cluster_name}
+            "client_payload": {"cluster_name": self.cluster_name}
         }
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)
-        logger.info(response)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False
 
-    # def delete_gke_cluster(self, cluster_name: str = '', discovered: bool = False):
-    #     """
-    #     @param cluster_name: from built clusters list
-    #     @param discovered: cluster was discovered by a scan
-    #     @return:
-    #     """
-    #     gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name,
-    #                                                    discovered=discovered)
-    #     gke_zone_name = gke_cluster_details[ZONE_NAME.lower()]
-    #     print(f'Attempting to delete {cluster_name} in {gke_zone_name}')
-    #     json_data = {
-    #         "event_type": "gke-delete-api-trigger",
-    #         "client_payload": {"cluster_name": cluster_name,
-    #                            "zone_name": gke_zone_name}
-    #     }
-    #     print(f'The JSON Data for the request is: {json_data}')
-    #     print(f'The GITHUB_ACTION_REQUEST_HEADER for the request is: {GITHUB_ACTION_REQUEST_HEADER}')
-    #     response = requests.post(GITHUB_ACTIONS_API_URL,
-    #                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    #     print(response)
-    #     logger.info(response)
-    #
-    # @staticmethod
-    # def delete_eks_cluster(self, cluster_name: str = '', discovered: bool = False):
-    #     """
-    #
-    #     @param cluster_name: from built clusters list
-    #     @param discovered: cluster was discovered by a scan
-    #     @return:
-    #     """
-    #     eks_cluster_details = retrieve_cluster_details(cluster_type=EKS, cluster_name=cluster_name,
-    #                                                    discovered=discovered)
-    #     eks_cluster_region_name = eks_cluster_details[REGION_NAME.lower()]
-    #     aws_access_key_id, aws_secret_access_key = self.get_aws_credentials()
-    #     json_data = {
-    #         "event_type": "eks-delete-api-trigger",
-    #         "client_payload":
-    #             {"cluster_name": cluster_name,
-    #              "region_name": eks_cluster_region_name,
-    #              "aws_access_key_id": aws_access_key_id,
-    #              "aws_secret_access_key": aws_secret_access_key,
-    #              }
-    #     }
-    #     response = requests.post(GITHUB_ACTIONS_API_URL,
-    #                              headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    #     logger.info(response)
+    def delete_gke_cluster(self):
+        gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=self.cluster_name,
+                                                       discovered=self.discovered)
+        gke_zone_name = gke_cluster_details[ZONE_NAME.lower()]
+        print(f'Attempting to delete {self.cluster_name} in {gke_zone_name}')
+        json_data = {
+            "event_type": "gke-delete-api-trigger",
+            "client_payload": {"cluster_name": self.cluster_name,
+                               "zone_name": self.zone_name}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False
+
+    def delete_eks_cluster(self):
+        eks_cluster_details = retrieve_cluster_details(cluster_type=EKS, cluster_name=self.cluster_name,
+                                                       discovered=self.discovered)
+        eks_cluster_region_name = eks_cluster_details[REGION_NAME.lower()]
+        aws_access_key_id, aws_secret_access_key = self.get_aws_credentials()
+        json_data = {
+            "event_type": "eks-delete-api-trigger",
+            "client_payload":
+                {"cluster_name": self.cluster_name,
+                 "region_name": eks_cluster_region_name,
+                 "aws_access_key_id": aws_access_key_id,
+                 "aws_secret_access_key": aws_secret_access_key,
+                 }
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False
