@@ -17,12 +17,13 @@ MONGO_USER = os.environ.get('MONGO_USER', 'pavelzagalsky-gke-qjeigibl')
 MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD', 'password')
 MONGO_URL = os.environ.get('MONGO_URL', 'localhost')
 KUBECONFIG_PATH = os.environ.get('KUBECONFIG_PATH', '/home/runner/.kube/config')
+GITHUB_WORKSPACE = os.environ.get('GITHUB_WORKSPACE')
 
 if 'macOS' in platform.platform():
     home_path = f'{os.getcwd()}'
     deployment_yaml_path_ = "/".join(home_path.split("/")[:-1])
 else:
-    home_path = '/home/runner/work'
+    home_path = GITHUB_WORKSPACE
     print(f'home_path is: {home_path}')
     print(f'trolley_deployment_path is: {home_path}')
     deployment_yaml_path_ = "/".join(home_path.split("/"))
