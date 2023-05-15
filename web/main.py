@@ -39,21 +39,24 @@ logger.info(f'project_folder is: {project_folder}')
 
 if 'Darwin' in platform.system():
     import mongo_handler.mongo_utils
-    from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject
+    from cluster_operations_ import ClusterOperation
+    from mongo_handler.mongo_objects import UserObject, GithubObject, DeploymentYAMLObject
     from variables.variables import POST, GET, EKS, \
-    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
-    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-    NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY
+        APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
+        ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
+        CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
+        NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY
+
     from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
         trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
-        trigger_trolley_agent_deployment_github_action
+        trigger_trolley_agent_deployment_github_action, github_check
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
     from mongo_handler.mongo_objects import ProviderObject
     from scripts import gcp_discovery_script, aws_discovery_script
 else:
     import mongo_handler.mongo_utils
+    from cluster_operations_ import ClusterOperation
     from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject, ProviderObject
     from variables.variables import POST, GET, EKS, \
         APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
@@ -159,6 +162,13 @@ def encode_provider_details(content: dict) -> ProviderObject:
                                      azure_credentials=encoded_azure_credentials,
                                      google_creds_json=encoded_google_creds_json, user_email=content['user_email'])
     return provider_object
+
+
+def encode_github_details(content: dict) -> GithubObject:
+    github_actions_token = crypter.encrypt(str.encode(content['github_actions_token']))
+    github_object = GithubObject(github_actions_token=github_actions_token,
+                                 github_repository=content['github_repository'])
+    return github_object
 
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
@@ -358,6 +368,8 @@ def deploy_trolley_agent_on_cluster():
     content['mongo_user'] = os.getenv('MONGO_USER')
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+    cluster_operation = ClusterOperation(**content)
+    cluster_operation.trigger_trolley_agent_deployment_github_action()
     if trigger_trolley_agent_deployment_github_action(**content):
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     else:
@@ -376,6 +388,8 @@ def trigger_gke_deployment():
     user_name = content['user_name']
     cluster_name = f'{user_name}-{GKE}-{random_string(8)}'
     content['cluster_name'] = cluster_name
+    cluster_operation = ClusterOperation(**content)
+    cluster_operation.trigger_gke_build_github_action()
     if trigger_gke_build_github_action(**content):
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         # deployment_yaml_object = deployment_yaml_object_handling(content)
@@ -505,24 +519,47 @@ def insert_cluster_data():
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
 
 
-@app.route('/provider', methods=[GET, POST])
-@login_required
-def provider():
+@app.route('/settings', methods=[GET, POST])
+# @login_required
+def settings():
     """
-    This endpoint adds a provider data
+    This endpoint saves Trolley settings
     """
-    content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested')
-    content['user_email'] = session['user_email']
-    if validate_provider_data(content):
-        encoded_provider_details = encode_provider_details(content)
-        if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
-            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+    if request.method == POST:
+        content = request.get_json()
+        content['user_email'] = session['user_email']
+        if content['github_repository'] and content['github_actions_token']:
+            if github_check(github_action_token=content['github_actions_token'],
+                            github_repository=content['github_repository']):
+                encoded_github_details = encode_github_details(content)
+                if mongo_handler.mongo_utils.insert_github_data_object(asdict(encoded_github_details)):
+                    return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+                else:
+                    return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-    else:
-        return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+        if validate_provider_data(content):
+            encoded_provider_details = encode_provider_details(content)
+            if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
+                return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+            else:
+                return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+        else:
+            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+    elif request.method == GET:
+        github_data = mongo_handler.mongo_utils.retrieve_github_data_object()
+        if github_data:
+            github_actions_token_decrypted = crypter.decrypt(github_data[0]['github_actions_token']).decode("utf-8")
+        else:
+            return {}
+
+        #TODO add provider data
+        # provider_data_project = mongo_handler.mongo_utils.retrieve_provider_data_object()
+
+        return jsonify({'github_actions_token': github_actions_token_decrypted,
+                        'github_repository': github_data[0]['github_repository']})
 
 
 @app.route('/clients', methods=[GET, POST, PUT, DELETE])
@@ -893,7 +930,8 @@ def login():
         if token:
             user_email = user_object['user_email']
             user_type = mongo_handler.mongo_utils.check_user_type(user_email)
-            data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'], 'user_type': user_type}
+            data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'],
+                    'user_type': user_type}
             logger.info(f'data content is: {data}')
             return render_template('index.html', data=data, image=profile_image)
         else:
@@ -958,10 +996,10 @@ def manage_az_vm_instances():
     return render_page('manage-az-vm-instances.html')
 
 
-@app.route('/settings', methods=[GET, POST])
+@app.route('/manage-settings', methods=[GET, POST])
 @login_required
-def settings():
-    return render_page('settings.html')
+def manage_settings():
+    return render_page('manage-settings.html')
 
 
 @app.route('/clusters-data', methods=[GET])
@@ -984,6 +1022,7 @@ def manage_users():
 @login_required
 def manage_teams():
     return render_page('manage-teams.html')
+
 
 @app.route('/manage-clients', methods=[GET, POST])
 @login_required

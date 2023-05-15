@@ -18,8 +18,6 @@ class UserObject:
     profile_image_id: ObjectId = ObjectId()
 
 
-
-
 @dataclass
 class ProviderObject:
     provider: str
@@ -28,6 +26,12 @@ class ProviderObject:
     azure_credentials: bytes
     google_creds_json: bytes
     user_email: str
+
+
+@dataclass
+class GithubObject:
+    github_actions_token: bytes
+    github_repository: str
 
 
 @dataclass
@@ -142,10 +146,12 @@ class GKECacheObject:
     gke_image_types: list
     regions_zones_dict: dict
 
+
 @dataclass
 class GKEMachinesCacheObject:
     region: str
     machines_list: list
+
 
 @dataclass
 class AWSCacheObject:

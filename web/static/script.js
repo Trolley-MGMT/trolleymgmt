@@ -1,9 +1,14 @@
 $(document).ready(function() {
-    let debug = false;
+    let debug = true;
     let trolley_remote_url = 'pavelzagalsky.pythonanywhere.com';
     let trolley_local_url = 'localhost:8080';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
+    store_settings();
+    var settingsData = window.localStorage.getItem("settings");
+    var settingsDataArray = JSON.parse(settingsData)
+    let githubRepository = settingsDataArray[0].github_repository
+    let githubActionsToken = settingsDataArray[0].github_actions_token
     let userType = "";
     let userName = "";
     let clusterName = "";
@@ -61,9 +66,9 @@ $(document).ready(function() {
     let provider = 'something';
     let fullHREF = window.location.href;
     let pathname = window.location.pathname.split('/');
-    if (fullHREF.includes("?")) {
-        query = true;
-    }
+//    if (fullHREF.includes("?")) {
+//        query = true;
+//    }
 
     let clusters_manage_table_header = `<table class="table table-striped projects">
         <thead>
@@ -112,6 +117,7 @@ $(document).ready(function() {
         usersPage = false;
         teamsPage = false;
         queryPage = true;
+        settingsPage = false;
     } else if (pathname[1].includes('build')) {
         buildPage = true;
         clustersDataPage = false;
@@ -122,6 +128,7 @@ $(document).ready(function() {
         usersPage = false;
         teamsPage = false;
         queryPage = false;
+        settingsPage = false;
     } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-aks')) || (pathname[1].includes('manage-gke'))) {
         buildPage = false;
         clustersDataPage = false;
@@ -132,6 +139,7 @@ $(document).ready(function() {
         usersPage = false;
         teamsPage = false;
         queryPage = false;
+        settingsPage = false;
         window.localStorage.setItem("objectType", "cluster");
     } else if ((pathname[1].includes('manage-aws-ec2')) || (pathname[1].includes('manage-gcp-vm')) || (pathname[1].includes('manage-az-vm'))) {
         buildPage = false;
@@ -143,6 +151,7 @@ $(document).ready(function() {
         usersPage = false;
         teamsPage = false;
         queryPage = false;
+        settingsPage = false;
         window.localStorage.setItem("objectType", "instance");
     } else if (pathname[1].includes('clusters-data')) {
         buildPage = false;
@@ -154,6 +163,7 @@ $(document).ready(function() {
         usersPage = false;
         teamsPage = false;
         queryPage = false;
+        settingsPage = false;
     } else if (pathname[1].includes('data')) {
         buildPage = false;
         clustersDataPage = false;
@@ -164,6 +174,7 @@ $(document).ready(function() {
         usersPage = false;
         teamsPage = false;
         queryPage = false;
+        settingsPage = false;
     } else if (pathname[1].includes('users')) {
         buildPage = false;
         clustersDataPage = false;
@@ -174,6 +185,7 @@ $(document).ready(function() {
         usersPage = true;
         teamsPage = false;
         queryPage = false;
+        settingsPage = false;
     } else if (pathname[1].includes('teams')) {
         buildPage = false;
         clustersDataPage = false;
@@ -184,6 +196,7 @@ $(document).ready(function() {
         usersPage = false;
         teamsPage = true;
         queryPage = false;
+        settingsPage = false;
     } else if (pathname[1].includes('clients')) {
         buildPage = false;
         clustersDataPage = false;
@@ -194,6 +207,18 @@ $(document).ready(function() {
         usersPage = false;
         teamsPage = false;
         queryPage = false;
+        settingsPage = false;
+    } else if (pathname[1].includes('settings')) {
+        buildPage = false;
+        clustersDataPage = false;
+        dataPage = true;
+        clustersManagePage = false;
+        instancesManagePage = false;
+        clientsPage = false;
+        usersPage = false;
+        teamsPage = false;
+        queryPage = false;
+        settingsPage = true;
     } else {
         buildPage = false;
         clustersDataPage = false;
@@ -204,6 +229,7 @@ $(document).ready(function() {
         usersPage = false;
         teamsPage = false;
         queryPage = false;
+        settingsPage = false;
     }
     if (($.inArray('build-aks-clusters', pathname) > -1) || ($.inArray('manage-aks-clusters', pathname) > -1) || ($.inArray('manage-az-vm-instances', pathname) > -1)) {
         clusterType = 'aks'
@@ -296,10 +322,16 @@ $(document).ready(function() {
                 console.log(error)
             })
         populate_client_names();
+        populate_kubernetes_agent_data();
     }
 
-    if (queryPage) {
-        populate_kubernetes_agent_data();
+//    if (queryPage) {
+//        populate_kubernetes_agent_data();
+//    }
+
+    if (settingsPage) {
+        store_settings();
+        populate_settings();
     }
 
     $("#build-cluster-button").click(function() {
@@ -330,37 +362,38 @@ $(document).ready(function() {
         let trigger_aks_deployment_data = JSON.stringify({
             "user_name": userName,
             "num_nodes": AKSNodesAmount,
-            "version": AKSKubernetesVersion,
+            "cluster_version": AKSKubernetesVersion,
             "expiration_time": AKSExpirationTime,
             "aks_location": AKSLocation,
-            "helm_installs": HelmInstalls,
-            "deployment_yaml": DeploymentYAML
+            "github_repository": githubRepository,
+            "github_actions_token": githubActionsToken
         });
 
         let trigger_eks_deployment_data = JSON.stringify({
             "user_name": userName,
             "num_nodes": EKSNodesAmount,
-            "version": EKSKubernetesVersion,
+            "cluster_version": EKSKubernetesVersion,
             "expiration_time": EKSExpirationTime,
             "eks_location": EKSLocation,
             "eks_zones": EKSZones,
             "eks_subnets": EKSSubnets,
-            "helm_installs": HelmInstalls,
-            "deployment_yaml": DeploymentYAML
+            "github_repository": githubRepository,
+            "github_actions_token": githubActionsToken
         });
 
         let trigger_gke_deployment_data = JSON.stringify({
             "cluster_type": 'gke',
             "user_name": userName,
             "num_nodes": GKENodesAmount,
-            "version": GKEKubernetesVersion,
+            "cluster_version": GKEKubernetesVersion,
             "image_type": GKEImageType,
             "expiration_time": GKEExpirationTime,
             "gke_region": GKERegion,
             "gke_zone": GKEZone,
-            "helm_installs": HelmInstalls,
-            "deployment_yaml": DeploymentYAML
+            "github_repository": githubRepository,
+            "github_actions_token": githubActionsToken
         });
+
 
         if (clusterType === 'aks') {
             url = http + trolley_url + "/trigger_aks_deployment";
@@ -456,6 +489,65 @@ $(document).ready(function() {
             timer: 5000
         })
     });
+
+    $("#save-settings-button").click(function() {
+        let data = ''
+        var cloud_provider = $('#cloud-providers-dropdown').val().toLowerCase();
+        AWSAccessKeyID = $('#aws_access_key_id').val();
+        AWSSecretAccessKey = $('#aws_secret_access_key').val();
+        azureCredentials = $('#azure_credentials').val();
+        googleCredsJSON = $('#google_creds_json').val();
+        githubRepository = $('#github_repository').val();
+        githubActionsToken = $('#github_actions_token').val();
+
+
+
+        let add_settings_data = JSON.stringify({
+            "provider": cloud_provider,
+            "aws_access_key_id": AWSAccessKeyID,
+            "aws_secret_access_key": AWSSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJSON,
+            "github_repository": githubRepository,
+            "github_actions_token": githubActionsToken,
+        });
+
+
+        url = http + trolley_url + "/settings";
+
+        swal_message = 'A request to save settings was sent'
+        var forms = document.querySelectorAll('.needs-validation')
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(add_settings_data);
+
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: swal_message,
+            showConfirmButton: false,
+            timer: 5000
+        })
+    });
+
 
     $("#add-client-button").click(function() {
         $("#add-client-card-title-div").show();
@@ -609,15 +701,17 @@ $(document).ready(function() {
         $.each(clustersData, function(key, value) {
             if (value['cluster_name'] == clusterName) {
                 cluster_name_to_send = value['cluster_name']
-                regionName = value['region_name'][0]
+                regionName = value['region_name']
             }
         });
 
         let deploy_trolley_agent_data = JSON.stringify({
             "cluster_name": clusterName,
             "cluster_type": clusterType,
-            "region_name": regionName,
+            "gke_region": regionName,
             "trolley_server_url": trolleyServerURL,
+            "github_repository": githubRepository,
+            "github_actions_token": githubActionsToken
         });
 
         url = http + trolley_url + "/deploy_trolley_agent_on_cluster";
@@ -891,6 +985,7 @@ $(document).ready(function() {
 
     function store_clusters() {
         var clustersData = []
+        var clusterType = window.localStorage.getItem("clusterType")
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: http + trolley_url + "/get_clusters_data?cluster_type=" + clusterType + "&user_name=" + data['user_name'],
@@ -916,6 +1011,28 @@ $(document).ready(function() {
                         });
                     }
                     window.localStorage.setItem("clustersData", JSON.stringify(clustersData));
+                    resolve(response)
+                },
+                error: function(error) {
+                    reject(error)
+                },
+            })
+        })
+    }
+
+
+    function store_settings() {
+        var settingsData = []
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/settings",
+                type: 'GET',
+                success: function(response) {
+                       settingsData.push({
+                            github_repository: response.github_repository,
+                            github_actions_token: response.github_actions_token
+                        });
+                    window.localStorage.setItem("settings", JSON.stringify(settingsData));
                     resolve(response)
                 },
                 error: function(error) {
@@ -1339,6 +1456,16 @@ $(document).ready(function() {
                 $("#user-names-dropdown").append($("<option />").val(value.user_name).text(cap_user_name));
             }
         });
+    }
+
+
+    function populate_settings() {
+        var settingsData = window.localStorage.getItem("settings");
+        var settingsDataArray = JSON.parse(settingsData)
+        $("#github_actions_token").removeAttr('placeholder');
+        $("#github_actions_token").val(settingsDataArray[0]['github_actions_token']);
+        $("#github_repository").removeAttr('placeholder');;
+        $("#github_repository").val(settingsDataArray[0]['github_repository']);
     }
 
     function populate_users_data() {

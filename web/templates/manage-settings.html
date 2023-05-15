@@ -17,6 +17,11 @@
     <script>
       var data = {{ data|tojson }};
 
+
+
+
+
+
     </script>
 </head>
 
@@ -276,7 +281,7 @@
                         </ul>
                     </li>
                     <li class="nav-item" id="settings-div" style="display: none;">
-                        <a href="settings" class="nav-link active">
+                        <a href="manage-settings" class="nav-link active">
                             <i class="fa fa-cog" aria-hidden="true"></i>
                             <p>
                                 Settings
@@ -312,7 +317,7 @@
                 <div class="col-md-6">
                     <div class="card card-primary">
                         <form class="row">
-                            <div class="card-body">
+                            <div class="card-body" id="cloud-provider-credentials-div">
                                 <div class="card-header">
                                     <h3 class="card-title">Cloud Providers Credentials</h3>
                                 </div>
@@ -342,14 +347,33 @@
                                     <textarea class="form-control" rows="3" id="google_creds_json"
                                               placeholder="Add the JSON here"></textarea>
                                 </div>
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-info" id="add-provider-button">Add Provider
-                                    </button>
-                                </div>
                             </div>
                         </form>
+                    </div>
+                    <div class="card card-primary">
+                        <form class="row">
+                            <div class="card-body" id="github-provider-credentials-div">
+                                <div class="card-header">
+                                    <h3 class="card-title">GitHub Credentials</h3>
+                                </div>
+                                <div id="github-repository-div">
+                                    <label for="github_repository" class="form-label">GitHub Repository</label>
+                                    <input type="text" class="form-control" id="github_repository"
+                                           placeholder="Trolley-MGMT/Trolley-Management" required>
+                                </div>
+                                <div id="github-tokens-div">
+                                    <label for="github_actions_token" class="form-label">GitHub
+                                        Token</label>
+                                    <input type="text" class="form-control" id="github_actions_token"
+                                           placeholder="ghp_4kkxRsaRJtfYmlvEl5PeFyuplNQorNxBfmnx" required>
+                                </div>
 
-
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-info" id="save-settings-button">Save
+                        </button>
                     </div>
                 </div>
                 <!--                    -->

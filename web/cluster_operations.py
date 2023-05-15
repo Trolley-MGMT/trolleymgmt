@@ -3,7 +3,6 @@ import logging
 import os
 import platform
 
-
 import requests
 from dotenv import load_dotenv
 
@@ -51,6 +50,8 @@ else:
 GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')
 GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
 GITHUB_ACTIONS_API_URL = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/dispatches'
+
+
 GITHUB_ACTION_REQUEST_HEADER = {
     'Content-type': 'application/json',
     'Accept': 'application/vnd.github+json',
@@ -67,6 +68,23 @@ def get_aws_credentials() -> tuple:
         aws_access_key_id = aws_credentials.split('\n')[1].split(" = ")[1]
         aws_secret_access_key = aws_credentials.split('\n')[2].split(" = ")[1]
         return aws_access_key_id, aws_secret_access_key
+
+
+def github_check(github_action_token: str, github_repository: str) -> bool:
+    github_test_url = f'https://api.github.com/repos/{github_repository}'
+    headers = {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': f'Bearer {github_action_token}',
+        'X-GitHub-Api-Version': '2022-11-28',
+    }
+    response = requests.get(url=github_test_url,
+                             headers=headers)
+    if response.status_code == 200:
+        return True
+    else:
+        logger.info(f'This is the request response: {response.reason}')
+        return False
+
 
 
 def trigger_aks_build_github_action(user_name: str = '',

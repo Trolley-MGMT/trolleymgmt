@@ -3,13 +3,14 @@ import os
 import platform
 import time
 from dataclasses import asdict
-from typing import Any, Mapping
+from typing import Any, Mapping, Dict
 
 import gridfs
 from bson import ObjectId
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.collection import Collection
+from pymongo.cursor import Cursor
 
 file_name = 'server.log'
 log_file_path = f'{os.getcwd()}/{file_name}'
@@ -62,7 +63,6 @@ logger.info(MONGO_USER)
 logger.info(MONGO_URL)
 logger.info(MONGO_PORT)
 ATLAS_FULL_URL = f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority"
-
 
 if "mongodb.net" in MONGO_URL:
     print('mongodb.net was chosen')
@@ -117,6 +117,7 @@ fs = gridfs.GridFS(db)
 k8s_agent_data: Collection = db.k8s_agent_data
 
 providers_data: Collection = db.providers_data
+github_data: Collection = db.github_data
 clients_data: Collection = db.clients_data
 
 logger.info(f'MONGO_USER is: {MONGO_USER}')
@@ -1047,7 +1048,7 @@ def insert_provider_data_object(providers_data_object: dict) -> bool:
         existing_providers_data_object = providers_data.find_one(mongo_query)
         if existing_providers_data_object:
             result = providers_data.replace_one(existing_providers_data_object, providers_data_object)
-            logger.info(f'agents_data_object was updated properly')
+            logger.info(f'providers_data_object was updated properly')
             return result.raw_result['updatedExisting']
         else:
             result = providers_data.insert_one(providers_data_object)
@@ -1073,6 +1074,40 @@ def retrieve_provider_data_object(user_email: str, provider: str) -> Mapping[str
         return {}
     del providers_data_object['_id']
     return providers_data_object
+
+
+def insert_github_data_object(github_data_object: dict) -> bool:
+    """
+    @param github_data_object: The data of the added provider
+    """
+    try:
+        if len(list(github_data.find())) > 0:
+            logger.info(f'A GitHub repository was already defined')
+            return True
+        else:
+            result = github_data.insert_one(github_data_object)
+            if result.inserted_id:
+                logger.info(f'github data was inserted properly')
+                return True
+            else:
+                logger.error(f'github data was not inserted properly')
+                return False
+    except:
+        logger.error(f'github data was not inserted properly')
+
+
+def retrieve_github_data_object() -> dict[Any, Any] | Cursor[Mapping[str, Any] | Any]:
+    """
+    """
+    github_data_object = []
+    github_data_object_ = github_data.find()
+    for data_object in github_data_object_:
+        del data_object['_id']
+        github_data_object.append(data_object)
+    if not github_data_object_:
+        logger.info(f'There is no github data ')
+        return {}
+    return github_data_object
 
 
 def add_client_data_object(client_data_object: dict) -> bool:
