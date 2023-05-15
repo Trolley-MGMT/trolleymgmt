@@ -86,7 +86,7 @@ soupsieve==2.4.1
 storage==0.0.4.3
 typing_extensions==4.5.0
 uritemplate==4.1.1
-urllib3==1.25.4
+urllib3==2.0.1
 websocket-client==1.5.1
 Werkzeug==2.3.2
 yagmail==0.15.293
