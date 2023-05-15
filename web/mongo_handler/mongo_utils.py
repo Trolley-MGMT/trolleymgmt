@@ -1096,7 +1096,7 @@ def insert_github_data_object(github_data_object: dict) -> bool:
         logger.error(f'github data was not inserted properly')
 
 
-def retrieve_github_data_object() -> dict[Any, Any] | Cursor[Mapping[str, Any] | Any]:
+def retrieve_github_data_object() -> dict:
     """
     """
     github_data_object = []
