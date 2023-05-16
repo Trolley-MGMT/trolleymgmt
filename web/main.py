@@ -47,9 +47,7 @@ if 'Darwin' in platform.system():
         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
         NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY
 
-    from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
-        trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
-        trigger_trolley_agent_deployment_github_action, github_check
+    from cluster_operations import trigger_aks_build_github_action, delete_gke_cluster, github_check
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
     from mongo_handler.mongo_objects import ProviderObject
@@ -63,9 +61,7 @@ else:
         ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
         NAMES, REGION_NAME, CLIENT_NAME
-    from cluster_operations import trigger_gke_build_github_action, trigger_eks_build_github_action, \
-        trigger_aks_build_github_action, delete_gke_cluster, delete_eks_cluster, delete_aks_cluster, \
-        trigger_trolley_agent_deployment_github_action
+    from cluster_operations import trigger_aks_build_github_action, delete_gke_cluster
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
     from scripts import gcp_discovery_script, aws_discovery_script
@@ -369,8 +365,7 @@ def deploy_trolley_agent_on_cluster():
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     cluster_operation = ClusterOperation(**content)
-    cluster_operation.trigger_trolley_agent_deployment_github_action()
-    if trigger_trolley_agent_deployment_github_action(**content):
+    if cluster_operation.trigger_trolley_agent_deployment_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     else:
         return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -390,7 +385,7 @@ def trigger_gke_deployment():
     content['cluster_name'] = cluster_name
     cluster_operation = ClusterOperation(**content)
     cluster_operation.trigger_gke_build_github_action()
-    if trigger_gke_build_github_action(**content):
+    if cluster_operation.trigger_gke_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         # deployment_yaml_object = deployment_yaml_object_handling(content)
     # else:
@@ -413,7 +408,8 @@ def trigger_eks_deployment():
     user_name = content['user_name']
     cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
-    if trigger_eks_build_github_action(**content):
+    cluster_operation = ClusterOperation(**content)
+    if cluster_operation.trigger_eks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         # deployment_yaml_object = deployment_yaml_object_handling(content)
     # else:
@@ -474,29 +470,17 @@ def delete_cluster():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+    cluster_operations = ClusterOperation(**content)
     if content[CLUSTER_TYPE] == GKE:
-        del content[CLUSTER_TYPE]
-        cluster_operations = ClusterOperation(**content)
         cluster_operations.delete_gke_cluster()
-        # delete_gke_cluster(**content)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=GKE,
-                                                           cluster_name=content['cluster_name'],
-                                                           discovered=content['discovered'],
-                                                           availability=False)
     elif content[CLUSTER_TYPE] == EKS:
-        del content[CLUSTER_TYPE]
-        delete_eks_cluster(**content)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=EKS,
-                                                           cluster_name=content['cluster_name'],
-                                                           discovered=content['discovered'],
-                                                           availability=False)
+        cluster_operations.delete_eks_cluster()
     elif content[CLUSTER_TYPE] == AKS:
-        del content[CLUSTER_TYPE]
-        delete_aks_cluster(**content)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=AKS,
-                                                           cluster_name=content['cluster_name'],
-                                                           discovered=content['discovered'],
-                                                           availability=False)
+        cluster_operations.delete_aks_cluster()
+    mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content[CLUSTER_TYPE],
+                                                       cluster_name=content['cluster_name'],
+                                                       discovered=content['discovered'],
+                                                       availability=False)
     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -536,12 +520,7 @@ def settings():
             if github_check(github_action_token=content['github_actions_token'],
                             github_repository=content['github_repository']):
                 encoded_github_details = encode_github_details(content)
-                if mongo_handler.mongo_utils.insert_github_data_object(asdict(encoded_github_details)):
-                    return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-                else:
-                    return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-        else:
-            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+                mongo_handler.mongo_utils.insert_github_data_object(asdict(encoded_github_details))
         if validate_provider_data(content):
             encoded_provider_details = encode_provider_details(content)
             if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
@@ -552,15 +531,40 @@ def settings():
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     elif request.method == GET:
         github_data = mongo_handler.mongo_utils.retrieve_github_data_object()
-        if github_data:
+        aws_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(AWS)
+        az_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(AZ)
+        gcp_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(GCP)
+        try:
             github_actions_token_decrypted = crypter.decrypt(github_data[0]['github_actions_token']).decode("utf-8")
-        else:
-            return {}
+        except Exception as e:
+            github_actions_token_decrypted = ""
+            logger.warning(f'problem decrypting github_actions_token_decrypted with error {e}')
+        try:
+            aws_access_key_id = crypter.decrypt(aws_credentials_data['aws_access_key_id']).decode("utf-8")
+            aws_secret_access_key = crypter.decrypt(aws_credentials_data['aws_secret_access_key']).decode("utf-8")
+        except Exception as e:
+            aws_access_key_id = ""
+            aws_secret_access_key = ""
+            logger.warning(f'problem decrypting aws credentials with error {e}')
+        try:
+            azure_credentials = crypter.decrypt(az_credentials_data['azure_credentials']).decode("utf-8")
+        except Exception as e:
+            azure_credentials = ""
+            logger.warning(f'problem decrypting azure credentials with error {e}')
+        try:
+            google_creds_json = crypter.decrypt(gcp_credentials_data['google_creds_json']).decode("utf-8")
+        except Exception as e:
+            google_creds_json = ""
+            logger.warning(f'problem decrypting google credentials with error {e}')
 
-        #TODO add provider data
+        # TODO add provider data
         # provider_data_project = mongo_handler.mongo_utils.retrieve_provider_data_object()
 
-        return jsonify({'github_actions_token': github_actions_token_decrypted,
+        return jsonify({'aws_access_key_id': aws_access_key_id,
+                        'aws_secret_access_key': aws_secret_access_key,
+                        'azure_credentials': azure_credentials,
+                        'google_creds_json': google_creds_json,
+                        'github_actions_token': github_actions_token_decrypted,
                         'github_repository': github_data[0]['github_repository']})
 
 

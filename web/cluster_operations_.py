@@ -44,18 +44,24 @@ else:
     AWS_CREDENTIALS_PATH = '/home/app/.aws/credentials'
 
 
-
 class ClusterOperation:
-    def __init__(self, github_actions_token: str = "", github_repository: str = "", user_name: str = "", cluster_name: str = "",
+    def __init__(self, github_actions_token: str = "", github_repository: str = "", user_name: str = "",
+                 cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
                  region_name: str = "", zone_name: str = "",
                  eks_subnets: str = "", eks_location: str = "", eks_zones: str = "",
                  num_nodes: int = "", image_type: str = "", expiration_time: int = 0, discovered: bool = False,
-                 mongo_url: str = "", mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = ""):
+                 mongo_url: str = "", mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = "",
+                 aws_access_key_id: str = "", aws_secret_access_key: str = "", google_creds_json: str = "",
+                 azure_credentials: str = ""):
         self.mongo_url = mongo_url
         self.mongo_password = mongo_password
         self.mongo_user = mongo_user
         self.trolley_server_url = trolley_server_url
+        self.aws_access_key_id = aws_access_key_id
+        self.aws_secret_access_key = aws_secret_access_key
+        self.google_creds_json = google_creds_json
+        self.azure_credentials = azure_credentials
         self.cluster_name = cluster_name
         self.user_name = user_name
         self.github_actions_token = github_actions_token
@@ -81,13 +87,18 @@ class ClusterOperation:
         self.github_actions_api_url = f'https://api.github.com/repos/{self.github_repository}/dispatches'
         self.github_test_url = f'https://api.github.com/repos/{self.github_repository}'
 
-    @staticmethod
-    def get_aws_credentials() -> tuple:
-        with open(AWS_CREDENTIALS_PATH, "r") as f:
-            aws_credentials = f.read()
-            aws_access_key_id = aws_credentials.split('\n')[1].split(" = ")[1]
-            aws_secret_access_key = aws_credentials.split('\n')[2].split(" = ")[1]
-            return aws_access_key_id, aws_secret_access_key
+    def get_aws_credentials(self) -> tuple:
+        if self.aws_access_key_id and self.aws_secret_access_key:
+            return self.aws_access_key_id, self.aws_secret_access_key
+        else:
+            try:
+                with open(AWS_CREDENTIALS_PATH, "r") as f:
+                    aws_credentials = f.read()
+                    aws_access_key_id = aws_credentials.split('\n')[1].split(" = ")[1]
+                    aws_secret_access_key = aws_credentials.split('\n')[2].split(" = ")[1]
+                    return aws_access_key_id, aws_secret_access_key
+            except Exception as e:
+                logger.warning('AWS credentials were not found')
 
     def github_check(self) -> bool:
         response = requests.get(url=self.github_test_url,
@@ -108,6 +119,7 @@ class ClusterOperation:
                                "zone_name": self.zone_name,
                                "image_type": self.image_type,
                                "num_nodes": str(self.num_nodes),
+                               "google_creds_json": self.google_creds_json,
                                "expiration_time": self.expiration_time}
         }
         response = requests.post(self.github_actions_api_url,
@@ -186,7 +198,7 @@ class ClusterOperation:
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)
         logger.info(f'This is the request response: {response}')
-        if response.status_code == 200:
+        if response.status_code == 200 or response.status_code == 204:
             return True
         else:
             logger.warning(f'This is the request response: {response.reason}')
@@ -200,12 +212,12 @@ class ClusterOperation:
         json_data = {
             "event_type": "gke-delete-api-trigger",
             "client_payload": {"cluster_name": self.cluster_name,
-                               "zone_name": self.zone_name}
+                               "zone_name": gke_zone_name}
         }
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)
         logger.info(f'This is the request response: {response}')
-        if response.status_code == 200:
+        if response.status_code == 200 or response.status_code == 204:
             return True
         else:
             logger.warning(f'This is the request response: {response.reason}')
@@ -228,7 +240,7 @@ class ClusterOperation:
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)
         logger.info(f'This is the request response: {response}')
-        if response.status_code == 200:
+        if response.status_code == 200 or response.status_code == 204:
             return True
         else:
             logger.warning(f'This is the request response: {response.reason}')

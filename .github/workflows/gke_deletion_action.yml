@@ -16,14 +16,15 @@ jobs:
 
       - name: Echo the values
         run: |
-          echo "${{ github.event.client_payload.cluster_name }}"
-          echo "${{ github.event.client_payload.zone_name }}"
+          echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
+          echo "zone_name is: ${{ github.event.client_payload.zone_name }}"
+          echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"
 
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
-          credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
+          credentials_json: ${{ github.event.client_payload.google_creds_json }}
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 

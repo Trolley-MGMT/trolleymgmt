@@ -1109,6 +1109,17 @@ def retrieve_github_data_object() -> dict:
         return {}
     return github_data_object
 
+def retrieve_credentials_data_object(provider: str) -> dict:
+    """
+    """
+    mongo_query = {'provider': provider}
+    credentials_data_object = providers_data.find_one(mongo_query)
+    if not credentials_data_object:
+        logger.info(f'There is no github data ')
+        return {}
+    del credentials_data_object['_id']
+    return credentials_data_object
+
 
 def add_client_data_object(client_data_object: dict) -> bool:
     """

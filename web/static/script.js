@@ -56,6 +56,10 @@ $(document).ready(function() {
     var settingsDataArray = JSON.parse(settingsData)
     let githubRepository = settingsDataArray[0].github_repository
     let githubActionsToken = settingsDataArray[0].github_actions_token
+    let awsAccessKeyId = settingsDataArray[0].aws_access_key_id
+    let awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
+    let azureCredentials = settingsDataArray[0].azure_credentials
+    let googleCredsJson = settingsDataArray[0].google_creds_json
     store_client_names()
     store_users_data()
     store_teams_data()
@@ -367,7 +371,11 @@ $(document).ready(function() {
             "expiration_time": AKSExpirationTime,
             "aks_location": AKSLocation,
             "github_repository": githubRepository,
-            "github_actions_token": githubActionsToken
+            "github_actions_token": githubActionsToken,
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
         let trigger_eks_deployment_data = JSON.stringify({
@@ -379,7 +387,11 @@ $(document).ready(function() {
             "eks_zones": EKSZones,
             "eks_subnets": EKSSubnets,
             "github_repository": githubRepository,
-            "github_actions_token": githubActionsToken
+            "github_actions_token": githubActionsToken,
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
         let trigger_gke_deployment_data = JSON.stringify({
@@ -392,7 +404,11 @@ $(document).ready(function() {
             "gke_region": GKERegion,
             "gke_zone": GKEZone,
             "github_repository": githubRepository,
-            "github_actions_token": githubActionsToken
+            "github_actions_token": githubActionsToken,
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
 
@@ -714,7 +730,11 @@ $(document).ready(function() {
             "region_name": regionName,
             "trolley_server_url": trolleyServerURL,
             "github_repository": githubRepository,
-            "github_actions_token": githubActionsToken
+            "github_actions_token": githubActionsToken,
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
         url = http + trolley_url + "/deploy_trolley_agent_on_cluster";
@@ -1032,10 +1052,14 @@ $(document).ready(function() {
                 url: http + trolley_url + "/settings",
                 type: 'GET',
                 success: function(response) {
-                       settingsData.push({
-                            github_repository: response.github_repository,
-                            github_actions_token: response.github_actions_token
-                        });
+                    settingsData.push({
+                        aws_access_key_id: response.aws_access_key_id,
+                        aws_secret_access_key: response.aws_secret_access_key,
+                        azure_credentials: response.azure_credentials,
+                        google_creds_json: response.google_creds_json,
+                        github_repository: response.github_repository,
+                        github_actions_token: response.github_actions_token
+                    });
                     window.localStorage.setItem("settings", JSON.stringify(settingsData));
                     resolve(response)
                 },
@@ -1733,12 +1757,19 @@ $(document).ready(function() {
                 discovered = value.discovered
             }
         });
+//        Fix this
+        discovered = false
+
         let cluster_deletion_data = JSON.stringify({
             "cluster_type": clusterType,
             "cluster_name": objectName,
             "discovered": discovered,
             "github_repository": githubRepository,
-            "github_actions_token": githubActionsToken
+            "github_actions_token": githubActionsToken,
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
         swal_message = 'A ' + clusterName + ' ' + clusterType + ' cluster was requested for deletion'
