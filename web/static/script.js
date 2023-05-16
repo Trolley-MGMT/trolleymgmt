@@ -11,8 +11,7 @@ $(document).ready(function() {
         try {
             window.localStorage.setItem("userType", data['user_type']);
             userType = data['user_type'];
-        }
-        catch {
+        } catch {
             userType = "user"
         }
 
@@ -21,25 +20,29 @@ $(document).ready(function() {
         userType = window.localStorage.getItem("userType");
     }
     if (userType == "admin") {
+        $("#build-clusters-div").show()
         $("#users-div").show()
         $("#teams-div").show()
         $("#clients-div").show()
         $("#dashboards-div").show()
         $("#settings-div").show()
+        $("#trigger-clusters-discovery").show()
+        $("#trigger-instances-discovery").show()
+    } else if (userType == "superuser") {
+        $("#build-clusters-div").show()
         $("#settings-div").show()
         $("#trigger-clusters-discovery").show()
         $("#trigger-instances-discovery").show()
     }
     try {
-            window.localStorage.setItem("userName", data['user_name']);
-            userName = window.localStorage.getItem("userName");
-            window.localStorage.setItem("clusterName", data['cluster_name']);
-            clusterName = window.localStorage.getItem("clusterName");
-            window.localStorage.setItem("objectsFilterType", "users");
-        }
-    catch {
-            console.log("sdf")
-        }
+        window.localStorage.setItem("userName", data['user_name']);
+        userName = window.localStorage.getItem("userName");
+        window.localStorage.setItem("clusterName", data['cluster_name']);
+        clusterName = window.localStorage.getItem("clusterName");
+        window.localStorage.setItem("objectsFilterType", "users");
+    } catch {
+        console.log("sdf")
+    }
 
     if (debug === true) {
         trolley_url = trolley_local_url;
@@ -71,9 +74,9 @@ $(document).ready(function() {
     let provider = 'something';
     let fullHREF = window.location.href;
     let pathname = window.location.pathname.split('/');
-//    if (fullHREF.includes("?")) {
-//        query = true;
-//    }
+    //    if (fullHREF.includes("?")) {
+    //        query = true;
+    //    }
 
     let clusters_manage_table_header = `<table class="table table-striped projects">
         <thead>
@@ -288,8 +291,10 @@ $(document).ready(function() {
                 userName = $('#user-names-dropdown').val();
             }
             clientName = ""
-        }
-        else if (userType == 'user') {
+        } else if (userType == 'user') {
+            userName = window.localStorage.getItem("userName");
+            clientName = ""
+        } else if (userType == 'superuser') {
             userName = window.localStorage.getItem("userName");
             clientName = ""
         }
@@ -330,9 +335,9 @@ $(document).ready(function() {
         populate_kubernetes_agent_data();
     }
 
-//    if (queryPage) {
-//        populate_kubernetes_agent_data();
-//    }
+    //    if (queryPage) {
+    //        populate_kubernetes_agent_data();
+    //    }
 
     if (settingsPage) {
         store_settings();
@@ -563,6 +568,29 @@ $(document).ready(function() {
             showConfirmButton: false,
             timer: 5000
         })
+
+        $("#aws-access-key-id").hide();
+        $("#aws-access-key-id-div").hide();
+        $("#aws-access-key-id-label").hide();
+        $("#aws-secret-access-key-div").hide();
+        $("#aws-secret-access-key-label").hide();
+        $("#aws-secret-access-key").hide();
+        $("#azure-credentials-div").hide();
+        $("#azure-credentials-label").hide();
+        $("#google-creds-json-label").hide();
+        $("#google-creds-json-div").hide();
+        $("#github-repository-div").hide();
+        $("#github-actions-token").hide();
+        $("#github-actions-token-div").hide();
+
+        if (cloud_provider == "aws") {
+            $("#update-aws-settings-button").show();
+        } else if (cloud_provider == "az") {
+            $("#update-az-settings-button").show();
+        } else if (cloud_provider == "gcp") {
+            $("#update-gcp-settings-button").show();
+        }
+        $("#update-github-settings-button").show();
     });
 
 
@@ -591,6 +619,7 @@ $(document).ready(function() {
     $("#submit-user-button").click(function() {
         var userName = $('#user_name').val().toLowerCase();
         var userEmail = $('#user_email').val();
+        var userType = $('#user-types-dropdown').val().toLowerCase();
         var userTeamName = $('#team-names-dropdown').val().toLowerCase();
         var userAdditionalInfo = $('#user_additional_info').val();
 
@@ -599,6 +628,7 @@ $(document).ready(function() {
             "user_name": userName,
             "user_email": userEmail,
             "team_name": userTeamName,
+            "user_type": userType,
             "user_additional_info": userAdditionalInfo,
         });
 
@@ -825,6 +855,8 @@ $(document).ready(function() {
         $("#aws-access-key-id").show();
         $("#aws-access-key-id-div").show();
         $("#aws-access-key-id-label").show();
+        $("#aws-secret-access-key-div").show();
+        $("#aws-secret-access-key-label").show();
         $("#aws-secret-access-key").show();
         $("#aws-secret-access-key-label").show();
         $("#update-aws-settings-button").hide();
@@ -1534,12 +1566,10 @@ $(document).ready(function() {
             $("#aws-access-key-id-label").show();
             $("#aws-secret-access-key").show();
             $("#aws-secret-access-key-label").show();
-        }
-        else {
+        } else {
             $("#update-aws-settings-button").show();
             $("#update-aws-settings-label").show();
         }
-
 
         if (isEmpty(settingsDataArray[0].github_actions_token)) {
             $("#github-repository").show();
@@ -1548,18 +1578,10 @@ $(document).ready(function() {
             $("#github-actions-token-div").show();
             $("#update-github-settings-button").hide();
             $("#update-github-settings-label").hide();
-        }
-        else {
+        } else {
             $("#update-github-settings-button").show();
             $("#update-github-settings-label").show();
         }
-
-//
-//
-//        $("#github_actions_token").removeAttr('placeholder');
-//        $("#github_actions_token").val(settingsDataArray[0]['github_actions_token']);
-//        $("#github_repository").removeAttr('placeholder');;
-//        $("#github_repository").val(settingsDataArray[0]['github_repository']);
     }
 
     function populate_users_data() {
@@ -1604,23 +1626,23 @@ $(document).ready(function() {
 
     function populate_clients_data() {
         clientsDataArray = jQuery.parseJSON(window.localStorage.getItem("clientsData"));
-            $.each(clientsDataArray, function(index, client) {
-                client_name = client.client_name.capitalize();
-                clientElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="client-div-' + client.client_name.capitalize() + '>'
-                clientElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="card-body pt-0"><div class="col-7"><h2 class="lead"><br><b>' + client.client_name.capitalize() + '</b></h2>'
-                clientElement += '<p class="text-muted text-sm"><b>About: </b> ' + client.client_additional_info + '<br>'
-                clientElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
-                clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + client.client_office_address + '</li>'
-                clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Phone #: ' + client.connection_phone_number + '</li>'
-                clientElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Web: <a href=' + client.client_web_address + ' target="_blank" >' + client.client_web_address + '</a></li>'
-                clientElement += '</ul></div></div></div>'
-                clientElement += '<div class="card-footer"><div class="text-center ">'
-                clientElement += '<button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-user" id="' + client.client_name + '-info-client-button"></i>More Info</a>'
-                clientElement += '<div class="text-right">'
-                clientElement += '<button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-user" id="' + client.client_name + '-delete-client-button"></i>Delete Client</a></div>'
-                clientElement += '</div></div></div></div></div>'
-            });
-            $('#clients-main-div').append(clientElement);
+        $.each(clientsDataArray, function(index, client) {
+            client_name = client.client_name.capitalize();
+            clientElement += '<div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column id="client-div-' + client.client_name.capitalize() + '>'
+            clientElement += '<div class="card bg-light d-flex flex-fill"><div class="row"><div class="card-body pt-0"><div class="col-7"><h2 class="lead"><br><b>' + client.client_name.capitalize() + '</b></h2>'
+            clientElement += '<p class="text-muted text-sm"><b>About: </b> ' + client.client_additional_info + '<br>'
+            clientElement += '<ul class="ml-4 mb-0 fa-ul text-muted">'
+            clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-building"></i></span> Address: ' + client.client_office_address + '</li>'
+            clientElement += '<li class="small"><span class="fa-li"><i class="fas fa-lg fa-phone"></i></span> Phone #: ' + client.connection_phone_number + '</li>'
+            clientElement += '<li class="small"><span class="fa-li"><i class="far fa-browser"></i></i></i></span> Web: <a href=' + client.client_web_address + ' target="_blank" >' + client.client_web_address + '</a></li>'
+            clientElement += '</ul></div></div></div>'
+            clientElement += '<div class="card-footer"><div class="text-center ">'
+            clientElement += '<button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-user" id="' + client.client_name + '-info-client-button"></i>More Info</a>'
+            clientElement += '<div class="text-right">'
+            clientElement += '<button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-user" id="' + client.client_name + '-delete-client-button"></i>Delete Client</a></div>'
+            clientElement += '</div></div></div></div></div>'
+        });
+        $('#clients-main-div').append(clientElement);
     }
 
     function populate_zones(region_name) {
@@ -1823,7 +1845,7 @@ $(document).ready(function() {
                 discovered = value.discovered
             }
         });
-//        Fix this
+        //        Fix this
         discovered = false
 
         let cluster_deletion_data = JSON.stringify({
@@ -1832,10 +1854,10 @@ $(document).ready(function() {
             "discovered": discovered,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
-            "aws-access-key-id": awsAccessKeyId,
-            "aws-secret-access-key": awsSecretAccessKey,
-            "azure-credentials": azureCredentials,
-            "google-creds-json": googleCredsJson
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
         swal_message = 'A ' + clusterName + ' ' + clusterType + ' cluster was requested for deletion'
@@ -2088,16 +2110,16 @@ $(document).ready(function() {
     $('#cloud-providers-dropdown').change(function() {
         var cloud_provider = $('#cloud-providers-dropdown').val();
         if (cloud_provider == "AWS") {
-                $("#azure-credentials-label").hide();
-                $("#azure-credentials-div").hide();
-                $("#azure-credentials").hide();
-                $("#google-creds-json-div").hide();
-                $("#update-aws-settings-button").hide();
-                $("#update-aws-settings-label").hide();
-                $("#update-az-settings-button").hide();
-                $("#update-az-settings-label").hide();
-                $("#update-gcp-settings-button").hide();
-                $("#update-gcp-settings-label").hide();
+            $("#azure-credentials-label").hide();
+            $("#azure-credentials-div").hide();
+            $("#azure-credentials").hide();
+            $("#google-creds-json-div").hide();
+            $("#update-aws-settings-button").hide();
+            $("#update-aws-settings-label").hide();
+            $("#update-az-settings-button").hide();
+            $("#update-az-settings-label").hide();
+            $("#update-gcp-settings-button").hide();
+            $("#update-gcp-settings-label").hide();
             if (isEmpty(settingsDataArray[0].aws_access_key_id)) {
                 $("#aws-access-key-id-div").show();
                 $("#aws-access-key-id-label").show();
@@ -2111,8 +2133,7 @@ $(document).ready(function() {
                 $("#update-az-settings-label").hide();
                 $("#update-gcp-settings-button").hide();
                 $("#update-gcp-settings-label").hide();
-            }
-            else {
+            } else {
                 $("#update-aws-settings-button").show();
                 $("#update-aws-settings-label").show();
                 $("#update-az-settings-button").hide();
@@ -2121,15 +2142,15 @@ $(document).ready(function() {
                 $("#update-gcp-settings-label").hide();
             }
         } else if (cloud_provider == "Azure") {
-                $("#aws-access-key-id-div").hide();
-                $("#aws-access-key-id-label").hide();
-                $("#aws-access-key-id").hide();
-                $("#aws-secret-access-key-div").hide();
-                $("#aws-secret-access-key-label").hide();
-                $("#aws-secret-access-key").hide();
-                $("#google-creds-json-label").hide();
-                $("#google-creds-json-div").hide();
-                $("#google-creds-json").hide();
+            $("#aws-access-key-id-div").hide();
+            $("#aws-access-key-id-label").hide();
+            $("#aws-access-key-id").hide();
+            $("#aws-secret-access-key-div").hide();
+            $("#aws-secret-access-key-label").hide();
+            $("#aws-secret-access-key").hide();
+            $("#google-creds-json-label").hide();
+            $("#google-creds-json-div").hide();
+            $("#google-creds-json").hide();
             if (isEmpty(settingsDataArray[0].azure_credentials)) {
                 $("#azure-credentials-label").show();
                 $("#azure-credentials-div").show();
@@ -2140,8 +2161,7 @@ $(document).ready(function() {
                 $("#update-az-settings-label").hide();
                 $("#update-gcp-settings-button").hide();
                 $("#update-gcp-settings-label").hide();
-            }
-            else {
+            } else {
                 $("#update-az-settings-button").show();
                 $("#update-az-settings-label").show();
                 $("#update-aws-settings-button").hide();
@@ -2150,15 +2170,15 @@ $(document).ready(function() {
                 $("#update-gcp-settings-label").hide();
             }
         } else if (cloud_provider == "GCP") {
-                $("#aws-access-key-id-div").hide();
-                $("#aws-access-key-id-label").hide();
-                $("#aws-access-key-id").hide();
-                $("#aws-secret-access-key-div").hide();
-                $("#aws-secret-access-key-label").hide();
-                $("#aws-secret-access-key").hide();
-                $("#azure-credentials-label").hide();
-                $("#azure-credentials-div").hide();
-                $("#azure-credentials").hide();
+            $("#aws-access-key-id-div").hide();
+            $("#aws-access-key-id-label").hide();
+            $("#aws-access-key-id").hide();
+            $("#aws-secret-access-key-div").hide();
+            $("#aws-secret-access-key-label").hide();
+            $("#aws-secret-access-key").hide();
+            $("#azure-credentials-label").hide();
+            $("#azure-credentials-div").hide();
+            $("#azure-credentials").hide();
             if (isEmpty(settingsDataArray[0].google_creds_json)) {
                 $("#google-creds-json-label").show();
                 $("#google-creds-json-div").show();
@@ -2169,8 +2189,7 @@ $(document).ready(function() {
                 $("#update-az-settings-label").hide();
                 $("#update-gcp-settings-button").hide();
                 $("#update-gcp-settings-label").hide();
-            }
-            else {
+            } else {
                 $("#update-gcp-settings-button").show();
                 $("#update-gcp-settings-label").show();
                 $("#update-aws-settings-button").hide();

@@ -1244,7 +1244,7 @@ def invite_user(user_data_object: dict) -> bool:
             logger.warning(f'user {user_email} already exists in the system')
         else:
             user_data_object['registration_status'] = "invited"
-            user_data_object['user_type'] = "user"
+            user_data_object['user_type'] = user_data_object['user_type']
             user_data_object['first_name'] = "none"
             user_data_object['last_name'] = "none"
 

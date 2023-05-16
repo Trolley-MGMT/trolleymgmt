@@ -18,6 +18,7 @@
       var data = {{ data|tojson }};
 
 
+
     </script>
 </head>
 
@@ -104,7 +105,7 @@
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                     data-accordion="false">
-                    <li class="nav-item" id="build-clusters-div">
+                    <li class="nav-item" id="build-clusters-div" style="display: none;">
                         <a href="#" class="nav-link">
                             <i class="fad fa-cubes"></i>
                             <p>
@@ -344,6 +345,14 @@
                                                        placeholder="Enter email">
                                                 <div data-lastpass-icon-root="true"
                                                      style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;"></div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Select the User Type</label>
+                                                <select class="form-control" id="user-types-dropdown">
+                                                    <option>User</option>
+                                                    <option>Superuser</option>
+                                                    <option>Admin</option>
+                                                </select>
                                             </div>
                                             <div class="form-group">
                                                 <label>Select the User's team name</label>

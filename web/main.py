@@ -113,7 +113,7 @@ def deployment_yaml_object_handling(content) -> DeploymentYAMLObject:
 
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
-                      user_email: str = '', team_name: str = '', profile_image_filename: str = '',
+                      user_email: str = '', user_type:str = 'user', team_name: str = '', profile_image_filename: str = '',
                       confirmation_url: str = '', registration_status: str = '') -> bool:
     """
     This function registers a new user into the DB
@@ -125,8 +125,6 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
         team_name = 'it'
         content = {TEAM_NAME: team_name, AVAILABILITY: True, "team_additional_info": "it folks"}
         mongo_handler.mongo_utils.insert_team(content)
-    else:
-        user_type = 'user'
     user_name = f'{first_name.lower()}-{last_name.lower()}'
     hashed_password = generate_password_hash(password, method='sha256')
     profile_image_id = mongo_handler.mongo_utils.insert_file(profile_image_filename)
@@ -822,10 +820,13 @@ def register():
                                    error_message=f'Dear {first_name}, your email was not entered correctly. '
                                                  f'Please try again')
         invited_user = mongo_handler.mongo_utils.retrieve_invited_user(user_email)
+        user_type = invited_user['user_type']
+        if not user_type:
+            user_type = 'user'
         if invited_user:
             team_name = invited_user['team_name']
         else:
-            team_name = "none"
+            team_name = 'none'
         password = request.form['password']
         if 'image' not in request.files['file'].mimetype:
             image_file_name = 'thumbnail_trolley_small.png'
@@ -868,9 +869,12 @@ def register():
                 print(f'confirmation_url is: {confirmation_url}')
 
                 mail_message = MailSender(user_email, confirmation_url)
-                mail_message.send_confirmation_mail()
+                try:
+                    mail_message.send_confirmation_mail()
+                except Exception as e:
+                    logger.error(f'Failed to send an email due to {e} error to {user_email}' )
 
-                if user_registration(first_name, last_name, password, user_email, team_name, image_file_name,
+                if user_registration(first_name, last_name, password, user_email, user_type, team_name, image_file_name,
                                      confirmation_url, registration_status='pending'):
                     return render_template('confirmation.html', email=user_email)
                     # return render_template('login.html',
