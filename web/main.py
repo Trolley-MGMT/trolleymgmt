@@ -384,7 +384,6 @@ def trigger_gke_deployment():
     cluster_name = f'{user_name}-{GKE}-{random_string(8)}'
     content['cluster_name'] = cluster_name
     cluster_operation = ClusterOperation(**content)
-    cluster_operation.trigger_gke_build_github_action()
     if cluster_operation.trigger_gke_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         # deployment_yaml_object = deployment_yaml_object_handling(content)
