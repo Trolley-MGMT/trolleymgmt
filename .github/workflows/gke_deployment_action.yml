@@ -37,8 +37,6 @@ jobs:
       - name: Installing GKE Cluster
         run: |
           export KUBECONFIG=/tmp/kubeconfig
-#          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-#          which helm >> /tmp/helm_path
           gcloud container images list
           gcloud components install beta --quiet
           gcloud components install gke-gcloud-auth-plugin

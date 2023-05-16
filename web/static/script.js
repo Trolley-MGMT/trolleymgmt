@@ -372,10 +372,10 @@ $(document).ready(function() {
             "aks_location": AKSLocation,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
-            "aws_access_key_id": awsAccessKeyId,
-            "aws_secret_access_key": awsSecretAccessKey,
-            "azure_credentials": azureCredentials,
-            "google_creds_json": googleCredsJson
+            "aws-access-key-id": awsAccessKeyId,
+            "aws-secret-access-key": awsSecretAccessKey,
+            "azure-credentials": azureCredentials,
+            "google-creds-json": googleCredsJson
         });
 
         let trigger_eks_deployment_data = JSON.stringify({
@@ -388,10 +388,10 @@ $(document).ready(function() {
             "eks_subnets": EKSSubnets,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
-            "aws_access_key_id": awsAccessKeyId,
-            "aws_secret_access_key": awsSecretAccessKey,
-            "azure_credentials": azureCredentials,
-            "google_creds_json": googleCredsJson
+            "aws-access-key-id": awsAccessKeyId,
+            "aws-secret-access-key": awsSecretAccessKey,
+            "azure-credentials": azureCredentials,
+            "google-creds-json": googleCredsJson
         });
 
         let trigger_gke_deployment_data = JSON.stringify({
@@ -405,10 +405,10 @@ $(document).ready(function() {
             "gke_zone": GKEZone,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
-            "aws_access_key_id": awsAccessKeyId,
-            "aws_secret_access_key": awsSecretAccessKey,
-            "azure_credentials": azureCredentials,
-            "google_creds_json": googleCredsJson
+            "aws-access-key-id": awsAccessKeyId,
+            "aws-secret-access-key": awsSecretAccessKey,
+            "azure-credentials": azureCredentials,
+            "google-creds-json": googleCredsJson
         });
 
 
@@ -456,18 +456,18 @@ $(document).ready(function() {
     $("#add-provider-button").click(function() {
         let data = ''
         var cloud_provider = $('#cloud-providers-dropdown').val().toLowerCase();
-        AWSAccessKeyID = $('#aws_access_key_id').val();
-        AWSSecretAccessKey = $('#aws_secret_access_key').val();
-        AzureCredentials = $('#azure_credentials').val();
-        GoogleCredsJSON = $('#google_creds_json').val();
+        AWSAccessKeyID = $('#aws-access-key-id').val();
+        AWSSecretAccessKey = $('#aws-secret-access-key').val();
+        AzureCredentials = $('#azure-credentials').val();
+        GoogleCredsJSON = $('#google-creds-json').val();
 
 
         let add_provider_data = JSON.stringify({
             "provider": cloud_provider,
-            "aws_access_key_id": AWSAccessKeyID,
-            "aws_secret_access_key": AWSSecretAccessKey,
-            "azure_credentials": AzureCredentials,
-            "google_creds_json": GoogleCredsJSON
+            "aws-access-key-id": AWSAccessKeyID,
+            "aws-secret-access-key": AWSSecretAccessKey,
+            "azure-credentials": AzureCredentials,
+            "google-creds-json": GoogleCredsJSON
         });
 
 
@@ -510,21 +510,21 @@ $(document).ready(function() {
     $("#save-settings-button").click(function() {
         let data = ''
         var cloud_provider = $('#cloud-providers-dropdown').val().toLowerCase();
-        AWSAccessKeyID = $('#aws_access_key_id').val();
-        AWSSecretAccessKey = $('#aws_secret_access_key').val();
-        azureCredentials = $('#azure_credentials').val();
-        googleCredsJSON = $('#google_creds_json').val();
-        githubRepository = $('#github_repository').val();
-        githubActionsToken = $('#github_actions_token').val();
+        AWSAccessKeyID = $('#aws-access-key-id').val();
+        AWSSecretAccessKey = $('#aws-secret-access-key').val();
+        azureCredentials = $('#azure-credentials').val();
+        googleCredsJSON = $('#google-creds-json').val();
+        githubRepository = $('#github-repository').val();
+        githubActionsToken = $('#github-actions-token').val();
 
 
 
         let add_settings_data = JSON.stringify({
             "provider": cloud_provider,
-            "aws_access_key_id": AWSAccessKeyID,
-            "aws_secret_access_key": AWSSecretAccessKey,
-            "azure_credentials": azureCredentials,
-            "google_creds_json": googleCredsJSON,
+            "aws-access-key-id": AWSAccessKeyID,
+            "aws-secret-access-key": AWSSecretAccessKey,
+            "azure-credentials": azureCredentials,
+            "google-creds-json": googleCredsJSON,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
         });
@@ -731,10 +731,10 @@ $(document).ready(function() {
             "trolley_server_url": trolleyServerURL,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
-            "aws_access_key_id": awsAccessKeyId,
-            "aws_secret_access_key": awsSecretAccessKey,
-            "azure_credentials": azureCredentials,
-            "google_creds_json": googleCredsJson
+            "aws-access-key-id": awsAccessKeyId,
+            "aws-secret-access-key": awsSecretAccessKey,
+            "azure-credentials": azureCredentials,
+            "google-creds-json": googleCredsJson
         });
 
         url = http + trolley_url + "/deploy_trolley_agent_on_cluster";
@@ -819,6 +819,45 @@ $(document).ready(function() {
             $('#objects-div').append('<ul><li>' + value['service'] + '</li></ul>');
         });
     })
+
+
+    $("#update-aws-settings-button").click(function() {
+        $("#aws-access-key-id").show();
+        $("#aws-access-key-id-div").show();
+        $("#aws-access-key-id-label").show();
+        $("#aws-secret-access-key").show();
+        $("#aws-secret-access-key-label").show();
+        $("#update-aws-settings-button").hide();
+        $("#update-aws-settings-label").hide();
+    })
+
+    $("#update-gcp-settings-button").click(function() {
+        $("#google-creds-json-div").show();
+        $("#google-creds-json").show();
+        $("#google-creds-json-label").show();
+        $("#update-gcp-settings-button").hide();
+        $("#update-gcp-settings-label").hide();
+    })
+
+    $("#update-az-settings-button").click(function() {
+        $("#azure-credentials").show();
+        $("#azure-credentials-div").show();
+        $("#azure-credentials-label").show();
+        $("#azure-credentials").show();
+        $("#update-az-settings-button").hide();
+        $("#update-az-settings-label").hide();
+    })
+
+    $("#update-github-settings-button").click(function() {
+        $("#github-provider-credentials-div").show();
+        $("#github-repository").show();
+        $("#github-repository-div").show();
+        $("#github-actions-token").show();
+        $("#github-actions-token-div").show();
+        $("#update-github-settings-button").hide();
+        $("#update-github-settings-label").hide();
+    })
+
 
     function assign_object(objectType, objectName, dataArray, assignedObject) {
         let discovered = false
@@ -1490,10 +1529,37 @@ $(document).ready(function() {
     function populate_settings() {
         var settingsData = window.localStorage.getItem("settings");
         var settingsDataArray = JSON.parse(settingsData)
-        $("#github_actions_token").removeAttr('placeholder');
-        $("#github_actions_token").val(settingsDataArray[0]['github_actions_token']);
-        $("#github_repository").removeAttr('placeholder');;
-        $("#github_repository").val(settingsDataArray[0]['github_repository']);
+        if (isEmpty(settingsDataArray[0].aws_access_key_id)) {
+            $("#aws-access-key-id").show();
+            $("#aws-access-key-id-label").show();
+            $("#aws-secret-access-key").show();
+            $("#aws-secret-access-key-label").show();
+        }
+        else {
+            $("#update-aws-settings-button").show();
+            $("#update-aws-settings-label").show();
+        }
+
+
+        if (isEmpty(settingsDataArray[0].github_actions_token)) {
+            $("#github-repository").show();
+            $("#github-repository-div").show();
+            $("#github-actions-token").show();
+            $("#github-actions-token-div").show();
+            $("#update-github-settings-button").hide();
+            $("#update-github-settings-label").hide();
+        }
+        else {
+            $("#update-github-settings-button").show();
+            $("#update-github-settings-label").show();
+        }
+
+//
+//
+//        $("#github_actions_token").removeAttr('placeholder');
+//        $("#github_actions_token").val(settingsDataArray[0]['github_actions_token']);
+//        $("#github_repository").removeAttr('placeholder');;
+//        $("#github_repository").val(settingsDataArray[0]['github_repository']);
     }
 
     function populate_users_data() {
@@ -1766,10 +1832,10 @@ $(document).ready(function() {
             "discovered": discovered,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
-            "aws_access_key_id": awsAccessKeyId,
-            "aws_secret_access_key": awsSecretAccessKey,
-            "azure_credentials": azureCredentials,
-            "google_creds_json": googleCredsJson
+            "aws-access-key-id": awsAccessKeyId,
+            "aws-secret-access-key": awsSecretAccessKey,
+            "azure-credentials": azureCredentials,
+            "google-creds-json": googleCredsJson
         });
 
         swal_message = 'A ' + clusterName + ' ' + clusterType + ' cluster was requested for deletion'
@@ -2022,20 +2088,96 @@ $(document).ready(function() {
     $('#cloud-providers-dropdown').change(function() {
         var cloud_provider = $('#cloud-providers-dropdown').val();
         if (cloud_provider == "AWS") {
-            $("#AWSAccessKeyIDDiv").show();
-            $("#AWSSecretAccessKeyDiv").show();
-            $("#AzureCredentialsDiv").hide();
-            $("#GoogleCredsJSONDiv").hide();
-        } else if (cloud_provider == "GCP") {
-            $("#AWSAccessKeyIDDiv").hide();
-            $("#AWSSecretAccessKeyDiv").hide();
-            $("#AzureCredentialsDiv").hide();
-            $("#GoogleCredsJSONDiv").show();
+                $("#azure-credentials-label").hide();
+                $("#azure-credentials-div").hide();
+                $("#azure-credentials").hide();
+                $("#google-creds-json-div").hide();
+                $("#update-aws-settings-button").hide();
+                $("#update-aws-settings-label").hide();
+                $("#update-az-settings-button").hide();
+                $("#update-az-settings-label").hide();
+                $("#update-gcp-settings-button").hide();
+                $("#update-gcp-settings-label").hide();
+            if (isEmpty(settingsDataArray[0].aws_access_key_id)) {
+                $("#aws-access-key-id-div").show();
+                $("#aws-access-key-id-label").show();
+                $("#aws-access-key-id").show();
+                $("#aws-secret-access-key-div").show();
+                $("#aws-secret-access-key-label").show();
+                $("#aws-secret-access-key").show();
+                $("#update-aws-settings-button").hide();
+                $("#update-aws-settings-label").hide();
+                $("#update-az-settings-button").hide();
+                $("#update-az-settings-label").hide();
+                $("#update-gcp-settings-button").hide();
+                $("#update-gcp-settings-label").hide();
+            }
+            else {
+                $("#update-aws-settings-button").show();
+                $("#update-aws-settings-label").show();
+                $("#update-az-settings-button").hide();
+                $("#update-az-settings-label").hide();
+                $("#update-gcp-settings-button").hide();
+                $("#update-gcp-settings-label").hide();
+            }
         } else if (cloud_provider == "Azure") {
-            $("#AWSAccessKeyIDDiv").hide();
-            $("#AWSSecretAccessKeyDiv").hide();
-            $("#AzureCredentialsDiv").show();
-            $("#GoogleCredsJSONDiv").hide();
+                $("#aws-access-key-id-div").hide();
+                $("#aws-access-key-id-label").hide();
+                $("#aws-access-key-id").hide();
+                $("#aws-secret-access-key-div").hide();
+                $("#aws-secret-access-key-label").hide();
+                $("#aws-secret-access-key").hide();
+                $("#google-creds-json-label").hide();
+                $("#google-creds-json-div").hide();
+                $("#google-creds-json").hide();
+            if (isEmpty(settingsDataArray[0].azure_credentials)) {
+                $("#azure-credentials-label").show();
+                $("#azure-credentials-div").show();
+                $("#azure-credentials").show();
+                $("#update-aws-settings-button").hide();
+                $("#update-aws-settings-label").hide();
+                $("#update-az-settings-button").hide();
+                $("#update-az-settings-label").hide();
+                $("#update-gcp-settings-button").hide();
+                $("#update-gcp-settings-label").hide();
+            }
+            else {
+                $("#update-az-settings-button").show();
+                $("#update-az-settings-label").show();
+                $("#update-aws-settings-button").hide();
+                $("#update-aws-settings-label").hide();
+                $("#update-gcp-settings-button").hide();
+                $("#update-gcp-settings-label").hide();
+            }
+        } else if (cloud_provider == "GCP") {
+                $("#aws-access-key-id-div").hide();
+                $("#aws-access-key-id-label").hide();
+                $("#aws-access-key-id").hide();
+                $("#aws-secret-access-key-div").hide();
+                $("#aws-secret-access-key-label").hide();
+                $("#aws-secret-access-key").hide();
+                $("#azure-credentials-label").hide();
+                $("#azure-credentials-div").hide();
+                $("#azure-credentials").hide();
+            if (isEmpty(settingsDataArray[0].google_creds_json)) {
+                $("#google-creds-json-label").show();
+                $("#google-creds-json-div").show();
+                $("#google-creds-json").show();
+                $("#update-aws-settings-button").hide();
+                $("#update-aws-settings-label").hide();
+                $("#update-az-settings-button").hide();
+                $("#update-az-settings-label").hide();
+                $("#update-gcp-settings-button").hide();
+                $("#update-gcp-settings-label").hide();
+            }
+            else {
+                $("#update-gcp-settings-button").show();
+                $("#update-gcp-settings-label").show();
+                $("#update-aws-settings-button").hide();
+                $("#update-aws-settings-label").hide();
+                $("#update-az-settings-button").hide();
+                $("#update-az-settings-label").hide();
+            }
         }
     })
 

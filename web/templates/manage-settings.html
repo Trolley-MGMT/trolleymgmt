@@ -22,6 +22,15 @@
 
 
 
+
+
+
+
+
+
+
+
+
     </script>
 </head>
 
@@ -322,34 +331,68 @@
                                     <h3 class="card-title">Cloud Providers Credentials</h3>
                                 </div>
 
-                                <select class="form-control" id="cloud-providers-dropdown">
+                                <select class="form-control form-control-border" id="cloud-providers-dropdown">
                                     <option>AWS</option>
                                     <option>GCP</option>
                                     <option>Azure</option>
                                 </select>
-                                <div id="AWSAccessKeyIDDiv">
-                                    <label for="aws_access_key_id" class="form-label">AWS Access Key</label>
-                                    <input type="text" class="form-control" id="aws_access_key_id"
+                                <div id="aws-access-key-id-div">
+                                    <label for="aws-access-key-id" class="form-label" id="aws-access-key-id-label"
+                                           style="display:none">AWS Access Key</label>
+                                    <input type="text" class="form-control form-control-border" id="aws-access-key-id"
+                                           style="display:none"
                                            placeholder="AKIAIOSFODNN7EXAMPLE" required>
                                 </div>
-                                <div id="AWSSecretAccessKeyDiv">
-                                    <label for="aws_secret_access_key" class="form-label">AWS Secret Access Key</label>
-                                    <input type="text" class="form-control" id="aws_secret_access_key"
+                                <div id="aws-secret-access-key-div">
+                                    <label for="aws-secret-access-key" class="form-label"
+                                           id="aws-secret-access-key-label" style="display:none">AWS Secret Access
+                                        Key</label>
+                                    <input type="text" class="form-control form-control-border"
+                                           id="aws-secret-access-key"
+                                           style="display:none"
                                            placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" required>
                                 </div>
-                                <div id="AzureCredentialsDiv" style="display:none">
-                                    <label for="azure_credentials" class="form-label">Azure Credentials</label>
-                                    <input type="text" class="form-control" id="azure_credentials"
+                                <div id="azure-credentials-div" style="display:none">
+                                    <label for="azure-credentials" class="form-label" id="azure-credentials-label"
+                                           style="display:none">Azure Credentials</label>
+                                    <input type="text" class="form-control form-control-border" id="azure-credentials"
+                                           style="display:none"
                                            placeholder="d8er22sc-0000-5esd-be90-00r3fcywfs9s" required>
                                 </div>
-                                <div id="GoogleCredsJSONDiv" style="display:none">
-                                    <label for="google_creds_json" class="form-label">Google Cloud Credentials</label>
-                                    <textarea class="form-control" rows="3" id="google_creds_json"
+                                <div id="google-creds-json-div"><label for="google-creds-json" class="form-label"
+                                                                       id="google-creds-json-label"
+                                                                       style="display:none">Google Cloud
+                                    Credentials</label>
+                                    <textarea class="form-control form-control-border" rows="3" id="google-creds-json"
+                                              style="display:none"
                                               placeholder="Add the JSON here"></textarea>
                                 </div>
+
                             </div>
+
                         </form>
+
                     </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-info" id="update-aws-settings-button"
+                                style="display:none">Edit Credentials
+                        </button>
+                        <p id="update-aws-settings-label" style="display:none"> Press to edit AWS Credentials </p>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-info" id="update-az-settings-button"
+                                style="display:none">Edit Credentials
+                        </button>
+                        <p id="update-az-settings-label" style="display:none"> Press to edit Azure Credentials </p>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-info" id="update-gcp-settings-button"
+                                style="display:none">Edit Credentials
+                        </button>
+                        <p id="update-gcp-settings-label" style="display:none"> Press to edit GCP Credentials </p>
+                    </div>
+
                     <div class="card card-primary">
                         <form class="row">
                             <div class="card-body" id="github-provider-credentials-div">
@@ -357,43 +400,54 @@
                                     <h3 class="card-title">GitHub Credentials</h3>
                                 </div>
                                 <div id="github-repository-div">
-                                    <label for="github_repository" class="form-label">GitHub Repository</label>
-                                    <input type="text" class="form-control" id="github_repository"
+                                    <label for="github-repository" class="form-label" style="display:none">GitHub Repository</label>
+                                    <input type="text" class="form-control form-control-border"
+                                           id="github-repository"
+                                           style="display:none"
                                            placeholder="Trolley-MGMT/Trolley-Management" required>
                                 </div>
-                                <div id="github-tokens-div">
-                                    <label for="github_actions_token" class="form-label">GitHub
+                                <div id="github-actions-token-div">
+                                    <label for="github-actions-token" class="form-label" style="display:none">GitHub
                                         Token</label>
-                                    <input type="text" class="form-control" id="github_actions_token"
+                                    <input type="text" class="form-control form-control-border"
+                                           id="github-actions-token"
+                                           style="display:none"
                                            placeholder="ghp_4kkxRsaRJtfYmlvEl5PeFyuplNQorNxBfmnx" required>
                                 </div>
+                            </div>
+                            <div class="col-12">
 
                             </div>
                         </form>
                     </div>
+                    <button type="submit" class="btn btn-info" id="update-github-settings-button"
+                            style="display:none">Edit Credentials
+                    </button>
+                    <p id="update-github-settings-label" style="display:none"> Press to edit GitHub Credentials </p>
                     <div class="col-12">
                         <button type="submit" class="btn btn-info" id="save-settings-button">Save
                         </button>
                     </div>
                 </div>
-                <!--                    -->
-            </div><!-- /.container-fluid -->
-        </div>
-        <!-- /.content-header -->
+            </div>
+            <!--                    -->
+        </div><!-- /.container-fluid -->
     </div>
-    <aside class="control-sidebar control-sidebar-dark">
-        <!-- Control sidebar content goes here -->
-    </aside>
-    <!-- /.control-sidebar -->
+    <!-- /.content-header -->
+</div>
+<aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+</aside>
+<!-- /.control-sidebar -->
 
-    <!-- Main Footer -->
-    <footer class="main-footer">
-        <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
-        All rights reserved.
-        <div class="float-right d-none d-sm-inline-block">
-            <b>Version</b> 0.2
-        </div>
-    </footer>
+<!-- Main Footer -->
+<footer class="main-footer">
+    <strong>Copyright &copy; 2022-2022 <a href="https://trolley.io">Trolley</a></strong>
+    All rights reserved.
+    <div class="float-right d-none d-sm-inline-block">
+        <b>Version</b> 0.2
+    </div>
+</footer>
 </div>
 <!-- ./wrapper -->
 

@@ -243,10 +243,13 @@ def login_required(f):
 
 def validate_provider_data(content: dict) -> bool:
     if content[PROVIDER] == AWS:
-        if not content['aws_access_key_id'] or not content['aws_secret_access_key']:
+        try:
+            if not content['aws_access_key_id'] or not content['aws_secret_access_key']:
+                return False
+            else:
+                return True
+        except:
             return False
-        else:
-            return True
     elif content[PROVIDER] == GCP:
         if not content['google_creds_json']:
             return False
@@ -525,6 +528,8 @@ def settings():
                             github_repository=content['github_repository']):
                 encoded_github_details = encode_github_details(content)
                 mongo_handler.mongo_utils.insert_github_data_object(asdict(encoded_github_details))
+
+        # TODO find a better way to implement
         if validate_provider_data(content):
             encoded_provider_details = encode_provider_details(content)
             if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
@@ -532,7 +537,7 @@ def settings():
             else:
                 return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
         else:
-            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     elif request.method == GET:
         github_data = mongo_handler.mongo_utils.retrieve_github_data_object()
         aws_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(AWS)
@@ -540,8 +545,10 @@ def settings():
         gcp_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(GCP)
         try:
             github_actions_token_decrypted = crypter.decrypt(github_data[0]['github_actions_token']).decode("utf-8")
+            github_repository = github_data[0]['github_repository']
         except Exception as e:
             github_actions_token_decrypted = ""
+            github_repository = ""
             logger.warning(f'problem decrypting github_actions_token_decrypted with error {e}')
         try:
             aws_access_key_id = crypter.decrypt(aws_credentials_data['aws_access_key_id']).decode("utf-8")
@@ -569,7 +576,7 @@ def settings():
                         'azure_credentials': azure_credentials,
                         'google_creds_json': google_creds_json,
                         'github_actions_token': github_actions_token_decrypted,
-                        'github_repository': github_data[0]['github_repository']})
+                        'github_repository': github_repository})
 
 
 @app.route('/clients', methods=[GET, POST, PUT, DELETE])
