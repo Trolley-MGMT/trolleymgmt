@@ -24,13 +24,12 @@ jobs:
           echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"
           echo "user_name is: ${{ github.event.client_payload.user_name }}"
           echo "deployment_yaml is: ${{ github.event.client_payload.deployment_yaml }}"
-          echo "google_creds_json is: ${{ github.event.google_creds_json.deployment_yaml }}"
+          echo "google_creds_json is: ${{ github.event.google_creds_json }}"
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: ${{ github.event.client_payload.google_creds_json }}
-#          credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
@@ -38,8 +37,8 @@ jobs:
       - name: Installing GKE Cluster
         run: |
           export KUBECONFIG=/tmp/kubeconfig
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          which helm >> /tmp/helm_path
+#          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+#          which helm >> /tmp/helm_path
           gcloud container images list
           gcloud components install beta --quiet
           gcloud components install gke-gcloud-auth-plugin

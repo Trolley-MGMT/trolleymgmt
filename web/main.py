@@ -39,7 +39,7 @@ logger.info(f'project_folder is: {project_folder}')
 
 if 'Darwin' in platform.system():
     import mongo_handler.mongo_utils
-    from cluster_operations_ import ClusterOperation
+    from cluster_operations import ClusterOperation
     from mongo_handler.mongo_objects import UserObject, GithubObject, DeploymentYAMLObject
     from variables.variables import POST, GET, EKS, \
         APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
@@ -47,21 +47,21 @@ if 'Darwin' in platform.system():
         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
         NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY
 
-    from cluster_operations import trigger_aks_build_github_action, delete_gke_cluster, github_check
+    from cluster_operations__ import trigger_aks_build_github_action, delete_gke_cluster, github_check
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
     from mongo_handler.mongo_objects import ProviderObject
     from scripts import gcp_discovery_script, aws_discovery_script
 else:
     import mongo_handler.mongo_utils
-    from cluster_operations_ import ClusterOperation
+    from cluster_operations import ClusterOperation
     from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject, ProviderObject
     from variables.variables import POST, GET, EKS, \
         APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
         ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
         NAMES, REGION_NAME, CLIENT_NAME
-    from cluster_operations import trigger_aks_build_github_action, delete_gke_cluster
+    from cluster_operations__ import trigger_aks_build_github_action, delete_gke_cluster
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
     from scripts import gcp_discovery_script, aws_discovery_script
@@ -432,8 +432,12 @@ def trigger_aks_deployment():
     user_name = content['user_name']
     cluster_name = f'{user_name}-{AKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
-    if trigger_aks_build_github_action(**content):
+    cluster_operation = ClusterOperation(**content)
+    if cluster_operation.trigger_aks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+
+    # if trigger_aks_build_github_action(**content):
+    #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     # if trigger_aks_build_github_action(**content):
     #     deployment_yaml_object = deployment_yaml_object_handling(content)
     # else:

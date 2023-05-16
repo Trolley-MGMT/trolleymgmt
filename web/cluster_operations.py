@@ -6,12 +6,8 @@ import platform
 import requests
 from dotenv import load_dotenv
 
-if 'Darwin' in platform.system():
-    from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
-    from web.mongo_handler.mongo_utils import retrieve_cluster_details
-else:
-    from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
-    from web.mongo_handler.mongo_utils import retrieve_cluster_details
+from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+from web.mongo_handler.mongo_utils import retrieve_cluster_details
 
 log_file_name = 'server.log'
 log_file_path = f'{os.getcwd()}/{log_file_name}'
@@ -47,216 +43,209 @@ if 'Darwin' in platform.system() or run_env == 'github':
 else:
     AWS_CREDENTIALS_PATH = '/home/app/.aws/credentials'
 
-GITHUB_ACTION_TOKEN = os.getenv('GITHUB_ACTION_TOKEN')
-GITHUB_REPOSITORY = os.getenv('GITHUB_REPOSITORY')
-GITHUB_ACTIONS_API_URL = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/dispatches'
 
+class ClusterOperation:
+    def __init__(self, github_actions_token: str = "", github_repository: str = "", user_name: str = "",
+                 cluster_name: str = "",
+                 cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
+                 region_name: str = "", zone_name: str = "", gke_region: str = "", gke_zone: str = "",
+                 eks_subnets: str = "", eks_location: str = "", eks_zones: str = "",
+                 num_nodes: int = "", image_type: str = "", expiration_time: int = 0, discovered: bool = False,
+                 mongo_url: str = "", mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = "",
+                 aws_access_key_id: str = "", aws_secret_access_key: str = "", google_creds_json: str = "",
+                 azure_credentials: str = ""):
+        self.mongo_url = mongo_url
+        self.mongo_password = mongo_password
+        self.mongo_user = mongo_user
+        self.trolley_server_url = trolley_server_url
+        self.aws_access_key_id = aws_access_key_id
+        self.aws_secret_access_key = aws_secret_access_key
+        self.google_creds_json = google_creds_json
+        self.azure_credentials = azure_credentials
+        self.cluster_name = cluster_name
+        self.user_name = user_name
+        self.github_actions_token = github_actions_token
+        self.github_repository = github_repository
+        self.cluster_type = cluster_type
+        self.cluster_version = cluster_version
+        self.aks_location = aks_location
+        self.region_name = region_name
+        self.zone_name = zone_name
+        self.eks_subnets = eks_subnets
+        self.gke_region = gke_region
+        self.gke_zone = gke_zone
+        self.eks_zones = eks_zones
+        self.eks_location = eks_location
+        self.num_nodes = num_nodes
+        self.image_type = image_type
+        self.expiration_time = expiration_time
+        self.discovered = discovered
 
-GITHUB_ACTION_REQUEST_HEADER = {
-    'Content-type': 'application/json',
-    'Accept': 'application/vnd.github+json',
-    'Authorization': f'token {GITHUB_ACTION_TOKEN}'
-}
+        self.github_action_request_header = {
+            'Content-type': 'application/json',
+            'Accept': 'application/vnd.github+json',
+            'Authorization': f'token {self.github_actions_token}'
+        }
+        self.github_actions_api_url = f'https://api.github.com/repos/{self.github_repository}/dispatches'
+        self.github_test_url = f'https://api.github.com/repos/{self.github_repository}'
 
-logger.info(f'GitHub Repository is: {GITHUB_REPOSITORY}')
-logger.info(f'GITHUB_ACTIONS_API_URL is: {GITHUB_ACTIONS_API_URL}')
+    def get_aws_credentials(self) -> tuple:
+        if self.aws_access_key_id and self.aws_secret_access_key:
+            return self.aws_access_key_id, self.aws_secret_access_key
+        else:
+            try:
+                with open(AWS_CREDENTIALS_PATH, "r") as f:
+                    aws_credentials = f.read()
+                    aws_access_key_id = aws_credentials.split('\n')[1].split(" = ")[1]
+                    aws_secret_access_key = aws_credentials.split('\n')[2].split(" = ")[1]
+                    return aws_access_key_id, aws_secret_access_key
+            except Exception as e:
+                logger.warning('AWS credentials were not found')
 
+    def github_check(self) -> bool:
+        response = requests.get(url=self.github_test_url,
+                                headers=self.github_action_request_header)
+        if response.status_code == 200:
+            return True
+        else:
+            logger.info(f'This is the request response: {response.reason}')
+            return False
 
-def get_aws_credentials() -> tuple:
-    with open(AWS_CREDENTIALS_PATH, "r") as f:
-        aws_credentials = f.read()
-        aws_access_key_id = aws_credentials.split('\n')[1].split(" = ")[1]
-        aws_secret_access_key = aws_credentials.split('\n')[2].split(" = ")[1]
-        return aws_access_key_id, aws_secret_access_key
+    def trigger_gke_build_github_action(self) -> bool:
+        json_data = {
+            "event_type": "gke-build-api-trigger",
+            "client_payload": {"cluster_name": self.cluster_name,
+                               "user_name": self.user_name,
+                               "cluster_version": self.cluster_version,
+                               "region_name": self.gke_region,
+                               "zone_name": self.gke_zone,
+                               "image_type": self.image_type,
+                               "num_nodes": str(self.num_nodes),
+                               "google_creds_json": self.google_creds_json,
+                               "expiration_time": self.expiration_time}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200 or response.status_code == 204:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False
 
+    def trigger_aks_build_github_action(self) -> bool:
+        json_data = {
+            "event_type": "aks-build-api-trigger",
+            "client_payload": {"cluster_name": self.cluster_name,
+                               "user_name": self.user_name,
+                               "cluster_version": self.cluster_version,
+                               "aks_location": self.aks_location,
+                               "num_nodes": str(self.num_nodes),
+                               "azure_credentials": self.azure_credentials,
+                               "expiration_time": self.expiration_time}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200 or response.status_code == 204:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False
 
-def github_check(github_action_token: str, github_repository: str) -> bool:
-    github_test_url = f'https://api.github.com/repos/{github_repository}'
-    headers = {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': f'Bearer {github_action_token}',
-        'X-GitHub-Api-Version': '2022-11-28',
-    }
-    response = requests.get(url=github_test_url,
-                             headers=headers)
-    if response.status_code == 200:
-        return True
-    else:
-        logger.info(f'This is the request response: {response.reason}')
-        return False
+    def trigger_eks_build_github_action(self) -> bool:
+        aws_access_key_id, aws_secret_access_key = self.get_aws_credentials()
+        json_data = {
+            "event_type": "eks-build-api-trigger",
+            "client_payload": {"cluster_name": self.cluster_name,
+                               "user_name": self.user_name,
+                               "cluster_version": self.cluster_version,
+                               "region_name": self.eks_location,
+                               "num_nodes": str(self.num_nodes),
+                               "zone_names": ','.join(self.eks_zones),
+                               "subnets": ','.join(self.eks_subnets),
+                               "aws_access_key_id": aws_access_key_id,
+                               "aws_secret_access_key": aws_secret_access_key,
+                               "expiration_time": self.expiration_time}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200 or response.status_code == 204:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False
 
+    def trigger_trolley_agent_deployment_github_action(self):
+        json_data = {
+            "event_type": "trolley-agent-api-deployment-trigger",
+            "client_payload": {"cluster_name": self.cluster_name,
+                               "cluster_type": self.cluster_type,
+                               "zone_name": self.zone_name,
+                               "trolley_server_url": self.trolley_server_url,
+                               "mongo_user": self.mongo_user,
+                               "mongo_password": self.mongo_password,
+                               "mongo_url": self.mongo_url}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
 
+        return response
 
-def trigger_aks_build_github_action(user_name: str = '',
-                                    cluster_name: str = '',
-                                    cluster_type: str = '',
-                                    deployment_yaml: str = '',
-                                    version: str = '',
-                                    aks_location: str = None,
-                                    num_nodes: int = '',
-                                    helm_installs: list = '',
-                                    expiration_time: int = '') -> bool:
-    if len(helm_installs) < 1:
-        helm_installs = ["."]
-    json_data = {
-        "event_type": "aks-build-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "user_name": user_name,
-                           "cluster_version": version,
-                           "aks_location": aks_location,
-                           "num_nodes": str(num_nodes),
-                           "expiration_time": expiration_time}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    logger.info(f'This is the request response: {response}')
-    return response
+    def delete_aks_cluster(self):
+        json_data = {
+            "event_type": "aks-delete-api-trigger",
+            "client_payload": {"cluster_name": self.cluster_name}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200 or response.status_code == 204:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False
 
+    def delete_gke_cluster(self):
+        gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=self.cluster_name,
+                                                       discovered=self.discovered)
+        gke_zone_name = gke_cluster_details[ZONE_NAME.lower()]
+        print(f'Attempting to delete {self.cluster_name} in {gke_zone_name}')
+        json_data = {
+            "event_type": "gke-delete-api-trigger",
+            "client_payload": {"cluster_name": self.cluster_name,
+                               "zone_name": gke_zone_name,
+                               "google_creds_json": self.google_creds_json}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200 or response.status_code == 204:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False
 
-def trigger_gke_build_github_action(user_name: str = '',
-                                    cluster_name: str = '',
-                                    cluster_type: str = '',
-                                    deployment_yaml: str = '',
-                                    version: str = '',
-                                    gke_region: str = '',
-                                    gke_zone: str = '',
-                                    image_type: str = '',
-                                    num_nodes: int = '',
-                                    helm_installs: list = '',
-                                    expiration_time: int = '') -> bool:
-    if len(helm_installs) < 1:
-        helm_installs = ["."]
-    json_data = {
-        "event_type": "gke-build-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "user_name": user_name,
-                           "cluster_version": version,
-                           "region_name": gke_region,
-                           "zone_name": gke_zone,
-                           "image_type": image_type,
-                           "num_nodes": str(num_nodes),
-                           "expiration_time": expiration_time}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    logger.info(f'This is the request response: {response}')
-    return response
-
-
-def trigger_eks_build_github_action(user_name: str,
-                                    cluster_name: str = '',
-                                    cluster_type: str = '',
-                                    deployment_yaml: str = '',
-                                    version: str = '',
-                                    eks_location: str = '',
-                                    eks_zones: list = None,
-                                    eks_subnets: list = None,
-                                    image_type: str = '',
-                                    num_nodes: int = '',
-                                    helm_installs: list = '',
-                                    expiration_time: int = '') -> dict:
-    aws_access_key_id, aws_secret_access_key = get_aws_credentials()
-    if len(helm_installs) < 1:
-        helm_installs = ["."]
-
-    json_data = {
-        "event_type": "eks-build-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "user_name": user_name,
-                           "cluster_version": version,
-                           "region_name": eks_location,
-                           "num_nodes": str(num_nodes),
-                           "zone_names": ','.join(eks_zones),
-                           "subnets": ','.join(eks_subnets),
-                           "aws_access_key_id": aws_access_key_id,
-                           "aws_secret_access_key": aws_secret_access_key,
-                           "expiration_time": expiration_time}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    logger.info(f'This is the request response: {response}')
-    return response
-
-
-def trigger_trolley_agent_deployment_github_action(cluster_name: str = '',
-                                                   cluster_type: str = '',
-                                                   region_name: str = '',
-                                                   trolley_server_url: str = '',
-                                                   mongo_user: str = '',
-                                                   mongo_password: str = '',
-                                                   mongo_url: str = ''):
-    json_data = {
-        "event_type": "trolley-agent-api-deployment-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "cluster_type": cluster_type,
-                           "zone_name": region_name,
-                           "trolley_server_url": trolley_server_url,
-                           "mongo_user": mongo_user,
-                           "mongo_password": mongo_password,
-                           "mongo_url": mongo_url}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-
-    return response
-
-
-def delete_aks_cluster(cluster_name: str = ''):
-    """
-
-    @param cluster_name: from built clusters list
-    @return:
-    """
-    json_data = {
-        "event_type": "aks-delete-api-trigger",
-        "client_payload": {"cluster_name": cluster_name}
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    logger.info(response)
-
-
-def delete_gke_cluster(cluster_name: str = '', discovered: bool = False):
-    """
-    @param cluster_name: from built clusters list
-    @param discovered: cluster was discovered by a scan
-    @return:
-    """
-    gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=cluster_name, discovered=discovered)
-    gke_zone_name = gke_cluster_details[ZONE_NAME.lower()]
-    print(f'Attempting to delete {cluster_name} in {gke_zone_name}')
-    json_data = {
-        "event_type": "gke-delete-api-trigger",
-        "client_payload": {"cluster_name": cluster_name,
-                           "zone_name": gke_zone_name}
-    }
-    print(f'The JSON Data for the request is: {json_data}')
-    print(f'The GITHUB_ACTION_REQUEST_HEADER for the request is: {GITHUB_ACTION_REQUEST_HEADER}')
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    print(response)
-    logger.info(response)
-
-
-def delete_eks_cluster(cluster_name: str = '', discovered: bool = False):
-    """
-
-    @param cluster_name: from built clusters list
-    @param discovered: cluster was discovered by a scan
-    @return:
-    """
-    eks_cluster_details = retrieve_cluster_details(cluster_type=EKS, cluster_name=cluster_name, discovered=discovered)
-    eks_cluster_region_name = eks_cluster_details[REGION_NAME.lower()]
-    aws_access_key_id, aws_secret_access_key = get_aws_credentials()
-    json_data = {
-        "event_type": "eks-delete-api-trigger",
-        "client_payload":
-            {"cluster_name": cluster_name,
-             "region_name": eks_cluster_region_name,
-             "aws_access_key_id": aws_access_key_id,
-             "aws_secret_access_key": aws_secret_access_key,
-             }
-    }
-    response = requests.post(GITHUB_ACTIONS_API_URL,
-                             headers=GITHUB_ACTION_REQUEST_HEADER, json=json_data)
-    logger.info(response)
+    def delete_eks_cluster(self):
+        eks_cluster_details = retrieve_cluster_details(cluster_type=EKS, cluster_name=self.cluster_name,
+                                                       discovered=self.discovered)
+        eks_cluster_region_name = eks_cluster_details[REGION_NAME.lower()]
+        aws_access_key_id, aws_secret_access_key = self.get_aws_credentials()
+        json_data = {
+            "event_type": "eks-delete-api-trigger",
+            "client_payload":
+                {"cluster_name": self.cluster_name,
+                 "region_name": eks_cluster_region_name,
+                 "aws_access_key_id": aws_access_key_id,
+                 "aws_secret_access_key": aws_secret_access_key,
+                 }
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200 or response.status_code == 204:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False

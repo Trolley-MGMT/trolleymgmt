@@ -20,13 +20,14 @@ jobs:
           echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
           echo "cluster_version is: ${{ github.event.client_payload.cluster_version }}"
           echo "aks_location is: ${{ github.event.client_payload.aks_location }}"
+          echo "azure_credentials is: ${{ github.event.client_payload.azure_credentials }}"
           echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"
           echo "user_name is: ${{ github.event.client_payload.user_name }}"
 
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ github.event.client_payload.azure_credentials }}"
 
       - name: AKS Deployment Script
         uses: azure/CLI@v1

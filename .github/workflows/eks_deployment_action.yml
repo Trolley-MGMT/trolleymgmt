@@ -37,8 +37,6 @@ jobs:
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           export KUBECONFIG=/home/runner/.kube/config
           aws sts get-caller-identity
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          which helm >> /tmp/helm_path
           brew install eksctl
           eksctl create cluster --region=${{ github.event.client_payload.region_name }} --zones=${{ github.event.client_payload.zone_names }} --name ${{ github.event.client_payload.cluster_name }} --version ${{ github.event.client_payload.cluster_version }} --nodes ${{ github.event.client_payload.num_nodes }}
           aws eks --region ${{ github.event.client_payload.region_name }} update-kubeconfig --name ${{ github.event.client_payload.cluster_name }}
@@ -53,8 +51,8 @@ jobs:
           KUBECONFIG: '/home/runner/.kube/config'
 
         run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          which helm >> /tmp/helm_path
+#          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+#          which helm >> /tmp/helm_path
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
           python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_names }} --region_name ${{ github.event.client_payload.region_name }} --expiration_time ${{ github.event.client_payload.expiration_time }}
