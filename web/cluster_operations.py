@@ -45,7 +45,7 @@ else:
 
 
 class ClusterOperation:
-    def __init__(self, github_actions_token: str = "", github_repository: str = "", user_name: str = "",
+    def __init__(self, provider: str = "", user_email: str = "", github_actions_token: str = "", github_repository: str = "", user_name: str = "",
                  cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
                  region_name: str = "", zone_name: str = "", gke_region: str = "", gke_zone: str = "",

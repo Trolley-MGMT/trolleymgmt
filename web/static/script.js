@@ -372,10 +372,10 @@ $(document).ready(function() {
             "aks_location": AKSLocation,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
-            "aws-access-key-id": awsAccessKeyId,
-            "aws-secret-access-key": awsSecretAccessKey,
-            "azure-credentials": azureCredentials,
-            "google-creds-json": googleCredsJson
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
         let trigger_eks_deployment_data = JSON.stringify({
@@ -387,11 +387,11 @@ $(document).ready(function() {
             "eks_zones": EKSZones,
             "eks_subnets": EKSSubnets,
             "github_repository": githubRepository,
-            "github_actions_token": githubActionsToken,
-            "aws-access-key-id": awsAccessKeyId,
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
             "aws-secret-access-key": awsSecretAccessKey,
-            "azure-credentials": azureCredentials,
-            "google-creds-json": googleCredsJson
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
         let trigger_gke_deployment_data = JSON.stringify({
@@ -405,10 +405,10 @@ $(document).ready(function() {
             "gke_zone": GKEZone,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
-            "aws-access-key-id": awsAccessKeyId,
-            "aws-secret-access-key": awsSecretAccessKey,
-            "azure-credentials": azureCredentials,
-            "google-creds-json": googleCredsJson
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
 
@@ -521,10 +521,10 @@ $(document).ready(function() {
 
         let add_settings_data = JSON.stringify({
             "provider": cloud_provider,
-            "aws-access-key-id": AWSAccessKeyID,
-            "aws-secret-access-key": AWSSecretAccessKey,
-            "azure-credentials": azureCredentials,
-            "google-creds-json": googleCredsJSON,
+            "aws_access_key_id": AWSAccessKeyID,
+            "aws_secret_access_key": AWSSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJSON,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
         });

@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import platform
-import time
 import datetime
 from functools import wraps
 from threading import Thread
@@ -47,7 +46,6 @@ if 'Darwin' in platform.system():
         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
         NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY
 
-    from cluster_operations__ import trigger_aks_build_github_action, delete_gke_cluster, github_check
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
     from mongo_handler.mongo_objects import ProviderObject
@@ -61,7 +59,6 @@ else:
         ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
         NAMES, REGION_NAME, CLIENT_NAME
-    from cluster_operations__ import trigger_aks_build_github_action, delete_gke_cluster
     from mail_handler import MailSender
     from utils import random_string, apply_yaml
     from scripts import gcp_discovery_script, aws_discovery_script
@@ -451,21 +448,21 @@ def trigger_aks_deployment():
     #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
 
 
-@app.route('/delete_expired_clusters', methods=[DELETE])
-@login_required
-def delete_expired_clusters():
-    """
-    Ths endpoint allows deletion of clusters that passed their expiration time
-    """
-    content = request.get_json()
-    expired_clusters_list = mongo_handler.mongo_utils.retrieve_expired_clusters(cluster_type=content['cluster_type'])
-    for expired_cluster in expired_clusters_list:
-        delete_gke_cluster(cluster_name=expired_cluster['cluster_name'])
-        time.sleep(5)
-        mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'],
-                                                           cluster_name=content['cluster_name'],
-                                                           availability=False)
-    return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+# @app.route('/delete_expired_clusters', methods=[DELETE])
+# @login_required
+# def delete_expired_clusters():
+#     """
+#     Ths endpoint allows deletion of clusters that passed their expiration time
+#     """
+#     content = request.get_json()
+#     expired_clusters_list = mongo_handler.mongo_utils.retrieve_expired_clusters(cluster_type=content['cluster_type'])
+#     for expired_cluster in expired_clusters_list:
+#         delete_gke_cluster(cluster_name=expired_cluster['cluster_name'])
+#         time.sleep(5)
+#         mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content['cluster_type'],
+#                                                            cluster_name=content['cluster_name'],
+#                                                            availability=False)
+#     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
 
 
 @app.route('/delete_cluster', methods=[DELETE])
@@ -523,9 +520,9 @@ def settings():
     if request.method == POST:
         content = request.get_json()
         content['user_email'] = session['user_email']
+        cluster_operation = ClusterOperation(**content)
         if content['github_repository'] and content['github_actions_token']:
-            if github_check(github_action_token=content['github_actions_token'],
-                            github_repository=content['github_repository']):
+            if cluster_operation.github_check():
                 encoded_github_details = encode_github_details(content)
                 mongo_handler.mongo_utils.insert_github_data_object(asdict(encoded_github_details))
 

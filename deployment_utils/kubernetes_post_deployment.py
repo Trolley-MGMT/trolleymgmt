@@ -16,19 +16,12 @@ from web.mongo_handler.mongo_utils import insert_gke_deployment, insert_eks_depl
     retrieve_deployment_yaml, remove_deployment_yaml
 from web.mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSObject, AKSObject
 from web.utils import apply_yaml
-from web.variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS, MACOS
+from web.variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS
 
-if MACOS in platform.platform():
-    HELM_COMMAND = '/opt/homebrew/bin/helm'
 
-else:
-    HELM_PATH = '/tmp/helm_path'
-    with open(HELM_PATH, "r") as f:
-        HELM_COMMAND = f.read().strip()
-        print(f'The helm command is: {HELM_COMMAND}')
-    PROJECT_NAME = os.environ['PROJECT_NAME']
-    MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
-    MONGO_USER = os.environ['MONGO_USER']
+PROJECT_NAME = os.environ['PROJECT_NAME']
+MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
+MONGO_USER = os.environ['MONGO_USER']
 
 KUBECONFIG_PATH = os.environ['KUBECONFIG']
 MONGO_URL = os.environ['MONGO_URL']
