@@ -340,7 +340,6 @@ $(document).ready(function() {
     //    }
 
     if (settingsPage) {
-        store_settings();
         populate_settings();
     }
 
@@ -392,9 +391,9 @@ $(document).ready(function() {
             "eks_zones": EKSZones,
             "eks_subnets": EKSSubnets,
             "github_repository": githubRepository,
+            "github_actions_token": githubActionsToken,
             "aws_access_key_id": awsAccessKeyId,
             "aws_secret_access_key": awsSecretAccessKey,
-            "aws-secret-access-key": awsSecretAccessKey,
             "azure_credentials": azureCredentials,
             "google_creds_json": googleCredsJson
         });
@@ -469,10 +468,10 @@ $(document).ready(function() {
 
         let add_provider_data = JSON.stringify({
             "provider": cloud_provider,
-            "aws-access-key-id": AWSAccessKeyID,
-            "aws-secret-access-key": AWSSecretAccessKey,
-            "azure-credentials": AzureCredentials,
-            "google-creds-json": GoogleCredsJSON
+            "aws_access_key_id": AWSAccessKeyID,
+            "aws_secret_access_key": AWSSecretAccessKey,
+            "azure_credentials": AzureCredentials,
+            "google_creds_json": GoogleCredsJSON
         });
 
 
@@ -521,6 +520,7 @@ $(document).ready(function() {
         googleCredsJSON = $('#google-creds-json').val();
         githubRepository = $('#github-repository').val();
         githubActionsToken = $('#github-actions-token').val();
+        userName = window.localStorage.getItem("userName")
 
 
 
@@ -536,21 +536,6 @@ $(document).ready(function() {
 
 
         url = http + trolley_url + "/settings";
-
-        swal_message = 'A request to save settings was sent'
-        var forms = document.querySelectorAll('.needs-validation')
-        // Loop over them and prevent submission
-        Array.prototype.slice.call(forms)
-            .forEach(function(form) {
-                form.addEventListener('submit', function(event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-
-                    form.classList.add('was-validated')
-                }, false)
-            })
         const xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -561,13 +546,6 @@ $(document).ready(function() {
         };
         xhr.send(add_settings_data);
 
-        Swal.fire({
-            position: 'top-end',
-            icon: 'success',
-            title: swal_message,
-            showConfirmButton: false,
-            timer: 5000
-        })
 
         $("#aws-access-key-id").hide();
         $("#aws-access-key-id-div").hide();
@@ -585,12 +563,16 @@ $(document).ready(function() {
 
         if (cloud_provider == "aws") {
             $("#update-aws-settings-button").show();
-        } else if (cloud_provider == "az") {
+            $("#update-aws-settings-label").show();
+        } else if (cloud_provider == "azure") {
             $("#update-az-settings-button").show();
+            $("#update-az-settings-label").show();
         } else if (cloud_provider == "gcp") {
             $("#update-gcp-settings-button").show();
+            $("#update-gcp-settings-label").show();
         }
         $("#update-github-settings-button").show();
+        $("#update-github-settings-label").show();
     });
 
 
@@ -761,10 +743,10 @@ $(document).ready(function() {
             "trolley_server_url": trolleyServerURL,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
-            "aws-access-key-id": awsAccessKeyId,
-            "aws-secret-access-key": awsSecretAccessKey,
-            "azure-credentials": azureCredentials,
-            "google-creds-json": googleCredsJson
+            "aws_access_key_id": awsAccessKeyId,
+            "aws_secret_access_key": awsSecretAccessKey,
+            "azure_credentials": azureCredentials,
+            "google_creds_json": googleCredsJson
         });
 
         url = http + trolley_url + "/deploy_trolley_agent_on_cluster";
@@ -855,18 +837,21 @@ $(document).ready(function() {
         $("#aws-access-key-id").show();
         $("#aws-access-key-id-div").show();
         $("#aws-access-key-id-label").show();
+        $("#aws-access-key-id").val('');
         $("#aws-secret-access-key-div").show();
         $("#aws-secret-access-key-label").show();
         $("#aws-secret-access-key").show();
+        $("#aws-secret-access-key").val('');
         $("#aws-secret-access-key-label").show();
         $("#update-aws-settings-button").hide();
         $("#update-aws-settings-label").hide();
     })
 
     $("#update-gcp-settings-button").click(function() {
-        $("#google-creds-json-div").show();
         $("#google-creds-json").show();
+        $("#google-creds-json-div").show();
         $("#google-creds-json-label").show();
+        $("#google-creds-json").val('');
         $("#update-gcp-settings-button").hide();
         $("#update-gcp-settings-label").hide();
     })
@@ -875,7 +860,7 @@ $(document).ready(function() {
         $("#azure-credentials").show();
         $("#azure-credentials-div").show();
         $("#azure-credentials-label").show();
-        $("#azure-credentials").show();
+        $("#azure-credentials").val('');
         $("#update-az-settings-button").hide();
         $("#update-az-settings-label").hide();
     })

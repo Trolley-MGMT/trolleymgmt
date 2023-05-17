@@ -24,7 +24,7 @@ jobs:
           echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"
           echo "user_name is: ${{ github.event.client_payload.user_name }}"
           echo "deployment_yaml is: ${{ github.event.client_payload.deployment_yaml }}"
-          echo "google_creds_json is: ${{ github.event.google_creds_json }}"
+          echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'

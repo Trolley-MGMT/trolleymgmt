@@ -1,4 +1,6 @@
 import codecs
+import time
+
 from dotenv import load_dotenv
 import inspect
 import json
@@ -113,7 +115,8 @@ def deployment_yaml_object_handling(content) -> DeploymentYAMLObject:
 
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
-                      user_email: str = '', user_type:str = 'user', team_name: str = '', profile_image_filename: str = '',
+                      user_email: str = '', user_type: str = 'user', team_name: str = '',
+                      profile_image_filename: str = '',
                       confirmation_url: str = '', registration_status: str = '') -> bool:
     """
     This function registers a new user into the DB
@@ -134,7 +137,7 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
                              team_name=team_name, hashed_password=hashed_password, confirmation_url=confirmation_url,
                              registration_status=registration_status, user_type=user_type,
                              profile_image_filename=f'static/img/{profile_image_filename}', availability=True,
-                             profile_image_id=profile_image_id)
+                             profile_image_id=profile_image_id, created_timestamp=int(time.time()))
     if mongo_handler.mongo_utils.insert_user(asdict(user_object)):
         if 'trolley' in profile_image_filename:
             return True
@@ -151,14 +154,16 @@ def encode_provider_details(content: dict) -> ProviderObject:
     provider_object = ProviderObject(provider=content[PROVIDER], aws_access_key_id=encoded_aws_access_key_id,
                                      aws_secret_access_key=encoded_aws_secret_access_key,
                                      azure_credentials=encoded_azure_credentials,
-                                     google_creds_json=encoded_google_creds_json, user_email=content['user_email'])
+                                     google_creds_json=encoded_google_creds_json, user_email=content['user_email'],
+                                     created_timestamp=int(time.time()))
     return provider_object
 
 
 def encode_github_details(content: dict) -> GithubObject:
     github_actions_token = crypter.encrypt(str.encode(content['github_actions_token']))
     github_object = GithubObject(github_actions_token=github_actions_token,
-                                 github_repository=content['github_repository'])
+                                 github_repository=content['github_repository'],
+                                 user_email=content['user_email'], created_timestamp=int(time.time()))
     return github_object
 
 
@@ -384,13 +389,14 @@ def trigger_gke_deployment():
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_gke_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
         # deployment_yaml_object = deployment_yaml_object_handling(content)
     # else:
     #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
     # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
     #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-    # else:
-    #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+
 
 
 @app.route('/trigger_eks_deployment', methods=[POST])
@@ -408,6 +414,9 @@ def trigger_eks_deployment():
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_eks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+
         # deployment_yaml_object = deployment_yaml_object_handling(content)
     # else:
     #     return Response(json.dumps(response.text), status=400, mimetype=APPLICATION_JSON)
@@ -514,6 +523,11 @@ def settings():
     """
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested')
+    try:
+        user_email = session['user_email']
+    except Exception as e:
+        logger.error(f'Trouble fetching user_email using a session. error: {e}')
+        user_email = ''
     if request.method == POST:
         content = request.get_json()
         content['user_email'] = session['user_email']
@@ -533,13 +547,16 @@ def settings():
         else:
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     elif request.method == GET:
-        github_data = mongo_handler.mongo_utils.retrieve_github_data_object()
-        aws_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(AWS)
-        az_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(AZ)
-        gcp_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(GCP)
+        github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
+        aws_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(provider=AWS,
+                                                                                          user_email=user_email)
+        az_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(provider=AZ,
+                                                                                         user_email=user_email)
+        gcp_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(provider=GCP,
+                                                                                          user_email=user_email)
         try:
-            github_actions_token_decrypted = crypter.decrypt(github_data[0]['github_actions_token']).decode("utf-8")
-            github_repository = github_data[0]['github_repository']
+            github_actions_token_decrypted = crypter.decrypt(github_data['github_actions_token']).decode("utf-8")
+            github_repository = github_data['github_repository']
         except Exception as e:
             github_actions_token_decrypted = ""
             github_repository = ""
@@ -872,7 +889,7 @@ def register():
                 try:
                     mail_message.send_confirmation_mail()
                 except Exception as e:
-                    logger.error(f'Failed to send an email due to {e} error to {user_email}' )
+                    logger.error(f'Failed to send an email due to {e} error to {user_email}')
 
                 if user_registration(first_name, last_name, password, user_email, user_type, team_name, image_file_name,
                                      confirmation_url, registration_status='pending'):

@@ -39,8 +39,8 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
-        ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO
+    USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
+    ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
@@ -1044,7 +1044,7 @@ def insert_provider_data_object(providers_data_object: dict) -> bool:
     @param providers_data_object: The data of the added provider
     """
     try:
-        mongo_query = {'provider': providers_data_object['provider']}
+        mongo_query = {'provider': providers_data_object['provider'], 'user_email': providers_data_object['user_email']}
         existing_providers_data_object = providers_data.find_one(mongo_query)
         if existing_providers_data_object:
             result = providers_data.replace_one(existing_providers_data_object, providers_data_object)
@@ -1081,8 +1081,11 @@ def insert_github_data_object(github_data_object: dict) -> bool:
     @param github_data_object: The data of the added provider
     """
     try:
-        if len(list(github_data.find())) > 0:
-            logger.info(f'A GitHub repository was already defined')
+        user_email = github_data_object['user_email']
+        mongo_query = {'user_email': user_email}
+        current_github_data_object = github_data.find_one(mongo_query)
+        if current_github_data_object:
+            logger.info(f'A GitHub repository was already defined for user {user_email}')
             return True
         else:
             result = github_data.insert_one(github_data_object)
@@ -1096,23 +1099,21 @@ def insert_github_data_object(github_data_object: dict) -> bool:
         logger.error(f'github data was not inserted properly')
 
 
-def retrieve_github_data_object() -> dict:
+def retrieve_github_data_object(user_email: str = '') -> dict:
     """
     """
-    github_data_object = []
-    github_data_object_ = github_data.find()
-    for data_object in github_data_object_:
-        del data_object['_id']
-        github_data_object.append(data_object)
-    if not github_data_object_:
+    mongo_query = {'user_email': user_email}
+    github_data_object = github_data.find_one(mongo_query)
+    if not github_data_object:
         logger.info(f'There is no github data ')
         return {}
+    del github_data_object['_id']
     return github_data_object
 
-def retrieve_credentials_data_object(provider: str) -> dict:
+def retrieve_credentials_data_object(provider: str, user_email: str) -> dict:
     """
     """
-    mongo_query = {'provider': provider}
+    mongo_query = {PROVIDER: provider, USER_EMAIL: user_email}
     credentials_data_object = providers_data.find_one(mongo_query)
     if not credentials_data_object:
         logger.info(f'There is no github data ')

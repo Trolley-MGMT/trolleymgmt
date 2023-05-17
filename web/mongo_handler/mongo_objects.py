@@ -15,6 +15,7 @@ class UserObject:
     user_type: str
     profile_image_filename: str
     availability: bool
+    created_timestamp: int
     profile_image_id: ObjectId = ObjectId()
 
 
@@ -26,12 +27,15 @@ class ProviderObject:
     azure_credentials: bytes
     google_creds_json: bytes
     user_email: str
+    created_timestamp: int
 
 
 @dataclass
 class GithubObject:
     github_actions_token: bytes
     github_repository: str
+    user_email: str
+    created_timestamp: int
 
 
 @dataclass

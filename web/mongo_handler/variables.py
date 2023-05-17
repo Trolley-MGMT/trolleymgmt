@@ -39,7 +39,6 @@ HUMAN_EXPIRATION_TIMESTAMP = 'human_expiration_timestamp'
 KUBECONFIG = 'kubeconfig'
 NODES_NAMES = 'nodes_names'
 NODES_IPS = 'nodes_IPs'
-PROJECT_NAME = 'project_name'
 RESOURCE_GROUP = 'resource_group'
 PROJECT_ID = 'project_id'
 
