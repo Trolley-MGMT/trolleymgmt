@@ -58,25 +58,11 @@ MONGO_USER = os.environ['MONGO_USER']
 MONGO_URL = os.environ['MONGO_URL']
 MONGO_PORT = int(os.getenv('MONGO_PORT', 27017))
 
-logger.info(MONGO_PASSWORD)
-logger.info(MONGO_USER)
-logger.info(MONGO_URL)
-logger.info(MONGO_PORT)
 ATLAS_FULL_URL = f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority"
 
 if "mongodb.net" in MONGO_URL:
     print('mongodb.net was chosen')
     client = MongoClient(ATLAS_FULL_URL)
-    logger.info(f'MONGO_USER is: {MONGO_USER}')
-    print(f'MONGO_USER is: {MONGO_USER}')
-    logger.info(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
-    print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
-    logger.info(f'MONGO_URL is: {MONGO_URL}')
-    print(f'MONGO_URL is: {MONGO_URL}')
-    logger.info(f'MONGO_PORT is: {MONGO_PORT}')
-    print(f'MONGO_PORT is: {MONGO_PORT}')
-    logger.info(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
-    print(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
 else:
     print('mongodb.net was not chosen')
     client = MongoClient(host=MONGO_URL, port=MONGO_PORT, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
@@ -120,8 +106,6 @@ providers_data: Collection = db.providers_data
 github_data: Collection = db.github_data
 clients_data: Collection = db.clients_data
 
-logger.info(f'MONGO_USER is: {MONGO_USER}')
-logger.info(f'MONGO_URL is: {MONGO_URL}')
 logger.info(f'PROJECT_NAME is: {PROJECT_NAME}')
 logger.info(f'Listing all the collections')
 logger.info(db.list_collection_names())
@@ -507,16 +491,6 @@ def retrieve_user(user_email: str):
     logger.info(db.list_collection_names())
     mongo_query = {USER_EMAIL: user_email}
     logger.info(f'Running the {mongo_query}')
-    logger.info(f'MONGO_USER is: {MONGO_USER}')
-    print(f'MONGO_USER is: {MONGO_USER}')
-    logger.info(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
-    print(f'MONGO_PASSWORD is: {MONGO_PASSWORD}')
-    logger.info(f'MONGO_URL is: {MONGO_URL}')
-    print(f'MONGO_URL is: {MONGO_URL}')
-    logger.info(f'MONGO_PORT is: {MONGO_PORT}')
-    print(f'MONGO_PORT is: {MONGO_PORT}')
-    logger.info(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
-    print(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
     user_object = users.find_one(mongo_query)
     logger.info(f'The result of the query is: {user_object}')
     if not user_object:

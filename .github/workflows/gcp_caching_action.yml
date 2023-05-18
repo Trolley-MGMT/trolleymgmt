@@ -43,7 +43,6 @@ jobs:
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
