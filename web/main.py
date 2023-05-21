@@ -6,7 +6,6 @@ import inspect
 import json
 import logging
 import os
-import platform
 import datetime
 from functools import wraps
 from threading import Thread
@@ -23,8 +22,13 @@ import yaml
 from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+
 log_file_name = 'server.log'
-log_file_path = f'{os.getcwd()}/{log_file_name}'
+if DOCKER_ENV:
+    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+else:
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -38,38 +42,39 @@ project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
 logger.info(f'project_folder is: {project_folder}')
 
-if 'Darwin' in platform.system():
-    import mongo_handler.mongo_utils
-    from cluster_operations import ClusterOperation
-    from mongo_handler.mongo_objects import UserObject, GithubObject, DeploymentYAMLObject
-    from variables.variables import POST, GET, EKS, \
-        APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
-        ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-        CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-        NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY
+GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
+GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 
-    from mail_handler import MailSender
-    from utils import random_string, apply_yaml
-    from mongo_handler.mongo_objects import ProviderObject
-    from scripts import gcp_discovery_script, aws_discovery_script
-else:
-    import mongo_handler.mongo_utils
-    from cluster_operations import ClusterOperation
-    from mongo_handler.mongo_objects import UserObject, DeploymentYAMLObject, ProviderObject
-    from variables.variables import POST, GET, EKS, \
-        APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
-        ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-        CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-        NAMES, REGION_NAME, CLIENT_NAME
-    from mail_handler import MailSender
-    from utils import random_string, apply_yaml
-    from scripts import gcp_discovery_script, aws_discovery_script
+
+logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
+import mongo_handler.mongo_utils
+from cluster_operations import ClusterOperation
+from mongo_handler.mongo_objects import UserObject, GithubObject, DeploymentYAMLObject, ProviderObject
+from variables.variables import POST, GET, EKS, \
+    APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
+    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
+    CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
+    NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY
+
+from mail_handler import MailSender
+from utils import random_string, apply_yaml
+from scripts import gcp_discovery_script, aws_discovery_script, gcp_caching_script, aws_caching_script
+
+# else:
+#     import mongo_handler.mongo_utils
+#     from cluster_operations import ClusterOperation
+#     from mongo_handler.mongo_objects import UserObject, GitHubObject, DeploymentYAMLObject, ProviderObject
+#     from variables.variables import POST, GET, EKS, \
+#         APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
+#         ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
+#         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
+#         NAMES, REGION_NAME, CLIENT_NAME
+#     from mail_handler import MailSender
+#     from utils import random_string, apply_yaml
+#     from scripts import gcp_discovery_script, aws_discovery_script
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
-
-GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
-GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 
 app = Flask(__name__, template_folder='templates')
 
@@ -398,7 +403,6 @@ def trigger_gke_deployment():
     #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
 
 
-
 @app.route('/trigger_eks_deployment', methods=[POST])
 @login_required
 def trigger_eks_deployment():
@@ -516,7 +520,7 @@ def insert_cluster_data():
 
 
 @app.route('/settings', methods=[GET, POST])
-# @login_required
+@login_required
 def settings():
     """
     This endpoint saves Trolley settings
@@ -541,6 +545,15 @@ def settings():
         if validate_provider_data(content):
             encoded_provider_details = encode_provider_details(content)
             if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
+                if content['google_creds_json']:
+                    credentials = content['google_creds_json']
+                    logger.info(f'Triggering gcp caching script using: {credentials} credentials')
+                    Thread(target=gcp_caching_script.main, args=(credentials, )).start()
+                if content['aws_access_key_id'] and content['aws_secret_access_key']:
+                    aws_access_key_id = content['aws_access_key_id']
+                    aws_secret_access_key = content['aws_secret_access_key']
+                    logger.info(f'Triggering aws caching script using: {aws_secret_access_key} and {aws_access_key_id} credentials')
+                    Thread(target=aws_caching_script.main, args=(aws_access_key_id, aws_secret_access_key)).start()
                 return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
             else:
                 return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -837,7 +850,10 @@ def register():
                                    error_message=f'Dear {first_name}, your email was not entered correctly. '
                                                  f'Please try again')
         invited_user = mongo_handler.mongo_utils.retrieve_invited_user(user_email)
-        user_type = invited_user['user_type']
+        try:
+            user_type = invited_user['user_type']
+        except:
+            user_type = 'user'
         if not user_type:
             user_type = 'user'
         if invited_user:
@@ -937,6 +953,44 @@ def confirmation_email(token):
 @app.route('/login', methods=[GET, POST])
 @login_required
 def login():
+    if request.method == 'POST':
+        token, user_object = login_processor(new=True)
+        base64_data = codecs.encode(user_object['profile_image'].read(), 'base64')
+        profile_image = base64_data.decode('utf-8')
+        if token:
+            user_email = user_object['user_email']
+            user_type = mongo_handler.mongo_utils.check_user_type(user_email)
+            data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'],
+                    'user_type': user_type}
+            logger.info(f'data content is: {data}')
+            return render_template('index.html', data=data, image=profile_image)
+        else:
+            user_email = user_object['user_email']
+            logger.info(f'user_email is: {user_email}')
+            return render_template('login.html',
+                                   error_message=f'Dear {user_email}, your password was not entered correctly. '
+                                                 f'Please try again')
+    message = request.args.get('message')
+    logger.info(f'a login request was received with {message} message')
+    if session['registration_status'] != 'confirmed':
+        first_name = session['first_name']
+        user_email = session['user_email']
+        token = generate_confirmation_token(user_email)
+        confirm_url = str(url_for('confirmation_email', token=token, _external=True))
+        mail_message = MailSender(user_email, confirm_url)
+        mail_message.send_confirmation_mail()
+        mongo_handler.mongo_utils.update_user(user_email, update_type="confirmation_url", update_value=confirm_url)
+        return render_template('login.html',
+                               error_message=f'Dear {first_name}! '
+                                             f'A confirmation mail was sent to {user_email} and was not confirmed. '
+                                             f'Sending you another one!')
+    elif session['registration_status'] == 'confirmed':
+        return render_template('index.html')
+
+
+@app.route('/login_', methods=[GET, POST])
+@login_required
+def login_():
     message = request.args.get('message')
     logger.info(f'a login request was received with {message} message')
     if session['registration_status'] != 'confirmed':

@@ -6,19 +6,25 @@ import os
 import platform
 from dataclasses import asdict
 from subprocess import run, PIPE
-import sys
 import time
 
 import boto3
 from dotenv import load_dotenv
 
-from web.mongo_handler.mongo_objects import AWSS3FilesObject, AWSS3BucketsObject, \
-    AWSEC2InstanceDataObject
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
-from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
-    insert_aws_buckets_object, insert_eks_cluster_object, retrieve_instances, retrieve_available_clusters, \
-    retrieve_compute_per_machine_type
-
+if DOCKER_ENV:
+    from mongo_handler.mongo_objects import AWSS3FilesObject, AWSS3BucketsObject, \
+        AWSEC2InstanceDataObject
+    from mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
+        insert_aws_buckets_object, insert_eks_cluster_object, retrieve_instances, retrieve_available_clusters, \
+        retrieve_compute_per_machine_type
+else:
+    from web.mongo_handler.mongo_objects import AWSS3FilesObject, AWSS3BucketsObject, \
+        AWSEC2InstanceDataObject
+    from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
+        insert_aws_buckets_object, insert_eks_cluster_object, retrieve_instances, retrieve_available_clusters, \
+        retrieve_compute_per_machine_type
 log_file_name = 'server.log'
 log_file_path = f'{os.getcwd()}/{log_file_name}'
 
@@ -29,7 +35,6 @@ handler = logging.FileHandler(log_file_path)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
@@ -122,8 +127,10 @@ def list_all_instances():
                                                                     0].private_ip_address,
                                                                 external_ip=instance.network_interfaces[
                                                                     0].private_ip_address,
-                                                                instance_zone=aws_region, machine_type=instance.instance_type,
-                                                                tags=tags, client_name='vacant', user_name='vacant', availability=True)
+                                                                instance_zone=aws_region,
+                                                                machine_type=instance.instance_type,
+                                                                tags=tags, client_name='vacant', user_name='vacant',
+                                                                availability=True)
                     instances_object.append(aws_ec2_instance)
     return instances_object
 

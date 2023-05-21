@@ -3,7 +3,7 @@ services:
   web:
     build: .
     ports:
-    - "80:80"
+    - "8080:8080"
     volumes:
     - .:/opt
     - /Users/pavelzagalsky/.aws/:/home/app/.aws/:ro # Substitute $HOME with the path to your home directory
@@ -20,6 +20,7 @@ services:
       AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials
       AWS_DEFAULT_REGION: us-east-1
       GCP_CREDENTIALS_FILE: /home/app/.gcp/gcp_credentials
+      DOCKER_ENV: Yes
     networks:
       - frontend
       - backend

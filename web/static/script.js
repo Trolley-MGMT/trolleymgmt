@@ -57,16 +57,39 @@ $(document).ready(function() {
     store_settings();
     var settingsData = window.localStorage.getItem("settings");
     var settingsDataArray = JSON.parse(settingsData)
-    let githubRepository = settingsDataArray[0].github_repository
-    let githubActionsToken = settingsDataArray[0].github_actions_token
-    let awsAccessKeyId = settingsDataArray[0].aws_access_key_id
-    let awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
-    let azureCredentials = settingsDataArray[0].azure_credentials
-    let googleCredsJson = settingsDataArray[0].google_creds_json
-    store_client_names()
-    store_users_data()
-    store_teams_data()
-    store_clients_data()
+    if (!isEmpty(settingsDataArray)) {
+        let githubRepository = settingsDataArray[0].github_repository
+        let githubActionsToken = settingsDataArray[0].github_actions_token
+        let awsAccessKeyId = settingsDataArray[0].aws_access_key_id
+        let awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
+        let azureCredentials = settingsDataArray[0].azure_credentials
+        let googleCredsJson = settingsDataArray[0].google_creds_json
+    }
+
+    try {
+        store_client_names()
+    } catch {
+        console.info("problem storing client names")
+    }
+
+    try {
+        store_users_data()
+    } catch {
+        console.info("problem storing users data")
+    }
+
+    try {
+        store_teams_data()
+    } catch {
+        console.info("problem storing teams data")
+    }
+
+    try {
+        store_clients_data()
+    } catch {
+        console.info("problem storing clients data")
+    }
+
     let query = false;
     let clustersManagePage = false;
     let instancesManagePage = false;
@@ -256,7 +279,12 @@ $(document).ready(function() {
         window.localStorage.setItem("provider", provider);
     }
 
-    populate_logged_in_assets();
+    try {
+        populate_logged_in_assets();
+    } catch {
+        console.info("problem populating logged in assets")
+    }
+
 
     if (buildPage) {
         populate_regions();
@@ -575,6 +603,26 @@ $(document).ready(function() {
         $("#update-github-settings-label").show();
     });
 
+    $("#sign-in-button").click(function() {
+        let userEmail = $("#user-email").val();
+        let userPassword = $("#user-password").val();
+
+        let user_login_data = JSON.stringify({
+            "user_email": userEmail,
+            "user_password": userPassword
+        });
+
+        url = http + trolley_url + "/login";
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(user_login_data);
+    })
 
     $("#add-client-button").click(function() {
         $("#add-client-card-title-div").show();
@@ -978,33 +1026,35 @@ $(document).ready(function() {
     function store_users_data() {
         var usersData = []
         var logged_user_name = window.localStorage.getItem("userName")
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                url: http + trolley_url + "/users?logged_user_name=" + logged_user_name,
-                type: 'GET',
-                success: function(response) {
-                    if (response.length > 0) {
-                        $.each(response, function(key, value) {
-                            usersData.push({
-                                first_name: value['first_name'],
-                                last_name: value['last_name'],
-                                user_name: value['user_name'],
-                                team_name: value['team_name'],
-                                user_email: value['user_email'],
-                                profile_image_filename: value['profile_image_filename'],
-                                registration_status: value['registration_status'],
-                                user_type: value['user_type']
+        if (!isEmpty(logged_user_name)) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: http + trolley_url + "/users?logged_user_name=" + logged_user_name,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.length > 0) {
+                            $.each(response, function(key, value) {
+                                usersData.push({
+                                    first_name: value['first_name'],
+                                    last_name: value['last_name'],
+                                    user_name: value['user_name'],
+                                    team_name: value['team_name'],
+                                    user_email: value['user_email'],
+                                    profile_image_filename: value['profile_image_filename'],
+                                    registration_status: value['registration_status'],
+                                    user_type: value['user_type']
+                                });
                             });
-                        });
-                    }
-                    window.localStorage.setItem("usersData", JSON.stringify(usersData));
-                    resolve(response)
-                },
-                error: function(error) {
-                    reject(error)
-                },
+                        }
+                        window.localStorage.setItem("usersData", JSON.stringify(usersData));
+                        resolve(response)
+                    },
+                    error: function(error) {
+                        reject(error)
+                    },
+                })
             })
-        })
+        }
     }
 
     function store_teams_data() {
@@ -1108,16 +1158,18 @@ $(document).ready(function() {
                 url: http + trolley_url + "/settings",
                 type: 'GET',
                 success: function(response) {
-                    settingsData.push({
-                        aws_access_key_id: response.aws_access_key_id,
-                        aws_secret_access_key: response.aws_secret_access_key,
-                        azure_credentials: response.azure_credentials,
-                        google_creds_json: response.google_creds_json,
-                        github_repository: response.github_repository,
-                        github_actions_token: response.github_actions_token
-                    });
-                    window.localStorage.setItem("settings", JSON.stringify(settingsData));
-                    resolve(response)
+                    if (!isEmpty(response)) {
+                        settingsData.push({
+                            aws_access_key_id: response.aws_access_key_id,
+                            aws_secret_access_key: response.aws_secret_access_key,
+                            azure_credentials: response.azure_credentials,
+                            google_creds_json: response.google_creds_json,
+                            github_repository: response.github_repository,
+                            github_actions_token: response.github_actions_token
+                        });
+                        window.localStorage.setItem("settings", JSON.stringify(settingsData));
+                        resolve(response)
+                    }
                 },
                 error: function(error) {
                     reject(error)
@@ -1546,27 +1598,45 @@ $(document).ready(function() {
     function populate_settings() {
         var settingsData = window.localStorage.getItem("settings");
         var settingsDataArray = JSON.parse(settingsData)
-        if (isEmpty(settingsDataArray[0].aws_access_key_id)) {
+        if (isEmpty(settingsDataArray)) {
             $("#aws-access-key-id").show();
             $("#aws-access-key-id-label").show();
             $("#aws-secret-access-key").show();
             $("#aws-secret-access-key-label").show();
-        } else {
-            $("#update-aws-settings-button").show();
-            $("#update-aws-settings-label").show();
-        }
-
-        if (isEmpty(settingsDataArray[0].github_actions_token)) {
             $("#github-repository").show();
             $("#github-repository-div").show();
             $("#github-actions-token").show();
-            $("#github-actions-token-div").show();
-            $("#update-github-settings-button").hide();
-            $("#update-github-settings-label").hide();
+            //            $("#github-actions-token-div").show();
+            //            $("#update-az-settings-button").show();
+            //            $("#update-az-settings-label").show();
+            //            $("#update-gcp-settings-button").show();
+            //            $("#update-gcp-settings-label").show();
         } else {
-            $("#update-github-settings-button").show();
-            $("#update-github-settings-label").show();
+
+            if (isEmpty(settingsDataArray[0].aws_access_key_id)) {
+                $("#aws-access-key-id").show();
+                $("#aws-access-key-id-label").show();
+                $("#aws-secret-access-key").show();
+                $("#aws-secret-access-key-label").show();
+            } else {
+                $("#update-aws-settings-button").show();
+                $("#update-aws-settings-label").show();
+            }
+
+            if (isEmpty(settingsDataArray[0].github_actions_token)) {
+                $("#github-repository").show();
+                $("#github-repository-div").show();
+                $("#github-actions-token").show();
+                $("#github-actions-token-div").show();
+                $("#update-github-settings-button").hide();
+                $("#update-github-settings-label").hide();
+            } else {
+                $("#update-github-settings-button").show();
+                $("#update-github-settings-label").show();
+            }
         }
+
+
     }
 
     function populate_users_data() {
@@ -2136,6 +2206,17 @@ $(document).ready(function() {
             $("#google-creds-json-label").hide();
             $("#google-creds-json-div").hide();
             $("#google-creds-json").hide();
+            if (isEmpty(settingsDataArray)) {
+                $("#azure-credentials-label").show();
+                $("#azure-credentials-div").show();
+                $("#azure-credentials").show();
+                $("#update-aws-settings-button").hide();
+                $("#update-aws-settings-label").hide();
+                $("#update-az-settings-button").hide();
+                $("#update-az-settings-label").hide();
+                $("#update-gcp-settings-button").hide();
+                $("#update-gcp-settings-label").hide();
+            } else
             if (isEmpty(settingsDataArray[0].azure_credentials)) {
                 $("#azure-credentials-label").show();
                 $("#azure-credentials-div").show();
@@ -2164,6 +2245,17 @@ $(document).ready(function() {
             $("#azure-credentials-label").hide();
             $("#azure-credentials-div").hide();
             $("#azure-credentials").hide();
+            if (isEmpty(settingsDataArray)) {
+                $("#google-creds-json-label").show();
+                $("#google-creds-json-div").show();
+                $("#google-creds-json").show();
+                $("#update-aws-settings-button").hide();
+                $("#update-aws-settings-label").hide();
+                $("#update-az-settings-button").hide();
+                $("#update-az-settings-label").hide();
+                $("#update-gcp-settings-button").hide();
+                $("#update-gcp-settings-label").hide();
+            } else
             if (isEmpty(settingsDataArray[0].google_creds_json)) {
                 $("#google-creds-json-label").show();
                 $("#google-creds-json-div").show();
