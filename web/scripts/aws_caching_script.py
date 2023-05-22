@@ -1,5 +1,6 @@
 import os
 import platform
+import sys
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from dataclasses import asdict
 import logging
