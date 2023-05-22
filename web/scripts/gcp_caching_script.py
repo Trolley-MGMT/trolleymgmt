@@ -156,31 +156,34 @@ def main(gcp_credentials: str):
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = FETCHED_CREDENTIALS_FILE_PATH
     else:
         sys.exit(0)
-    logger.info('Attempting to fetch zones')
-    zones_list = fetch_zones()
-    logger.info('Attempting to fetch regions')
-    regions_list = fetch_regions()
-    logger.info('Attempting to fetch gke_image_types')
-    gke_image_types = fetch_gke_image_types(zones_list=zones_list)
-    logger.info('Attempting to fetch versions_list')
-    versions_list = fetch_versions(zones_list=zones_list)
-    zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
-    logger.info('Attempting to fetch machine_types_all_regions')
-    machine_types_all_regions = fetch_machine_types(zones_list)
-    for machine_types_region in machine_types_all_regions:
-        gke_machines_caching_object = GKEMachinesCacheObject(
-            region=machine_types_region,
-            machines_list=machine_types_all_regions[machine_types_region]
-        )
-        insert_cache_object(caching_object=asdict(gke_machines_caching_object), provider=GKE, machine_types=True)
-    gke_caching_object = GKECacheObject(
-        zones_list=zones_list,
-        versions_list=versions_list,
-        regions_list=regions_list,
-        gke_image_types=gke_image_types,
-        regions_zones_dict=zones_regions_dict)
-    logger.info('Attempting to insert a GKE cache object')
-    insert_cache_object(caching_object=asdict(gke_caching_object), provider=GKE)
+    try:
+        logger.info('Attempting to fetch zones')
+        zones_list = fetch_zones()
+        logger.info('Attempting to fetch regions')
+        regions_list = fetch_regions()
+        logger.info('Attempting to fetch gke_image_types')
+        gke_image_types = fetch_gke_image_types(zones_list=zones_list)
+        logger.info('Attempting to fetch versions_list')
+        versions_list = fetch_versions(zones_list=zones_list)
+        zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
+        logger.info('Attempting to fetch machine_types_all_regions')
+        machine_types_all_regions = fetch_machine_types(zones_list)
+        for machine_types_region in machine_types_all_regions:
+            gke_machines_caching_object = GKEMachinesCacheObject(
+                region=machine_types_region,
+                machines_list=machine_types_all_regions[machine_types_region]
+            )
+            insert_cache_object(caching_object=asdict(gke_machines_caching_object), provider=GKE, machine_types=True)
+        gke_caching_object = GKECacheObject(
+            zones_list=zones_list,
+            versions_list=versions_list,
+            regions_list=regions_list,
+            gke_image_types=gke_image_types,
+            regions_zones_dict=zones_regions_dict)
+        logger.info('Attempting to insert a GKE cache object')
+        insert_cache_object(caching_object=asdict(gke_caching_object), provider=GKE)
+    except Exception as e:
+        logger.info(f'Trouble connecting to GCP: {e}')
 
 
 if __name__ == '__main__':

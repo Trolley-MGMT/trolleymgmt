@@ -134,33 +134,36 @@ def main(aws_access_key_id, aws_secret_access_key):
     else:
         sys.exit(0)
     # add kubernetes versions
-    logger.info('printing all env variables')
-    logger.info(os.environ)
-    logger.info('Attempting to fetch_machine_types')
-    machine_types_list = fetch_machine_types()
-    logger.info('Attempting to fetch regions_list')
-    regions_list = fetch_regions()
-    logger.info('Attempt to fetch zones_list')
-    zones_list = fetch_zones()
-    regions_zones_dict = {}
-    for region in regions_list:
-        for zone in zones_list:
-            if region in zone:
-                if region in regions_zones_dict.keys():
-                    regions_zones_dict[region].insert(0, zone)
-                else:
-                    regions_zones_dict[region] = [zone]
-    subnets_dict = fetch_subnets(zones_list)
-    logger.info('Attempting to fetch subnets_dict')
-    aws_caching_object = AWSCacheObject(
-        zones_list=zones_list,
-        regions_list=regions_list,
-        subnets_dict=subnets_dict,
-        regions_zones_dict=regions_zones_dict,
-        machine_types_list=machine_types_list
-    )
-    logger.info('Attempting to insert an EKS cache_object')
-    insert_cache_object(caching_object=asdict(aws_caching_object), provider=EKS)
+    try:
+        logger.info('printing all env variables')
+        logger.info(os.environ)
+        logger.info('Attempting to fetch_machine_types')
+        machine_types_list = fetch_machine_types()
+        logger.info('Attempting to fetch regions_list')
+        regions_list = fetch_regions()
+        logger.info('Attempt to fetch zones_list')
+        zones_list = fetch_zones()
+        regions_zones_dict = {}
+        for region in regions_list:
+            for zone in zones_list:
+                if region in zone:
+                    if region in regions_zones_dict.keys():
+                        regions_zones_dict[region].insert(0, zone)
+                    else:
+                        regions_zones_dict[region] = [zone]
+        subnets_dict = fetch_subnets(zones_list)
+        logger.info('Attempting to fetch subnets_dict')
+        aws_caching_object = AWSCacheObject(
+            zones_list=zones_list,
+            regions_list=regions_list,
+            subnets_dict=subnets_dict,
+            regions_zones_dict=regions_zones_dict,
+            machine_types_list=machine_types_list
+        )
+        logger.info('Attempting to insert an EKS cache_object')
+        insert_cache_object(caching_object=asdict(aws_caching_object), provider=EKS)
+    except Exception as e:
+        logger.info(f'Trouble connecting to AWS {e}')
 
 
 if __name__ == '__main__':
