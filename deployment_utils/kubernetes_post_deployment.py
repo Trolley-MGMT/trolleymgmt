@@ -1,6 +1,5 @@
 import logging
 import os
-import platform
 import re
 import time
 from dataclasses import asdict
@@ -19,7 +18,6 @@ from web.utils import apply_yaml
 from web.variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS
 
 
-PROJECT_NAME = os.environ['PROJECT_NAME']
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
 
