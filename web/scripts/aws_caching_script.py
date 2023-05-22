@@ -35,7 +35,10 @@ else:
 
 import boto3
 
-ec2 = boto3.client('ec2')
+try:
+    ec2 = boto3.client('ec2')
+except Exception as e:
+    logger.error(f'Trouble connecting to AWS: {e}')
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
