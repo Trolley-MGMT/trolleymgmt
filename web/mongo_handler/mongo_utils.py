@@ -70,7 +70,7 @@ if "mongodb.net" in MONGO_URL:
 else:
     print('mongodb.net was not chosen')
     client = MongoClient(host=MONGO_URL, port=MONGO_PORT, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
-    logger.info(f'succeeded connecting to mongodb client with {MONGO_URL} url {MONGO_PORT} port {MONGO_USER} user and {MONGO_PASSWORD} password')
+    logger.info(f'succeeded connecting to mongodb client with {MONGO_URL} url')
 db = client[PROJECT_NAME]
 
 gke_clusters: Collection = db.gke_clusters

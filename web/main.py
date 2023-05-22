@@ -547,12 +547,10 @@ def settings():
             if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
                 if content['google_creds_json']:
                     credentials = content['google_creds_json']
-                    logger.info(f'Triggering gcp caching script using: {credentials} credentials')
                     Thread(target=gcp_caching_script.main, args=(credentials, )).start()
                 if content['aws_access_key_id'] and content['aws_secret_access_key']:
                     aws_access_key_id = content['aws_access_key_id']
                     aws_secret_access_key = content['aws_secret_access_key']
-                    logger.info(f'Triggering aws caching script using: {aws_secret_access_key} and {aws_access_key_id} credentials')
                     Thread(target=aws_caching_script.main, args=(aws_access_key_id, aws_secret_access_key)).start()
                 return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
             else:
