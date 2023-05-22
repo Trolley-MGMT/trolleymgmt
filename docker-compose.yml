@@ -20,6 +20,7 @@ services:
       AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials
       AWS_DEFAULT_REGION: us-east-1
       GCP_CREDENTIALS_FILE: /home/app/.gcp/gcp_credentials
+      DOCKER_ENV: Yes
     networks:
       - frontend
       - backend

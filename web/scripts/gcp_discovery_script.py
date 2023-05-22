@@ -17,17 +17,29 @@ from cryptography.fernet import Fernet
 from google.cloud import compute_v1
 from hurry.filesize import size
 
-from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
-from web.mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, update_discovered_gke_cluster_object, \
-    insert_gcp_vm_instances_object, \
-    insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
-    retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+
+if DOCKER_ENV:
+    from mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
+    from mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, update_discovered_gke_cluster_object, \
+        insert_gcp_vm_instances_object, \
+        insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
+        retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
+    from variables.variables import GKE, GCP
+else:
+    from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
+    from web.mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, \
+        update_discovered_gke_cluster_object, \
+        insert_gcp_vm_instances_object, \
+        insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
+        retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
+    from web.variables.variables import GKE, GCP
 
 from google.cloud import storage
 from google.oauth2 import service_account
 from googleapiclient import discovery
 
-from web.variables.variables import GKE, GCP
+
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
@@ -42,19 +54,15 @@ if 'Darwin' in platform.system():
     CREDENTIALS_DEFAULT_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
     GCP_CREDENTIALS_TEMP_DIRECTORY = f'{os.getcwd()}/.gcp'
     CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
-
-
 else:
     KUBECONFIG_PATH = '/root/.kube/config'
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/app/.gcp/gcp_credentials.json'
-    GCP_CREDENTIALS_TEMP_DIRECTORY = "/app/.gcp"
+    GCP_CREDENTIALS_TEMP_DIRECTORY = "/home/app/.gcp"
     GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
     CREDENTIALS_DEFAULT_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
     CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 
 print(f"CREDENTIALS_PATH_TO_SAVE is: {CREDENTIALS_PATH_TO_SAVE}")
-# print(os.getcwd())
-# print(help('modules'))
 
 
 def generate_kubeconfig(cluster_name: str, zone: str) -> str:
@@ -82,9 +90,21 @@ def list_all_instances(project_id: str, ) -> list:
         iterable collections of Instance objects as values.
     """
     if os.path.exists(CREDENTIALS_PATH_TO_SAVE):
-        instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH_TO_SAVE)
+        try:
+            with open(CREDENTIALS_PATH_TO_SAVE, "r") as f:
+                credentials = f.read()
+                print(f'The credentials file content is: {credentials}')
+            instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH_TO_SAVE)
+        except Exception as e:
+            print(f'There was an issue getting the info with the credentials file on {CREDENTIALS_PATH_TO_SAVE} path: {e}')
     else:
-        instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_DEFAULT_PATH)
+        try:
+            with open(CREDENTIALS_DEFAULT_PATH, "r") as f:
+                credentials = f.read()
+                print(f'The credentials file content is: {credentials}')
+            instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_DEFAULT_PATH)
+        except Exception as e:
+            print(f'There was an issue getting the info with the credentials file on {CREDENTIALS_DEFAULT_PATH} path: {e}')
     request = compute_v1.AggregatedListInstancesRequest()
     request.project = project_id
     request.max_results = 50
@@ -110,7 +130,8 @@ def list_all_instances(project_id: str, ) -> list:
                         external_ip = ''
                     instance_object = GCPInstanceDataObject(timestamp=TS, project_name=project_id,
                                                             instance_name=instance.name, user_name="vacant",
-                                                            client_name="vacant", availability=True, internal_ip=internal_ip,
+                                                            client_name="vacant", availability=True,
+                                                            internal_ip=internal_ip,
                                                             external_ip=external_ip, tags=dict(instance.labels),
                                                             machine_type=instance.machine_type.split("/")[-1],
                                                             instance_zone=instance.zone.split("/")[-1])
@@ -118,9 +139,9 @@ def list_all_instances(project_id: str, ) -> list:
     return instances_object
 
 
-def fetch_buckets() -> GCPBucketsObject:
+def fetch_buckets(credentials) -> GCPBucketsObject:
     gcp_buckets_list = []
-    storage_client = storage.Client()
+    storage_client = storage.Client(credentials=credentials)
     buckets = storage_client.list_buckets()
     for bucket in buckets:
         gcp_buckets_list.append(bucket.name)
@@ -128,10 +149,10 @@ def fetch_buckets() -> GCPBucketsObject:
                             buckets=gcp_buckets_list)
 
 
-def fetch_files(gcp_buckets: GCPBucketsObject):
+def fetch_files(credentials, gcp_buckets: GCPBucketsObject):
     gcp_files_list = []
     gcp_files_dict = {}
-    storage_client = storage.Client()
+    storage_client = storage.Client(credentials=credentials)
     for bucket_name in gcp_buckets.buckets:
         files = storage_client.list_blobs(bucket_name)
         for file in files:
@@ -232,7 +253,8 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
                     discovered_clusters_to_add.append(gke_discovered_cluster)
                 else:
                     discovered_clusters_to_update.append(gke_discovered_cluster)
-
+            if gke_discovered_cluster not in trolley_built_clusters:
+                discovered_clusters_to_add.append(gke_discovered_cluster)
         print(f'List of discovered GKE clusters: {gke_discovered_clusters}')
         print(f'List of trolley built GKE clusters: {trolley_built_clusters}')
         print(f'List of discovered clusters to add: {discovered_clusters_to_add}')
@@ -263,12 +285,12 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         print(discovered_vm_instances_to_add)
         insert_gcp_vm_instances_object(discovered_vm_instances_to_add)
     if is_fetching_buckets:
-        gcp_discovered_buckets = fetch_buckets()
+        gcp_discovered_buckets = fetch_buckets(credentials)
         print('List of discovered GCP Buckets: ')
         print(asdict(gcp_discovered_buckets))
         insert_gcp_buckets_object(asdict(gcp_discovered_buckets))
     if is_fetching_files:
-        gcp_discovered_files_object = fetch_files(gcp_discovered_buckets)
+        gcp_discovered_files_object = fetch_files(credentials,gcp_discovered_buckets)
         print('List of discovered GCP Files: ')
         print(asdict(gcp_discovered_files_object))
         insert_gcp_files_object(asdict(gcp_discovered_files_object))

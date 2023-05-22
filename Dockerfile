@@ -30,6 +30,7 @@ ADD web/scripts/gcp_discovery_script.py gcp_discovery_script.py
 RUN chmod +x trolley_api.sh aks_cache.sh aws_cache.sh gcp_cache.sh aws_discovery.sh gcp_discovery.sh
 
 CMD ./trolley_api.sh
+#ENTRYPOINT ["tail", "-f", "/dev/null"]
 # Command to execute to run the Google App run
 #CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
 

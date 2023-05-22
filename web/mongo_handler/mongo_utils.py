@@ -10,10 +10,14 @@ from bson import ObjectId
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.collection import Collection
-from pymongo.cursor import Cursor
 
-file_name = 'server.log'
-log_file_path = f'{os.getcwd()}/{file_name}'
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+log_file_name = 'server.log'
+if DOCKER_ENV:
+    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+else:
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -39,12 +43,12 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-    USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
-    ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER
+        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
+        ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
-        ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO
+        ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
@@ -66,6 +70,7 @@ if "mongodb.net" in MONGO_URL:
 else:
     print('mongodb.net was not chosen')
     client = MongoClient(host=MONGO_URL, port=MONGO_PORT, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
+    logger.info(f'succeeded connecting to mongodb client with {MONGO_URL} url')
 db = client[PROJECT_NAME]
 
 gke_clusters: Collection = db.gke_clusters
@@ -365,6 +370,7 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
     @param provider: The dictionary with all the cluster data.
     @param machine_types: The list of all the available machines
     """
+    logger.info(f'inserting cache_object of {provider} provider')
     if provider == GKE:
         if machine_types:
             try:
@@ -428,10 +434,13 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
 def retrieve_clients_data() -> list:
     clients_data_list = []
     mongo_query = {AVAILABILITY.lower(): True}
+    # clients_data_object = clients.find(mongo_query)
     clients_data_object = clients_data.find(mongo_query)
     for client_data in clients_data_object:
         del client_data['_id']
         clients_data_list.append(client_data)
+    # return []
+    logger.info(f'The content of clients_data_list is: {clients_data_list}')
     return clients_data_list
 
 
@@ -1083,6 +1092,7 @@ def retrieve_github_data_object(user_email: str = '') -> dict:
         return {}
     del github_data_object['_id']
     return github_data_object
+
 
 def retrieve_credentials_data_object(provider: str, user_email: str) -> dict:
     """

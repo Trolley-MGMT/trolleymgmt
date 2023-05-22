@@ -1,22 +1,61 @@
+import os
+import platform
+import sys
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from dataclasses import asdict
 import logging
-from web.mongo_handler.mongo_utils import insert_cache_object
-from web.mongo_handler.mongo_objects import AWSCacheObject, EKSMachineTypeObject
-from web.variables.variables import EKS
 
-import boto3
+import getpass as gt
 
-ec2 = boto3.client('ec2')
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+
+log_file_name = 'server.log'
+if DOCKER_ENV:
+    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+else:
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('aws_caching_script.log')
-handler.setLevel(logging.DEBUG)
+handler = logging.FileHandler(log_file_path)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
+
+if DOCKER_ENV:
+    from mongo_handler.mongo_utils import insert_cache_object
+    from mongo_handler.mongo_objects import AWSCacheObject, EKSMachineTypeObject
+    from variables.variables import EKS
+else:
+    from web.mongo_handler.mongo_utils import insert_cache_object
+    from web.mongo_handler.mongo_objects import AWSCacheObject, EKSMachineTypeObject
+    from web.variables.variables import EKS
+
+import boto3
+
+try:
+    ec2 = boto3.client('ec2')
+except Exception as e:
+    logger.error(f'Trouble connecting to AWS: {e}')
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+
+LOCAL_USER = gt.getuser()
+
+if 'Darwin' in platform.system():
+    CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.aws/credentials'
+    FETCHED_CREDENTIALS_DIR_PATH = f'/Users/{LOCAL_USER}/.aws/fetched_credentials'
+    FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
+else:
+    AWS_CREDENTIALS_DEFAULT_DIRECTORY = "home/app/.aws"
+    CREDENTIALS_PATH = f'/{AWS_CREDENTIALS_DEFAULT_DIRECTORY}/credentials'
+    FETCHED_CREDENTIALS_DIR_PATH = f'/app/.aws'
+    FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
 
 def fetch_regions() -> list:
     logger.info(f'A request to fetch regions has arrived')
@@ -88,29 +127,52 @@ def fetch_machine_types() -> list:
     return machine_types_list
 
 
-def main():
+def main(aws_access_key_id, aws_secret_access_key):
+    if aws_access_key_id and aws_secret_access_key:
+        if not os.path.exists(FETCHED_CREDENTIALS_DIR_PATH):
+            os.makedirs(FETCHED_CREDENTIALS_DIR_PATH)
+        f = open(FETCHED_CREDENTIALS_FILE_PATH, 'a')
+        f.write(f'[default]\naws_access_key_id = {aws_access_key_id}\naws_secret_access_key = {aws_secret_access_key}\n')
+        f.close()
+        os.environ['AWS_SHARED_CREDENTIALS_FILE'] = FETCHED_CREDENTIALS_FILE_PATH
+    else:
+        sys.exit(0)
     # add kubernetes versions
-    machine_types_list = fetch_machine_types()
-    regions_list = fetch_regions()
-    zones_list = fetch_zones()
-    regions_zones_dict = {}
-    for region in regions_list:
-        for zone in zones_list:
-            if region in zone:
-                if region in regions_zones_dict.keys():
-                    regions_zones_dict[region].insert(0, zone)
-                else:
-                    regions_zones_dict[region] = [zone]
-    subnets_dict = fetch_subnets(zones_list)
-    aws_caching_object = AWSCacheObject(
-        zones_list=zones_list,
-        regions_list=regions_list,
-        subnets_dict=subnets_dict,
-        regions_zones_dict=regions_zones_dict,
-        machine_types_list=machine_types_list
-    )
-    insert_cache_object(caching_object=asdict(aws_caching_object), provider=EKS)
+    try:
+        logger.info('printing all env variables')
+        logger.info(os.environ)
+        logger.info('Attempting to fetch_machine_types')
+        machine_types_list = fetch_machine_types()
+        logger.info('Attempting to fetch regions_list')
+        regions_list = fetch_regions()
+        logger.info('Attempt to fetch zones_list')
+        zones_list = fetch_zones()
+        regions_zones_dict = {}
+        for region in regions_list:
+            for zone in zones_list:
+                if region in zone:
+                    if region in regions_zones_dict.keys():
+                        regions_zones_dict[region].insert(0, zone)
+                    else:
+                        regions_zones_dict[region] = [zone]
+        subnets_dict = fetch_subnets(zones_list)
+        logger.info('Attempting to fetch subnets_dict')
+        aws_caching_object = AWSCacheObject(
+            zones_list=zones_list,
+            regions_list=regions_list,
+            subnets_dict=subnets_dict,
+            regions_zones_dict=regions_zones_dict,
+            machine_types_list=machine_types_list
+        )
+        logger.info('Attempting to insert an EKS cache_object')
+        insert_cache_object(caching_object=asdict(aws_caching_object), provider=EKS)
+    except Exception as e:
+        logger.info(f'Trouble connecting to AWS {e}')
 
 
 if __name__ == '__main__':
-    main()
+    parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('--aws-access-key-id', type=str, help='AWS Access Key ID')
+    parser.add_argument('--aws-secret-access-key', type=str, help='AWS Secret Access Key')
+    args = parser.parse_args()
+    main(args.aws_access_key_id, args.aws_secret_access_key)

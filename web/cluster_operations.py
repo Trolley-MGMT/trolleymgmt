@@ -6,11 +6,16 @@ import platform
 import requests
 from dotenv import load_dotenv
 
-from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
-from web.mongo_handler.mongo_utils import retrieve_cluster_details
+from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+from mongo_handler.mongo_utils import retrieve_cluster_details
+
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
 log_file_name = 'server.log'
-log_file_path = f'{os.getcwd()}/{log_file_name}'
+if DOCKER_ENV:
+    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+else:
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
