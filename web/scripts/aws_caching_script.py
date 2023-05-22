@@ -131,6 +131,8 @@ def main(aws_access_key_id, aws_secret_access_key):
         f.write(f'[default]\naws_access_key_id = {aws_access_key_id}\naws_secret_access_key = {aws_secret_access_key}\n')
         f.close()
         os.environ['AWS_SHARED_CREDENTIALS_FILE'] = FETCHED_CREDENTIALS_FILE_PATH
+    else:
+        sys.exit(0)
     # add kubernetes versions
     logger.info('printing all env variables')
     logger.info(os.environ)

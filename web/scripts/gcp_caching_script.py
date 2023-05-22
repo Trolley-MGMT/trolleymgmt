@@ -154,6 +154,8 @@ def main(gcp_credentials: str):
         f.write(gcp_credentials)
         f.close()
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = FETCHED_CREDENTIALS_FILE_PATH
+    else:
+        sys.exit(0)
     logger.info('Attempting to fetch zones')
     zones_list = fetch_zones()
     logger.info('Attempting to fetch regions')

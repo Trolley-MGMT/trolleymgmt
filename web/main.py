@@ -1160,4 +1160,5 @@ if __name__ == "__main__":
     # logger.info(os.getcwd())
     # logger.info(help('modules'))
     # print(help('modules'))
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)
+    # app.run(host='0.0.0.0', port=8080, debug=True)
