@@ -7,6 +7,17 @@ $(document).ready(function() {
     let userType = "";
     let userName = "";
     let clusterName = "";
+
+    if (debug === true) {
+        trolley_url = trolley_local_url;
+        gitBranch = 'master'
+        http = 'http://'
+    } else {
+        trolley_url = trolley_remote_url
+        gitBranch = 'master'
+        http = 'https://'
+    }
+
     if (isEmpty(stored_user_type) == true) {
         try {
             window.localStorage.setItem("userType", data['user_type']);
@@ -19,8 +30,37 @@ $(document).ready(function() {
     } else {
         userType = window.localStorage.getItem("userType");
     }
+
+    store_settings();
+    var settingsData = window.localStorage.getItem("settings");
+    var settingsDataArray = JSON.parse(settingsData)
+    if (!isEmpty(settingsDataArray)) {
+        var githubRepository = settingsDataArray[0].github_repository
+        var githubActionsToken = settingsDataArray[0].github_actions_token
+        var awsAccessKeyId = settingsDataArray[0].aws_access_key_id
+        var awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
+        var azureCredentials = settingsDataArray[0].azure_credentials
+        var googleCredsJson = settingsDataArray[0].google_creds_json
+    }
+
+
     if (userType == "admin") {
         $("#build-clusters-div").show()
+        if ((!isEmpty(githubRepository)) && (!isEmpty(githubActionsToken))) {
+            if (!isEmpty(googleCredsJson)) {
+                $("#build-gke-clusters-div").show()
+                $("#manage-gke-clusters-div").show()
+            }
+            if ((!isEmpty(awsAccessKeyId)) && (!isEmpty(awsSecretAccessKey))) {
+                $("#build-eks-clusters-div").show()
+                $("#manage-eks-clusters-div").show()
+            }
+            if (!isEmpty(azureCredentials)) {
+                $("#build-aks-clusters-div").show()
+                $("#manage-aks-clusters-div").show()
+            }
+        }
+
         $("#users-div").show()
         $("#teams-div").show()
         $("#clients-div").show()
@@ -44,27 +84,27 @@ $(document).ready(function() {
         console.log("sdf")
     }
 
-    if (debug === true) {
-        trolley_url = trolley_local_url;
-        gitBranch = 'master'
-        http = 'http://'
-    } else {
-        trolley_url = trolley_remote_url
-        gitBranch = 'master'
-        http = 'https://'
-    }
+//    if (debug === true) {
+//        trolley_url = trolley_local_url;
+//        gitBranch = 'master'
+//        http = 'http://'
+//    } else {
+//        trolley_url = trolley_remote_url
+//        gitBranch = 'master'
+//        http = 'https://'
+//    }
 
-    store_settings();
-    var settingsData = window.localStorage.getItem("settings");
-    var settingsDataArray = JSON.parse(settingsData)
-    if (!isEmpty(settingsDataArray)) {
-        let githubRepository = settingsDataArray[0].github_repository
-        let githubActionsToken = settingsDataArray[0].github_actions_token
-        let awsAccessKeyId = settingsDataArray[0].aws_access_key_id
-        let awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
-        let azureCredentials = settingsDataArray[0].azure_credentials
-        let googleCredsJson = settingsDataArray[0].google_creds_json
-    }
+//    store_settings();
+//    var settingsData = window.localStorage.getItem("settings");
+//    var settingsDataArray = JSON.parse(settingsData)
+//    if (!isEmpty(settingsDataArray)) {
+//        var githubRepository = settingsDataArray[0].github_repository
+//        var githubActionsToken = settingsDataArray[0].github_actions_token
+//        var awsAccessKeyId = settingsDataArray[0].aws_access_key_id
+//        var awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
+//        var azureCredentials = settingsDataArray[0].azure_credentials
+//        var googleCredsJson = settingsDataArray[0].google_creds_json
+//    }
 
     try {
         store_client_names()
@@ -302,6 +342,7 @@ $(document).ready(function() {
         populate_teams_data();
     }
     if (clustersManagePage) {
+        store_clusters()
         let userType = window.localStorage.getItem("userType");
         if (userType == 'admin') {
             $("#teams-users-dropdowns-box").show();
@@ -396,21 +437,26 @@ $(document).ready(function() {
 
         DeploymentYAML = $('#deployment-yaml').val();
 
-        let trigger_aks_deployment_data = JSON.stringify({
-            "user_name": userName,
-            "num_nodes": AKSNodesAmount,
-            "cluster_version": AKSKubernetesVersion,
-            "expiration_time": AKSExpirationTime,
-            "aks_location": AKSLocation,
-            "github_repository": githubRepository,
-            "github_actions_token": githubActionsToken,
-            "aws_access_key_id": awsAccessKeyId,
-            "aws_secret_access_key": awsSecretAccessKey,
-            "azure_credentials": azureCredentials,
-            "google_creds_json": googleCredsJson
-        });
+        try {
+            var trigger_aks_deployment_data = JSON.stringify({
+                "user_name": userName,
+                "num_nodes": AKSNodesAmount,
+                "cluster_version": AKSKubernetesVersion,
+                "expiration_time": AKSExpirationTime,
+                "aks_location": AKSLocation,
+                "github_repository": githubRepository,
+                "github_actions_token": githubActionsToken,
+                "aws_access_key_id": awsAccessKeyId,
+                "aws_secret_access_key": awsSecretAccessKey,
+                "azure_credentials": azureCredentials,
+                "google_creds_json": googleCredsJson
+            });
+        } catch {
+            console.error('problem gathering all the needed credentials. A trigger will fail')
+        }
 
-        let trigger_eks_deployment_data = JSON.stringify({
+        try {
+            var trigger_eks_deployment_data = JSON.stringify({
             "user_name": userName,
             "num_nodes": EKSNodesAmount,
             "cluster_version": EKSKubernetesVersion,
@@ -425,8 +471,13 @@ $(document).ready(function() {
             "azure_credentials": azureCredentials,
             "google_creds_json": googleCredsJson
         });
+        } catch {
+            console.error('problem gathering all the needed credentials. A trigger will fail')
+        }
 
-        let trigger_gke_deployment_data = JSON.stringify({
+
+        try {
+            var trigger_gke_deployment_data = JSON.stringify({
             "cluster_type": 'gke',
             "user_name": userName,
             "num_nodes": GKENodesAmount,
@@ -442,6 +493,9 @@ $(document).ready(function() {
             "azure_credentials": azureCredentials,
             "google_creds_json": googleCredsJson
         });
+        } catch {
+            console.error('problem gathering all the needed credentials. A trigger will fail')
+        }
 
 
         if (clusterType === 'aks') {
@@ -464,7 +518,7 @@ $(document).ready(function() {
 
         swal_message = 'An ' + clusterType + ' deployment was requested for ' +
             AKSKubernetesVersion + ' kubernetes version with ' +
-            expiration_time + ' expiration time'
+            expiration_time + ' hours expiration time'
 
         const xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
@@ -1901,7 +1955,7 @@ $(document).ready(function() {
             }
         });
         //        Fix this
-        discovered = false
+        //        discovered = false
 
         let cluster_deletion_data = JSON.stringify({
             "cluster_type": clusterType,

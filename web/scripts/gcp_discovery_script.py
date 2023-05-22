@@ -253,7 +253,8 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
                     discovered_clusters_to_add.append(gke_discovered_cluster)
                 else:
                     discovered_clusters_to_update.append(gke_discovered_cluster)
-
+            if gke_discovered_cluster not in trolley_built_clusters:
+                discovered_clusters_to_add.append(gke_discovered_cluster)
         print(f'List of discovered GKE clusters: {gke_discovered_clusters}')
         print(f'List of trolley built GKE clusters: {trolley_built_clusters}')
         print(f'List of discovered clusters to add: {discovered_clusters_to_add}')

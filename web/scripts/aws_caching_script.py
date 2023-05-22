@@ -45,6 +45,8 @@ LOCAL_USER = gt.getuser()
 
 if 'Darwin' in platform.system():
     CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.aws/credentials'
+    FETCHED_CREDENTIALS_DIR_PATH = f'/Users/{LOCAL_USER}/.aws/fetched_credentials'
+    FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
 else:
     AWS_CREDENTIALS_DEFAULT_DIRECTORY = "home/app/.aws"
     CREDENTIALS_PATH = f'/{AWS_CREDENTIALS_DEFAULT_DIRECTORY}/credentials'
