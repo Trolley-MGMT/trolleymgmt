@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    let debug = true;
+    let debug = false;
     let trolley_remote_url = 'pavelzagalsky.pythonanywhere.com';
     let trolley_local_url = 'localhost:8080';
     let trolley_url = 'http://www.pavelzagalsky.com';
@@ -50,14 +50,17 @@ $(document).ready(function() {
             if (!isEmpty(googleCredsJson)) {
                 $("#build-gke-clusters-div").show()
                 $("#manage-gke-clusters-div").show()
+                $("#manage-gcp-vm-instances-div").show()
             }
             if ((!isEmpty(awsAccessKeyId)) && (!isEmpty(awsSecretAccessKey))) {
                 $("#build-eks-clusters-div").show()
                 $("#manage-eks-clusters-div").show()
+                $("#manage-aws-ec2-instances-div").show()
             }
             if (!isEmpty(azureCredentials)) {
                 $("#build-aks-clusters-div").show()
                 $("#manage-aks-clusters-div").show()
+                $("#manage-az-vm-instances-div").show()
             }
         }
 

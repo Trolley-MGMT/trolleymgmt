@@ -45,6 +45,8 @@ LOCAL_USER = gt.getuser()
 
 if 'Darwin' in platform.system():
     CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
+    FETCHED_CREDENTIALS_DIR_PATH = f'/Users/{LOCAL_USER}/.gcp/fetched_credentials'
+    FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
 else:
     GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
     CREDENTIALS_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
