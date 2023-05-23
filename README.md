@@ -122,7 +122,8 @@ Here are the parameters:
 Short Video Demo:
 
 
-[//]: # ([![Watch the video]&#40;https://i9.ytimg.com/vi/GHJHqFtwDHc/mq2.jpg?sqp=CMSns6MG&rs=AOn4CLAkfQDCGLI02dkYu2PPDsX8tj3aGg&#41;]&#40;https://www.youtube.com/watch?v=GHJHqFtwDHc&#41;)
+[![Watch the video](https://i9.ytimg.com/vi/GHJHqFtwDHc/mq2.jpg?sqp=CMSns6MG&rs=AOn4CLAkfQDCGLI02dkYu2PPDsX8tj3aGg)](https://www.youtube.com/watch?v=GHJHqFtwDHc)
+
 ![](documentation/trolley_demo_admin.gif)
 
 The UI currently consists of the following flows:
