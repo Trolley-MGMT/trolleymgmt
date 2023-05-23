@@ -60,22 +60,14 @@ else:
         FETCHED_CREDENTIALS_DIR_PATH = f'/app/.gcp'
         FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/gcp_credentials.json'
 
-# GCP_PROJECT_ID = 'trolley-361905'
 try:
     with open(CREDENTIALS_PATH, "r") as f:
         credentials = f.read()
-        logging.info(f'The credentials content is: {credentials}')
-        print(f'The credentials content is: {credentials}')
-        print(json.loads(credentials))
-        print(json.loads(credentials)['client_id'])
-        print(json.loads(credentials)['client_email'])
-        print(json.loads(credentials)['project_id'])
         GCP_PROJECT_ID = json.loads(credentials)['project_id']
         logger.info(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
         print(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
 except Exception as e:
     logger.info('Problem extracting GCP_PROJECT_ID parameter')
-    print('Problem extracting GCP_PROJECT_ID parameter')
 
 try:
     credentials = service_account.Credentials.from_service_account_file(
@@ -83,13 +75,10 @@ try:
     service = discovery.build('container', 'v1', credentials=credentials)
 except Exception as e:
     logger.info(f'Credentials were not provided with a file')
-    print(f'Credentials were not provided with a file')
-
 
 
 def fetch_zones() -> list:
     logger.info(f'A request to fetch zones has arrived for {GCP_PROJECT_ID} project_id')
-    print(f'A request to fetch zones has arrived for {GCP_PROJECT_ID} project_id')
     compute_zones_client = ZonesClient()
     zones_object = compute_zones_client.list(project=GCP_PROJECT_ID)
     zones_list = []
@@ -171,10 +160,7 @@ def fetch_vcpus_for_machine_types(machine_types_list, requested_machine_type):
 
 def main(gcp_credentials: str):
     logger.info(f'Starting the caching flow with {gcp_credentials} credentials')
-    print(f'Starting the caching flow with {gcp_credentials} credentials')
     if gcp_credentials:
-        print('gcp credentials were found')
-        print('trying to create files')
         if not os.path.exists(FETCHED_CREDENTIALS_DIR_PATH):
             os.makedirs(FETCHED_CREDENTIALS_DIR_PATH)
         f = open(FETCHED_CREDENTIALS_FILE_PATH, 'a')
@@ -185,13 +171,10 @@ def main(gcp_credentials: str):
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = FETCHED_CREDENTIALS_FILE_PATH
     try:
         logger.info('Attempting to fetch zones')
-        print('Attempting to fetch zones')
         zones_list = fetch_zones()
         logger.info('Attempting to fetch regions')
-        print('Attempting to fetch regions')
         regions_list = fetch_regions()
         logger.info('Attempting to fetch gke_image_types')
-        print('Attempting to fetch gke_image_types')
         gke_image_types = fetch_gke_image_types(zones_list=zones_list)
         logger.info('Attempting to fetch versions_list')
         versions_list = fetch_versions(zones_list=zones_list)
@@ -220,5 +203,4 @@ if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--credentials', type=str, help='GCP Credentials')
     args = parser.parse_args()
-    print(f'The content of credentials is: {args.credentials}')
     main(args.credentials)
