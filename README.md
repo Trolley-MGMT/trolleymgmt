@@ -124,7 +124,6 @@ Short Video Demo:
 
 [![Watch the video](https://i9.ytimg.com/vi/GHJHqFtwDHc/mq2.jpg?sqp=CMSns6MG&rs=AOn4CLAkfQDCGLI02dkYu2PPDsX8tj3aGg)](https://www.youtube.com/watch?v=GHJHqFtwDHc)
 
-![](documentation/trolley_demo_admin_hd.gif)
 
 The UI currently consists of the following flows:
 This is the Registration menu that will allow the user to register with his current team's name
