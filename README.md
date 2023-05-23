@@ -137,11 +137,16 @@ This is the Login menu that will allow the users to login to the system
 
 ![](documentation/login.png)
 
+### Setting up access to AWS/GCP/Azure and GitHub
 Under the Settings menu we have an option to add credentials of the cloud provider we want to work with and for our forked repository.
 
+
 ![](documentation/aws_settings.png)
-![](documentation/gcp-settings.png)
-![](documentation/azure-settings.png)
+![](documentation/gcp_settings.png)
+![](documentation/azure_settings.png)
+
+Notice that without the correct credentials you will not be able to access the Build/Manage pages for these cloud providers!
+After the providers were properly configured a discovery service will be triggered and will start to scan the cloud services for the accounts that were provided.
 
 ### Building AKS/GKE/EKS clusters
 ![](documentation/build_aks_clusters.png)
@@ -156,7 +161,6 @@ Under the Settings menu we have an option to add credentials of the cloud provid
 ### Managing VM Instances (AWS/GCP/Azure(TBC))
 ![](documentation/manage_aws_ec2_instances.png)
 ![](documentation/manage_gcp_vm_instances.png)
-
 
 
 Upon pressing the cluster name you will be prompted with an option to install a Trolley Agent or if it was installed, additional cluster info
@@ -178,5 +182,5 @@ The project is still at a very early stage and would appreciate any contribution
 ![](documentation/manage_clients.png)
 ![](documentation/add_client.png)
 
-### Clients/Users/Teams management TBD
+
 ### Billing Dashboards TBD
