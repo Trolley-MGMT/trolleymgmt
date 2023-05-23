@@ -65,7 +65,6 @@ try:
         credentials = f.read()
         GCP_PROJECT_ID = json.loads(credentials)['project_id']
         logger.info(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
-        print(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
 except Exception as e:
     logger.info('Problem extracting GCP_PROJECT_ID parameter')
 

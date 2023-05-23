@@ -19,10 +19,7 @@ jobs:
         env:
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-          PROJECT_ID: ${{ secrets.PROJECT_ID }}
-          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
-          GITHUB_ACTION_TOKEN: ${{ secrets.ACTION_TOKEN }}
         run: |
           export PYTHONPATH=/home/runner/work/Trolley-Management/Trolley-Management
           pip3 install -r web/requirements.txt
