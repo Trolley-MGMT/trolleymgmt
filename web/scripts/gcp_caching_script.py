@@ -52,6 +52,7 @@ if 'Darwin' in platform.system():
 else:
     if GITHUB_ACTIONS_ENV:
         FETCHED_CREDENTIALS_FILE_PATH = '/home/runner/work/gcp_credentials.json'
+        CREDENTIALS_PATH = '/home/runner/work/gcp_credentials.json'
     else:
         GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
         CREDENTIALS_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
