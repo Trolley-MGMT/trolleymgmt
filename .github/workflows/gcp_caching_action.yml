@@ -1,7 +1,15 @@
 name: GCP Caching
 on:
-  schedule:
-    - cron: "0 1 * * *"
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        required: true
+        description: branch_name
+        default: master
+
+#on:
+#  schedule:
+#    - cron: "0 1 * * *"
 
 jobs:
   gcp_caching:

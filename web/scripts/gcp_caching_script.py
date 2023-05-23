@@ -55,7 +55,15 @@ else:
     FETCHED_CREDENTIALS_DIR_PATH = f'/app/.gcp'
     FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/gcp_credentials.json'
 
-GCP_PROJECT_ID = 'trolley-361905'
+# GCP_PROJECT_ID = 'trolley-361905'
+try:
+    with open(CREDENTIALS_PATH, "r") as f:
+        credentials = f.read()
+        logging.info(f'The credentials content is: {credentials}')
+        GCP_PROJECT_ID = json.loads(credentials)['project_id']
+        logger.info(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
+except Exception as e:
+    logger.info('Problem extracting GCP_PROJECT_ID parameter')
 
 try:
     credentials = service_account.Credentials.from_service_account_file(
