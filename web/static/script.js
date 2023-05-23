@@ -2383,7 +2383,7 @@ $(document).ready(function() {
         } else if (this.innerText === "Delete") {
             delete_cluster(clusterType, objectName, dataArray)
         } else if (this.innerText === "Delete User") {
-            userToDelete = this.firstChild.id.split("-")[0]
+            userToDelete = this.firstChild.id.split("-")[0] + '-' + this.firstChild.id.split("-")[1]
             delete_user(userToDelete)
             location.reload()
         } else if (this.innerText === "Delete Team") {
