@@ -41,84 +41,98 @@ It should look something like this: ghp_XXXXXXXXXXXXXXXX
 6. To run the flask based Python web app in your PyCharm IDE of choice you can:
 Set your Environment Variables menu the following:
 
-    ```
-    SECRET_KEY=<44_chars_binary>;GITHUB_ACTION_TOKEN=ghp_<token>;GITHUB_REPOSITORY=Trolley-MGMT/Trolley-Management;KUBECONFIG=/Users/<your_user>/.kube/config_temp;MONGO_PASSWORD=<mongo_password>;MONGO_URL=<mongo_url>;MONGO_USER=<mongo_user>;PROJECT_NAME=trolley
-    ```
-    
-    The used parameters are:
-    
-    ### General Trolley parameters
-    ```
-    SECRET_KEY(str): This 44 chars long key is needed for the encryption in the application. 
-    String example: 65L2Is2PGz9fMCSrg8eTRL1kcXDmH9BRS83JQ0YItqE0
-    ```
-    
-    ```
-    GITHUB_ACTION_TOKEN(str):  This 44 chars long token allows the application to trigger GitHub Actions which will build EKS/GKE/AKS clusters using your forked Trolley GitHub Repository.
-    String example: ghp_p7R7O4mllCQTl1F5tQdyWS5Y6RWjRNU1ACH9
-    ```
-    
-    ````
-    KUBECONFIG(str): Default location of your kubeconfig file with the build Kubernetes cluster definitions String example: /Users/<your_user>/.kube/config
-    ````
-    ### Mongo DB parameters
+```
+SECRET_KEY=<44_chars_binary>;GITHUB_ACTION_TOKEN=ghp_<token>;GITHUB_REPOSITORY=Trolley-MGMT/Trolley-Management;KUBECONFIG=/Users/<your_user>/.kube/config_temp;MONGO_PASSWORD=<mongo_password>;MONGO_URL=<mongo_url>;MONGO_USER=<mongo_user>;PROJECT_NAME=trolley
+```
 
-    ````
-    MONGO_URL: str The URL for the Mongo installation. This can be either a local installation
-    String example: localhost
-    Or a Atlas DB installation:  
-    String example: trolley-fork.something.mongodb.net
-    ````
-    More info here: [Atlas DB Tutorial](https://www.mongodb.com/basics/mongodb-atlas-tutorial)
-    ````
-    MONGO_PASSWORD(str): Mongo DB Password
-    ````
-    ````
-    MONGO_USER(str): Mongo DB User
-    ````
-    
+The used parameters are:
+
+### General Trolley parameters
+```
+SECRET_KEY(str): This 44 chars long key is needed for the encryption in the application. 
+String example: 65L2Is2PGz9fMCSrg8eTRL1kcXDmH9BRS83JQ0YItqE0
+```
+
+```
+GITHUB_ACTION_TOKEN(str):  This 44 chars long token allows the application to trigger GitHub Actions which will build EKS/GKE/AKS clusters using your forked Trolley GitHub Repository.
+String example: ghp_p7R7O4mllCQTl1F5tQdyWS5Y6RWjRNU1ACH9
+```
+
+````
+KUBECONFIG(str): Default location of your kubeconfig file with the build Kubernetes cluster definitions String example: /Users/<your_user>/.kube/config
+````
+### Mongo DB parameters
+
+````
+MONGO_URL: str The URL for the Mongo installation. This can be either a local installation
+String example: localhost
+Or a Atlas DB installation:  
+String example: trolley-fork.something.mongodb.net
+````
+More info here: [Atlas DB Tutorial](https://www.mongodb.com/basics/mongodb-atlas-tutorial)
+````
+MONGO_PASSWORD(str): Mongo DB Password
+````
+````
+MONGO_USER(str): Mongo DB User
+````
+
 7. To run the app in your IDE just set the script path to web/main.py and it should work from there
 
 
 ### Docker image build and deployment.
-1. In order to work with the Docker image the following steps must be taken.
-2. Assuming the repository was forked and cloned and docker-compose is installed:
-3. Run the following command from the project's root to build and run the Docker image:
+    
+    1. In order to work with the Docker image the following steps must be taken.
+    2. Assuming the repository was forked and cloned and docker-compose is installed:
+    3. Run the following command from the project's root to build and run the Docker image:
 
 ``
 docker-compose up --build
 ``
 
-## GitHub Actions parameters
+### GitHub Actions parameters
 The project uses GitHub Actions functionality in order to build/monitor and delete various cloud assets.
 In order to work with them properly we will need to pass AWS/GCP/Azure/Mongo related parameters.
 Here are the parameters:
 
-    
-    ACTION_TOKEN(mandatory) = "ghp_xxxxxxxxxx"
-    
-    AWS_ACCESS_KEY_ID(mandatory for aws) = "AKIAIOSFODNN7EXAMPLE"
+```
+ACTION_TOKEN(mandatory) = "ghp_xxxxxxxxxx"
+````    
 
-    AWS_SECRET_ACCESS_KEY(mandatory for aws) = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+````    
+AWS_ACCESS_KEY_ID(mandatory for aws) = "AKIAIOSFODNN7EXAMPLE"
+````
+````
+AWS_SECRET_ACCESS_KEY(mandatory for aws) = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+````
+````
+AZURE_CREDENTIALS(mandatory for azure) = "d8er22sc-0000-5esd-be90-example"
+````
+````
+DOCKERHUB_TOKEN(mandatory) = "dckr_pat_example-example"
+````
+````
+DOCKERHUB_USER(mandatory) = "yourname"
+````
+````
+GCP_PROJECT_ID(mandatory for gcp) = "something-something"
+````
+````
+GOOGLE_CREDS_JSON(mandatory for gcp) = "{gcp_service_account json}"
+````
+````
+MONGO_PASSWORD(optional) = "mongopassword"
+````
+````
+MONGO_URL(optional) = "mongourl"
+````
+````
+MONGO_USER(optional) = "mongouser"
+````
 
-    AZURE_CREDENTIALS(mandatory for azure) = "d8er22sc-0000-5esd-be90-example"
+![](documentation/github_actions_secrets.png)
 
-    DOCKERHUB_TOKEN(mandatory) = "dckr_pat_example-example"
-
-    DOCKERHUB_USER(mandatory) = "yourname"
-
-    GCP_PROJECT_ID(mandatory for gcp) = "something-something"
-
-    GOOGLE_CREDS_JSON(mandatory for gcp) = "{gcp_service_account json}"
-
-    MONGO_PASSWORD(optional) = "mongopassword"
-
-    MONGO_URL(optional) = "mongourl"
-
-    MONGO_USER(optional) = "mongouser"
-
-
-## UI Overview
+### UI Overview
 Short Video Demo:
 
 
