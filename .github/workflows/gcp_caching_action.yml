@@ -25,10 +25,8 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
         run: gcloud info
-      - name: Installing GCloud and Helm
+      - name: Installing GCloud
         run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          which helm >> /tmp/helm_path
           export KUBECONFIG=/tmp/kubeconfig
           gcloud container images list
           gcloud components install beta --quiet
@@ -50,7 +48,6 @@ jobs:
           MONGO_URL: ${{ secrets.MONGO_URL }}
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.

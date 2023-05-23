@@ -156,7 +156,10 @@ def fetch_vcpus_for_machine_types(machine_types_list, requested_machine_type):
 
 def main(gcp_credentials: str):
     logger.info(f'Starting the caching flow with {gcp_credentials} credentials')
+    print(f'Starting the caching flow with {gcp_credentials} credentials')
     if gcp_credentials:
+        print('gcp credentials were found')
+        print('trying to create files')
         if not os.path.exists(FETCHED_CREDENTIALS_DIR_PATH):
             os.makedirs(FETCHED_CREDENTIALS_DIR_PATH)
         f = open(FETCHED_CREDENTIALS_FILE_PATH, 'a')
@@ -167,10 +170,13 @@ def main(gcp_credentials: str):
         sys.exit(0)
     try:
         logger.info('Attempting to fetch zones')
+        print('Attempting to fetch zones')
         zones_list = fetch_zones()
         logger.info('Attempting to fetch regions')
+        print('Attempting to fetch regions')
         regions_list = fetch_regions()
         logger.info('Attempting to fetch gke_image_types')
+        print('Attempting to fetch gke_image_types')
         gke_image_types = fetch_gke_image_types(zones_list=zones_list)
         logger.info('Attempting to fetch versions_list')
         versions_list = fetch_versions(zones_list=zones_list)
