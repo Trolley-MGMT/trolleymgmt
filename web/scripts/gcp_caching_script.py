@@ -64,10 +64,13 @@ try:
     with open(CREDENTIALS_PATH, "r") as f:
         credentials = f.read()
         logging.info(f'The credentials content is: {credentials}')
+        print(f'The credentials content is: {credentials}')
         GCP_PROJECT_ID = json.loads(credentials)['project_id']
         logger.info(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
+        print(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
 except Exception as e:
     logger.info('Problem extracting GCP_PROJECT_ID parameter')
+    print('Problem extracting GCP_PROJECT_ID parameter')
 
 try:
     credentials = service_account.Credentials.from_service_account_file(
@@ -75,6 +78,8 @@ try:
     service = discovery.build('container', 'v1', credentials=credentials)
 except Exception as e:
     logger.info(f'Credentials were not provided with a file')
+    print(f'Credentials were not provided with a file')
+
 
 
 def fetch_zones() -> list:
@@ -210,4 +215,5 @@ if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--credentials', type=str, help='GCP Credentials')
     args = parser.parse_args()
+    print(f'The content of credentials is: {args.credentials}')
     main(args.credentials)
