@@ -43,17 +43,21 @@ load_dotenv(os.path.join(project_folder, '.env'))
 logger.info(f'project_folder is: {project_folder}')
 
 LOCAL_USER = gt.getuser()
+GITHUB_ACTIONS_ENV = os.getenv('GITHUB_ACTIONS_ENV')
 
 if 'Darwin' in platform.system():
     CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
     FETCHED_CREDENTIALS_DIR_PATH = f'/Users/{LOCAL_USER}/.gcp/fetched_credentials'
     FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
 else:
-    GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
-    CREDENTIALS_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
-    logger.info(f'CREDENTIALS_PATH is: {CREDENTIALS_PATH}')
-    FETCHED_CREDENTIALS_DIR_PATH = f'/app/.gcp'
-    FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/gcp_credentials.json'
+    if GITHUB_ACTIONS_ENV:
+        FETCHED_CREDENTIALS_FILE_PATH = '/home/runner/work/gcp_credentials.json'
+    else:
+        GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
+        CREDENTIALS_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
+        logger.info(f'CREDENTIALS_PATH is: {CREDENTIALS_PATH}')
+        FETCHED_CREDENTIALS_DIR_PATH = f'/app/.gcp'
+        FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/gcp_credentials.json'
 
 # GCP_PROJECT_ID = 'trolley-361905'
 try:
@@ -167,7 +171,7 @@ def main(gcp_credentials: str):
         f.close()
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = FETCHED_CREDENTIALS_FILE_PATH
     else:
-        sys.exit(0)
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = FETCHED_CREDENTIALS_FILE_PATH
     try:
         logger.info('Attempting to fetch zones')
         print('Attempting to fetch zones')

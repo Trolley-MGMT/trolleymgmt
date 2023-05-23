@@ -48,6 +48,7 @@ jobs:
           MONGO_URL: ${{ secrets.MONGO_URL }}
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+          GITHUB_ACTIONS_ENV: Yes
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
