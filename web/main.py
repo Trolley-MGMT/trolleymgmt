@@ -54,7 +54,7 @@ from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
     ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-    NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY
+    NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID
 
 from mail_handler import MailSender
 from utils import random_string, apply_yaml
@@ -155,11 +155,13 @@ def encode_provider_details(content: dict) -> ProviderObject:
     encoded_aws_access_key_id = crypter.encrypt(str.encode(content['aws_access_key_id']))
     encoded_aws_secret_access_key = crypter.encrypt(str.encode(content['aws_secret_access_key']))
     encoded_google_creds_json = crypter.encrypt(str.encode(content['google_creds_json']))
+    encoded_gcp_project_id = crypter.encrypt(str.encode(content['gcp_project_id']))
     encoded_azure_credentials = crypter.encrypt(str.encode(content['azure_credentials']))
     provider_object = ProviderObject(provider=content[PROVIDER], aws_access_key_id=encoded_aws_access_key_id,
                                      aws_secret_access_key=encoded_aws_secret_access_key,
                                      azure_credentials=encoded_azure_credentials,
                                      google_creds_json=encoded_google_creds_json, user_email=content['user_email'],
+                                     gcp_project_id=encoded_gcp_project_id,
                                      created_timestamp=int(time.time()))
     return provider_object
 
@@ -390,6 +392,8 @@ def trigger_gke_deployment():
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     user_name = content['user_name']
     cluster_name = f'{user_name}-{GKE}-{random_string(8)}'
+    gcp_project_id = json.loads(content['google_creds_json'])['project_id']
+    content[GCP_PROJECT_ID] = gcp_project_id
     content['cluster_name'] = cluster_name
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_gke_build_github_action():
@@ -543,10 +547,13 @@ def settings():
 
         # TODO find a better way to implement
         if validate_provider_data(content):
+            if content[PROVIDER] == GCP:
+                credentials = content['google_creds_json']
+                gcp_project_id = json.loads(credentials)['project_id']
+                content[GCP_PROJECT_ID] = gcp_project_id
             encoded_provider_details = encode_provider_details(content)
             if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
                 if content['google_creds_json']:
-                    credentials = content['google_creds_json']
                     Thread(target=gcp_caching_script.main, args=(credentials, )).start()
                 if content['aws_access_key_id'] and content['aws_secret_access_key']:
                     aws_access_key_id = content['aws_access_key_id']

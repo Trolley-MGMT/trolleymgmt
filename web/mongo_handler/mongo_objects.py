@@ -26,6 +26,7 @@ class ProviderObject:
     aws_secret_access_key: bytes
     azure_credentials: bytes
     google_creds_json: bytes
+    gcp_project_id: bytes
     user_email: str
     created_timestamp: int
 

@@ -87,28 +87,6 @@ $(document).ready(function() {
         console.log("sdf")
     }
 
-//    if (debug === true) {
-//        trolley_url = trolley_local_url;
-//        gitBranch = 'master'
-//        http = 'http://'
-//    } else {
-//        trolley_url = trolley_remote_url
-//        gitBranch = 'master'
-//        http = 'https://'
-//    }
-
-//    store_settings();
-//    var settingsData = window.localStorage.getItem("settings");
-//    var settingsDataArray = JSON.parse(settingsData)
-//    if (!isEmpty(settingsDataArray)) {
-//        var githubRepository = settingsDataArray[0].github_repository
-//        var githubActionsToken = settingsDataArray[0].github_actions_token
-//        var awsAccessKeyId = settingsDataArray[0].aws_access_key_id
-//        var awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
-//        var azureCredentials = settingsDataArray[0].azure_credentials
-//        var googleCredsJson = settingsDataArray[0].google_creds_json
-//    }
-
     try {
         store_client_names()
     } catch {
@@ -406,10 +384,6 @@ $(document).ready(function() {
         populate_client_names();
         populate_kubernetes_agent_data();
     }
-
-    //    if (queryPage) {
-    //        populate_kubernetes_agent_data();
-    //    }
 
     if (settingsPage) {
         populate_settings();

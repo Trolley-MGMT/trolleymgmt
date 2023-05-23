@@ -50,11 +50,11 @@ else:
 
 
 class ClusterOperation:
-    def __init__(self, provider: str = "", user_email: str = "", github_actions_token: str = "", github_repository: str = "", user_name: str = "",
-                 cluster_name: str = "",
+    def __init__(self, provider: str = "", user_email: str = "", github_actions_token: str = "",
+                 github_repository: str = "", user_name: str = "", cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
-                 region_name: str = "", zone_name: str = "", gke_region: str = "", gke_zone: str = "",
-                 eks_subnets: str = "", eks_location: str = "", eks_zones: str = "",
+                 region_name: str = "", zone_name: str = "", gcp_project_id: str = "", gke_region: str = "",
+                 gke_zone: str = "", eks_subnets: str = "", eks_location: str = "", eks_zones: str = "",
                  num_nodes: int = "", image_type: str = "", expiration_time: int = 0, discovered: bool = False,
                  mongo_url: str = "", mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = "",
                  aws_access_key_id: str = "", aws_secret_access_key: str = "", google_creds_json: str = "",
@@ -77,6 +77,7 @@ class ClusterOperation:
         self.region_name = region_name
         self.zone_name = zone_name
         self.eks_subnets = eks_subnets
+        self.gcp_project_id = gcp_project_id
         self.gke_region = gke_region
         self.gke_zone = gke_zone
         self.eks_zones = eks_zones
@@ -119,7 +120,8 @@ class ClusterOperation:
     def trigger_gke_build_github_action(self) -> bool:
         json_data = {
             "event_type": "gke-build-api-trigger",
-            "client_payload": {"cluster_name": self.cluster_name,
+            "client_payload": {"gcp_project_id": self.gcp_project_id,
+                               "cluster_name": self.cluster_name,
                                "user_name": self.user_name,
                                "cluster_version": self.cluster_version,
                                "region_name": self.gke_region,

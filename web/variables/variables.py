@@ -22,6 +22,7 @@ FILE = 'file'
 BUCKET = 'bucket'
 
 # providers
+GCP_PROJECT_ID = 'gcp_project_id'
 PROVIDER = 'provider'
 AWS = 'aws'
 GCP = 'gcp'
