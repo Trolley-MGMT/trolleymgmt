@@ -3,8 +3,15 @@ import os
 import random
 import string
 
-from web.mongo_handler.mongo_utils import retrieve_cluster_details, retrieve_deployment_yaml
-from web.variables.variables import KUBECONFIG
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+
+
+if DOCKER_ENV:
+    from mongo_handler.mongo_utils import retrieve_cluster_details, retrieve_deployment_yaml
+    from variables.variables import KUBECONFIG
+else:
+    from web.mongo_handler.mongo_utils import retrieve_cluster_details, retrieve_deployment_yaml
+    from web.variables.variables import KUBECONFIG
 
 from kubernetes import client, config, utils
 from kubernetes.client import ApiException

@@ -155,13 +155,13 @@ def encode_provider_details(content: dict) -> ProviderObject:
     encoded_aws_access_key_id = crypter.encrypt(str.encode(content['aws_access_key_id']))
     encoded_aws_secret_access_key = crypter.encrypt(str.encode(content['aws_secret_access_key']))
     encoded_google_creds_json = crypter.encrypt(str.encode(content['google_creds_json']))
-    encoded_gcp_project_id = crypter.encrypt(str.encode(content['gcp_project_id']))
+    # encoded_gcp_project_id = crypter.encrypt(str.encode(content['gcp_project_id']))
     encoded_azure_credentials = crypter.encrypt(str.encode(content['azure_credentials']))
     provider_object = ProviderObject(provider=content[PROVIDER], aws_access_key_id=encoded_aws_access_key_id,
                                      aws_secret_access_key=encoded_aws_secret_access_key,
                                      azure_credentials=encoded_azure_credentials,
                                      google_creds_json=encoded_google_creds_json, user_email=content['user_email'],
-                                     gcp_project_id=encoded_gcp_project_id,
+                                     # gcp_project_id=encoded_gcp_project_id,
                                      created_timestamp=int(time.time()))
     return provider_object
 
