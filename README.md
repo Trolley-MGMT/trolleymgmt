@@ -134,7 +134,7 @@ This is the Login menu that will allow the users to login to the system
 
 Under the Settings menu we have an option to add credentials of the cloud provider we want to work with and for our forked repository.
 
-![](documentation/aws-settings.png)
+![](documentation/aws_settings.png)
 ![](documentation/gcp-settings.png)
 ![](documentation/azure-settings.png)
 
@@ -160,6 +160,18 @@ The server address is an external IP/URL that runs your Trolley Server. You can 
 ![](documentation/cluster_additional_info.png)
 Clicking on More Info will fetch you more information
 The project is still at a very early stage and would appreciate any contributions and feedback.  
+
+### Managing Users
+![](documentation/manage_users.png)
+![](documentation/add_user.png)
+
+### Managing Teams
+![](documentation/manage_teams.png)
+![](documentation/add_team.png)
+
+### Managing Clients
+![](documentation/manage_clients.png)
+![](documentation/add_client.png)
 
 ### Clients/Users/Teams management TBD
 ### Billing Dashboards TBD
