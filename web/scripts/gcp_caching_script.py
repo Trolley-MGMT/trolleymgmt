@@ -78,7 +78,8 @@ except Exception as e:
 
 
 def fetch_zones() -> list:
-    logger.info(f'A request to fetch zones has arrived')
+    logger.info(f'A request to fetch zones has arrived for {GCP_PROJECT_ID} project_id')
+    print(f'A request to fetch zones has arrived for {GCP_PROJECT_ID} project_id')
     compute_zones_client = ZonesClient()
     zones_object = compute_zones_client.list(project=GCP_PROJECT_ID)
     zones_list = []
