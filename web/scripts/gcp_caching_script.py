@@ -1,7 +1,7 @@
+import json
 import logging
 import os
 import platform
-import sys
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from dataclasses import asdict
 import getpass as gt
@@ -66,6 +66,10 @@ try:
         credentials = f.read()
         logging.info(f'The credentials content is: {credentials}')
         print(f'The credentials content is: {credentials}')
+        print(json.loads(credentials))
+        print(json.loads(credentials)['client_id'])
+        print(json.loads(credentials)['client_email'])
+        print(json.loads(credentials)['project_id'])
         GCP_PROJECT_ID = json.loads(credentials)['project_id']
         logger.info(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
         print(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
