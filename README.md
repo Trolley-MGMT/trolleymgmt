@@ -45,7 +45,7 @@ Set your Environment Variables menu the following:
 SECRET_KEY=<44_chars_binary>;GITHUB_ACTION_TOKEN=ghp_<token>;GITHUB_REPOSITORY=Trolley-MGMT/Trolley-Management;KUBECONFIG=/Users/<your_user>/.kube/config_temp;MONGO_PASSWORD=<mongo_password>;MONGO_URL=<mongo_url>;MONGO_USER=<mongo_user>;PROJECT_NAME=trolley
 ```
 
-The used parameters are:
+## The parameters are:
 
 ### General Trolley parameters
 ```
@@ -65,10 +65,11 @@ KUBECONFIG(str): Default location of your kubeconfig file with the build Kuberne
 
 ````
 MONGO_URL: str The URL for the Mongo installation. This can be either a local installation
-String example: localhost
-Or a Atlas DB installation:  
-String example: trolley-fork.something.mongodb.net
 ````
+String example: localhost
+Or with an Atlas DB installation:  
+String example: trolley-fork.something.mongodb.net
+
 More info here: [Atlas DB Tutorial](https://www.mongodb.com/basics/mongodb-atlas-tutorial)
 ````
 MONGO_PASSWORD(str): Mongo DB Password
@@ -76,6 +77,21 @@ MONGO_PASSWORD(str): Mongo DB Password
 ````
 MONGO_USER(str): Mongo DB User
 ````
+
+### Email parameters
+For registrations and alerting we need access to a mail server. 
+I personally use a custom gmail account that takes care of it but any other email provider should do the trick just fine
+
+
+````
+GMAIL_USER(str): youruser@gmail.com
+````
+````
+GMAIL_PASSWORD(str): yourpassword
+````
+
+
+
 
 7. To run the app in your IDE just set the script path to web/main.py and it should work from there
 
@@ -96,38 +112,38 @@ In order to work with them properly we will need to pass AWS/GCP/Azure/Mongo rel
 Here are the parameters:
 
 ```
-ACTION_TOKEN(mandatory) = "ghp_xxxxxxxxxx"
+ACTION_TOKEN(mandatory): "ghp_xxxxxxxxxx"
 ````    
 
 ````    
-AWS_ACCESS_KEY_ID(mandatory for aws) = "AKIAIOSFODNN7EXAMPLE"
+AWS_ACCESS_KEY_ID(mandatory for aws): "AKIAIOSFODNN7EXAMPLE"
 ````
 ````
-AWS_SECRET_ACCESS_KEY(mandatory for aws) = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+AWS_SECRET_ACCESS_KEY(mandatory for aws): "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 ````
 ````
-AZURE_CREDENTIALS(mandatory for azure) = "d8er22sc-0000-5esd-be90-example"
+AZURE_CREDENTIALS(mandatory for azure): "d8er22sc-0000-5esd-be90-example"
 ````
 ````
-DOCKERHUB_TOKEN(mandatory) = "dckr_pat_example-example"
+DOCKERHUB_TOKEN(mandatory): "dckr_pat_example-example"
 ````
 ````
-DOCKERHUB_USER(mandatory) = "yourname"
+DOCKERHUB_USER(mandatory): "yourname"
 ````
 ````
-GCP_PROJECT_ID(mandatory for gcp) = "something-something"
+GCP_PROJECT_ID(mandatory for gcp): "something-something"
 ````
 ````
-GOOGLE_CREDS_JSON(mandatory for gcp) = "{gcp_service_account json}"
+GOOGLE_CREDS_JSON(mandatory for gcp): "{gcp_service_account json}"
 ````
 ````
-MONGO_PASSWORD(optional) = "mongopassword"
+MONGO_PASSWORD(optional): "mongopassword"
 ````
 ````
-MONGO_URL(optional) = "mongourl"
+MONGO_URL(optional): "mongourl"
 ````
 ````
-MONGO_USER(optional) = "mongouser"
+MONGO_USER(optional): "mongouser"
 ````
 
 ![](documentation/github_actions_secrets.png)
