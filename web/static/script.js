@@ -309,6 +309,8 @@ $(document).ready(function() {
 
     if (buildPage) {
         populate_regions();
+        $("#gke-machines-series-dropdown").append($("<option />").val('e2').text('e2'));
+        populate_machine_types('e2');
     }
 
     if (usersPage) {
@@ -407,6 +409,7 @@ $(document).ready(function() {
         EKSKubernetesVersion = $('#eks-versions-dropdown').val();
         GKEKubernetesVersion = $('#gke-versions-dropdown').val();
         GKEImageType = $('#gke-image-types-dropdown').val();
+        GKEMachineType = $('#gke-machines-types-dropdown').val();
 
         AKSExpirationTime = $('#aks-expiration-time').val();
         EKSExpirationTime = $('#eks-expiration-time').val();
@@ -457,6 +460,7 @@ $(document).ready(function() {
             var trigger_gke_deployment_data = JSON.stringify({
             "cluster_type": 'gke',
             "user_name": userName,
+            "gke_machine_type": GKEMachineType,
             "num_nodes": GKENodesAmount,
             "cluster_version": GKEKubernetesVersion,
             "image_type": GKEImageType,
@@ -1756,6 +1760,7 @@ $(document).ready(function() {
                         } else if (clusterType == 'gke') {
                             $.each(response, function(key, value) {
                                 $dropdown.append($("<option />").val(value).text(value));
+                                populate_machine_series(value)
                             });
                             populate_kubernetes_versions('asia-east1-b')
                             populate_kubernetes_image_types('asia-east1-b')
@@ -1831,6 +1836,62 @@ $(document).ready(function() {
                 },
                 error: function(error) {
                     alert("Failure fetching VPCs names data")
+                },
+            })
+        })
+    }
+
+    function populate_machine_series(selected_zone) {
+        if (clusterType == 'gke') {
+            var $dropdown = $("#gke-machines-series-dropdown");
+        } else if (clusterType == 'eks') {
+            var $dropdown = $("#eks-vpcs-dropdown");
+        }
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/fetch_machine_series?region_name=" + selected_zone + "&cluster_type=" + clusterType,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        default_machine_series = 'e2';
+                        default_machine_type = 'e2-medium';
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+
+                        });
+                        $dropdown.val(default_machine_series)
+                        populate_machine_types(default_machine_series)
+                        $("#gke-machines-types-dropdown").val(default_machine_type);
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    alert("Failure fetching machine series data")
+                },
+            })
+        })
+    }
+
+    function populate_machine_types(selected_machine_series) {
+        if (clusterType == 'gke') {
+            var $dropdown = $("#gke-machines-types-dropdown");
+        } else if (clusterType == 'eks') {
+            var $dropdown = $("#eks-machines-types-dropdown");
+        }
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: http + trolley_url + "/fetch_machine_types?machine_series=" + selected_machine_series + "&cluster_type=" + clusterType,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+                        });
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    alert("Failure fetching machine types data")
                 },
             })
         })
@@ -2067,8 +2128,20 @@ $(document).ready(function() {
     $('#gke-zones-dropdown').change(function() {
         var gke_zones = $('#gke-zones-dropdown').val();
         $("#gke-versions-dropdown").empty();
+        $("#gke-image-types-dropdown").empty();
+        $("#gke-machines-series-dropdown").empty();
+        $("#gke-machines-types-dropdown").empty();
         populate_kubernetes_versions(gke_zones);
         populate_kubernetes_image_types(gke_zones);
+        populate_machine_series(gke_zones);
+        populate_machine_types("e2");
+        $("#gke-machines-types-dropdown").val("e2-small");
+    })
+
+    $('#gke-machines-series-dropdown').change(function() {
+        var gke_machine_series = $('#gke-machines-series-dropdown').val();
+        $("#gke-machines-types-dropdown").empty();
+        populate_machine_types(gke_machine_series);
     })
 
     $('#filter-type-dropdown').change(function() {

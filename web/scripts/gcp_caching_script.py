@@ -31,11 +31,13 @@ logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 
 if DOCKER_ENV:
     from mongo_handler.mongo_utils import insert_cache_object
-    from mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, GKEMachinesCacheObject
+    from mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, \
+        GKESeriesAndMachineTypesObject, GKEZonesAndMachineSeriesObject, GKEMachinesCacheObject
     from variables.variables import GKE
 else:
     from web.mongo_handler.mongo_utils import insert_cache_object
-    from web.mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, GKEMachinesCacheObject
+    from web.mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, \
+        GKESeriesAndMachineTypesObject, GKEZonesAndMachineSeriesObject, GKEMachinesCacheObject
     from web.variables.variables import GKE
 
 project_folder = os.path.expanduser(os.getcwd())
@@ -135,7 +137,7 @@ def create_regions_and_zones_dict(regions_list, zones_list):
     return zones_regions_dict
 
 
-def fetch_machine_types(zones_list) -> dict:
+def fetch_machine_types_per_zone(zones_list) -> dict:
     logger.info(f'A request to fetch machine types has arrived')
     service = discovery.build('compute', 'beta', credentials=credentials)
     machine_types_list = []
@@ -144,7 +146,10 @@ def fetch_machine_types(zones_list) -> dict:
         request = service.machineTypes().list(project=GCP_PROJECT_ID, zone=zone)
         response = request.execute()
         for machine in response['items']:
-            machine_type_object = GKEMachineTypeObject(machine_type=machine['name'], vCPU=machine['guestCpus'],
+            machine_type_object = GKEMachineTypeObject(zone=zone,
+                                                       machine_type=machine['name'],
+                                                       machine_series=machine['name'].split('-')[0],
+                                                       vCPU=machine['guestCpus'],
                                                        memory=machine['memoryMb'])
             machine_types_list.append(machine_type_object)
         machines_for_zone_dict[zone] = machine_types_list
@@ -167,7 +172,7 @@ def main(gcp_credentials: str):
         f.close()
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = FETCHED_CREDENTIALS_FILE_PATH
     else:
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = FETCHED_CREDENTIALS_FILE_PATH
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = CREDENTIALS_PATH
     try:
         logger.info('Attempting to fetch zones')
         zones_list = fetch_zones()
@@ -178,14 +183,16 @@ def main(gcp_credentials: str):
         logger.info('Attempting to fetch versions_list')
         versions_list = fetch_versions(zones_list=zones_list)
         zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
-        logger.info('Attempting to fetch machine_types_all_regions')
-        machine_types_all_regions = fetch_machine_types(zones_list)
-        for machine_types_region in machine_types_all_regions:
+        logger.info('Attempting to fetch machine_types_all_zones')
+        machine_types_all_zones = fetch_machine_types_per_zone(zones_list)
+        for zone in machine_types_all_zones:
             gke_machines_caching_object = GKEMachinesCacheObject(
-                region=machine_types_region,
-                machines_list=machine_types_all_regions[machine_types_region]
+                region=zone,
+                machines_list=machine_types_all_zones[zone]
             )
             insert_cache_object(caching_object=asdict(gke_machines_caching_object), provider=GKE, machine_types=True)
+
+        # Inserting a whole GKE Cache Object
         gke_caching_object = GKECacheObject(
             zones_list=zones_list,
             versions_list=versions_list,
@@ -193,7 +200,49 @@ def main(gcp_credentials: str):
             gke_image_types=gke_image_types,
             regions_zones_dict=zones_regions_dict)
         logger.info('Attempting to insert a GKE cache object')
-        insert_cache_object(caching_object=asdict(gke_caching_object), provider=GKE)
+        insert_cache_object(caching_object=asdict(gke_caching_object), provider=GKE, gke_full_cache=True)
+
+        # Inserting a GKE Zones and Machine Series Object
+        series_list = []
+        for zone in machine_types_all_zones:
+            for machine_type in machine_types_all_zones[zone]:
+                if not machine_type.machine_series in series_list:
+                    series_list.append(machine_type.machine_series)
+
+            gke_zones_and_machine_series_object = GKEZonesAndMachineSeriesObject(
+                zone=zone,
+                series_list=series_list
+            )
+            insert_cache_object(caching_object=asdict(gke_zones_and_machine_series_object), provider=GKE,
+                                gke_zones_and_series=True)
+
+        # Inserting a GKE Series and Machine Types Object
+        machines_series_list = []
+        for zone in machine_types_all_zones:
+            for machine_type in machine_types_all_zones[zone]:
+                if machine_type.machine_series not in machines_series_list:
+                    machines_series_list.append(machine_type.machine_series)
+
+        series_and_machine_types_dict = {}
+        for zone in machine_types_all_zones:
+            for machine_series in machines_series_list:
+                for machine_type in machine_types_all_zones[zone]:
+                    if machine_series not in series_and_machine_types_dict.keys():
+                        if machine_type.machine_series == machine_series:
+                            series_and_machine_types_dict[machine_series] = [machine_type.machine_type]
+                    else:
+                        if machine_type.machine_series == machine_series:
+                            if machine_type.machine_type not in series_and_machine_types_dict[machine_series]:
+                                series_and_machine_types_dict[machine_series].append(machine_type.machine_type)
+        for machine_series in series_and_machine_types_dict:
+            gke_series_and_machine_types_object = GKESeriesAndMachineTypesObject(
+                machine_series=machine_series,
+                machines_list=series_and_machine_types_dict[machine_series]
+            )
+            insert_cache_object(caching_object=asdict(gke_series_and_machine_types_object), provider=GKE,
+                                gke_series_and_machine_types=True)
+
+
     except Exception as e:
         logger.info(f'Trouble connecting to GCP: {e}')
 

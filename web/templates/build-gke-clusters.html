@@ -17,6 +17,7 @@
     <script>
       var data = {{ data|tojson }};
 
+
     </script>
 </head>
 
@@ -112,19 +113,19 @@
                             </p>
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item" style="display: none;" id="build-aks-clusters-div" >
+                            <li class="nav-item" style="display: none;" id="build-aks-clusters-div">
                                 <a href="build-aks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="build-eks-clusters-div" >
+                            <li class="nav-item" style="display: none;" id="build-eks-clusters-div">
                                 <a href="build-eks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>EKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="build-gke-clusters-div" >
+                            <li class="nav-item" style="display: none;" id="build-gke-clusters-div">
                                 <a href="build-gke-clusters" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
@@ -141,19 +142,19 @@
                             </p>
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item" style="display: none;" id="manage-aks-clusters-div" >
+                            <li class="nav-item" style="display: none;" id="manage-aks-clusters-div">
                                 <a href="manage-aks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-eks-clusters-div" >
+                            <li class="nav-item" style="display: none;" id="manage-eks-clusters-div">
                                 <a href="manage-eks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>EKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-gke-clusters-div" >
+                            <li class="nav-item" style="display: none;" id="manage-gke-clusters-div">
                                 <a href="manage-gke-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
@@ -348,15 +349,22 @@
                         </select>
                     </div>
                 </div>
-                <!--                <div class="col-lg-4 align-content-lg-center">-->
-                <!--                    &lt;!&ndash; select &ndash;&gt;-->
-                <!--                    <div class="form-group">-->
-                <!--                        <label>Select Helm Installations</label>-->
-                <!--                        <br>-->
-                <!--                        <select class="col-lg-8 align-content-lg-center" multiple id="helm-installs-dropdown">-->
-                <!--                        </select>-->
-                <!--                    </div>-->
-                <!--                </div>-->
+                <div class="col-lg-4 align-content-lg-center">
+                    <div class="form-group">
+                        <label>Select Machine Series</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" id="gke-machines-series-dropdown">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-4 align-content-lg-center">
+                    <div class="form-group">
+                        <label>Select Machine Type</label>
+                        <br>
+                        <select class="col-lg-8 align-content-lg-center" id="gke-machines-types-dropdown">
+                        </select>
+                    </div>
+                </div>
                 <div class="col-lg-2 align-content-lg-center">
                     <!-- select -->
                     <div class="form-group">

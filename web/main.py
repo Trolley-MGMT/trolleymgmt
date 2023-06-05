@@ -45,7 +45,6 @@ logger.info(f'project_folder is: {project_folder}')
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 
-
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 import mongo_handler.mongo_utils
 from cluster_operations import ClusterOperation
@@ -554,7 +553,7 @@ def settings():
             encoded_provider_details = encode_provider_details(content)
             if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
                 if content['google_creds_json']:
-                    Thread(target=gcp_caching_script.main, args=(credentials, )).start()
+                    Thread(target=gcp_caching_script.main, args=(credentials,)).start()
                 if content['aws_access_key_id'] and content['aws_secret_access_key']:
                     aws_access_key_id = content['aws_access_key_id']
                     aws_secret_access_key = content['aws_secret_access_key']
@@ -761,6 +760,28 @@ def fetch_regions():
         return jsonify("Regions data was not found"), 400
     else:
         return jsonify(regions), 200
+
+
+@app.route('/fetch_machine_series', methods=[GET])
+@login_required
+def fetch_machine_series():
+    cluster_type = request.args.get(CLUSTER_TYPE)
+    region_name = request.args.get(REGION_NAME.lower())
+    logger.info(f'A request to fetch machine series for {cluster_type} has arrived')
+    machine_series = mongo_handler.mongo_utils.retrieve_machine_series(region_name=region_name,
+                                                                       cluster_type=cluster_type)
+    return jsonify(machine_series)
+
+
+@app.route('/fetch_machine_types', methods=[GET])
+@login_required
+def fetch_machine_types():
+    cluster_type = request.args.get(CLUSTER_TYPE)
+    machine_series = request.args.get('machine_series')
+    logger.info(f'A request to fetch machine types for {cluster_type} has arrived')
+    machine_types = mongo_handler.mongo_utils.retrieve_machine_types(machine_series=machine_series,
+                                                                     cluster_type=cluster_type)
+    return jsonify(machine_types)
 
 
 @app.route('/fetch_zones', methods=[GET])

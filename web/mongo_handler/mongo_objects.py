@@ -130,13 +130,6 @@ class AKSObject:
 
 
 @dataclass
-class GKEMachineTypeObject:
-    machine_type: str
-    vCPU: int
-    memory: int
-
-
-@dataclass
 class EKSMachineTypeObject:
     machine_type: str
     vCPU: int
@@ -156,6 +149,33 @@ class GKECacheObject:
 class GKEMachinesCacheObject:
     region: str
     machines_list: list
+
+
+@dataclass
+class GKEMachineTypeObject:
+    zone: str
+    machine_series: str
+    machine_type: str
+    vCPU: int
+    memory: int
+
+
+@dataclass
+class GKESeriesAndMachineTypesObject:
+    machine_series: str
+    machines_list: list
+
+
+@dataclass
+class GKEZonesAndMachineSeriesObject:
+    zone: str
+    series_list: list
+
+
+@dataclass
+class GKEMachinesSeriesObject:
+    zone: str
+    machines_series_list: list
 
 
 @dataclass

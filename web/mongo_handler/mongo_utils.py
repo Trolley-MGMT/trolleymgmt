@@ -18,7 +18,6 @@ if DOCKER_ENV:
 else:
     log_file_path = f'{os.getcwd()}/{log_file_name}'
 
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -99,6 +98,10 @@ deployment_yamls: Collection = db.deployment_yamls
 aks_cache: Collection = db.aks_cache
 gke_cache: Collection = db.gke_cache
 gke_machines_cache: Collection = db.gke_machines_cache
+gke_machines_types_cache: Collection = db.gke_machines_types_cache
+gke_machines_series_cache: Collection = db.gke_machines_series_cache
+gke_zones_and_series_cache: Collection = db.gke_zones_and_series_cache
+gke_series_and_machine_types_cache: Collection = db.gke_series_and_machine_types_cache
 helm_cache: Collection = db.helm_cache
 aws_cache: Collection = db.aws_cache
 
@@ -363,11 +366,17 @@ def retrieve_expired_clusters(cluster_type: str) -> list:
     return expired_clusters_list
 
 
-def insert_cache_object(caching_object: dict = None, provider: str = None, machine_types: bool = False) -> bool:
+def insert_cache_object(caching_object: dict = None, provider: str = None, machine_types: bool = False,
+                        gke_full_cache: bool = False, gke_machine_series: bool = False,
+                        gke_series_and_machine_types: bool = False,
+                        gke_zones_and_series: bool = False) -> bool:
     """
     @param caching_object: The dictionary with all the cluster data.
     @param provider: The dictionary with all the cluster data.
-    @param machine_types: The list of all the available machines
+    @param gke_full_cache: The full GKE cache
+    @param gke_machine_series: The list of all the available machine series
+    @param gke_series_and_machine_types: The list of all the available machine types per machine series
+    @param gke_zones_and_series: The list of all the available zones and the available machine series
     """
     logger.info(f'inserting cache_object of {provider} provider')
     if provider == GKE:
@@ -388,7 +397,7 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             except:
                 logger.error('failure to insert data into gke_machines_cache table')
                 return False
-        else:
+        elif gke_full_cache:
             gke_cache.drop()
             try:
                 mongo_response = gke_cache.insert_one(caching_object)
@@ -398,6 +407,56 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             except:
                 logger.error('failure to insert data into gke_cache table')
                 return False
+        if gke_series_and_machine_types:
+            try:
+                myquery = {'series': caching_object['machine_series']}
+                if gke_series_and_machine_types_cache.find_one(myquery):
+                    newvalues = {"$set": {'series': caching_object['machine_series'],
+                                          'machines_list': caching_object['machines_list']}}
+                    mongo_response = gke_series_and_machine_types_cache.update_one(myquery, newvalues)
+                    logger.info(mongo_response.acknowledged)
+                else:
+                    mongo_response = gke_series_and_machine_types_cache.insert_one(caching_object)
+                    logger.info(mongo_response.acknowledged)
+                return True
+            except:
+                logger.error('failure to insert data into gke_series_and_machine_types_cache table')
+                return False
+        elif gke_zones_and_series:
+            try:
+                myquery = {'zone': caching_object['zone']}
+                if gke_zones_and_series_cache.find_one(myquery):
+                    newvalues = {"$set": {'zone': caching_object['zone'],
+                                          'series_list': caching_object['series_list']}}
+                    mongo_response = gke_zones_and_series_cache.update_one(myquery, newvalues)
+                    logger.info(mongo_response.acknowledged)
+                else:
+                    mongo_response = gke_zones_and_series_cache.insert_one(caching_object)
+                    logger.info(mongo_response.acknowledged)
+                return True
+            except:
+                logger.error('failure to insert data into gke_zones_and_series_cache table')
+                return False
+        elif gke_machine_series:
+            try:
+                myquery = {"zone": caching_object['zone'], 'machine_type': caching_object}
+                if gke_machines_series_cache.find_one(myquery):
+                    newvalues = {"$set": {'machine_type': caching_object['machine_type'],
+                                          'series_type': caching_object['series_type'],
+                                          'vCPU': caching_object['vCPU'],
+                                          'memory': caching_object['memory'],
+                                          'zone': caching_object['zone']}}
+                    mongo_response = gke_machines_series_cache.update_one(myquery, newvalues)
+                    logger.info(mongo_response.acknowledged)
+                else:
+                    mongo_response = gke_machines_series_cache.insert_one(caching_object)
+                    logger.info(mongo_response.acknowledged)
+                return True
+            except:
+                logger.error('failure to insert data into gke_machines_cache table')
+                return False
+        else:
+            pass
     elif provider == EKS:
         aws_cache.drop()
         try:
@@ -470,10 +529,38 @@ def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
     return cache_object[cache_type]
 
 
+def retrieve_machine_series(region_name: str = '', cluster_type: str = '') -> list:
+    if cluster_type == GKE:
+        mongo_query = {'zone': region_name}
+        machine_series_object = gke_zones_and_series_cache.find_one(mongo_query)
+    elif cluster_type == EKS:
+        pass
+    elif cluster_type == AKS:
+        pass
+    else:
+        mongo_query = {'zone': region_name}
+        machine_series_object = gke_zones_and_series_cache.find_one(mongo_query)
+    return machine_series_object['series_list']
+
+
+def retrieve_machine_types(machine_series: str = '', cluster_type: str = '') -> list:
+    if cluster_type == GKE:
+        mongo_query = {'machine_series': machine_series}
+        machine_types_object = gke_series_and_machine_types_cache.find_one(mongo_query)
+    elif cluster_type == EKS:
+        pass
+    elif cluster_type == AKS:
+        pass
+    else:
+        mongo_query = {'machine_series': machine_series}
+        machine_types_object = gke_series_and_machine_types_cache.find_one(mongo_query)
+    return machine_types_object['machines_list']
+
+
 def retrieve_compute_per_machine_type(provider: str = '', machine_type: str = '', region_name: str = '') -> dict:
     if provider == GKE:
         mongo_query = {'region': region_name}
-        cache_object = gke_machines_cache.find_one(mongo_query)
+        cache_object = gke_machines_types_cache.find_one(mongo_query)
     elif provider == EKS:
         cache_object = aws_cache.find()[0]
     elif provider == AKS:

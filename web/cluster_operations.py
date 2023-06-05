@@ -53,10 +53,11 @@ class ClusterOperation:
     def __init__(self, provider: str = "", user_email: str = "", github_actions_token: str = "",
                  github_repository: str = "", user_name: str = "", cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
-                 region_name: str = "", zone_name: str = "", gcp_project_id: str = "", gke_region: str = "",
-                 gke_zone: str = "", eks_subnets: str = "", eks_location: str = "", eks_zones: str = "",
-                 num_nodes: int = "", image_type: str = "", expiration_time: int = 0, discovered: bool = False,
-                 mongo_url: str = "", mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = "",
+                 region_name: str = "", zone_name: str = "", gcp_project_id: str = "", gke_machine_type: str = "",
+                 gke_region: str = "", gke_zone: str = "", eks_subnets: str = "",
+                 eks_location: str = "", eks_zones: str = "", num_nodes: int = "", image_type: str = "",
+                 expiration_time: int = 0, discovered: bool = False, mongo_url: str = "",
+                 mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = "",
                  aws_access_key_id: str = "", aws_secret_access_key: str = "", google_creds_json: str = "",
                  azure_credentials: str = ""):
         self.mongo_url = mongo_url
@@ -78,6 +79,7 @@ class ClusterOperation:
         self.zone_name = zone_name
         self.eks_subnets = eks_subnets
         self.gcp_project_id = gcp_project_id
+        self.gke_machine_type = gke_machine_type
         self.gke_region = gke_region
         self.gke_zone = gke_zone
         self.eks_zones = eks_zones
@@ -124,6 +126,7 @@ class ClusterOperation:
                                "cluster_name": self.cluster_name,
                                "user_name": self.user_name,
                                "cluster_version": self.cluster_version,
+                               "gke_machine_type": self.gke_machine_type,
                                "region_name": self.gke_region,
                                "zone_name": self.gke_zone,
                                "image_type": self.image_type,
@@ -131,8 +134,12 @@ class ClusterOperation:
                                "google_creds_json": self.google_creds_json,
                                "expiration_time": self.expiration_time}
         }
+        test_json_data = {
+            "name": "Firefox",
+            "url": "http://localhost"
+        }
         response = requests.post(self.github_actions_api_url,
-                                 headers=self.github_action_request_header, json=json_data)
+                                 headers=self.github_action_request_header, json=test_json_data)
         logger.info(f'This is the request response: {response}')
         if response.status_code == 200 or response.status_code == 204:
             return True
