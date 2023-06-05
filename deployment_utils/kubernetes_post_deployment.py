@@ -30,6 +30,7 @@ PROJECT_NAME = os.environ.get('PROJECT_NAME')
 CLUSTER_NAME = os.environ.get('CLUSTER_NAME')
 USER_NAME = os.environ.get('USER_NAME')
 ZONE_NAME = os.environ.get('ZONE_NAME')
+REGION_NAME = os.environ.get('REGION_NAME')
 EXPIRATION_TIME = os.environ.get('EXPIRATION_TIME')
 
 
@@ -109,7 +110,9 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
     if USER_NAME:
         user_name = USER_NAME
     if CLUSTER_NAME:
-        cluster_type = CLUSTER_NAME
+        cluster_name = CLUSTER_NAME
+    if REGION_NAME:
+        region_name = REGION_NAME
     if ZONE_NAME:
         zone_name = ZONE_NAME
     if not kubeconfig_path:
