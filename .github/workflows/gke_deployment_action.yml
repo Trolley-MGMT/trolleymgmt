@@ -72,4 +72,5 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_name $PROJECT_NAME --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_name }} --expiration_time ${{ github.event.client_payload.expiration_time }}
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke
+#          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_name $PROJECT_NAME --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_name }} --expiration_time ${{ github.event.client_payload.expiration_time }}

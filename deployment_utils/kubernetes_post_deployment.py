@@ -26,6 +26,13 @@ MONGO_URL = os.environ['MONGO_URL']
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
 
+PROJECT_NAME = os.environ.get('PROJECT_NAME')
+CLUSTER_NAME = os.environ.get('CLUSTER_NAME')
+USER_NAME = os.environ.get('USER_NAME')
+ZONE_NAME = os.environ.get('ZONE_NAME')
+EXPIRATION_TIME = os.environ.get('EXPIRATION_TIME')
+
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -97,6 +104,14 @@ def get_cluster_parameters(node_info: V1NodeList) -> tuple:
 def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = '', user_name: str = '',
          cluster_name: str = '', zone_name: str = '',
          region_name: str = '', expiration_time: int = None, resource_group=''):
+    if EXPIRATION_TIME:
+        expiration_time = int(EXPIRATION_TIME)
+    if USER_NAME:
+        user_name = USER_NAME
+    if CLUSTER_NAME:
+        cluster_type = CLUSTER_NAME
+    if ZONE_NAME:
+        zone_name = ZONE_NAME
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
@@ -123,10 +138,10 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
     if cluster_type == GKE:
         gke_deployment_object = GKEObject(cluster_name=cluster_name, context_name=context_name, user_name=user_name,
                                           kubeconfig=kubeconfig,
-                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_name=project_name,
+                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_name=PROJECT_NAME,
                                           zone_name=zone_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
-                                          expiration_timestamp=expiration_timestamp,
+                                          expiration_timestamp=expiration_time,
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version, runtime_version=runtime_version,
                                           os_image=os_image, region_name=region_name, num_nodes=num_nodes,
@@ -196,8 +211,4 @@ if __name__ == '__main__':
         kubeconfig_yaml = f.read()
         print(f'The kubeconfig content is: {kubeconfig_yaml}')
 
-    main(cluster_type=args.cluster_type, project_name=args.project_name,
-         user_name=args.user_name,
-         cluster_name=args.cluster_name,
-         region_name=args.region_name, zone_name=args.zone_name, expiration_time=args.expiration_time,
-         resource_group=args.resource_group)
+    main(cluster_type=args.cluster_type,  resource_group=args.resource_group)
