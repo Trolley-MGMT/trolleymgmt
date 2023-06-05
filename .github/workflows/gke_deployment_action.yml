@@ -26,11 +26,14 @@ jobs:
           echo "test_payload is: ${{ github.event.client_payload.test_payload }}"
           echo "deployment_yaml is: ${{ github.event.client_payload.deployment_yaml }}"
           echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"
+          
+          echo "test env is: ${{env.GCP_PROJECT_ID}}"
 
       - name: Testing Shit
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.test_payload }}"
+          echo "test env is: ${{env.GCP_PROJECT_ID}}"
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
