@@ -3,6 +3,9 @@ import os
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 
+GITHUB_ACTIONS_ENV_FILE = os.getenv('GITHUB_ENV')
+
+
 
 def main(incoming_string: str = ''):
     encoded_content = ast.literal_eval(incoming_string)
@@ -27,7 +30,9 @@ def main(incoming_string: str = ''):
     print(f'num_nodes is: {num_nodes}')
     print(f'expiration_time is: {expiration_time}')
 
-    os.environ["GCP_PROJECT_ID"] = gcp_project_id
+    with open(GITHUB_ACTIONS_ENV_FILE, "a") as myfile:
+        myfile.write(f"GCP_PROJECT_ID={gcp_project_id}")
+
 
 
 if __name__ == '__main__':
