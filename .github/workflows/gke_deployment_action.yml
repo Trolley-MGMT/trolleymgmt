@@ -71,6 +71,5 @@ jobs:
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          python3 deployment_utils/json_converter.py --incoming_string ${{ github.event.client_payload.test_payload }}
-#          pip3 install -r web/requirements.txt
-#          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_name $PROJECT_NAME --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_name }} --expiration_time ${{ github.event.client_payload.expiration_time }}
+          pip3 install -r web/requirements.txt
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_name $PROJECT_NAME --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_name }} --expiration_time ${{ github.event.client_payload.expiration_time }}
