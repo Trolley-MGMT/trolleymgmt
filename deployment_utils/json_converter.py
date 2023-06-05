@@ -19,9 +19,10 @@ test_dict2 = {
 
 
 def main(incoming_string: str = ''):
-    name = json.loads(incoming_string)['name']
+    request_content = ast.literal_eval(incoming_string)
+    name = request_content['name']
     print(name)
-    url = json.loads(incoming_string)['url']
+    url = request_content['url']
     print(url)
 
 
