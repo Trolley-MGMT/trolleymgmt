@@ -30,7 +30,7 @@ jobs:
       - name: Testing Shit
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          python3 deployment_utils/json_converter.py --incoming_string ${{ github.event.client_payload.test_payload }}
+          python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.test_payload }}"
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'

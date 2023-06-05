@@ -135,14 +135,17 @@ class ClusterOperation:
                                "expiration_time": self.expiration_time}
         }
         incoming_string = """
-        {"payload":{\"name\":\"Firefox\",\"pref_url\":\"about:config\"}}
+        "{\"name\":\"Firefox\",\"url\":\"http://localhost\"}"
         """
-
+        test_dict = {
+            "name": "Firefox",
+            "url": "about"
+        }
         test_json_data = {
             "event_type": "gke-build-api-trigger",
             "client_payload": {
                 "google_creds_json": self.google_creds_json,
-                "test_payload": incoming_string
+                "test_payload": str(test_dict)
                 # "test_payload": "Firefox"
             }
         }
