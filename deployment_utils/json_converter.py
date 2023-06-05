@@ -30,10 +30,12 @@ def main(incoming_string: str = ''):
     print(f'num_nodes is: {num_nodes}')
     print(f'expiration_time is: {expiration_time}')
 
-    with open(GITHUB_ACTIONS_ENV_FILE, "a") as myfile:
+    with open(GITHUB_ACTIONS_ENV_FILE, "w") as myfile:
         myfile.write(f"GCP_PROJECT_ID={gcp_project_id}")
-    os.environ["GCP_PROJECT_ID"] = gcp_project_id
 
+    with open(GITHUB_ACTIONS_ENV_FILE, "r") as myfile:
+        lines = myfile.readlines()
+        print(lines)
 
 
 if __name__ == '__main__':
