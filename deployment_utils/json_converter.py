@@ -31,7 +31,16 @@ def main(incoming_string: str = ''):
     print(f'expiration_time is: {expiration_time}')
 
     with open(GITHUB_ACTIONS_ENV_FILE, "w") as myfile:
-        myfile.write(f"GCP_PROJECT_ID={gcp_project_id}")
+        myfile.write(f"GCP_PROJECT_ID={gcp_project_id}\n")
+        myfile.write(f"CLUSTER_NAME={cluster_name}\n")
+        myfile.write(f"USER_NAME={user_name}\n")
+        myfile.write(f"CLUSTER_VERSION={cluster_version}\n")
+        myfile.write(f"GKE_MACHINE_TYPE={gke_machine_type}\n")
+        myfile.write(f"REGION_NAME={region_name}\n")
+        myfile.write(f"ZONE_NAME={zone_name}\n")
+        myfile.write(f"IMAGE_TYPE={image_type}\n")
+        myfile.write(f"NUM_NODES={num_nodes}\n")
+        myfile.write(f"EXPIRATION_TIME={expiration_time}\n")
 
     with open(GITHUB_ACTIONS_ENV_FILE, "r") as myfile:
         lines = myfile.readlines()
