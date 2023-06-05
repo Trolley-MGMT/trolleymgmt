@@ -32,6 +32,7 @@ def main(incoming_string: str = ''):
 
     with open(GITHUB_ACTIONS_ENV_FILE, "a") as myfile:
         myfile.write(f"GCP_PROJECT_ID={gcp_project_id}")
+    os.environ["GCP_PROJECT_ID"] = gcp_project_id
 
 
 
