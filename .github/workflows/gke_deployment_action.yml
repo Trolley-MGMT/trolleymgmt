@@ -34,6 +34,7 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:.
           python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.test_payload }}"
           echo "test env is: ${{env.GCP_PROJECT_ID}}"
+          echo ${{ env.GCP_PROJECT_ID }}
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
