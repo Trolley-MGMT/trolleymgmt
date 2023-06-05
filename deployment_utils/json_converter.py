@@ -6,6 +6,7 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 # """
 
 def main(incoming_string: str = ''):
+    print(f'incoming_string is: {incoming_string}')
     name = json.loads(incoming_string)['name']
     print(name)
     url = json.loads(incoming_string)['url']

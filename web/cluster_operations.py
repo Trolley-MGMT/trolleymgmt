@@ -134,9 +134,17 @@ class ClusterOperation:
                                "google_creds_json": self.google_creds_json,
                                "expiration_time": self.expiration_time}
         }
+        incoming_string = """
+        {"payload":{\"name\":\"Firefox\",\"pref_url\":\"about:config\"}}
+        """
+
         test_json_data = {
-            "name": "Firefox",
-            "url": "http://localhost"
+            "event_type": "gke-build-api-trigger",
+            "client_payload": {
+                "google_creds_json": self.google_creds_json,
+                "test_payload": incoming_string
+                # "test_payload": "Firefox"
+            }
         }
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=test_json_data)
