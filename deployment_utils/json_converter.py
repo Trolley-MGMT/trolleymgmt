@@ -3,7 +3,7 @@ import os
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 
-GITHUB_ACTIONS_ENV_FILE = os.getenv('GITHUB_ENV')
+GITHUB_ACTIONS_ENV_FILE =  os.environ.get('GITHUB_ENV', None)
 
 
 
