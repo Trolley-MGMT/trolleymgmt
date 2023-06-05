@@ -120,33 +120,23 @@ class ClusterOperation:
             return False
 
     def trigger_gke_build_github_action(self) -> bool:
-        json_data = {
-            "event_type": "gke-build-api-trigger",
-            "client_payload": {"gcp_project_id": self.gcp_project_id,
-                               "cluster_name": self.cluster_name,
-                               "user_name": self.user_name,
-                               "cluster_version": self.cluster_version,
-                               "gke_machine_type": self.gke_machine_type,
-                               "region_name": self.gke_region,
-                               "zone_name": self.gke_zone,
-                               "image_type": self.image_type,
-                               "num_nodes": str(self.num_nodes),
-                               "google_creds_json": self.google_creds_json,
-                               "expiration_time": self.expiration_time}
-        }
-        incoming_string = """
-        "{\"name\":\"Firefox\",\"url\":\"http://localhost\"}"
-        """
-        test_dict = {
-            "name": "Firefox",
-            "url": "about"
+        encoded_data = {
+            "gcp_project_id": self.gcp_project_id,
+            "cluster_name": self.cluster_name,
+            "user_name": self.user_name,
+            "cluster_version": self.cluster_version,
+            "gke_machine_type": self.gke_machine_type,
+            "region_name": self.gke_region,
+            "zone_name": self.gke_zone,
+            "image_type": self.image_type,
+            "num_nodes": str(self.num_nodes),
+            "expiration_time": self.expiration_time
         }
         test_json_data = {
             "event_type": "gke-build-api-trigger",
             "client_payload": {
                 "google_creds_json": self.google_creds_json,
-                "test_payload": str(test_dict)
-                # "test_payload": "Firefox"
+                "test_payload": str(encoded_data)
             }
         }
         response = requests.post(self.github_actions_api_url,

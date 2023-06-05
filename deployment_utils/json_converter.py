@@ -1,29 +1,14 @@
 import ast
-import json
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-# incoming_string = """
-# {"payload":{\"name\":\"Firefox\",\"pref_url\":\"about:config\"}}
-# """
-test_dict = {
-    "payload": {
-        "name": "Firefox",
-        "pref_url": "about:config"
-    }
-}
-
-test_dict2 = {
-    "name": "Firefox",
-    "pref_url": "about:config"
-}
 
 
 def main(incoming_string: str = ''):
-    request_content = ast.literal_eval(incoming_string)
-    name = request_content['name']
-    print(name)
-    url = request_content['url']
-    print(url)
+    encoded_content = ast.literal_eval(incoming_string)
+    gcp_project_id = encoded_content['gcp_project_id']
+    cluster_name = encoded_content['cluster_name']
+    print(gcp_project_id)
+    print(cluster_name)
 
 
 if __name__ == '__main__':
