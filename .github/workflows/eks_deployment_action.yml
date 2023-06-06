@@ -38,7 +38,7 @@ jobs:
           export KUBECONFIG=/home/runner/.kube/config
           aws sts get-caller-identity
           brew install eksctl
-          eksctl create cluster --region=${{ env.REGION_NAME }} --zones=${{ env.ZONE_NAME }} --name ${{ env.CLUSTER_NAME }} --version ${{ env.CLUSTER_VERSION }} --nodes ${{ env.NUM_NODES }}
+          eksctl create cluster --region=${{ env.REGION_NAME }} --zones=${{ env.ZONE_NAMES }} --name ${{ env.CLUSTER_NAME }} --version ${{ env.CLUSTER_VERSION }} --nodes ${{ env.NUM_NODES }}
           aws eks --region ${{ env.REGION_NAME }} update-kubeconfig --name ${{ env.CLUSTER_NAME }}
           cat /home/runner/.kube/config
       - name: Post Deployment Tasks
@@ -53,4 +53,4 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --zone_name ${{ env.ZONE_NAME }} --region_name ${{ env.REGION_NAME }} --expiration_time ${{ env.EXPIRATION_TIME }}
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --zone_name ${{ env.ZONE_NAMES }} --region_name ${{ env.REGION_NAME }} --expiration_time ${{ env.EXPIRATION_TIME }}

@@ -12,10 +12,12 @@ def main(incoming_string: str = '', provider: str = ''):
     encoded_content = ast.literal_eval(incoming_string)
     print(f'encoded content is: {encoded_content}')
     eks_subnets = ''
+    zone_names = ''
     gcp_project_id = ''
     gke_machine_type = ''
     if provider == AWS:
         eks_subnets = encoded_content['subnets']
+        zone_names = encoded_content['zone_names']
         print(f'eks_subnets is: {eks_subnets}')
     elif provider == GCP:
         gcp_project_id = encoded_content['gcp_project_id']
@@ -48,6 +50,7 @@ def main(incoming_string: str = '', provider: str = ''):
         myfile.write(f"GKE_MACHINE_TYPE={gke_machine_type}\n")
         myfile.write(f"REGION_NAME={region_name}\n")
         myfile.write(f"ZONE_NAME={zone_name}\n")
+        myfile.write(f"ZONE_NAMES={zone_names}\n")
         myfile.write(f"EKS_SUBNETS={eks_subnets}\n")
         myfile.write(f"IMAGE_TYPE={image_type}\n")
         myfile.write(f"NUM_NODES={num_nodes}\n")
