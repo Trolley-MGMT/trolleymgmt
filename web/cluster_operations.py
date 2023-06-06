@@ -132,15 +132,15 @@ class ClusterOperation:
             "num_nodes": str(self.num_nodes),
             "expiration_time": self.expiration_time
         }
-        test_json_data = {
+        json_data = {
             "event_type": "gke-build-api-trigger",
             "client_payload": {
                 "google_creds_json": self.google_creds_json,
-                "test_payload": str(encoded_data)
+                "payload": str(encoded_data)
             }
         }
         response = requests.post(self.github_actions_api_url,
-                                 headers=self.github_action_request_header, json=test_json_data)
+                                 headers=self.github_action_request_header, json=json_data)
         logger.info(f'This is the request response: {response}')
         if response.status_code == 200 or response.status_code == 204:
             return True
@@ -170,18 +170,23 @@ class ClusterOperation:
 
     def trigger_eks_build_github_action(self) -> bool:
         aws_access_key_id, aws_secret_access_key = self.get_aws_credentials()
+        encoded_data = {
+            "cluster_name": self.cluster_name,
+            "user_name": self.user_name,
+            "cluster_version": self.cluster_version,
+            "region_name": self.eks_location,
+            "num_nodes": str(self.num_nodes),
+            "zone_names": ','.join(self.eks_zones),
+            "subnets": ','.join(self.eks_subnets),
+            "expiration_time": self.expiration_time
+        }
         json_data = {
             "event_type": "eks-build-api-trigger",
-            "client_payload": {"cluster_name": self.cluster_name,
-                               "user_name": self.user_name,
-                               "cluster_version": self.cluster_version,
-                               "region_name": self.eks_location,
-                               "num_nodes": str(self.num_nodes),
-                               "zone_names": ','.join(self.eks_zones),
-                               "subnets": ','.join(self.eks_subnets),
-                               "aws_access_key_id": aws_access_key_id,
-                               "aws_secret_access_key": aws_secret_access_key,
-                               "expiration_time": self.expiration_time}
+            "client_payload": {
+                "aws_access_key_id": aws_access_key_id,
+                "aws_secret_access_key": aws_secret_access_key,
+                "payload": str(encoded_data)
+            }
         }
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)

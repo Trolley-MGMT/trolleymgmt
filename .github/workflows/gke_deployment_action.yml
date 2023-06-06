@@ -23,18 +23,15 @@ jobs:
           echo "zone_name is: ${{ github.event.client_payload.zone_name }}"
           echo "image_type is: ${{ github.event.client_payload.image_type }}"
           echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"
-          echo "test_payload is: ${{ github.event.client_payload.test_payload }}"
+          echo "test_payload is: ${{ github.event.client_payload.payload }}"
           echo "deployment_yaml is: ${{ github.event.client_payload.deployment_yaml }}"
-          echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"
+          echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"          
           
-          echo "test env is: ${{env.GCP_PROJECT_ID}}"
 
-      - name: Testing Shit
+      - name: Payload Extracting
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.test_payload }}"
-          echo "test env is: ${{env.GCP_PROJECT_ID}}"
-          echo ${{ env.GCP_PROJECT_ID }}
+          python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.payload }}"
           env
 
       - id: 'auth'
@@ -73,4 +70,3 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
           python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke
-#          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type gke --project_name $PROJECT_NAME --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --zone_name ${{ github.event.client_payload.zone_name }} --expiration_time ${{ github.event.client_payload.expiration_time }}

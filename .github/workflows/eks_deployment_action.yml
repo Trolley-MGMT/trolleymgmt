@@ -24,6 +24,12 @@ jobs:
           echo "${{ github.event.client_payload.expiration_time }}"
           echo "user_name is: ${{ github.event.client_payload.user_name }}"
 
+      - name: Payload Extracting
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.payload }}"
+          env
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
