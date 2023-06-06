@@ -13,6 +13,7 @@ def main(incoming_string: str = '', provider: str = ''):
     print(f'encoded content is: {encoded_content}')
     eks_subnets = ''
     zone_names = ''
+    zone_name = ''
     gcp_project_id = ''
     gke_machine_type = ''
     if provider == AWS:
@@ -20,6 +21,7 @@ def main(incoming_string: str = '', provider: str = ''):
         zone_names = encoded_content['zone_names']
         print(f'eks_subnets is: {eks_subnets}')
     elif provider == GCP:
+        zone_name = encoded_content['zone_name']
         gcp_project_id = encoded_content['gcp_project_id']
         gke_machine_type = encoded_content['gke_machine_type']
         print(f'gke_machine_type is: {gke_machine_type}')
@@ -29,7 +31,6 @@ def main(incoming_string: str = '', provider: str = ''):
     user_name = encoded_content['user_name']
     cluster_version = encoded_content['cluster_version']
     region_name = encoded_content['region_name']
-    zone_name = encoded_content['zone_name']
     image_type = encoded_content['image_type']
     num_nodes = encoded_content['num_nodes']
     expiration_time = encoded_content['expiration_time']
