@@ -53,7 +53,7 @@ project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
 logger.info(f'project_folder is: {project_folder}')
 
-PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley')
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-dev')
 
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
