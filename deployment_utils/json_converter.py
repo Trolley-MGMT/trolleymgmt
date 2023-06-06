@@ -16,12 +16,8 @@ def main(incoming_string: str = '', provider: str = ''):
     gcp_project_id = ''
     gke_machine_type = ''
     if provider == AWS:
-        aws_access_key_id = encoded_content['aws_access_key_id']
-        aws_secret_access_key = encoded_content['aws_secret_access_key']
         eks_zones = encoded_content['eks_zones']
         eks_subnets = encoded_content['eks_subnets']
-        print(f'aws_access_key_id is: {aws_access_key_id}')
-        print(f'aws_secret_access_key is: {aws_secret_access_key}')
         print(f'eks_zones is: {eks_zones}')
         print(f'eks_subnets is: {eks_subnets}')
     elif provider == GCP:
