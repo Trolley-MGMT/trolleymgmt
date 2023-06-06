@@ -44,6 +44,7 @@ logger.info(f'project_folder is: {project_folder}')
 
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
+PROJECT_NAME = os.getenv('PROJECT_NAME', "trolley-dev")
 
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 import mongo_handler.mongo_utils
@@ -394,6 +395,7 @@ def trigger_gke_deployment():
     gcp_project_id = json.loads(content['google_creds_json'])['project_id']
     content[GCP_PROJECT_ID] = gcp_project_id
     content['cluster_name'] = cluster_name
+    content['project_name'] = PROJECT_NAME
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_gke_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
@@ -418,6 +420,7 @@ def trigger_eks_deployment():
     user_name = content['user_name']
     cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
+    content['project_name'] = PROJECT_NAME
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_eks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
@@ -445,6 +448,7 @@ def trigger_aks_deployment():
     user_name = content['user_name']
     cluster_name = f'{user_name}-{AKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
+    content['project_name'] = PROJECT_NAME
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_aks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
@@ -487,6 +491,7 @@ def delete_cluster():
     content = request.get_json()
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
+    content['project_name'] = PROJECT_NAME
     cluster_operations = ClusterOperation(**content)
     if content[CLUSTER_TYPE] == GKE:
         cluster_operations.delete_gke_cluster()

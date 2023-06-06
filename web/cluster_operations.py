@@ -51,7 +51,7 @@ else:
 
 class ClusterOperation:
     def __init__(self, provider: str = "", user_email: str = "", github_actions_token: str = "",
-                 github_repository: str = "", user_name: str = "", cluster_name: str = "",
+                 github_repository: str = "", user_name: str = "", project_name: str = "", cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
                  region_name: str = "", zone_name: str = "", gcp_project_id: str = "", gke_machine_type: str = "",
                  gke_region: str = "", gke_zone: str = "", eks_subnets: str = "",
@@ -70,6 +70,7 @@ class ClusterOperation:
         self.azure_credentials = azure_credentials
         self.cluster_name = cluster_name
         self.user_name = user_name
+        self.project_name = project_name
         self.github_actions_token = github_actions_token
         self.github_repository = github_repository
         self.cluster_type = cluster_type
@@ -238,6 +239,7 @@ class ClusterOperation:
             "event_type": "gke-delete-api-trigger",
             "client_payload": {"cluster_name": self.cluster_name,
                                "zone_name": gke_zone_name,
+                               "project_name": self.project_name,
                                "google_creds_json": self.google_creds_json}
         }
         response = requests.post(self.github_actions_api_url,
@@ -258,6 +260,7 @@ class ClusterOperation:
             "event_type": "eks-delete-api-trigger",
             "client_payload":
                 {"cluster_name": self.cluster_name,
+                 "project_name": self.project_name,
                  "region_name": eks_cluster_region_name,
                  "aws_access_key_id": aws_access_key_id,
                  "aws_secret_access_key": aws_secret_access_key,

@@ -19,7 +19,6 @@ jobs:
           echo "region_name is: ${{ github.event.client_payload.region_name }}"
           echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
 
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
@@ -34,9 +33,6 @@ jobs:
           export KUBECONFIG=/home/runner/.kube/config
           aws sts get-caller-identity
           brew install eksctl
-
-      - name: Deleting EKS Cluster
-        run: |
           eksctl delete cluster --region=${{ github.event.client_payload.region_name }} --name=${{ github.event.client_payload.cluster_name }}
 
       - name: Deleting Cluster
