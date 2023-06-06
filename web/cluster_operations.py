@@ -148,26 +148,6 @@ class ClusterOperation:
             logger.warning(f'This is the request response: {response.reason}')
             return False
 
-    def trigger_aks_build_github_action(self) -> bool:
-        json_data = {
-            "event_type": "aks-build-api-trigger",
-            "client_payload": {"cluster_name": self.cluster_name,
-                               "user_name": self.user_name,
-                               "cluster_version": self.cluster_version,
-                               "aks_location": self.aks_location,
-                               "num_nodes": str(self.num_nodes),
-                               "azure_credentials": self.azure_credentials,
-                               "expiration_time": self.expiration_time}
-        }
-        response = requests.post(self.github_actions_api_url,
-                                 headers=self.github_action_request_header, json=json_data)
-        logger.info(f'This is the request response: {response}')
-        if response.status_code == 200 or response.status_code == 204:
-            return True
-        else:
-            logger.warning(f'This is the request response: {response.reason}')
-            return False
-
     def trigger_eks_build_github_action(self) -> bool:
         aws_access_key_id, aws_secret_access_key = self.get_aws_credentials()
         encoded_data = {
@@ -196,6 +176,28 @@ class ClusterOperation:
         else:
             logger.warning(f'This is the request response: {response.reason}')
             return False
+
+    def trigger_aks_build_github_action(self) -> bool:
+        json_data = {
+            "event_type": "aks-build-api-trigger",
+            "client_payload": {"cluster_name": self.cluster_name,
+                               "user_name": self.user_name,
+                               "cluster_version": self.cluster_version,
+                               "aks_location": self.aks_location,
+                               "num_nodes": str(self.num_nodes),
+                               "azure_credentials": self.azure_credentials,
+                               "expiration_time": self.expiration_time}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+        logger.info(f'This is the request response: {response}')
+        if response.status_code == 200 or response.status_code == 204:
+            return True
+        else:
+            logger.warning(f'This is the request response: {response.reason}')
+            return False
+
+
 
     def trigger_trolley_agent_deployment_github_action(self):
         json_data = {
