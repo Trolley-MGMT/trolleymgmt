@@ -15,7 +15,7 @@ def main(incoming_string: str = '', provider: str = ''):
     gcp_project_id = ''
     gke_machine_type = ''
     if provider == AWS:
-        eks_subnets = encoded_content['eks_subnets']
+        eks_subnets = encoded_content['subnets']
         print(f'eks_subnets is: {eks_subnets}')
     elif provider == GCP:
         gcp_project_id = encoded_content['gcp_project_id']
