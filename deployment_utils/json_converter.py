@@ -17,6 +17,7 @@ def main(incoming_string: str = '', provider: str = ''):
     gcp_project_id = ''
     gke_machine_type = ''
     image_type = ''
+    project_name = 'trolley-dev'
     if provider == AWS:
         eks_subnets = encoded_content['subnets']
         zone_names = encoded_content['zone_names']
@@ -43,9 +44,11 @@ def main(incoming_string: str = '', provider: str = ''):
     print(f'image_type is: {image_type}')
     print(f'num_nodes is: {num_nodes}')
     print(f'expiration_time is: {expiration_time}')
+    print(f'project_name is: {project_name}')
 
     with open(GITHUB_ACTIONS_ENV_FILE, "w") as myfile:
         myfile.write(f"GCP_PROJECT_ID={gcp_project_id}\n")
+        myfile.write(f"PROJECT_NAME={project_name}\n")
         myfile.write(f"CLUSTER_NAME={cluster_name}\n")
         myfile.write(f"USER_NAME={user_name}\n")
         myfile.write(f"CLUSTER_VERSION={cluster_version}\n")

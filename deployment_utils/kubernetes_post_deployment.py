@@ -115,6 +115,8 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
         region_name = REGION_NAME
     if ZONE_NAME:
         zone_name = ZONE_NAME
+    if PROJECT_NAME:
+        project_name = PROJECT_NAME
     if not kubeconfig_path:
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')

@@ -46,11 +46,10 @@ jobs:
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
-          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
           KUBECONFIG: '/home/runner/.kube/config'
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --zone_name ${{ env.ZONE_NAMES }} --region_name ${{ env.REGION_NAME }} --expiration_time ${{ env.EXPIRATION_TIME }}
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_name ${{ env.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --zone_name ${{ env.ZONE_NAMES }} --region_name ${{ env.REGION_NAME }} --expiration_time ${{ env.EXPIRATION_TIME }}
