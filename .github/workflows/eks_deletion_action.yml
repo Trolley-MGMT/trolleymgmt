@@ -19,10 +19,6 @@ jobs:
           echo "region_name is: ${{ github.event.client_payload.region_name }}"
           echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
 
-      - name: Echo the values
-        run: |
-          echo "${{ github.event.client_payload.cluster_version }}"
-          echo "${{ github.event.client_payload.region_name }}"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
@@ -37,9 +33,10 @@ jobs:
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           export KUBECONFIG=/home/runner/.kube/config
           aws sts get-caller-identity
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          which helm >> /tmp/helm_path
           brew install eksctl
+
+      - name: Deleting EKS Cluster
+        run: |
           eksctl delete cluster --region=${{ github.event.client_payload.region_name }} --name=${{ github.event.client_payload.cluster_name }}
 
       - name: Deleting Cluster
