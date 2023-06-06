@@ -16,6 +16,11 @@ jobs:
 
       - name: Echo the values
         run: |
+          echo "region_name is: ${{ github.event.client_payload.region_name }}"
+          echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
+
+      - name: Echo the values
+        run: |
           echo "${{ github.event.client_payload.cluster_version }}"
           echo "${{ github.event.client_payload.region_name }}"
 
