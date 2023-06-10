@@ -310,7 +310,7 @@ $(document).ready(function() {
     if (buildPage) {
         populate_regions();
         $("#gke-machines-series-dropdown").append($("<option />").val('e2').text('e2'));
-        populate_machine_types('e2');
+        $("#gke-machines-types-dropdown").append($("<option />").val('e2-medium').text('e2-medium'));
     }
 
     if (usersPage) {
@@ -1760,10 +1760,10 @@ $(document).ready(function() {
                         } else if (clusterType == 'gke') {
                             $.each(response, function(key, value) {
                                 $dropdown.append($("<option />").val(value).text(value));
-                                populate_machine_series(value)
                             });
-                            populate_kubernetes_versions('asia-east1-b')
-                            populate_kubernetes_image_types('asia-east1-b')
+                            populate_machine_series(response[0])
+                            populate_kubernetes_versions(response[0])
+                            populate_kubernetes_image_types(response[0])
                         }
                     }
                     resolve(response)
@@ -1860,7 +1860,6 @@ $(document).ready(function() {
 
                         });
                         $dropdown.val(default_machine_series)
-                        populate_machine_types(default_machine_series)
                         $("#gke-machines-types-dropdown").val(default_machine_type);
                     }
                     resolve(response)
