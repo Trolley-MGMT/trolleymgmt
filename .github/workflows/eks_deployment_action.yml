@@ -36,11 +36,10 @@ jobs:
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           export KUBECONFIG=/home/runner/.kube/config
-          echo $EKSCTL_DEPLOYMENT_FILE >> /home/runner/eksctl_deployment_file
-          cat /home/runner/eksctl_deployment_file
+          cat /home/runner/eksctl_deployment_file.yaml
           aws sts get-caller-identity
           brew install eksctl
-          eksctl create cluster -f /home/runner/eksctl_deployment_file
+          eksctl create cluster -f /home/runner/eksctl_deployment_file.yaml
           aws eks --region ${{ env.REGION_NAME }} update-kubeconfig --name ${{ env.CLUSTER_NAME }}
           cat /home/runner/.kube/config
       - name: Post Deployment Tasks
