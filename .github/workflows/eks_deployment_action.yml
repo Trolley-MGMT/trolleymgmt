@@ -40,7 +40,6 @@ jobs:
           aws sts get-caller-identity
           brew install eksctl
           eksctl create cluster -f /home/runner/eksctl_deployment_file
-#          eksctl create cluster --region=${{ env.REGION_NAME }} --zones=${{ env.ZONE_NAMES }} --name ${{ env.CLUSTER_NAME }} --version ${{ env.CLUSTER_VERSION }} --nodes ${{ env.NUM_NODES }}
           aws eks --region ${{ env.REGION_NAME }} update-kubeconfig --name ${{ env.CLUSTER_NAME }}
           cat /home/runner/.kube/config
       - name: Post Deployment Tasks
