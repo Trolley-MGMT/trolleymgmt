@@ -315,7 +315,7 @@ $(document).ready(function() {
         populate_regions();
         if (provider == 'gcp') {
             $("#gke-machines-series-dropdown").append($("<option />").val(default_gke_machine_series).text(default_gke_machine_series));
-            $("#gke-machines-types-dropdown").append($("<option />").val('e2-medium').text('e2-medium'));
+            $("#gke-machines-types-dropdown").append($("<option />").val(default_gke_machine_type).text(default_gke_machine_type));
         }
         else if (provider == 'aws') {
             $("#eks-machines-series-dropdown").append($("<option />").val(default_eks_machine_series).text(default_eks_machine_series));
