@@ -2128,8 +2128,8 @@ $(document).ready(function() {
         $("#eks-zones-dropdown").empty();
         $("#eks-subnets-dropdown").empty();
         populate_machine_series(eks_location);
-        populate_machine_types("m5");
-        $("#eks-machines-types-dropdown").val("m5.large");
+        populate_machine_types(default_eks_machine_series);
+        $("#eks-machines-types-dropdown").val(default_eks_machine_type);
         $("#eks-machines-types-dropdown").change();
     })
 
@@ -2155,7 +2155,7 @@ $(document).ready(function() {
         populate_kubernetes_image_types(gke_zones);
         populate_machine_series(gke_zones);
         populate_machine_types("e2");
-        $("#gke-machines-types-dropdown").val("e2-small");
+        $("#gke-machines-types-dropdown").val(default_gke_machine_type);
         $("#gke-machines-types-dropdown").change();
     })
 
