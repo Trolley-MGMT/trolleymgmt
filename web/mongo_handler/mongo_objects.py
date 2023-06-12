@@ -221,7 +221,7 @@ class EKSCTLMetadataObject:
 @dataclass
 class EKSCTLNodeGroupObject:
     name: str
-    instance_type: str
+    instanceType: str
     desiredCapacity: int
     volumeSize: int
 
