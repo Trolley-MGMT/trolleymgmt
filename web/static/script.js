@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    let debug = true;
+    let debug = false;
     let trolley_remote_url = 'pavelzagalsky.pythonanywhere.com';
     let trolley_local_url = 'localhost';
     let trolley_url = 'http://www.pavelzagalsky.com';
@@ -7,6 +7,10 @@ $(document).ready(function() {
     let userType = "";
     let userName = "";
     let clusterName = "";
+    let default_gke_machine_series = "e2";
+    let default_gke_machine_type = "e2-medium";
+    let default_eks_machine_series = "m5";
+    let default_eks_machine_type = "m5.large";
 
     if (debug === true) {
         trolley_url = trolley_local_url;
@@ -309,8 +313,15 @@ $(document).ready(function() {
 
     if (buildPage) {
         populate_regions();
-        $("#gke-machines-series-dropdown").append($("<option />").val('e2').text('e2'));
-        $("#gke-machines-types-dropdown").append($("<option />").val('e2-medium').text('e2-medium'));
+        if (provider == 'gcp') {
+            $("#gke-machines-series-dropdown").append($("<option />").val(default_gke_machine_series).text(default_gke_machine_series));
+            $("#gke-machines-types-dropdown").append($("<option />").val('e2-medium').text('e2-medium'));
+        }
+        else if (provider == 'aws') {
+            $("#eks-machines-series-dropdown").append($("<option />").val(default_eks_machine_series).text(default_eks_machine_series));
+            $("#eks-machines-types-dropdown").append($("<option />").val(default_eks_machine_type).text(default_eks_machine_type));
+        }
+
     }
 
     if (usersPage) {
@@ -1588,7 +1599,6 @@ $(document).ready(function() {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
                         });
-                        populate_zones('eu-north-1')
                     } else if (clusterType == 'gke') {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
@@ -1848,12 +1858,12 @@ $(document).ready(function() {
     function populate_machine_series(selected_zone) {
         if (clusterType == 'gke') {
             var $dropdown = $("#gke-machines-series-dropdown");
-            var default_machine_series = 'e2';
-            var default_machine_type = 'e2-medium';
+            var default_machine_series = default_gke_machine_series
+            var default_machine_type = default_gke_machine_type;
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-machines-series-dropdown");
-            var default_machine_series = 'm5';
-            var default_instance_type = 'm5.large';
+            var default_machine_series = default_eks_machine_series;
+            var default_instance_type = default_eks_machine_type;
         }
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -1890,6 +1900,7 @@ $(document).ready(function() {
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
+                        $dropdown.empty()
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
                         });
@@ -2116,10 +2127,10 @@ $(document).ready(function() {
         $("#eks-vpcs-dropdown").empty();
         $("#eks-zones-dropdown").empty();
         $("#eks-subnets-dropdown").empty();
-        populate_zones(eks_location);
         populate_machine_series(eks_location);
         populate_machine_types("m5");
         $("#eks-machines-types-dropdown").val("m5.large");
+        $("#eks-machines-types-dropdown").change();
     })
 
     $('#eks-zones-dropdown').change(function() {
@@ -2145,6 +2156,7 @@ $(document).ready(function() {
         populate_machine_series(gke_zones);
         populate_machine_types("e2");
         $("#gke-machines-types-dropdown").val("e2-small");
+        $("#gke-machines-types-dropdown").change();
     })
 
     $('#gke-machines-series-dropdown').change(function() {
