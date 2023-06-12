@@ -17,14 +17,14 @@ def main(incoming_string: str = '', provider: str = ''):
     gcp_project_id = ''
     gke_machine_type = ''
     image_type = ''
-    eksctl_object = ''
+    eksctl_deployment_file = ''
     project_name = 'trolley-dev'
     if provider == AWS:
         eks_subnets = encoded_content['subnets']
         zone_names = encoded_content['zone_names']
-        eksctl_object = encoded_content['eksctl_object']
+        eksctl_deployment_file = encoded_content['eksctl_deployment_file']
         print(f'eks_subnets is: {eks_subnets}')
-        print(f'eksctl_object is: {eksctl_object}')
+        print(f'eksctl_object is: {eksctl_deployment_file}')
     elif provider == GCP:
         zone_name = encoded_content['zone_name']
         gcp_project_id = encoded_content['gcp_project_id']
@@ -62,7 +62,7 @@ def main(incoming_string: str = '', provider: str = ''):
         myfile.write(f"EKS_SUBNETS={eks_subnets}\n")
         myfile.write(f"IMAGE_TYPE={image_type}\n")
         myfile.write(f"NUM_NODES={num_nodes}\n")
-        myfile.write(f"EKSCTL_OBJECT={eksctl_object}\n")
+        myfile.write(f"EKSCTL_DEPLOYMENT_FILE={eksctl_deployment_file}\n")
         myfile.write(f"EXPIRATION_TIME={expiration_time}\n")
 
     with open(GITHUB_ACTIONS_ENV_FILE, "r") as myfile:

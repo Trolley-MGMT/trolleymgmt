@@ -177,7 +177,7 @@ class ClusterOperation:
             "zone_names": ','.join(self.eks_zones),
             "subnets": ','.join(self.eks_subnets),
             "expiration_time": self.expiration_time,
-            "eksctl_object": self.eksctl_object_dict
+            "eksctl_deployment_file": self.eksctl_object_dict
         }
         json_data = {
             "event_type": "eks-build-api-trigger",
