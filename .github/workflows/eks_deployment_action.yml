@@ -36,7 +36,9 @@ jobs:
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           export KUBECONFIG=/home/runner/.kube/config
+          cat /home/runner/.kube/config
           export EKSCTL_DEPLOYMENT_FILE=/home/runner/eksctl_deployment_file
+          cat /home/runner/eksctl_deployment_file
           aws sts get-caller-identity
           brew install eksctl
           eksctl create cluster -f /home/runner/eksctl_deployment_file
