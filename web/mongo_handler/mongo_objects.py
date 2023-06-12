@@ -184,7 +184,53 @@ class AWSCacheObject:
     regions_list: list
     subnets_dict: dict
     regions_zones_dict: dict
-    machine_types_list: list
+
+
+@dataclass
+class AWSMachinesCacheObject:
+    region: str
+    machines_list: list
+
+
+@dataclass
+class AWSMachineTypeObject:
+    region: str
+    machine_series: str
+    machine_type: str
+    vCPU: int
+    memory: int
+
+
+@dataclass
+class AWSRegionsAndMachineSeriesObject:
+    region: str
+    series_list: list
+
+
+
+@dataclass
+class AWSSeriesAndMachineTypesObject:
+    machine_series: str
+    machines_list: list
+
+@dataclass
+class EKSCTLMetadataObject:
+    name: str
+    region: str
+
+@dataclass
+class EKSCTLNodeGroupObject:
+    name: str
+    instance_type: str
+    desiredCapacity: int
+    volumeSize: int
+
+@dataclass
+class EKSCTLObject:
+    apiVersion: str
+    kind: str
+    metadata: EKSCTLMetadataObject
+    nodeGroups: [EKSCTLNodeGroupObject]
 
 
 @dataclass

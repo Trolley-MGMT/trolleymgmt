@@ -421,7 +421,11 @@ def trigger_eks_deployment():
     cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
     content['project_name'] = PROJECT_NAME
+    with open('eksctl_yaml.yaml', "r") as f:
+        yaml_content = f.read().strip()
+    ekstcl_yaml = yaml.safe_load(yaml_content)
     cluster_operation = ClusterOperation(**content)
+    cluster_operation.build_eksctl_object()
     if cluster_operation.trigger_eks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     else:
@@ -775,7 +779,7 @@ def fetch_machine_series():
     logger.info(f'A request to fetch machine series for {cluster_type} has arrived')
     machine_series = mongo_handler.mongo_utils.retrieve_machine_series(region_name=region_name,
                                                                        cluster_type=cluster_type)
-    return jsonify(machine_series)
+    return jsonify(sorted(machine_series))
 
 
 @app.route('/fetch_machine_types', methods=[GET])
