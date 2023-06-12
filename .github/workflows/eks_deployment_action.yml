@@ -21,6 +21,7 @@ jobs:
       - name: Payload Extracting
         run: |
           export PYTHONPATH=$PYTHONPATH:.
+          pip3 install PyYAML
           python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.payload }}" --provider aws
           env
 
@@ -33,7 +34,6 @@ jobs:
 
       - name: Trigger EKS Build
         run: |
-          pip3 install PyYAML
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           export KUBECONFIG=/home/runner/.kube/config
