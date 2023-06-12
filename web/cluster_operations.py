@@ -105,7 +105,7 @@ class ClusterOperation:
         self.github_test_url = f'https://api.github.com/repos/{self.github_repository}'
 
     def build_eksctl_object(self):
-        eksctl_node_groups_object = EKSCTLNodeGroupObject(name='ng1', instance_type=self.eks_machine_type,
+        eksctl_node_groups_object = EKSCTLNodeGroupObject(name='ng1', instanceType=self.eks_machine_type,
                                                           desiredCapacity=int(self.num_nodes),
                                                           volumeSize=int(self.eks_volume_size))
         eksctl_metadata = EKSCTLMetadataObject(name=self.cluster_name, region=self.eks_location)
@@ -177,7 +177,7 @@ class ClusterOperation:
             "zone_names": ','.join(self.eks_zones),
             "subnets": ','.join(self.eks_subnets),
             "expiration_time": self.expiration_time,
-            "eksctl_deployment_file": self.eksctl_object_dict
+            "eksctl_deployment_file.yaml": self.eksctl_object_dict
         }
         json_data = {
             "event_type": "eks-build-api-trigger",

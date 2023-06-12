@@ -1,10 +1,19 @@
 import ast
 import os
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import platform
+
+import yaml
 
 from web.variables.variables import AWS, GCP
 
-GITHUB_ACTIONS_ENV_FILE = os.environ.get('GITHUB_ENV', None)
+
+if 'Darwin' in platform.system():
+    EKSCTL_DEPLOYMENT_FILE = f'{os.getcwd()}/eksctl_deployment_file.yaml'
+else:
+    EKSCTL_DEPLOYMENT_FILE = "/home/runner/eksctl_deployment_file.yaml"
+    GITHUB_ACTIONS_ENV_FILE = os.environ.get('GITHUB_ENV', None)
+
 
 
 def main(incoming_string: str = '', provider: str = ''):
@@ -23,8 +32,13 @@ def main(incoming_string: str = '', provider: str = ''):
         eks_subnets = encoded_content['subnets']
         zone_names = encoded_content['zone_names']
         eksctl_deployment_file = encoded_content['eksctl_deployment_file']
-        print(f'eks_subnets is: {eks_subnets}')
         print(f'eksctl_object is: {eksctl_deployment_file}')
+        file = open(EKSCTL_DEPLOYMENT_FILE, "w")
+        yaml.dump(eksctl_deployment_file, file)
+        file.close()
+        print(f'eks_subnets is: {eks_subnets}')
+
+
     elif provider == GCP:
         zone_name = encoded_content['zone_name']
         gcp_project_id = encoded_content['gcp_project_id']
@@ -49,25 +63,26 @@ def main(incoming_string: str = '', provider: str = ''):
     print(f'expiration_time is: {expiration_time}')
     print(f'project_name is: {project_name}')
 
-    with open(GITHUB_ACTIONS_ENV_FILE, "w") as myfile:
-        myfile.write(f"GCP_PROJECT_ID={gcp_project_id}\n")
-        myfile.write(f"PROJECT_NAME={project_name}\n")
-        myfile.write(f"CLUSTER_NAME={cluster_name}\n")
-        myfile.write(f"USER_NAME={user_name}\n")
-        myfile.write(f"CLUSTER_VERSION={cluster_version}\n")
-        myfile.write(f"GKE_MACHINE_TYPE={gke_machine_type}\n")
-        myfile.write(f"REGION_NAME={region_name}\n")
-        myfile.write(f"ZONE_NAME={zone_name}\n")
-        myfile.write(f"ZONE_NAMES={zone_names}\n")
-        myfile.write(f"EKS_SUBNETS={eks_subnets}\n")
-        myfile.write(f"IMAGE_TYPE={image_type}\n")
-        myfile.write(f"NUM_NODES={num_nodes}\n")
-        myfile.write(f"EKSCTL_DEPLOYMENT_FILE={eksctl_deployment_file}\n")
-        myfile.write(f"EXPIRATION_TIME={expiration_time}\n")
+    if not 'Darwin' in platform.system():
+        with open(GITHUB_ACTIONS_ENV_FILE, "w") as myfile:
+            myfile.write(f"GCP_PROJECT_ID={gcp_project_id}\n")
+            myfile.write(f"PROJECT_NAME={project_name}\n")
+            myfile.write(f"CLUSTER_NAME={cluster_name}\n")
+            myfile.write(f"USER_NAME={user_name}\n")
+            myfile.write(f"CLUSTER_VERSION={cluster_version}\n")
+            myfile.write(f"GKE_MACHINE_TYPE={gke_machine_type}\n")
+            myfile.write(f"REGION_NAME={region_name}\n")
+            myfile.write(f"ZONE_NAME={zone_name}\n")
+            myfile.write(f"ZONE_NAMES={zone_names}\n")
+            myfile.write(f"EKS_SUBNETS={eks_subnets}\n")
+            myfile.write(f"IMAGE_TYPE={image_type}\n")
+            myfile.write(f"NUM_NODES={num_nodes}\n")
+            myfile.write(f"EKSCTL_DEPLOYMENT_FILE={eksctl_deployment_file}\n")
+            myfile.write(f"EXPIRATION_TIME={expiration_time}\n")
 
-    with open(GITHUB_ACTIONS_ENV_FILE, "r") as myfile:
-        lines = myfile.readlines()
-        print(lines)
+        with open(GITHUB_ACTIONS_ENV_FILE, "r") as myfile:
+            lines = myfile.readlines()
+            print(lines)
 
 
 if __name__ == '__main__':

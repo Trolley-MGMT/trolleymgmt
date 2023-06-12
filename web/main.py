@@ -421,9 +421,6 @@ def trigger_eks_deployment():
     cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
     content['project_name'] = PROJECT_NAME
-    with open('eksctl_yaml.yaml', "r") as f:
-        yaml_content = f.read().strip()
-    ekstcl_yaml = yaml.safe_load(yaml_content)
     cluster_operation = ClusterOperation(**content)
     cluster_operation.build_eksctl_object()
     if cluster_operation.trigger_eks_build_github_action():
