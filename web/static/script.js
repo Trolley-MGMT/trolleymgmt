@@ -402,6 +402,9 @@ $(document).ready(function() {
         EKSLocation = $('#eks-locations-dropdown').val();
         EKSZones = $('#eks-zones-dropdown').val();
         EKSSubnets = $('#eks-subnets-dropdown').val();
+        EKSMachinesSeries = $('#eks-machines-series-dropdown').val();
+        EKSMachineType = $('#eks-machines-types-dropdown').val();
+        EKSVolumeSize = $('#eks-volume-sizes-dropdown').val();
         GKERegion = $('#gke-regions-dropdown').val();
         GKEZone = $('#gke-zones-dropdown').val();
 
@@ -444,6 +447,8 @@ $(document).ready(function() {
             "eks_location": EKSLocation,
             "eks_zones": EKSZones,
             "eks_subnets": EKSSubnets,
+            "eks_machine_type": EKSMachineType,
+            "eks_volume_size": EKSVolumeSize,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
             "aws_access_key_id": awsAccessKeyId,
@@ -1757,6 +1762,7 @@ $(document).ready(function() {
                             $.each(response, function(key, value) {
                                 $dropdown.append($("<option />").val(value).text(value));
                             });
+                            populate_machine_series(region_name)
                         } else if (clusterType == 'gke') {
                             $.each(response, function(key, value) {
                                 $dropdown.append($("<option />").val(value).text(value));
@@ -1844,8 +1850,12 @@ $(document).ready(function() {
     function populate_machine_series(selected_zone) {
         if (clusterType == 'gke') {
             var $dropdown = $("#gke-machines-series-dropdown");
+            var default_machine_series = 'e2';
+            var default_machine_type = 'e2-medium';
         } else if (clusterType == 'eks') {
-            var $dropdown = $("#eks-vpcs-dropdown");
+            var $dropdown = $("#eks-machines-series-dropdown");
+            var default_machine_series = 'm5';
+            var default_instance_type = 'm5.large';
         }
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -1853,8 +1863,7 @@ $(document).ready(function() {
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
-                        default_machine_series = 'e2';
-                        default_machine_type = 'e2-medium';
+
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
 
@@ -2110,6 +2119,9 @@ $(document).ready(function() {
         $("#eks-zones-dropdown").empty();
         $("#eks-subnets-dropdown").empty();
         populate_zones(eks_location);
+        populate_machine_series(eks_location);
+        populate_machine_types("m5");
+        $("#eks-machines-types-dropdown").val("m5.large");
     })
 
     $('#eks-zones-dropdown').change(function() {
@@ -2141,6 +2153,12 @@ $(document).ready(function() {
         var gke_machine_series = $('#gke-machines-series-dropdown').val();
         $("#gke-machines-types-dropdown").empty();
         populate_machine_types(gke_machine_series);
+    })
+
+    $('#eks-machines-series-dropdown').change(function() {
+        var eks_machine_series = $('#eks-machines-series-dropdown').val();
+        $("#eks-machines-types-dropdown").empty();
+        populate_machine_types(eks_machine_series);
     })
 
     $('#filter-type-dropdown').change(function() {

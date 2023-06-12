@@ -2,12 +2,14 @@ import getpass
 import logging
 import os
 import platform
+from dataclasses import asdict
 
 import requests
 from dotenv import load_dotenv
 
 from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
 from mongo_handler.mongo_utils import retrieve_cluster_details
+from mongo_handler.mongo_objects import EKSCTLNodeGroupObject, EKSCTLObject, EKSCTLMetadataObject
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
@@ -54,7 +56,8 @@ class ClusterOperation:
                  github_repository: str = "", user_name: str = "", project_name: str = "", cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
                  region_name: str = "", zone_name: str = "", gcp_project_id: str = "", gke_machine_type: str = "",
-                 gke_region: str = "", gke_zone: str = "", eks_subnets: str = "",
+                 gke_region: str = "", gke_zone: str = "", eks_machine_type: str = "", eks_subnets: str = "",
+                 eks_volume_size: int = "",
                  eks_location: str = "", eks_zones: str = "", num_nodes: int = "", image_type: str = "",
                  expiration_time: int = 0, discovered: bool = False, mongo_url: str = "",
                  mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = "",
@@ -78,7 +81,9 @@ class ClusterOperation:
         self.aks_location = aks_location
         self.region_name = region_name
         self.zone_name = zone_name
+        self.eks_machine_type = eks_machine_type
         self.eks_subnets = eks_subnets
+        self.eks_volume_size = eks_volume_size
         self.gcp_project_id = gcp_project_id
         self.gke_machine_type = gke_machine_type
         self.gke_region = gke_region
@@ -89,6 +94,7 @@ class ClusterOperation:
         self.image_type = image_type
         self.expiration_time = expiration_time
         self.discovered = discovered
+        self.eksctl_object_dict = {}
 
         self.github_action_request_header = {
             'Content-type': 'application/json',
@@ -97,6 +103,17 @@ class ClusterOperation:
         }
         self.github_actions_api_url = f'https://api.github.com/repos/{self.github_repository}/dispatches'
         self.github_test_url = f'https://api.github.com/repos/{self.github_repository}'
+
+    def build_eksctl_object(self):
+        eksctl_node_groups_object = EKSCTLNodeGroupObject(name='ng1', instance_type=self.eks_machine_type,
+                                                          desiredCapacity=int(self.num_nodes),
+                                                          volumeSize=int(self.eks_volume_size))
+        eksctl_metadata = EKSCTLMetadataObject(name=self.cluster_name, region=self.eks_location)
+        metadata: EKSCTLMetadataObject
+        node_groups: [EKSCTLNodeGroupObject]
+        eksctl_object = EKSCTLObject(apiVersion="eksctl.io/v1alpha5", kind="ClusterConfig", metadata=eksctl_metadata,
+                                     nodeGroups=[eksctl_node_groups_object])
+        self.eksctl_object_dict = asdict(eksctl_object)
 
     def get_aws_credentials(self) -> tuple:
         if self.aws_access_key_id and self.aws_secret_access_key:
@@ -159,7 +176,8 @@ class ClusterOperation:
             "num_nodes": str(self.num_nodes),
             "zone_names": ','.join(self.eks_zones),
             "subnets": ','.join(self.eks_subnets),
-            "expiration_time": self.expiration_time
+            "expiration_time": self.expiration_time,
+            "eksctl_object": self.eksctl_object_dict
         }
         json_data = {
             "event_type": "eks-build-api-trigger",
@@ -197,8 +215,6 @@ class ClusterOperation:
         else:
             logger.warning(f'This is the request response: {response.reason}')
             return False
-
-
 
     def trigger_trolley_agent_deployment_github_action(self):
         json_data = {
