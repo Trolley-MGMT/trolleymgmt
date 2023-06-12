@@ -54,4 +54,4 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_name ${{ env.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --zone_name ${{ env.ZONE_NAMES }} --region_name ${{ env.REGION_NAME }} --expiration_time ${{ env.EXPIRATION_TIME }}
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type eks --project_name ${{ env.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --region_name ${{ env.REGION_NAME }} --expiration_time ${{ env.EXPIRATION_TIME }}

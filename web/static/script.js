@@ -401,7 +401,6 @@ $(document).ready(function() {
         AKSLocation = $('#aks-locations-dropdown').val();
         EKSLocation = $('#eks-locations-dropdown').val();
         EKSZones = $('#eks-zones-dropdown').val();
-        EKSSubnets = $('#eks-subnets-dropdown').val();
         EKSMachinesSeries = $('#eks-machines-series-dropdown').val();
         EKSMachineType = $('#eks-machines-types-dropdown').val();
         EKSVolumeSize = $('#eks-volume-sizes-dropdown').val();
@@ -446,7 +445,6 @@ $(document).ready(function() {
             "expiration_time": EKSExpirationTime,
             "eks_location": EKSLocation,
             "eks_zones": EKSZones,
-            "eks_subnets": EKSSubnets,
             "eks_machine_type": EKSMachineType,
             "eks_volume_size": EKSVolumeSize,
             "github_repository": githubRepository,

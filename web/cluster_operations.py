@@ -56,7 +56,7 @@ class ClusterOperation:
                  github_repository: str = "", user_name: str = "", project_name: str = "", cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
                  region_name: str = "", zone_name: str = "", gcp_project_id: str = "", gke_machine_type: str = "",
-                 gke_region: str = "", gke_zone: str = "", eks_machine_type: str = "", eks_subnets: str = "",
+                 gke_region: str = "", gke_zone: str = "", eks_machine_type: str = "",
                  eks_volume_size: int = "",
                  eks_location: str = "", eks_zones: str = "", num_nodes: int = "", image_type: str = "",
                  expiration_time: int = 0, discovered: bool = False, mongo_url: str = "",
@@ -82,7 +82,6 @@ class ClusterOperation:
         self.region_name = region_name
         self.zone_name = zone_name
         self.eks_machine_type = eks_machine_type
-        self.eks_subnets = eks_subnets
         self.eks_volume_size = eks_volume_size
         self.gcp_project_id = gcp_project_id
         self.gke_machine_type = gke_machine_type
@@ -174,8 +173,6 @@ class ClusterOperation:
             "cluster_version": self.cluster_version,
             "region_name": self.eks_location,
             "num_nodes": str(self.num_nodes),
-            "zone_names": ','.join(self.eks_zones),
-            "subnets": ','.join(self.eks_subnets),
             "expiration_time": self.expiration_time,
             "eksctl_deployment_file": self.eksctl_object_dict
         }
