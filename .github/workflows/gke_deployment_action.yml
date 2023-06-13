@@ -23,6 +23,7 @@ jobs:
       - name: Payload Extracting
         run: |
           export PYTHONPATH=$PYTHONPATH:.
+          pip3 install PyYAML
           python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.payload }}" --provider gcp
           env
 
