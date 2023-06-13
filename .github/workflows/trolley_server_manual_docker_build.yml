@@ -28,6 +28,6 @@ jobs:
 
       - name: Build and Push
         run: |
-          docker build -t trolley_server/latest -f Dockerfile .
+          docker buildx build --push --platform linux/arm64,linux/amd64  -t  pavelzagalsky/trolley_server -f Dockerfile .
           docker tag trolley_server/latest pavelzagalsky/trolley_server
           docker push pavelzagalsky/trolley_server:latest
