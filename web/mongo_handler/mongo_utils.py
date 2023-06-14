@@ -59,11 +59,16 @@ MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
 MONGO_URL = os.environ['MONGO_URL']
 MONGO_PORT = int(os.getenv('MONGO_PORT', 27017))
+print(f'MONGO_USER is: {MONGO_USER}')
+print(f'MONGO_URL is: {MONGO_URL}')
+print(f'MONGO_PORT is: {MONGO_PORT}')
 
 ATLAS_FULL_URL = f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority"
 
 if "mongodb.net" in MONGO_URL:
     print('mongodb.net was chosen')
+    logger.info(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
+    print(f'ATLAS_FULL_URL is: {ATLAS_FULL_URL}')
     client = MongoClient(ATLAS_FULL_URL)
 else:
     print('mongodb.net was not chosen')

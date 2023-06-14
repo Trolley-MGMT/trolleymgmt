@@ -1,10 +1,16 @@
+import concurrent.futures
+
+from datetime import timedelta
 import os
 import platform
 import sys
+import time
+
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from dataclasses import asdict
 import logging
 
+import boto3
 import getpass as gt
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
@@ -36,13 +42,6 @@ else:
         AWSRegionsAndMachineSeriesObject, AWSSeriesAndMachineTypesObject
     from web.variables.variables import EKS
 
-import boto3
-
-try:
-    ec2 = boto3.client('ec2')
-except Exception as e:
-    logger.error(f'Trouble connecting to AWS: {e}')
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -59,7 +58,7 @@ else:
     FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
 
 
-def fetch_regions() -> list:
+def fetch_regions(ec2) -> list:
     logger.info(f'A request to fetch regions has arrived')
     response = ec2.describe_regions()
     regions_list = []
@@ -68,22 +67,26 @@ def fetch_regions() -> list:
     return regions_list
 
 
-def fetch_zones() -> list:
+def fetch_zones(ec2, aws_access_key_id: str = '', aws_secret_access_key: str = '') -> list:
     logger.info(f'A request to fetch zones has arrived')
     aws_regions = ec2.describe_regions()
     zones_list = []
     for region in aws_regions['Regions']:
         my_region_name = region['RegionName']
-        ec2_region = boto3.client('ec2', region_name=my_region_name)
+        logger.info(f'Adding a {my_region_name} region')
+        ec2_region = boto3.client('ec2', region_name=my_region_name, aws_access_key_id=aws_access_key_id,
+                                  aws_secret_access_key=aws_secret_access_key)
         my_region = [{'Name': 'region-name', 'Values': [my_region_name]}]
         aws_azs = ec2_region.describe_availability_zones(Filters=my_region)
         for az in aws_azs['AvailabilityZones']:
             zone = az['ZoneName']
+            logger.info(f'Adding a {zone} zone')
             zones_list.append(zone)
     return zones_list
 
 
-def fetch_subnets(zones_list: list) -> dict:
+def fetch_subnets(zones_list: list, ec2) -> dict:
+    logger.info(f'A request to fetch subnets has arrived')
     subnets_dict = {}
     for zone_name in zones_list:
         response = ec2.describe_subnets(
@@ -103,69 +106,95 @@ def fetch_subnets(zones_list: list) -> dict:
     return subnets_dict
 
 
-def fetch_machine_types_per_region(regions_list: list) -> dict:
-    machines_for_zone_dict = {}
-    for region in regions_list:
-        machine_types_list = []
-        machine_types_list_ = []
-        ec2 = boto3.client('ec2', region_name=region)
-        machine_types_response = ec2.describe_instance_type_offerings(
-            LocationType='availability-zone'
-        )
-        for instance_response in machine_types_response['InstanceTypeOfferings']:
-            machine_types_list_.append(instance_response['InstanceType'])
-        for machine in machine_types_list_:
-            print(f'Adding a machine number: {len(machine_types_list)} out of {len(machine_types_list_)} in {region} region')
-            try:
-                machine_type_response = ec2.describe_instance_types(
-                    InstanceTypes=[
-                        machine
-                    ]
-                )
-            except:
-                pass
-            machine_type_object = AWSMachineTypeObject(region=region,
-                                                       machine_type=machine,
-                                                       machine_series=machine.split('.')[0],
-                                                       vCPU=machine_type_response['InstanceTypes'][0]['VCpuInfo'][
-                                                           'DefaultVCpus'],
-                                                       memory=machine_type_response['InstanceTypes'][0]['MemoryInfo'][
-                                                           'SizeInMiB'])
-            machine_types_list.append(machine_type_object)
-        machines_for_zone_dict[region] = machine_types_list
-    return machines_for_zone_dict
+def fetch_machine_types_per_region(region: str, ec2) -> list:
+    logger.info(f'A request to fetch machine_types per region has arrived')
+    machine_types_list = []
+    machine_types_list_ = []
+    machine_types_response = ec2.describe_instance_type_offerings(
+        LocationType='availability-zone'
+    )
+    for instance_response in machine_types_response['InstanceTypeOfferings']:
+        machine_types_list_.append(instance_response['InstanceType'])
+    for machine in machine_types_list_:
+        print(
+            f'Adding a machine number: {len(machine_types_list)} out of {len(machine_types_list_)} in {region} region')
+        logger.info(
+            f'Adding a machine number: {len(machine_types_list)} out of {len(machine_types_list_)} in {region} region')
+        try:
+            machine_type_response = ec2.describe_instance_types(
+                InstanceTypes=[
+                    machine
+                ]
+            )
+        except:
+            pass
+        machine_type_object = AWSMachineTypeObject(region=region,
+                                                   machine_type=machine,
+                                                   machine_series=machine.split('.')[0],
+                                                   vCPU=machine_type_response['InstanceTypes'][0]['VCpuInfo'][
+                                                       'DefaultVCpus'],
+                                                   memory=machine_type_response['InstanceTypes'][0]['MemoryInfo'][
+                                                       'SizeInMiB'])
+        machine_types_list.append(machine_type_object)
+    return machine_types_list
 
 
 def main(aws_access_key_id, aws_secret_access_key):
+    start_time = time.monotonic()
+    print(f'start_time is: {start_time}')
+    logger.info(f'aws_access_key_id is: {aws_access_key_id}')
+    logger.info(f'aws_secret_access_key is: {aws_secret_access_key}')
     if aws_access_key_id and aws_secret_access_key:
         if not os.path.exists(FETCHED_CREDENTIALS_DIR_PATH):
             os.makedirs(FETCHED_CREDENTIALS_DIR_PATH)
+        if os.path.exists(FETCHED_CREDENTIALS_FILE_PATH):
+            os.remove(FETCHED_CREDENTIALS_FILE_PATH)
         f = open(FETCHED_CREDENTIALS_FILE_PATH, 'a')
         f.write(
             f'[default]\naws_access_key_id = {aws_access_key_id}\naws_secret_access_key = {aws_secret_access_key}\n')
         f.close()
         os.environ['AWS_SHARED_CREDENTIALS_FILE'] = FETCHED_CREDENTIALS_FILE_PATH
+        logger.info(f'Trying to connect to ec2 using {FETCHED_CREDENTIALS_FILE_PATH} credentials')
+        try:
+            ec2 = boto3.client('ec2', region_name='us-east-1',
+                               aws_access_key_id=aws_access_key_id,
+                               aws_secret_access_key=aws_secret_access_key)
+            logger.info('Success connecting to AWS')
+        except Exception as e:
+            logger.error(f'Trouble connecting to AWS: {e}')
     else:
+        logger.error('AWS Credentials were not passed correctly')
         sys.exit(0)
+
     # add kubernetes versions
     try:
-        logger.info('printing all env variables')
-        logger.info(os.environ)
+
         logger.info('Attempting to fetch regions_list')
-        regions_list = fetch_regions()
-        logger.info('Attempting to fetch_machine_types')
-        # All machine types for all regions
-        # regions_list = ['ap-south-1', 'eu-north-1']
-        machine_types_all_regions = fetch_machine_types_per_region(regions_list=regions_list)
-        for region in machine_types_all_regions:
+        machine_types_all_regions = []
+        machines_for_zone_dict = {}
+        # regions_list = ['us-east-1', 'us-east-2']
+        regions_list = fetch_regions(ec2)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # Submit the tasks to the executor
+            future_results = [executor.submit(fetch_machine_types_per_region, region, ec2) for region in regions_list]
+            for future in concurrent.futures.as_completed(future_results):
+                try:
+                    result = future.result()
+                    machines_for_zone_dict[result[0].region] = result
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+
+        for region in machines_for_zone_dict:
             aws_machines_caching_object = AWSMachinesCacheObject(
                 region=region,
-                machines_list=machine_types_all_regions[region]
+                machines_list=machines_for_zone_dict[region]
             )
             insert_cache_object(caching_object=asdict(aws_machines_caching_object), provider=EKS, machine_types=True)
 
+        # Fetching Zones
         logger.info('Attempt to fetch zones_list')
-        zones_list = fetch_zones()
+        zones_list = fetch_zones(ec2=ec2, aws_access_key_id=aws_access_key_id,
+                                 aws_secret_access_key=aws_secret_access_key)
         regions_zones_dict = {}
         for region in regions_list:
             for zone in zones_list:
@@ -174,7 +203,7 @@ def main(aws_access_key_id, aws_secret_access_key):
                         regions_zones_dict[region].insert(0, zone)
                     else:
                         regions_zones_dict[region] = [zone]
-        subnets_dict = fetch_subnets(zones_list)
+        subnets_dict = fetch_subnets(zones_list, ec2=ec2)
         logger.info('Attempting to fetch subnets_dict')
         aws_caching_object = AWSCacheObject(
             zones_list=zones_list,
@@ -224,8 +253,11 @@ def main(aws_access_key_id, aws_secret_access_key):
             )
             insert_cache_object(caching_object=asdict(aws_series_and_machine_types_object), provider=EKS,
                                 aws_series_and_machine_types=True)
+        end_time = time.monotonic()
+        print(f'end_time is: {end_time}')
+        print(timedelta(seconds=end_time - start_time))
     except Exception as e:
-        logger.info(f'Trouble connecting to AWS {e}')
+        logger.error(f'Trouble connecting to AWS {e}')
 
 
 if __name__ == '__main__':

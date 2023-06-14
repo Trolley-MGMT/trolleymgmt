@@ -46,52 +46,50 @@ logger.info(f'project_folder is: {project_folder}')
 
 LOCAL_USER = gt.getuser()
 GITHUB_ACTIONS_ENV = os.getenv('GITHUB_ACTIONS_ENV')
+PLATFORM_SYSTEM = platform.system()
+logger.info(f'PLATFORM_SYSTEM is: {PLATFORM_SYSTEM}')
 
 if 'Darwin' in platform.system():
+    logger.info(f'platform system is Darwin')
     CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
     FETCHED_CREDENTIALS_DIR_PATH = f'/Users/{LOCAL_USER}/.gcp/fetched_credentials'
     FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
 else:
     if GITHUB_ACTIONS_ENV:
+        logger.info(f'checking the github_actions_env path')
         FETCHED_CREDENTIALS_FILE_PATH = '/home/runner/work/gcp_credentials.json'
         CREDENTIALS_PATH = '/home/runner/work/gcp_credentials.json'
     else:
+        logger.info(f'checking the docker_env path')
         GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
         CREDENTIALS_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
         logger.info(f'CREDENTIALS_PATH is: {CREDENTIALS_PATH}')
         FETCHED_CREDENTIALS_DIR_PATH = f'/app/.gcp'
         FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/gcp_credentials.json'
 
-try:
-    with open(CREDENTIALS_PATH, "r") as f:
-        credentials = f.read()
-        GCP_PROJECT_ID = json.loads(credentials)['project_id']
-        logger.info(f'GCP_PROJECT_ID is: {GCP_PROJECT_ID}')
-except Exception as e:
-    logger.info('Problem extracting GCP_PROJECT_ID parameter')
 
-try:
-    credentials = service_account.Credentials.from_service_account_file(
-        CREDENTIALS_PATH)
-    service = discovery.build('container', 'v1', credentials=credentials)
-except Exception as e:
-    logger.info(f'Credentials were not provided with a file')
+# try:
+#     credentials = service_account.Credentials.from_service_account_file(
+#         FETCHED_CREDENTIALS_FILE_PATH)
+#     service = discovery.build('container', 'v1', credentials=credentials)
+# except Exception as e:
+#     logger.error(f'Credentials were not provided with a file')
 
 
-def fetch_zones() -> list:
-    logger.info(f'A request to fetch zones has arrived for {GCP_PROJECT_ID} project_id')
+def fetch_zones(gcp_project_id: str) -> list:
+    logger.info(f'A request to fetch zones has arrived for {gcp_project_id} project_id')
     compute_zones_client = ZonesClient()
-    zones_object = compute_zones_client.list(project=GCP_PROJECT_ID)
+    zones_object = compute_zones_client.list(project=gcp_project_id)
     zones_list = []
     for zone in zones_object:
         zones_list.append(zone.name)
     return zones_list
 
 
-def fetch_regions() -> list:
+def fetch_regions(gcp_project_id: str) -> list:
     logger.info(f'A request to fetch regions has arrived')
     compute_zones_client = ZonesClient()
-    zones_object = compute_zones_client.list(project=GCP_PROJECT_ID)
+    zones_object = compute_zones_client.list(project=gcp_project_id)
     regions_list = []
     for zone_object in zones_object:
         zone_object_url = zone_object.region
@@ -101,9 +99,9 @@ def fetch_regions() -> list:
     return regions_list
 
 
-def fetch_versions(zones_list):
+def fetch_versions(zones_list: list, gcp_project_id: str, service):
     for zone in zones_list:
-        name = f'projects/{GCP_PROJECT_ID}/locations/{zone}'
+        name = f'projects/{gcp_project_id}/locations/{zone}'
         request = service.projects().locations().getServerConfig(name=name)
         response = request.execute()
         available_gke_versions = []
@@ -112,9 +110,9 @@ def fetch_versions(zones_list):
         return available_gke_versions
 
 
-def fetch_gke_image_types(zones_list):
+def fetch_gke_image_types(zones_list: list, gcp_project_id: str, service):
     for zone in zones_list:
-        name = f'projects/{GCP_PROJECT_ID}/locations/{zone}'
+        name = f'projects/{gcp_project_id}/locations/{zone}'
         request = service.projects().locations().getServerConfig(name=name)
         response = request.execute()
         available_images = []
@@ -137,13 +135,13 @@ def create_regions_and_zones_dict(regions_list, zones_list):
     return zones_regions_dict
 
 
-def fetch_machine_types_per_zone(zones_list) -> dict:
+def fetch_machine_types_per_zone(zones_list: list, gcp_project_id: str, credentials) -> dict:
     logger.info(f'A request to fetch machine types has arrived')
     service = discovery.build('compute', 'beta', credentials=credentials)
     machine_types_list = []
     machines_for_zone_dict = {}
     for zone in zones_list:
-        request = service.machineTypes().list(project=GCP_PROJECT_ID, zone=zone)
+        request = service.machineTypes().list(project=gcp_project_id, zone=zone)
         response = request.execute()
         for machine in response['items']:
             machine_type_object = GKEMachineTypeObject(zone=zone,
@@ -171,20 +169,38 @@ def main(gcp_credentials: str):
         f.write(gcp_credentials)
         f.close()
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = FETCHED_CREDENTIALS_FILE_PATH
+        logger.info(f'FETCHED_CREDENTIALS_FILE_PATH is: {FETCHED_CREDENTIALS_FILE_PATH}')
     else:
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = CREDENTIALS_PATH
     try:
+        try:
+            with open(FETCHED_CREDENTIALS_FILE_PATH, "r") as f:
+                credentials = f.read()
+                gcp_project_id = json.loads(credentials)['project_id']
+                logger.info(f'GCP_PROJECT_ID is: {gcp_project_id}')
+                print('Success extracting GCP_PROJECT_ID parameter')
+
+        except Exception as e:
+            logger.error('Problem extracting GCP_PROJECT_ID parameter')
+            print('Problem extracting GCP_PROJECT_ID parameter')
+        try:
+            credentials = service_account.Credentials.from_service_account_file(
+                FETCHED_CREDENTIALS_FILE_PATH)
+            service = discovery.build('container', 'v1', credentials=credentials)
+        except Exception as e:
+            logger.error(f'Credentials were not provided with a file')
         logger.info('Attempting to fetch zones')
-        zones_list = fetch_zones()
+        zones_list = fetch_zones(gcp_project_id)
         logger.info('Attempting to fetch regions')
-        regions_list = fetch_regions()
+        regions_list = fetch_regions(gcp_project_id)
         logger.info('Attempting to fetch gke_image_types')
-        gke_image_types = fetch_gke_image_types(zones_list=zones_list)
+        gke_image_types = fetch_gke_image_types(zones_list=zones_list, gcp_project_id=gcp_project_id, service=service)
         logger.info('Attempting to fetch versions_list')
-        versions_list = fetch_versions(zones_list=zones_list)
+        versions_list = fetch_versions(zones_list=zones_list, gcp_project_id=gcp_project_id, service=service)
         zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
         logger.info('Attempting to fetch machine_types_all_zones')
-        machine_types_all_zones = fetch_machine_types_per_zone(zones_list)
+        machine_types_all_zones = fetch_machine_types_per_zone(zones_list, gcp_project_id=gcp_project_id,
+                                                               credentials=credentials)
         for zone in machine_types_all_zones:
             gke_machines_caching_object = GKEMachinesCacheObject(
                 region=zone,
@@ -244,7 +260,7 @@ def main(gcp_credentials: str):
 
 
     except Exception as e:
-        logger.info(f'Trouble connecting to GCP: {e}')
+        logger.error(f'Trouble connecting to GCP: {e}')
 
 
 if __name__ == '__main__':

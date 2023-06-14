@@ -1,7 +1,8 @@
 $(document).ready(function() {
-    let debug = false;
+    let debug = true;
     let trolley_remote_url = 'pavelzagalsky.pythonanywhere.com';
     let trolley_local_url = 'localhost';
+//    let trolley_local_url = 'localhost:8081';
     let trolley_url = 'http://www.pavelzagalsky.com';
     let stored_user_type = window.localStorage.getItem("userType");
     let userType = "";
