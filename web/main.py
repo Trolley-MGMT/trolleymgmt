@@ -1198,20 +1198,22 @@ if __name__ == "__main__":
     with open('static/script.js', 'w') as f:
         print(f'Current directory is: {os.getcwd()}')
         print('successfully opened the static.js file')
+        logger.info('successfully opened the static.js file')
+        logger.info(f'trolley_deployment that was selected is: {TROLLEY_DEPLOYMENT}')
         for line in lines:
-            print(f'line value is: {line}')
+            logger.info(f'line value is: {line}')
             if "trolley_url = " in line:
                 if TROLLEY_DEPLOYMENT == 'local':
-                    print(f'trolley_deployment that was selected is: {TROLLEY_DEPLOYMENT}')
                     line = "    trolley_url = 'http://localhost'\n"
                 if TROLLEY_DEPLOYMENT == 'kubernetes':
-                    print(f'trolley_deployment that was selected is: {TROLLEY_DEPLOYMENT}')
                     line = "    trolley_url = 'http://localhost:8080'\n"
                 if TROLLEY_DEPLOYMENT == 'custom':
-                    print(f'trolley_deployment that was selected is: {TROLLEY_DEPLOYMENT}')
                     line = f"    trolley_url = {TROLLEY_URL}\n"
-            print(f'printing the {line} line')
-            f.write(line)
+            try:
+                f.write(line)
+                logger.info(f'Writing of the file succeeded')
+            except Exception as e:
+                logger.error(f'Writing of the file failed because: {e}')
 
     # logger.info(os.getcwd())
     # logger.info(help('modules'))
