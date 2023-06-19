@@ -45,8 +45,6 @@ logger.info(f'project_folder is: {project_folder}')
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 PROJECT_NAME = os.getenv('PROJECT_NAME', "trolley-dev")
-TROLLEY_DEPLOYMENT = os.getenv('TROLLEY_DEPLOYMENT', "local")
-TROLLEY_URL = os.getenv('TROLLEY_URL', "https://trolley.com")
 
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 import mongo_handler.mongo_utils
@@ -456,17 +454,6 @@ def trigger_aks_deployment():
     if cluster_operation.trigger_aks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
 
-    # if trigger_aks_build_github_action(**content):
-    #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-    # if trigger_aks_build_github_action(**content):
-    #     deployment_yaml_object = deployment_yaml_object_handling(content)
-    # else:
-    #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-    # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
-    #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-    # else:
-    #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-
 
 # @app.route('/delete_expired_clusters', methods=[DELETE])
 # @login_required
@@ -652,13 +639,6 @@ def client():
         return jsonify(sorted(client_names, key=lambda d: d['client_name']))
 
 
-# @app.route('/fetch_clients_data', methods=[GET])
-# @login_required
-# def fetch_clients_data():
-#     client_names = mongo_handler.mongo_utils.retrieve_clients_data()
-#     return jsonify(client_names)
-
-
 @app.route('/users', methods=[GET, POST, PUT, DELETE])
 @login_required
 def users():
@@ -712,27 +692,6 @@ def teams():
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-
-        # return jsonify(users_data)
-        # users_object = mongo_handler.mongo_utils.retrieve_users_data()
-        # return Response(json.dumps(users_object), status=200, mimetype=APPLICATION_JSON)
-
-    # elif request.method == PUT:
-    #     if content[OBJECT_TYPE] == CLUSTER:
-    #         if mongo_handler.mongo_utils.add_client_to_cluster(**content):
-    #             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-    #         else:
-    #             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-    #     elif content['object_type'] == 'instance':
-    #         if mongo_handler.mongo_utils.add_client_to_instance(**content):
-    #             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-    #         else:
-    #             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-    # elif request.method == DELETE:
-    #     if mongo_handler.mongo_utils.delete_client(**content):
-    #         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-    #     else:
-    #         return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
 
 
 @app.route('/healthz', methods=[GET, POST])
@@ -1191,32 +1150,5 @@ def logout():
 
 
 if __name__ == "__main__":
-    with open('static/pre_script.js', 'r') as f:
-        lines = f.readlines()
-        print(f'reading the pre_script.js {lines}')
-
-    with open('static/script.js', 'w') as f:
-        print(f'Current directory is: {os.getcwd()}')
-        print('successfully opened the static.js file')
-        logger.info('successfully opened the static.js file')
-        logger.info(f'trolley_deployment that was selected is: {TROLLEY_DEPLOYMENT}')
-        for line in lines:
-            logger.info(f'line value is: {line}')
-            if "trolley_url = " in line:
-                if TROLLEY_DEPLOYMENT == 'local':
-                    line = "    trolley_url = 'http://localhost'\n"
-                if TROLLEY_DEPLOYMENT == 'kubernetes':
-                    line = "    trolley_url = 'http://localhost:8080'\n"
-                if TROLLEY_DEPLOYMENT == 'custom':
-                    line = f"    trolley_url = {TROLLEY_URL}\n"
-            try:
-                f.write(line)
-                logger.info(f'Writing of the file succeeded')
-            except Exception as e:
-                logger.error(f'Writing of the file failed because: {e}')
-
-    # logger.info(os.getcwd())
-    # logger.info(help('modules'))
-    # print(help('modules'))
     app.run(host='0.0.0.0', port=80, debug=True)
     # app.run(host='0.0.0.0', port=8080, debug=True)

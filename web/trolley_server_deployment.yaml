@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: trolley-server
-        image: pavelzagalsky/trolley:latest
+        image: pavelzagalsky/trolley_server:latest
         ports:
         - containerPort: 8081
         env:
