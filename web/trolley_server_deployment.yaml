@@ -40,3 +40,7 @@ spec:
           value: "value"
         - name: GMAIL_PASSWORD
           value: "value"
+        - name: TROLLEY_DEPLOYMENT
+          value: "local"
+        - name: TROLLEY_URL
+          value: "https://some_url.com"
