@@ -17,6 +17,7 @@ RUN curl -sSL https://sdk.cloud.google.com | bash
 COPY . /app
 COPY web/static /app/static
 COPY web/main.py /app
+COPY web/deployment.py /app
 COPY web/templates /app/templates
 COPY web/mongo_handler /app/mongo_handler
 COPY web/variables /app/variables
@@ -27,7 +28,7 @@ ADD web/scripts/gcp_caching_script.py gcp_caching_script.py
 ADD web/scripts/aws_caching_script.py aws_caching_script.py
 ADD web/scripts/aws_discovery_script.py aws_discovery_script.py
 ADD web/scripts/gcp_discovery_script.py gcp_discovery_script.py
-RUN chmod +x trolley_api.sh aks_cache.sh aws_cache.sh gcp_cache.sh aws_discovery.sh gcp_discovery.sh deployment.sh
+RUN chmod +x trolley_api.sh aks_cache.sh aws_cache.sh gcp_cache.sh aws_discovery.sh gcp_discovery.sh
 
 CMD ./trolley_api.sh
 #ENTRYPOINT ["tail", "-f", "/dev/null"]
