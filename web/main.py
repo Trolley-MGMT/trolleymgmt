@@ -1193,17 +1193,23 @@ def logout():
 if __name__ == "__main__":
     with open('static/pre_script.js', 'r') as f:
         lines = f.readlines()
-        print(lines)
+        print(f'reading the pre_script.js {lines}')
 
     with open('static/script.js', 'w') as f:
+        print('successfully opened the static.js file')
         for line in lines:
+            print(f'line value is: {line}')
             if "trolley_url = " in line:
                 if TROLLEY_DEPLOYMENT == 'local':
+                    print(f'trolley_deployment that was selected is: {TROLLEY_DEPLOYMENT}')
                     line = "    trolley_url = 'http://localhost'\n"
                 if TROLLEY_DEPLOYMENT == 'kubernetes':
+                    print(f'trolley_deployment that was selected is: {TROLLEY_DEPLOYMENT}')
                     line = "    trolley_url = 'http://localhost:8080'\n"
                 if TROLLEY_DEPLOYMENT == 'custom':
+                    print(f'trolley_deployment that was selected is: {TROLLEY_DEPLOYMENT}')
                     line = f"    trolley_url = {TROLLEY_URL}\n"
+            print(f'printing the {line} line')
             f.write(line)
 
     # logger.info(os.getcwd())
