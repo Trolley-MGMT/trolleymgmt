@@ -1196,6 +1196,7 @@ if __name__ == "__main__":
         print(f'reading the pre_script.js {lines}')
 
     with open('static/script.js', 'w') as f:
+        print(f'Current directory is: {os.getcwd()}')
         print('successfully opened the static.js file')
         for line in lines:
             print(f'line value is: {line}')
