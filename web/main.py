@@ -45,6 +45,8 @@ logger.info(f'project_folder is: {project_folder}')
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 PROJECT_NAME = os.getenv('PROJECT_NAME', "trolley-dev")
+TROLLEY_DEPLOYMENT = os.getenv('TROLLEY_DEPLOYMENT', "local")
+TROLLEY_URL = os.getenv('TROLLEY_URL', "https://trolley.com")
 
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 import mongo_handler.mongo_utils
@@ -1189,6 +1191,21 @@ def logout():
 
 
 if __name__ == "__main__":
+    with open('static/pre_script.js', 'r') as f:
+        lines = f.readlines()
+        print(lines)
+
+    with open('static/script.js', 'w') as f:
+        for line in lines:
+            if "trolley_url = " in line:
+                if TROLLEY_DEPLOYMENT == 'local':
+                    line = "    trolley_url = 'http://localhost'\n"
+                if TROLLEY_DEPLOYMENT == 'kubernetes':
+                    line = "    trolley_url = 'http://localhost:8080'\n"
+                if TROLLEY_DEPLOYMENT == 'custom':
+                    line = f"    trolley_url = {TROLLEY_URL}\n"
+            f.write(line)
+
     # logger.info(os.getcwd())
     # logger.info(help('modules'))
     # print(help('modules'))
