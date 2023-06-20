@@ -15,6 +15,7 @@ from distutils import util
 
 from cryptography.fernet import Fernet
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
+from flask_caching import Cache
 from itsdangerous import URLSafeTimedSerializer
 from jwt import encode, InvalidTokenError
 from PIL import Image
@@ -60,23 +61,12 @@ from mail_handler import MailSender
 from utils import random_string, apply_yaml
 from scripts import gcp_discovery_script, aws_discovery_script, gcp_caching_script, aws_caching_script
 
-# else:
-#     import mongo_handler.mongo_utils
-#     from cluster_operations import ClusterOperation
-#     from mongo_handler.mongo_objects import UserObject, GitHubObject, DeploymentYAMLObject, ProviderObject
-#     from variables.variables import POST, GET, EKS, \
-#         APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
-#         ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
-#         CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-#         NAMES, REGION_NAME, CLIENT_NAME
-#     from mail_handler import MailSender
-#     from utils import random_string, apply_yaml
-#     from scripts import gcp_discovery_script, aws_discovery_script
-
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
 
+cache = Cache()
 app = Flask(__name__, template_folder='templates')
+cache.init_app(app, config={'CACHE_TYPE': 'SimpleCache'})
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SECURITY_PASSWORD_SALT'] = 'salty_balls'
@@ -155,13 +145,11 @@ def encode_provider_details(content: dict) -> ProviderObject:
     encoded_aws_access_key_id = crypter.encrypt(str.encode(content['aws_access_key_id']))
     encoded_aws_secret_access_key = crypter.encrypt(str.encode(content['aws_secret_access_key']))
     encoded_google_creds_json = crypter.encrypt(str.encode(content['google_creds_json']))
-    # encoded_gcp_project_id = crypter.encrypt(str.encode(content['gcp_project_id']))
     encoded_azure_credentials = crypter.encrypt(str.encode(content['azure_credentials']))
     provider_object = ProviderObject(provider=content[PROVIDER], aws_access_key_id=encoded_aws_access_key_id,
                                      aws_secret_access_key=encoded_aws_secret_access_key,
                                      azure_credentials=encoded_azure_credentials,
                                      google_creds_json=encoded_google_creds_json, user_email=content['user_email'],
-                                     # gcp_project_id=encoded_gcp_project_id,
                                      created_timestamp=int(time.time()))
     return provider_object
 
@@ -287,6 +275,7 @@ def render_page(page_name: str = '', cluster_name: str = '', client_name: str = 
 
 @app.route('/get_clusters_data', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def get_clusters_data():
     """
     Ths endpoint allows providing basic clusters data that was gathered upon the clusters' creation.
@@ -300,6 +289,7 @@ def get_clusters_data():
 
 @app.route('/get_instances_data', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def get_instances_data():
     """
     Ths endpoint allows providing basic instances data that was gathered.
@@ -313,6 +303,7 @@ def get_instances_data():
 
 @app.route('/get_agent_cluster_data', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def get_agent_cluster_data():
     """
     This endpoint allows providing an additional cluster data that is being collected by the deployed Trolley Agent
@@ -401,11 +392,6 @@ def trigger_gke_deployment():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     else:
         return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-        # deployment_yaml_object = deployment_yaml_object_handling(content)
-    # else:
-    #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-    # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
-    #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
 
 
 @app.route('/trigger_eks_deployment', methods=[POST])
@@ -427,14 +413,6 @@ def trigger_eks_deployment():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     else:
         return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-
-        # deployment_yaml_object = deployment_yaml_object_handling(content)
-    # else:
-    #     return Response(json.dumps(response.text), status=400, mimetype=APPLICATION_JSON)
-    # if mongo_handler.mongo_utils.insert_deployment_yaml(asdict(deployment_yaml_object)):
-    #     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-    # else:
-    #     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
 
 
 @app.route('/trigger_aks_deployment', methods=[POST])
@@ -519,6 +497,7 @@ def insert_cluster_data():
 
 @app.route('/settings', methods=[GET, POST])
 @login_required
+@cache.cached(timeout=180)
 def settings():
     """
     This endpoint saves Trolley settings
@@ -604,6 +583,7 @@ def settings():
 
 @app.route('/clients', methods=[GET, POST, PUT, DELETE])
 @login_required
+@cache.cached(timeout=180)
 def client():
     """
     This endpoint adds/gets and deletes a client data
@@ -641,6 +621,7 @@ def client():
 
 @app.route('/users', methods=[GET, POST, PUT, DELETE])
 @login_required
+@cache.cached(timeout=180)
 def users():
     """
     This endpoint adds/gets a new user
@@ -670,6 +651,7 @@ def users():
 
 @app.route('/teams', methods=[GET, POST, PUT, DELETE])
 @login_required
+@cache.cached(timeout=180)
 def teams():
     """
     This endpoint adds and gets teams
@@ -712,6 +694,7 @@ def index():
 
 @app.route('/fetch_regions', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def fetch_regions():
     cluster_type = request.args.get(CLUSTER_TYPE)
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
@@ -731,6 +714,7 @@ def fetch_regions():
 
 @app.route('/fetch_machine_series', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def fetch_machine_series():
     cluster_type = request.args.get(CLUSTER_TYPE)
     region_name = request.args.get(REGION_NAME.lower())
@@ -742,6 +726,7 @@ def fetch_machine_series():
 
 @app.route('/fetch_machine_types', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def fetch_machine_types():
     cluster_type = request.args.get(CLUSTER_TYPE)
     machine_series = request.args.get('machine_series')
@@ -753,6 +738,7 @@ def fetch_machine_types():
 
 @app.route('/fetch_zones', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def fetch_zones():
     cluster_type = request.args.get(CLUSTER_TYPE)
     region_name = request.args.get(REGION_NAME.lower())
@@ -777,6 +763,7 @@ def fetch_zones():
 
 @app.route('/fetch_subnets', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def fetch_subnets():
     cluster_type = request.args.get(CLUSTER_TYPE)
     zone_names = request.args.get(ZONE_NAMES.lower())
@@ -796,18 +783,9 @@ def fetch_subnets():
         else:
             return jsonify(subnets)
 
-
-@app.route('/fetch_helm_installs', methods=[GET, POST])
-@login_required
-def fetch_helm_installs():
-    names = bool(util.strtobool(request.args.get(NAMES)))
-    logger.info(f'A request to fetch helm installs for {names} names has arrived')
-    helm_installs_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=HELM_INSTALLS_LIST, provider=HELM)
-    return jsonify(helm_installs_list)
-
-
 @app.route('/fetch_client_name_per_cluster', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def fetch_client_name_per_cluster():
     cluster_type = request.args.get(CLUSTER.lower())
     cluster_name = request.args.get(CLUSTER_NAME.lower())
@@ -817,6 +795,7 @@ def fetch_client_name_per_cluster():
 
 @app.route('/fetch_gke_versions', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def fetch_gke_versions():
     gke_versions_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_VERSIONS_LIST, provider=GKE)
     return jsonify(gke_versions_list)
@@ -824,6 +803,7 @@ def fetch_gke_versions():
 
 @app.route('/fetch_gke_image_types', methods=[GET])
 @login_required
+@cache.cached(timeout=180)
 def fetch_gke_image_types():
     logger.info(f'A request to fetch available GKE image types has arrived')
     gke_image_types_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_IMAGE_TYPES, provider=GKE)
@@ -873,9 +853,6 @@ def register():
             new_image = image.resize((192, 192))
             new_image.save(full_thumbnail_file_path)
 
-        # if not REGISTRATION:
-        #     return render_template('login.html',
-        #                            error_message='Registration is closed at the moment')
         if not first_name:
             return render_template('register.html',
                                    error_message=f'Dear {first_name}, your first name was not entered correctly. '
@@ -903,25 +880,8 @@ def register():
                 if user_registration(first_name, last_name, password, user_email, user_type, team_name, image_file_name,
                                      confirmation_url, registration_status='pending'):
                     return render_template('confirmation.html', email=user_email)
-                    # return render_template('login.html',
-                    #                        error_message=f'Dear {first_name.capitalize()}, '
-                    #                                      f'Welcome to {PROJECT_NAME.capitalize()}!')
                 else:
                     return render_template('confirmation.html', email=user_email)
-                    # return render_template('login.html',
-                    #                        error_message=f'Dear {first_name.capitalize()}, '
-                    #                                      f'your password was not entered correctly. '
-                    #                                      f'Please try again')
-                # return render_template('confirmation.html', email=user_email)
-                # if user_registration(first_name, last_name, password, user_email, team_name, file_path):
-                #     return render_template('login.html',
-                #                            error_message=f'Dear {first_name.capitalize()}, '
-                #                                          f'Welcome to {PROJECT_NAME.capitalize()}!')
-                # else:
-                #     return render_template('login.html',
-                #                            error_message=f'Dear {first_name.capitalize()}, '
-                #                                          f'your password was not entered correctly. '
-                #                                          f'Please try again')
             else:
                 return render_template('register.html',
                                        error_message=f'Dear {first_name}, your email was already registered. '
@@ -979,48 +939,6 @@ def login():
                                              f'Sending you another one!')
     elif session['registration_status'] == 'confirmed':
         return render_template('index.html')
-
-
-@app.route('/login_', methods=[GET, POST])
-@login_required
-def login_():
-    message = request.args.get('message')
-    logger.info(f'a login request was received with {message} message')
-    if session['registration_status'] != 'confirmed':
-        first_name = session['first_name']
-        user_email = session['user_email']
-        token = generate_confirmation_token(user_email)
-        confirm_url = str(url_for('confirmation_email', token=token, _external=True))
-        mail_message = MailSender(user_email, confirm_url)
-        mail_message.send_confirmation_mail()
-        mongo_handler.mongo_utils.update_user(user_email, update_type="confirmation_url", update_value=confirm_url)
-        return render_template('login.html',
-                               error_message=f'Dear {first_name}! '
-                                             f'A confirmation mail was sent to {user_email} and was not confirmed. '
-                                             f'Sending you another one!')
-
-    if message is None:
-        message = ''
-    if request.method == 'GET':
-        logger.info(f'message is: {message}')
-        return render_template('login.html', failure_message=message)
-    if request.method == 'POST':
-        token, user_object = login_processor(new=True)
-        base64_data = codecs.encode(user_object['profile_image'].read(), 'base64')
-        profile_image = base64_data.decode('utf-8')
-        if token:
-            user_email = user_object['user_email']
-            user_type = mongo_handler.mongo_utils.check_user_type(user_email)
-            data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'],
-                    'user_type': user_type}
-            logger.info(f'data content is: {data}')
-            return render_template('index.html', data=data, image=profile_image)
-        else:
-            user_email = user_object['user_email']
-            logger.info(f'user_email is: {user_email}')
-            return render_template('login.html',
-                                   error_message=f'Dear {user_email}, your password was not entered correctly. '
-                                                 f'Please try again')
 
 
 @app.route('/build-eks-clusters', methods=[GET, POST])
