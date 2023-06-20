@@ -38,7 +38,7 @@ def main():
         for line in lines:
             logger.info(f'line value is: {line}')
             if "trolley_url = " in line:
-                line = f"    'let trolley_url = {TROLLEY_URL};'\n"
+                line = f"    let trolley_url = '{TROLLEY_URL}';\n"
             try:
                 f.write(line)
                 logger.info(f'Writing of the file succeeded')
