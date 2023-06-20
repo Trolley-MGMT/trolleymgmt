@@ -210,6 +210,7 @@ Steps:
 
 If you get this response it means you can register and log into Trolley: http://localhost:8080
 
+-----------
 # UI Overview
 
 Short Video Demo:
