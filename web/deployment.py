@@ -23,7 +23,6 @@ project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
 logger.info(f'project_folder is: {project_folder}')
 
-TROLLEY_DEPLOYMENT = os.getenv('TROLLEY_DEPLOYMENT', "local")
 TROLLEY_URL = os.getenv('TROLLEY_URL', "https://trolley.com")
 
 
@@ -36,16 +35,10 @@ def main():
         print(f'Current directory is: {os.getcwd()}')
         print('successfully opened the static.js file')
         logger.info('successfully opened the static.js file')
-        logger.info(f'trolley_deployment that was selected is: {TROLLEY_DEPLOYMENT}')
         for line in lines:
             logger.info(f'line value is: {line}')
             if "trolley_url = " in line:
-                if TROLLEY_DEPLOYMENT == 'local':
-                    line = "    trolley_url = 'http://localhost'\n"
-                if TROLLEY_DEPLOYMENT == 'kubernetes':
-                    line = "    trolley_url = 'http://localhost:8080'\n"
-                if TROLLEY_DEPLOYMENT == 'custom':
-                    line = f"    trolley_url = {TROLLEY_URL}\n"
+                line = f"    trolley_url = {TROLLEY_URL}\n"
             try:
                 f.write(line)
                 logger.info(f'Writing of the file succeeded')
