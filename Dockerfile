@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 RUN apt-get update -y
-RUN apt-get install -y python3
+RUN apt-get install -y python3 bash-completion
 RUN apt-get update && apt-get install -y git g++ python3-pip curl sudo unzip
 RUN pip install --upgrade pip
 

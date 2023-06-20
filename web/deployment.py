@@ -27,18 +27,18 @@ TROLLEY_URL = os.getenv('TROLLEY_URL', "https://trolley.com")
 
 
 def main():
-    with open('static/pre_script.js', 'r') as f:
+    with open('web/static/pre_script.js', 'r') as f:
         lines = f.readlines()
         print(f'reading the pre_script.js {lines}')
 
-    with open('static/script.js', 'w') as f:
+    with open('web/static/script.js', 'w') as f:
         print(f'Current directory is: {os.getcwd()}')
         print('successfully opened the static.js file')
         logger.info('successfully opened the static.js file')
         for line in lines:
             logger.info(f'line value is: {line}')
             if "trolley_url = " in line:
-                line = f"    trolley_url = {TROLLEY_URL}\n"
+                line = f"    'let trolley_url = {TROLLEY_URL};'\n"
             try:
                 f.write(line)
                 logger.info(f'Writing of the file succeeded')
