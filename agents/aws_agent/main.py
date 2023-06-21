@@ -15,17 +15,26 @@ from web.mongo_handler.mongo_objects import AWSEC2DataObject, AWSS3FilesObject, 
     AWSObject
 from web.variables.variables import AWS
 
-file_name = 'server.log'
-log_file_path = f'{os.getcwd()}/{file_name}'
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+
+log_file_name = 'server.log'
+if DOCKER_ENV:
+    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+else:
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
+
+logger = logging.getLogger(__name__)
+
+file_handler = logging.FileHandler(filename=log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler(log_file_path),
-        logging.StreamHandler(sys.stdout)
-    ]
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
 )
+
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "30"))
 EC2_CLIENT = boto3.client('ec2')
 S3_CLIENT = boto3.client('s3')

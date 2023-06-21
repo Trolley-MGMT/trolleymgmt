@@ -4,6 +4,7 @@ import getpass as gt
 import logging
 import os
 import platform
+import sys
 from dataclasses import asdict
 from subprocess import run, PIPE
 import time
@@ -25,20 +26,27 @@ else:
     from web.mongo_handler.mongo_utils import insert_aws_instances_object, insert_aws_files_object, \
         insert_aws_buckets_object, insert_eks_cluster_object, retrieve_instances, retrieve_available_clusters, \
         retrieve_compute_per_machine_type
+
 log_file_name = 'server.log'
-log_file_path = f'{os.getcwd()}/{log_file_name}'
+if DOCKER_ENV:
+    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+else:
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler(log_file_path)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+file_handler = logging.FileHandler(filename=log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+logging.basicConfig(
+    level=logging.WARNING,
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
+)
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
-logger.info(f'project_folder is: {project_folder}')
 
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "30"))
 DEFAULT_AWS_REGION = os.environ.get('DEFAULT_AWS_REGION', "us-east-1")

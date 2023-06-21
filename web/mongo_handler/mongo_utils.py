@@ -1,6 +1,7 @@
 import logging
 import os
 import platform
+import sys
 import time
 from dataclasses import asdict
 from typing import Any, Mapping, Dict
@@ -12,6 +13,7 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+
 log_file_name = 'server.log'
 if DOCKER_ENV:
     log_file_path = f'{os.getcwd()}/web/{log_file_name}'
@@ -19,13 +21,16 @@ else:
     log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler(log_file_path)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+file_handler = logging.FileHandler(filename=log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
+)
 
 # horrible hack to solve the Dockerfile issues. Please find a better solution
 run_env = 'not_github'
@@ -35,7 +40,7 @@ try:
         run_env = 'github'
         logger.info('this runs on github')
     else:
-        logger.error('this does not run on github')
+        logger.info('this does not run on github')
 except:
     run_env = 'not github'
     logger.info('this does not run on github')
@@ -51,7 +56,6 @@ else:
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
-logger.info(f'project_folder is: {project_folder}')
 
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-dev')
 
@@ -610,7 +614,11 @@ def retrieve_machine_types(machine_series: str = '', cluster_type: str = '') -> 
     else:
         mongo_query = {'machine_series': machine_series}
         machine_types_object = gke_series_and_machine_types_cache.find_one(mongo_query)
-    return machine_types_object['machines_list']
+    try:
+        machines_list = machine_types_object['machines_list']
+        return machines_list
+    except:
+        return []
 
 
 def retrieve_compute_per_machine_type(provider: str = '', machine_type: str = '', region_name: str = '') -> dict:
@@ -904,7 +912,6 @@ def insert_aws_instances_object(aws_ec2_instances_object: list) -> bool:
     """
     @param aws_ec2_instances_object: The aws ec2 instances to save to DB
     """
-    logger.info('is this on?')
     logger.info(f'{aws_ec2_instances_object}')
     try:
         for aws_ec2_instance in aws_ec2_instances_object:
@@ -926,7 +933,6 @@ def insert_aws_files_object(aws_files_object: dict) -> bool:
     """
     @param aws_files_object: The aws files list to save
     """
-    logger.info('is this on?')
     logger.info(f'{aws_files_object}')
     try:
         mongo_query = {ACCOUNT_ID.lower(): aws_files_object[ACCOUNT_ID.lower()]}

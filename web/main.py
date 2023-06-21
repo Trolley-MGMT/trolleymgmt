@@ -1,4 +1,5 @@
 import codecs
+import sys
 import time
 
 from dotenv import load_dotenv
@@ -11,7 +12,6 @@ from functools import wraps
 from threading import Thread
 
 from dataclasses import asdict
-from distutils import util
 
 from cryptography.fernet import Fernet
 from flask import request, Response, Flask, session, redirect, url_for, render_template, jsonify
@@ -32,17 +32,23 @@ else:
     log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler(log_file_path)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+file_handler = logging.FileHandler(log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
+)
+
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
-logger.info(f'project_folder is: {project_folder}')
 
+EMAIL_AUTHENTICATION = os.getenv('MAIL_AUTHENTICATION', False)
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 PROJECT_NAME = os.getenv('PROJECT_NAME', "trolley-dev")
@@ -53,7 +59,7 @@ from cluster_operations import ClusterOperation
 from mongo_handler.mongo_objects import UserObject, GithubObject, DeploymentYAMLObject, ProviderObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
-    ZONES_LIST, HELM_INSTALLS_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, HELM, LOCATIONS_DICT, \
+    ZONES_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
     NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID
 
@@ -497,7 +503,6 @@ def insert_cluster_data():
 
 @app.route('/settings', methods=[GET, POST])
 @login_required
-@cache.cached(timeout=180)
 def settings():
     """
     This endpoint saves Trolley settings
@@ -694,7 +699,7 @@ def index():
 
 @app.route('/fetch_regions', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
+# @cache.cached(timeout=180)
 def fetch_regions():
     cluster_type = request.args.get(CLUSTER_TYPE)
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
@@ -714,7 +719,7 @@ def fetch_regions():
 
 @app.route('/fetch_machine_series', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
+# @cache.cached(timeout=180)
 def fetch_machine_series():
     cluster_type = request.args.get(CLUSTER_TYPE)
     region_name = request.args.get(REGION_NAME.lower())
@@ -726,7 +731,7 @@ def fetch_machine_series():
 
 @app.route('/fetch_machine_types', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
+# @cache.cached(timeout=180)
 def fetch_machine_types():
     cluster_type = request.args.get(CLUSTER_TYPE)
     machine_series = request.args.get('machine_series')
@@ -868,20 +873,21 @@ def register():
         else:
             if not mongo_handler.mongo_utils.retrieve_user(user_email):
                 token = generate_confirmation_token(user_email)
+                logger.info(f'token is: {token}')
                 confirmation_url = str(url_for('confirmation_email', token=token, _external=True))
-                print(f'confirmation_url is: {confirmation_url}')
-
-                mail_message = MailSender(user_email, confirmation_url)
-                try:
-                    mail_message.send_confirmation_mail()
-                except Exception as e:
-                    logger.error(f'Failed to send an email due to {e} error to {user_email}')
+                logger.info(f'confirmation_url is: {confirmation_url}')
+                if EMAIL_AUTHENTICATION:
+                    mail_message = MailSender(user_email, confirmation_url)
+                    try:
+                        mail_message.send_confirmation_mail()
+                    except Exception as e:
+                        logger.error(f'Failed to send an email due to {e} error to {user_email}')
 
                 if user_registration(first_name, last_name, password, user_email, user_type, team_name, image_file_name,
                                      confirmation_url, registration_status='pending'):
-                    return render_template('confirmation.html', email=user_email)
+                    return render_template('confirmation.html', email=user_email, url=confirmation_url)
                 else:
-                    return render_template('confirmation.html', email=user_email)
+                    return render_template('confirmation.html', email=user_email, url=confirmation_url)
             else:
                 return render_template('register.html',
                                        error_message=f'Dear {first_name}, your email was already registered. '

@@ -37,6 +37,8 @@ spec:
           value: "value"
         - name: DOCKER_ENV
           value: "Yes"
+        - name: EMAIL_AUTHENTICATION
+          value: "Yes"
         - name: GMAIL_USER
           value: "value"
         - name: GMAIL_PASSWORD

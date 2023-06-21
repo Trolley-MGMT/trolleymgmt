@@ -2,6 +2,7 @@ import logging
 import os
 import random
 import string
+import sys
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
@@ -16,14 +17,27 @@ else:
 from kubernetes import client, config, utils
 from kubernetes.client import ApiException
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
-handler = logging.FileHandler('../utils.log')
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+log_file_name = 'server.log'
+if DOCKER_ENV:
+    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+else:
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
+
+logger = logging.getLogger(__name__)
+
+file_handler = logging.FileHandler(log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
+)
+
 
 KUBECONFIG_PATH = os.environ.get('KUBECONFIG_PATH', '/home/runner/.kube/config')
 

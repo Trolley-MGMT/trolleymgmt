@@ -19,6 +19,24 @@ from hurry.filesize import size
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
+log_file_name = 'server.log'
+if DOCKER_ENV:
+    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+else:
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
+
+logger = logging.getLogger(__name__)
+
+file_handler = logging.FileHandler(filename=log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
+)
+
 if DOCKER_ENV:
     from mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
     from mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, update_discovered_gke_cluster_object, \
@@ -38,8 +56,6 @@ else:
 from google.cloud import storage
 from google.oauth2 import service_account
 from googleapiclient import discovery
-
-
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
@@ -62,7 +78,7 @@ else:
     CREDENTIALS_DEFAULT_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
     CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 
-print(f"CREDENTIALS_PATH_TO_SAVE is: {CREDENTIALS_PATH_TO_SAVE}")
+logger.info(f"CREDENTIALS_PATH_TO_SAVE is: {CREDENTIALS_PATH_TO_SAVE}")
 
 
 def generate_kubeconfig(cluster_name: str, zone: str) -> str:
@@ -75,7 +91,7 @@ def generate_kubeconfig(cluster_name: str, zone: str) -> str:
     run(kubeconfig_generate_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     with open(KUBECONFIG_PATH, "r") as f:
         kubeconfig = f.read()
-        logging.info(f'The kubeconfig content is: {kubeconfig}')
+        logger.info(f'The kubeconfig content is: {kubeconfig}')
         return kubeconfig
 
 
@@ -96,7 +112,8 @@ def list_all_instances(project_id: str, ) -> list:
                 print(f'The credentials file content is: {credentials}')
             instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH_TO_SAVE)
         except Exception as e:
-            print(f'There was an issue getting the info with the credentials file on {CREDENTIALS_PATH_TO_SAVE} path: {e}')
+            print(
+                f'There was an issue getting the info with the credentials file on {CREDENTIALS_PATH_TO_SAVE} path: {e}')
     else:
         try:
             with open(CREDENTIALS_DEFAULT_PATH, "r") as f:
@@ -104,7 +121,8 @@ def list_all_instances(project_id: str, ) -> list:
                 print(f'The credentials file content is: {credentials}')
             instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_DEFAULT_PATH)
         except Exception as e:
-            print(f'There was an issue getting the info with the credentials file on {CREDENTIALS_DEFAULT_PATH} path: {e}')
+            print(
+                f'There was an issue getting the info with the credentials file on {CREDENTIALS_DEFAULT_PATH} path: {e}')
     request = compute_v1.AggregatedListInstancesRequest()
     request.project = project_id
     request.max_results = 50
@@ -290,7 +308,7 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         print(asdict(gcp_discovered_buckets))
         insert_gcp_buckets_object(asdict(gcp_discovered_buckets))
     if is_fetching_files:
-        gcp_discovered_files_object = fetch_files(credentials,gcp_discovered_buckets)
+        gcp_discovered_files_object = fetch_files(credentials, gcp_discovered_buckets)
         print('List of discovered GCP Files: ')
         print(asdict(gcp_discovered_files_object))
         insert_gcp_files_object(asdict(gcp_discovered_files_object))
@@ -312,7 +330,7 @@ def get_credentials(user_email: str):
             print("google creds json were not found")
         credentials_file = Path(CREDENTIALS_PATH_TO_SAVE)
         if not credentials_file.is_file():
-            logging.warning(f'{CREDENTIALS_PATH_TO_SAVE} file does not exist')
+            logger.warning(f'{CREDENTIALS_PATH_TO_SAVE} file does not exist')
         credentials = service_account.Credentials.from_service_account_file(
             CREDENTIALS_PATH_TO_SAVE)
         return credentials
@@ -320,7 +338,7 @@ def get_credentials(user_email: str):
         try:
             credentials_file = Path(CREDENTIALS_DEFAULT_PATH)
             if not credentials_file.is_file():
-                logging.warning(f'{CREDENTIALS_DEFAULT_PATH} file does not exist')
+                logger.warning(f'{CREDENTIALS_DEFAULT_PATH} file does not exist')
             credentials = service_account.Credentials.from_service_account_file(
                 CREDENTIALS_DEFAULT_PATH)
             return credentials

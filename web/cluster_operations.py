@@ -2,6 +2,7 @@ import getpass
 import logging
 import os
 import platform
+import sys
 from dataclasses import asdict
 
 import requests
@@ -20,22 +21,24 @@ else:
     log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler(log_file_name)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+file_handler = logging.FileHandler(filename=log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
+)
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
-logger.info(f'project_folder is: {project_folder}')
 
 # horrible hack to solve the Dockerfile issues. Please find a better solution
 run_env = 'not_github'
 try:
     github_env_something = os.getenv('GITHUB_ENV')
-    logger.info(github_env_something)
     if github_env_something is not None:
         run_env = 'github'
         logger.info('this runs on github')
@@ -43,7 +46,7 @@ try:
         logger.info('this does not run on github')
 except:
     run_env = 'not github'
-    logger.error('this does not run on github')
+    logger.info('this does not run on github')
 
 if 'Darwin' in platform.system() or run_env == 'github':
     AWS_CREDENTIALS_PATH = f'/Users/{getpass.getuser()}/.aws/credentials'

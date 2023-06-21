@@ -20,7 +20,10 @@ services:
       AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials # Substitute with your AWS credentials files if you want it to get pulled locally
       AWS_DEFAULT_REGION: us-east-1
       GCP_CREDENTIALS_FILE: /home/app/.gcp/gcp_credentials # Substitute with your GCP credentials files if you want it to get pulled locally
-      TROLLEY_URL: http://192.168.1.204 # Substitute with the IP (VM, Metal etc..) on which your Trolley installation will run. For local run please use http://localhost
+      TROLLEY_URL: http://localhost # Substitute with the IP (VM, Metal etc..) on which your Trolley installation will run. For local run please use http://localhost
+      EMAIL_AUTHENTICATION: Yes # Should the authentication be done via Email
+      GMAIL_USER: user # Substitute with your Gmail user. It will be needed for registration purposes
+      GMAIL_PASSWORD: password # Substitute with the your Gmail password. It will be needed for the registration purposes
       DOCKER_ENV: Yes
     networks:
       - frontend

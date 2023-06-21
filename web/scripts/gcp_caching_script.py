@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import platform
+import sys
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from dataclasses import asdict
 import getpass as gt
@@ -20,12 +21,16 @@ else:
     log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler(log_file_path)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+file_handler = logging.FileHandler(filename=log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
+)
 
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 
@@ -42,7 +47,6 @@ else:
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
-logger.info(f'project_folder is: {project_folder}')
 
 LOCAL_USER = gt.getuser()
 GITHUB_ACTIONS_ENV = os.getenv('GITHUB_ACTIONS_ENV')

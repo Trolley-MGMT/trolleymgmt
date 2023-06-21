@@ -1,10 +1,32 @@
+import logging
 import os
 import smtplib
 import ssl
+import sys
 from email.message import EmailMessage
 
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+
+log_file_name = 'server.log'
+if DOCKER_ENV:
+    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+else:
+    log_file_path = f'{os.getcwd()}/{log_file_name}'
+
+logger = logging.getLogger(__name__)
+
+file_handler = logging.FileHandler(filename=log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
+)
 
 
 class MailSender:
@@ -26,9 +48,13 @@ class MailSender:
         em.set_content(body)
 
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
-            smtp.login(GMAIL_USER, GMAIL_PASSWORD)
-            smtp.sendmail(GMAIL_USER, self.user_email, em.as_string())
+        logger.info(f'Sending an email to: {self.user_email} with {GMAIL_USER} user and {GMAIL_PASSWORD}')
+        try:
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
+                smtp.login(GMAIL_USER, GMAIL_PASSWORD)
+                smtp.sendmail(GMAIL_USER, self.user_email, em.as_string())
+        except Exception as e:
+            logger.error(f'Error sending out an email with {e} error')
 
     def send_invitation_mail(self):
         subject = "You have been invited to Trolley!"

@@ -26,7 +26,6 @@ logger.addHandler(handler)
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
-logger.info(f'project_folder is: {project_folder}')
 
 # horrible hack to solve the Dockerfile issues. Please find a better solution
 run_env = 'not_github'
@@ -40,7 +39,7 @@ try:
         logger.info('this does not run on github')
 except:
     run_env = 'not github'
-    logger.error('this does not run on github')
+    logger.info('this does not run on github')
 
 if 'Darwin' in platform.system() or run_env == 'github':
     AWS_CREDENTIALS_PATH = f'/Users/{getpass.getuser()}/.aws/credentials'

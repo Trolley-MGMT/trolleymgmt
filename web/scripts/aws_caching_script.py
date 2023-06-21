@@ -22,12 +22,16 @@ else:
     log_file_path = f'{os.getcwd()}/{log_file_name}'
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler(log_file_path)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+file_handler = logging.FileHandler(filename=log_file_path)
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+logging.basicConfig(
+    level=logging.WARNING,
+    format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+    handlers=handlers
+)
 
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 
@@ -116,8 +120,6 @@ def fetch_machine_types_per_region(region: str, ec2) -> list:
     for instance_response in machine_types_response['InstanceTypeOfferings']:
         machine_types_list_.append(instance_response['InstanceType'])
     for machine in machine_types_list_:
-        print(
-            f'Adding a machine number: {len(machine_types_list)} out of {len(machine_types_list_)} in {region} region')
         logger.info(
             f'Adding a machine number: {len(machine_types_list)} out of {len(machine_types_list_)} in {region} region')
         try:
@@ -141,7 +143,6 @@ def fetch_machine_types_per_region(region: str, ec2) -> list:
 
 def main(aws_access_key_id, aws_secret_access_key):
     start_time = time.monotonic()
-    print(f'start_time is: {start_time}')
     logger.info(f'aws_access_key_id is: {aws_access_key_id}')
     logger.info(f'aws_secret_access_key is: {aws_secret_access_key}')
     if aws_access_key_id and aws_secret_access_key:
@@ -182,7 +183,7 @@ def main(aws_access_key_id, aws_secret_access_key):
                     result = future.result()
                     machines_for_zone_dict[result[0].region] = result
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    logger.error(f"An error occurred: {e}")
 
         for region in machines_for_zone_dict:
             aws_machines_caching_object = AWSMachinesCacheObject(
@@ -216,8 +217,8 @@ def main(aws_access_key_id, aws_secret_access_key):
 
         # Inserting AWS Regions and Machine Series Object
         series_list = []
-        for region in machine_types_all_regions:
-            for machine_type in machine_types_all_regions[region]:
+        for region in machines_for_zone_dict:
+            for machine_type in machines_for_zone_dict[region]:
                 if not machine_type.machine_series in series_list:
                     series_list.append(machine_type.machine_series)
 
@@ -230,15 +231,15 @@ def main(aws_access_key_id, aws_secret_access_key):
 
         # Inserting a AWS Machine Series and Machine Types Object
         machines_series_list = []
-        for region in machine_types_all_regions:
-            for machine_type in machine_types_all_regions[region]:
+        for region in machines_for_zone_dict:
+            for machine_type in machines_for_zone_dict[region]:
                 if machine_type.machine_series not in machines_series_list:
                     machines_series_list.append(machine_type.machine_series)
 
         series_and_machine_types_dict = {}
-        for region in machine_types_all_regions:
+        for region in machines_for_zone_dict:
             for machine_series in machines_series_list:
-                for machine_type in machine_types_all_regions[region]:
+                for machine_type in machines_for_zone_dict[region]:
                     if machine_series not in series_and_machine_types_dict.keys():
                         if machine_type.machine_series == machine_series:
                             series_and_machine_types_dict[machine_series] = [machine_type.machine_type]
@@ -254,8 +255,7 @@ def main(aws_access_key_id, aws_secret_access_key):
             insert_cache_object(caching_object=asdict(aws_series_and_machine_types_object), provider=EKS,
                                 aws_series_and_machine_types=True)
         end_time = time.monotonic()
-        print(f'end_time is: {end_time}')
-        print(timedelta(seconds=end_time - start_time))
+        logger.info(timedelta(seconds=end_time - start_time))
     except Exception as e:
         logger.error(f'Trouble connecting to AWS {e}')
 

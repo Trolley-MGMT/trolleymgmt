@@ -60,6 +60,7 @@ To run the service locally and play with the code just do the following:
 export GCP_PROJECT_NAME=<name of your gcp_project>
 export GITHUB_ACTION_TOKEN=ghp_<github_token>
 export GITHUB_REPOSITORY=<your_fork>/Trolley-Management
+export EMAIL_AUTHENTICATION=Yes
 export GMAIL_PASSWORD=<password>
 export GMAIL_USER=<user>@gmail.com
 export KUBECONFIG=/.kube/config
@@ -276,7 +277,8 @@ forked repository.
 Notice that without the correct credentials you will not be able to access the Build/Manage pages for these cloud
 providers!
 After the providers were properly configured a discovery service will be triggered and will start to scan the cloud
-services for the accounts that were provided.
+services for the accounts that were provided. 
+Please allow a few minutes after initial scan is completed and all the Regions and Zones will appear in the GUI
 
 ### Building AKS/GKE/EKS clusters
 
