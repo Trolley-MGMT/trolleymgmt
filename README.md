@@ -3,7 +3,7 @@
 Trolley is a multi cloud Kubernetes management system. A simplified UI which allows the user to Deploy, Edit and Delete
 clusters and deployments within them on AWS, Azure and GCP.
 
-## The headache
+## The problem
 
 For many, the deployment and the management process of a Kubernetes cluster isn’t trivial. Product people, marketing,
 testers, junior programmers. They all know it can be a pain. With this simple GUI, the deployment process becomes so
@@ -16,7 +16,7 @@ money dry for the last two weeks.
 
 The clusters built with Trolley have an expiration date, and they will show on your UI monitoring screen and database.
 
-## The boom part
+## The solution
 
 In order to deploy a cluster on a managed Kubernetes platform such as GKE/AKS and EKS all the user needs to do is select
 a few simple options from the provided build menu and set the expiration time.
@@ -53,11 +53,24 @@ To run the service locally and play with the code just do the following:
    ```
    pip install -r web/requirements.txt
    ```
-6. To run the flask based Python web app in your PyCharm IDE of choice you can:
-   Set your Environment Variables menu the following:
+6. To run the flask based Python web app in your PyCharm IDE of choice you can edit the provided web/.env file that will
+   include the following variables:
 
-```
-SECRET_KEY=<44_chars_binary>;GITHUB_ACTION_TOKEN=ghp_<token>;GITHUB_REPOSITORY=Trolley-MGMT/Trolley-Management;KUBECONFIG=/Users/<your_user>/.kube/config_temp;MONGO_PASSWORD=<mongo_password>;MONGO_URL=<mongo_url>;MONGO_USER=<mongo_user>;PROJECT_NAME=trolley
+```shell
+export GCP_PROJECT_NAME=<name of your gcp_project>
+export GITHUB_ACTION_TOKEN=ghp_<github_token>
+export GITHUB_REPOSITORY=<your_fork>/Trolley-Management
+export GMAIL_PASSWORD=<password>
+export GMAIL_USER=<user>@gmail.com
+export KUBECONFIG=/.kube/config
+export MONGO_PASSWORD=<password>
+export MONGO_URL=<mongo_url>
+export MONGO_USER=admin
+export PROJECT_NAME=trolley
+export SECRET_KEY=<secret_kek>
+export FLASK_APP=main.py
+export TROLLEY_URL=https://localhost
+
 ```
 
 ### The parameters are:
@@ -111,18 +124,7 @@ GMAIL_USER(str): youruser@gmail.com
 GMAIL_PASSWORD(str): yourpassword
 ````
 
-7. To run the app in your IDE just set the script path to web/main.py and it should work from there
-
--------------
-## Docker image build and deployment.
-
-    1. In order to work with the Docker image the following steps must be taken.
-    2. Assuming the repository was forked and cloned and docker-compose is installed:
-    3. Run the following command from the project's root to build and run the Docker image:
-
-``
-docker-compose up --build
-``
+To run the app in your IDE just set the script path to web/main.py and it should work from there
 
 ### GitHub Actions parameters
 
@@ -130,7 +132,7 @@ The project uses GitHub Actions functionality in order to build/monitor and dele
 In order to work with them properly we will need to pass AWS/GCP/Azure/Mongo related parameters.
 Here are the parameters:
 
-```
+```shell
 ACTION_TOKEN(mandatory): "ghp_xxxxxxxxxx"
 ````    
 
@@ -176,29 +178,59 @@ MONGO_USER(optional): "mongouser"
 
 ![](documentation/github_actions_secrets.png)
 
------------
+--------------
+
+## Docker image build and deployment using Docker-Compose.
+
+You can use a provided Docker image and build/run it on your local machine as well as a VM machine on your Cloud
+Provider.
+The Docker image and the provided docker-compose.yml will spin it a self contained Trolley app and a Mongo DB instance.
+This is great for demoing the application locally or on the cloud.
+
+In order to work with the Docker image as a composable Docker container the following steps must be taken:
+
+1. Fork the repository and clone it locally.
+2. Make sure Docker-Compose is locally installed.
+3. Edit the docker-compose.yml file according to the directions provided within the file.
+4. Run the following command from the project's root to build and run the Docker image:
+
+````shell
+docker-compose up --build
+````
+
+------------
 ## Deployment on Kubernetes.
-Trolley Server can be deployed on a Kubernetes cluster using `trolley_server_deployment.yaml` file under the `web/` directory
-The same parameters as above need to be added under the `env:` column. There is 1 additional parameter here that need to be taken care as well:
-`TROLLEY_URL`. Under this parameter we want to pass the address against which the Trolley UI will operate with. 
-In our example we will use Kuberenets Port Forwarding to forward the requests from the deployed application to http://localhost:8080
+
+Trolley Server can be deployed on a Kubernetes cluster using `trolley_server_deployment.yaml` file under the `web/`
+directory
+The same parameters as above need to be added under the `env:` column. There is 1 additional parameter here that need to
+be taken care as well:
+`TROLLEY_URL`. Under this parameter we want to pass the address against which the Trolley UI will operate with.
+In our example we will use Kuberenets Port Forwarding to forward the requests from the deployed application
+to http://localhost:8080
 
 Prerequisites:
+
 1. Working Kubernetes cluster. Minikube is ok as well.
 2. Working MongoDB installation. Local or Remote.
 3. kubectl installed in your workstation
 
 Steps:
+
 1. Let's start with changing all the parameters under `env:` parameter and adding the `TROLLEY_URL` parameter:
 2.         - name: TROLLEY_URL
           value: "http://localhost:8080
-3. After the yaml file was properly edited, make sure you have a connection to your k8s cluster: `kubectl get pods --all-namespaces`
+3. After the yaml file was properly edited, make sure you have a connection to your k8s
+   cluster: `kubectl get pods --all-namespaces`
 4. Create a `trolley` namespace using: `kubectl create namespace trolley`
 5. Run: `kubectl apply -f trolley_server_deployment.yaml`
-6. Verify deployment is up and running: `kubectl get pods -n trolley` and then `kubectl describe pod -n trolley trolley-deployment-<pod_id>`. 
+6. Verify deployment is up and running: `kubectl get pods -n trolley` and
+   then `kubectl describe pod -n trolley trolley-deployment-<pod_id>`.
 7. Verify the pod is in the running status.
-8. Run port-forwarding for kubernetes to allow access locally: `kubectl port-forward deployment/trolley-deployment -n trolley 8080:80 &`
+8. Run port-forwarding for kubernetes to allow access
+   locally: `kubectl port-forward deployment/trolley-deployment -n trolley 8080:80 &`
 9. Check the port forwarding works well:
+
 ```shell
    curl http://localhost:8080/healthz
 ```
@@ -211,6 +243,7 @@ Steps:
 If you get this response it means you can register and log into Trolley: http://localhost:8080
 
 -----------
+
 # UI Overview
 
 Short Video Demo:
@@ -218,6 +251,7 @@ Short Video Demo:
 [![Watch the video](https://i9.ytimg.com/vi/GHJHqFtwDHc/mq2.jpg?sqp=CMSns6MG&rs=AOn4CLAkfQDCGLI02dkYu2PPDsX8tj3aGg)](https://www.youtube.com/watch?v=GHJHqFtwDHc)
 
 ## First user registration flow
+
 The UI currently consists of the following flows:
 This is the Registration menu that will allow the user to register with his current team's name
 

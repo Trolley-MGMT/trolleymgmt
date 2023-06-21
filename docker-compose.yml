@@ -3,24 +3,24 @@ services:
   web:
     build: .
     ports:
-    - "80:80"
+      - "80:80"
     volumes:
-    - .:/opt
-    - /Users/pavelzagalsky/.aws/:/home/app/.aws/:ro # Substitute $HOME with the path to your home directory
-    - /Users/pavelzagalsky/.gcp/:/home/app/.gcp/:ro # Substitute $HOME with the path to your home directory
+      - .:/opt
+      - /Users/pavelzagalsky/.aws/:/home/app/.aws/:ro # Substitute $HOME with the path to your home directory
+      - /Users/pavelzagalsky/.gcp/:/home/app/.gcp/:ro # Substitute $HOME with the path to your home directory
     environment:
       MONGO_URL: mongodb
       MONGO_PORT: 27017
       MONGO_PASSWORD: s3cr3t
-      MONGO_USER: pavel
+      MONGO_USER: admin
       GITHUB_ACTION_TOKEN:
       PROJECT_NAME: trolley
-      GITHUB_REPOSITORY: Trolley-MGMT/Trolley-Management
+      GITHUB_REPOSITORY: Trolley-MGMT/Trolley-Management # Substitute with your forked Trolley repository
       SECRET_KEY: J-r08vCLGU8uNib01HpUSuh7fbZWJ1FTzCiYxh7TRyo=
-      AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials
+      AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials # Substitute with your AWS credentials files if you want it to get pulled locally
       AWS_DEFAULT_REGION: us-east-1
-      GCP_CREDENTIALS_FILE: /home/app/.gcp/gcp_credentials
-      TROLLEY_URL: http://192.168.1.204
+      GCP_CREDENTIALS_FILE: /home/app/.gcp/gcp_credentials # Substitute with your GCP credentials files if you want it to get pulled locally
+      TROLLEY_URL: http://192.168.1.204 # Substitute with the IP (VM, Metal etc..) on which your Trolley installation will run. For local run please use http://localhost
       DOCKER_ENV: Yes
     networks:
       - frontend
@@ -30,7 +30,7 @@ services:
     container_name: 'mongo-db'
     command: mongod --auth
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=pavel
+      - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=s3cr3t
     volumes:
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
