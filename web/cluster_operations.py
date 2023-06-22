@@ -142,6 +142,7 @@ class ClusterOperation:
     def trigger_gke_build_github_action(self) -> bool:
         encoded_data = {
             "gcp_project_id": self.gcp_project_id,
+            "project_name": self.project_name,
             "cluster_name": self.cluster_name,
             "user_name": self.user_name,
             "cluster_version": self.cluster_version,
@@ -172,6 +173,7 @@ class ClusterOperation:
         aws_access_key_id, aws_secret_access_key = self.get_aws_credentials()
         encoded_data = {
             "cluster_name": self.cluster_name,
+            "project_name": self.project_name,
             "user_name": self.user_name,
             "cluster_version": self.cluster_version,
             "region_name": self.eks_location,

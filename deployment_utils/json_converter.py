@@ -25,7 +25,6 @@ def main(incoming_string: str = '', provider: str = ''):
     gke_machine_type = ''
     image_type = ''
     eksctl_deployment_file = ''
-    project_name = 'trolley-dev'
     if provider == AWS:
         eksctl_deployment_file = encoded_content['eksctl_deployment_file']
         print(f'eksctl_object is: {eksctl_deployment_file}')
@@ -42,12 +41,14 @@ def main(incoming_string: str = '', provider: str = ''):
         print(f'gcp_project_id is: {gcp_project_id}')
 
     cluster_name = encoded_content['cluster_name']
+    project_name = encoded_content['project_name']
     user_name = encoded_content['user_name']
     cluster_version = encoded_content['cluster_version']
     region_name = encoded_content['region_name']
     num_nodes = encoded_content['num_nodes']
     expiration_time = encoded_content['expiration_time']
     print(f'cluster_name is: {cluster_name}')
+    print(f'project_name is: {project_name}')
     print(f'user_name is: {user_name}')
     print(f'cluster_version is: {cluster_version}')
     print(f'region_name is: {region_name}')
@@ -55,7 +56,6 @@ def main(incoming_string: str = '', provider: str = ''):
     print(f'image_type is: {image_type}')
     print(f'num_nodes is: {num_nodes}')
     print(f'expiration_time is: {expiration_time}')
-    print(f'project_name is: {project_name}')
 
     if not 'Darwin' in platform.system():
         with open(GITHUB_ACTIONS_ENV_FILE, "w") as myfile:

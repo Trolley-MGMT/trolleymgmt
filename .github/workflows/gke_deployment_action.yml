@@ -55,7 +55,6 @@ jobs:
         env:
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-          PROJECT_NAME: 'trolley-dev'
           MONGO_URL: ${{ secrets.MONGO_URL }}
           KUBECONFIG: /tmp/kubeconfig
 
