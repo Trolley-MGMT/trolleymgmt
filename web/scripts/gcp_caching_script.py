@@ -167,16 +167,21 @@ def fetch_vcpus_for_machine_types(machine_types_list, requested_machine_type):
 def main(gcp_credentials: str):
     logger.info(f'Starting the caching flow with {gcp_credentials} credentials')
     if gcp_credentials:
+        logger.info('gcp_credentials were found')
         if not os.path.exists(FETCHED_CREDENTIALS_DIR_PATH):
+            logger.info(f'{FETCHED_CREDENTIALS_DIR_PATH} was not found. Creating a directory')
             os.makedirs(FETCHED_CREDENTIALS_DIR_PATH)
         if os.path.exists(FETCHED_CREDENTIALS_FILE_PATH):
+            logger.info(f'{FETCHED_CREDENTIALS_FILE_PATH} exists, removing the file')
             os.remove(FETCHED_CREDENTIALS_FILE_PATH)
+        logger.info(f'Opening the {FETCHED_CREDENTIALS_FILE_PATH} file path')
         f = open(FETCHED_CREDENTIALS_FILE_PATH, 'a')
         f.write(gcp_credentials)
         f.close()
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = FETCHED_CREDENTIALS_FILE_PATH
         logger.info(f'FETCHED_CREDENTIALS_FILE_PATH is: {FETCHED_CREDENTIALS_FILE_PATH}')
     else:
+        logger.info(f'Setting {CREDENTIALS_PATH} as the credentials_path')
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = CREDENTIALS_PATH
     try:
         try:

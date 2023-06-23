@@ -171,7 +171,6 @@ def main(aws_access_key_id, aws_secret_access_key):
     try:
 
         logger.info('Attempting to fetch regions_list')
-        machine_types_all_regions = []
         machines_for_zone_dict = {}
         # regions_list = ['us-east-1', 'us-east-2']
         regions_list = fetch_regions(ec2)
