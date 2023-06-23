@@ -281,7 +281,7 @@ def render_page(page_name: str = '', cluster_name: str = '', client_name: str = 
 
 @app.route('/get_clusters_data', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
+# @cache.cached(timeout=180)
 def get_clusters_data():
     """
     Ths endpoint allows providing basic clusters data that was gathered upon the clusters' creation.

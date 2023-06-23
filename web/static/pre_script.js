@@ -1994,6 +1994,8 @@ $(document).ready(function() {
         $.each(dataArray, function(key, value) {
             if (value.cluster_name === objectName) {
                 discovered = value.discovered
+            } else {
+                discovered = false;
             }
         });
         //        Fix this
