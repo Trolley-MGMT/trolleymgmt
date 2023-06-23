@@ -169,6 +169,8 @@ def main(gcp_credentials: str):
     if gcp_credentials:
         if not os.path.exists(FETCHED_CREDENTIALS_DIR_PATH):
             os.makedirs(FETCHED_CREDENTIALS_DIR_PATH)
+        if os.path.exists(FETCHED_CREDENTIALS_FILE_PATH):
+            os.remove(FETCHED_CREDENTIALS_FILE_PATH)
         f = open(FETCHED_CREDENTIALS_FILE_PATH, 'a')
         f.write(gcp_credentials)
         f.close()
