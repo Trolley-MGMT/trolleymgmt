@@ -50,11 +50,6 @@ load_dotenv(os.path.join(project_folder, '.env'))
 
 LOCAL_USER = gt.getuser()
 GITHUB_ACTIONS_ENV = os.getenv('GITHUB_ACTIONS_ENV')
-PYTHON_ANYWHERE_ENV = os.getenv('PYTHONANYWHERE_SITE')
-if "pythonanywhere" in PYTHON_ANYWHERE_ENV:
-    PYTHON_ANYWHERE = True
-else:
-    PYTHON_ANYWHERE = False
 PLATFORM_SYSTEM = platform.system()
 logger.info(f'PLATFORM_SYSTEM is: {PLATFORM_SYSTEM}')
 
@@ -62,10 +57,6 @@ if 'Darwin' in platform.system():
     logger.info(f'platform system is Darwin')
     CREDENTIALS_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
     FETCHED_CREDENTIALS_DIR_PATH = f'/Users/{LOCAL_USER}/.gcp/fetched_credentials'
-    FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
-elif PYTHON_ANYWHERE:
-    logger.info(f'platform system is Python Anywhere')
-    FETCHED_CREDENTIALS_DIR_PATH = f'/home/pavelzagalsky/.gcp/fetched_credentials'
     FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
 else:
     if GITHUB_ACTIONS_ENV:
