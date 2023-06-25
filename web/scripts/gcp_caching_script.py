@@ -72,14 +72,6 @@ else:
         FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/gcp_credentials.json'
 
 
-# try:
-#     credentials = service_account.Credentials.from_service_account_file(
-#         FETCHED_CREDENTIALS_FILE_PATH)
-#     service = discovery.build('container', 'v1', credentials=credentials)
-# except Exception as e:
-#     logger.error(f'Credentials were not provided with a file')
-
-
 def fetch_zones(gcp_project_id: str) -> list:
     logger.info(f'A request to fetch zones has arrived for {gcp_project_id} project_id')
     compute_zones_client = ZonesClient()
