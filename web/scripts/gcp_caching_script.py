@@ -27,7 +27,7 @@ stdout_handler = logging.StreamHandler(stream=sys.stdout)
 handlers = [file_handler, stdout_handler]
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,
     format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
     handlers=handlers
 )
