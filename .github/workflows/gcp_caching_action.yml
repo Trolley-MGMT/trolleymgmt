@@ -18,7 +18,8 @@ jobs:
       - name: Echo the values
         run: |
           echo "client_payload is: ${{ github.event.client_payload.client_payload }}"
-          echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"          
+          echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"      
+          echo "project_name is: ${{ github.event.client_payload.project_name }}"
 
 
       - id: 'auth'
