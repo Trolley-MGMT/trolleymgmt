@@ -140,15 +140,15 @@ def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = 
             logger.info(mongo_response.acknowledged)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
-        except:
-            logger.error('failure to insert data into gke_clusters table')
+        except Exception as e:
+            logger.error(f'failure to insert data into gke_clusters table with error: {e}')
             return False
     elif cluster_type == GKE_AUTOPILOT:
         try:
             gke_autopilot_clusters.insert_one(gke_deployment_object)
             return True
-        except:
-            logger.error('failure to insert data into gke_autopilot_clusters table')
+        except Exception as e:
+            logger.error(f'failure to insert data into gke_autopilot_clusters table with error: {e}')
             return False
 
 
@@ -405,8 +405,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                     mongo_response = gke_machines_cache.insert_one(values)
                     logger.info(mongo_response.acknowledged)
                 return True
-            except:
-                logger.error('failure to insert data into gke_machines_cache table')
+            except Exception as e:
+                logger.error(f'failure to insert data into gke_machines_cache table with error: {e}')
                 return False
         elif gke_full_cache:
             gke_cache.drop()
@@ -415,8 +415,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                 logger.info(mongo_response.acknowledged)
                 logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
                 return True
-            except:
-                logger.error('failure to insert data into gke_cache table')
+            except Exception as e:
+                logger.error(f'failure to insert data into gke_cache table with error: {e}')
                 return False
         if gke_series_and_machine_types:
             try:
@@ -430,8 +430,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                     mongo_response = gke_series_and_machine_types_cache.insert_one(caching_object)
                     logger.info(mongo_response.acknowledged)
                 return True
-            except:
-                logger.error('failure to insert data into gke_series_and_machine_types_cache table')
+            except Exception as e:
+                logger.error(f'failure to insert data into gke_series_and_machine_types_cache table with error: {e}')
                 return False
         elif gke_zones_and_series:
             try:
@@ -445,8 +445,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                     mongo_response = gke_zones_and_series_cache.insert_one(caching_object)
                     logger.info(mongo_response.acknowledged)
                 return True
-            except:
-                logger.error('failure to insert data into gke_zones_and_series_cache table')
+            except Exception as e:
+                logger.error(f'failure to insert data into gke_zones_and_series_cache table with error: {e}')
                 return False
         elif gke_machine_series:
             try:
@@ -463,8 +463,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                     mongo_response = gke_machines_series_cache.insert_one(caching_object)
                     logger.info(mongo_response.acknowledged)
                 return True
-            except:
-                logger.error('failure to insert data into gke_machines_cache table')
+            except Exception as e:
+                logger.error(f'failure to insert data into gke_machines_cache table with error: {e}')
                 return False
         else:
             pass
@@ -483,8 +483,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                     mongo_response = aws_machines_cache.insert_one(values)
                     logger.info(mongo_response.acknowledged)
                 return True
-            except:
-                logger.error('failure to insert data into gke_machines_cache table')
+            except Exception as e:
+                logger.error(f'failure to insert data into gke_machines_cache table with error: {e}')
                 return False
         elif aws_regions_and_series:
             try:
@@ -498,8 +498,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                     mongo_response = aws_regions_and_series_cache.insert_one(caching_object)
                     logger.info(mongo_response.acknowledged)
                 return True
-            except:
-                logger.error('failure to insert data into aws_zones_and_series_cache table')
+            except Exception as e:
+                logger.error(f'failure to insert data into aws_zones_and_series_cache table with error: {e}')
                 return False
         elif aws_series_and_machine_types:
             try:
@@ -513,8 +513,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                     mongo_response = aws_series_and_machine_types_cache.insert_one(caching_object)
                     logger.info(mongo_response.acknowledged)
                 return True
-            except:
-                logger.error('failure to insert data into aws_series_and_machine_types_cache table')
+            except Exception as e:
+                logger.error(f'failure to insert data into aws_series_and_machine_types_cache table with error: {e}')
                 return False
         # aws_cache.drop()
         try:
@@ -522,8 +522,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             logger.info(mongo_response.acknowledged)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
-        except:
-            logger.error('failure to insert data into aws_cache table')
+        except Exception as e:
+            logger.error(f'failure to insert data into aws_cache table with error: {e}')
             return False
     elif provider == AKS:
         aks_cache.drop()
@@ -532,8 +532,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             logger.info(mongo_response.acknowledged)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
-        except:
-            logger.error('failure to insert data into aks_cache table')
+        except Exception as e:
+            logger.error(f'failure to insert data into aks_cache table with error: {e}')
             return False
     elif provider == HELM:
         helm_cache.drop()
@@ -542,8 +542,8 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             logger.info(mongo_response.acknowledged)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
-        except:
-            logger.error('failure to insert data into helm_cache table')
+        except Exception as e:
+            logger.error(f'failure to insert data into helm_cache table with error: {e}')
             return False
 
 
