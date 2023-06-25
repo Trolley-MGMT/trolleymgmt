@@ -260,11 +260,12 @@ def render_page(page_name: str = '', cluster_name: str = '', client_name: str = 
         return render_template('login.html')
 
 
-def gcp_caching(google_creds_json: str, github_repository: str, github_actions_token: str) -> bool:
+def gcp_caching(project_name: str, google_creds_json: str, github_repository: str, github_actions_token: str) -> bool:
     """
     This endpoint triggers a GCP Caching Action using a GitHub Action
     """
-    content = {'google_creds_json': google_creds_json, GITHUB_REPOSITORY: github_repository,
+    content = {'project_name': project_name, 'google_creds_json': google_creds_json,
+               GITHUB_REPOSITORY: github_repository,
                GITHUB_ACTIONS_TOKEN: github_actions_token, 'mongo_password': os.getenv('MONGO_PASSWORD'),
                'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
     cluster_operation = ClusterOperation(**content)
@@ -274,13 +275,15 @@ def gcp_caching(google_creds_json: str, github_repository: str, github_actions_t
         return False
 
 
-def aws_caching(aws_access_key_id: str, aws_secret_access_key: str, github_repository: str,
+def aws_caching(project_name: str, aws_access_key_id: str, aws_secret_access_key: str,
+                github_repository: str,
                 github_actions_token: str) -> bool:
     """
     This endpoint triggers a EKS Cluster deployment using a GitHub Action
     """
 
-    content = {'aws_access_key_id': aws_access_key_id, 'aws_secret_access_key': aws_secret_access_key,
+    content = {'project_name': project_name, 'aws_access_key_id': aws_access_key_id,
+               'aws_secret_access_key': aws_secret_access_key,
                GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
                'mongo_password': os.getenv('MONGO_PASSWORD'),
                'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
@@ -544,11 +547,12 @@ def settings():
             encoded_provider_details = encode_provider_details(content)
             if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
                 if content['google_creds_json']:
-                    gcp_caching(content['google_creds_json'], github_repository=content[GITHUB_REPOSITORY],
+                    gcp_caching(PROJECT_NAME, content['google_creds_json'],
+                                github_repository=content[GITHUB_REPOSITORY],
                                 github_actions_token=content[GITHUB_ACTIONS_TOKEN])
                     # Thread(target=gcp_caching_script.main, args=(credentials,)).start()
                 if content['aws_access_key_id'] and content['aws_secret_access_key']:
-                    aws_caching(content['aws_access_key_id'], content['aws_secret_access_key'],
+                    aws_caching(PROJECT_NAME, content['aws_access_key_id'], content['aws_secret_access_key'],
                                 github_repository=content[GITHUB_REPOSITORY],
                                 github_actions_token=content[GITHUB_ACTIONS_TOKEN])
                     # Thread(target=aws_caching_script.main, args=(aws_access_key_id, aws_secret_access_key)).start()

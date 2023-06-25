@@ -4,7 +4,7 @@ import platform
 import sys
 import time
 from dataclasses import asdict
-from typing import Any, Mapping, Dict
+from typing import Any, Mapping
 
 import gridfs
 from bson import ObjectId
@@ -63,9 +63,9 @@ MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
 MONGO_URL = os.environ['MONGO_URL']
 MONGO_PORT = int(os.getenv('MONGO_PORT', 27017))
-print(f'MONGO_USER is: {MONGO_USER}')
-print(f'MONGO_URL is: {MONGO_URL}')
-print(f'MONGO_PORT is: {MONGO_PORT}')
+logger.info(f'MONGO_USER is: {MONGO_USER}')
+logger.info(f'MONGO_URL is: {MONGO_URL}')
+logger.info(f'MONGO_PORT is: {MONGO_PORT}')
 
 ATLAS_FULL_URL = f"mongodb+srv://admin:{MONGO_PASSWORD}@{MONGO_URL}/?retryWrites=true&w=majority"
 
