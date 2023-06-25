@@ -37,13 +37,11 @@ file_handler = logging.FileHandler(log_file_path)
 stdout_handler = logging.StreamHandler(stream=sys.stdout)
 handlers = [file_handler, stdout_handler]
 
-
 logging.basicConfig(
     level=logging.DEBUG,
     format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
     handlers=handlers
 )
-
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
@@ -61,7 +59,7 @@ from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
     ZONES_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-    NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID
+    NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN
 
 from mail_handler import MailSender
 from utils import random_string, apply_yaml
@@ -96,23 +94,6 @@ def confirm_token(token, expiration=3600) -> str:
     except:
         return "Fail"
     return email
-
-
-def yaml_to_dict(content) -> dict:
-    full_deployment_yaml = content['deployment_yaml']
-    deployment_yaml_dict = []
-    if '---' in full_deployment_yaml:
-        deployments_list = full_deployment_yaml.split('---')
-        for deployment in deployments_list:
-            single_deployment = yaml.safe_load(deployment)
-            deployment_yaml_dict.append(single_deployment)
-    else:
-        deployment_yaml_dict = yaml.safe_load(full_deployment_yaml)
-    return deployment_yaml_dict
-
-
-def deployment_yaml_object_handling(content) -> DeploymentYAMLObject:
-    return DeploymentYAMLObject(content['cluster_type'], content['cluster_name'], yaml_to_dict(content))
 
 
 def user_registration(first_name: str = '', last_name: str = '', password: str = '',
@@ -277,6 +258,37 @@ def render_page(page_name: str = '', cluster_name: str = '', client_name: str = 
         return render_template(page_name, data=data, image=profile_image)
     else:
         return render_template('login.html')
+
+
+def gcp_caching(google_creds_json: str, github_repository: str, github_actions_token: str) -> bool:
+    """
+    This endpoint triggers a GCP Caching Action using a GitHub Action
+    """
+    content = {'google_creds_json': google_creds_json, GITHUB_REPOSITORY: github_repository,
+               GITHUB_ACTIONS_TOKEN: github_actions_token, 'mongo_password': os.getenv('MONGO_PASSWORD'),
+               'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
+    cluster_operation = ClusterOperation(**content)
+    if cluster_operation.trigger_gcp_caching():
+        return True
+    else:
+        return False
+
+
+def aws_caching(aws_access_key_id: str, aws_secret_access_key: str, github_repository: str,
+                github_actions_token: str) -> bool:
+    """
+    This endpoint triggers a EKS Cluster deployment using a GitHub Action
+    """
+
+    content = {'aws_access_key_id': aws_access_key_id, 'aws_secret_access_key': aws_secret_access_key,
+               GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
+               'mongo_password': os.getenv('MONGO_PASSWORD'),
+               'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
+    cluster_operation = ClusterOperation(**content)
+    if cluster_operation.trigger_aws_caching():
+        return True
+    else:
+        return False
 
 
 @app.route('/get_clusters_data', methods=[GET])
@@ -532,11 +544,14 @@ def settings():
             encoded_provider_details = encode_provider_details(content)
             if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
                 if content['google_creds_json']:
-                    Thread(target=gcp_caching_script.main, args=(credentials,)).start()
+                    gcp_caching(content['google_creds_json'], github_repository=content[GITHUB_REPOSITORY],
+                                github_actions_token=content[GITHUB_ACTIONS_TOKEN])
+                    # Thread(target=gcp_caching_script.main, args=(credentials,)).start()
                 if content['aws_access_key_id'] and content['aws_secret_access_key']:
-                    aws_access_key_id = content['aws_access_key_id']
-                    aws_secret_access_key = content['aws_secret_access_key']
-                    Thread(target=aws_caching_script.main, args=(aws_access_key_id, aws_secret_access_key)).start()
+                    aws_caching(content['aws_access_key_id'], content['aws_secret_access_key'],
+                                github_repository=content[GITHUB_REPOSITORY],
+                                github_actions_token=content[GITHUB_ACTIONS_TOKEN])
+                    # Thread(target=aws_caching_script.main, args=(aws_access_key_id, aws_secret_access_key)).start()
                 return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
             else:
                 return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -787,6 +802,7 @@ def fetch_subnets():
             return jsonify([f'No subnets were found for {zone_names} zones'])
         else:
             return jsonify(subnets)
+
 
 @app.route('/fetch_client_name_per_cluster', methods=[GET])
 @login_required

@@ -99,3 +99,8 @@ ZONES_LIST = 'zones_list'
 HELM_INSTALLS_LIST = 'helm_installs_list'
 GKE_VERSIONS_LIST = 'versions_list'
 GKE_IMAGE_TYPES = 'gke_image_types'
+
+#GITHUB
+
+GITHUB_REPOSITORY = 'github_repository'
+GITHUB_ACTIONS_TOKEN = 'github_actions_token'

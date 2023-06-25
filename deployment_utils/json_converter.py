@@ -15,7 +15,6 @@ else:
     GITHUB_ACTIONS_ENV_FILE = os.environ.get('GITHUB_ENV', None)
 
 
-
 def main(incoming_string: str = '', provider: str = ''):
     print(f'incoming_string is: {incoming_string}')
     encoded_content = ast.literal_eval(incoming_string)

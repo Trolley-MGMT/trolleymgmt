@@ -234,6 +234,33 @@ class ClusterOperation:
 
         return response
 
+    def trigger_gcp_caching(self):
+        json_data = {
+            "event_type": "gcp-caching-action-trigger",
+            "client_payload": {"google_creds_json": self.google_creds_json,
+                               "mongo_user": self.mongo_user,
+                               "mongo_password": self.mongo_password,
+                               "mongo_url": self.mongo_url}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+
+        return response
+
+    def trigger_aws_caching(self):
+        json_data = {
+            "event_type": "aws-caching-action-trigger",
+            "client_payload": {"aws_access_key_id": self.aws_access_key_id,
+                               "aws_secret_access_key": self.aws_secret_access_key,
+                               "mongo_user": self.mongo_user,
+                               "mongo_password": self.mongo_password,
+                               "mongo_url": self.mongo_url}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+
+        return response
+
     def delete_aks_cluster(self):
         json_data = {
             "event_type": "aks-delete-api-trigger",

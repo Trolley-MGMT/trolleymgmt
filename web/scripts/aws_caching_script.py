@@ -29,7 +29,7 @@ stdout_handler = logging.StreamHandler(stream=sys.stdout)
 handlers = [file_handler, stdout_handler]
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
     handlers=handlers
 )
@@ -46,9 +46,6 @@ else:
     from web.mongo_handler.mongo_objects import AWSCacheObject, AWSMachineTypeObject, AWSMachinesCacheObject, \
         AWSRegionsAndMachineSeriesObject, AWSSeriesAndMachineTypesObject
     from web.variables.variables import EKS
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 LOCAL_USER = gt.getuser()
 
