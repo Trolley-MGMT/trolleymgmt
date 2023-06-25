@@ -60,7 +60,7 @@ else:
     if GITHUB_ACTIONS_ENV:
         logger.info(f'checking the github_actions_env path')
         FETCHED_CREDENTIALS_DIR_PATH = '/home/runner/work/.aws'
-        CREDENTIALS_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
+        FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
     else:
         AWS_CREDENTIALS_DEFAULT_DIRECTORY = "home/app/.aws"
         CREDENTIALS_PATH = f'/{AWS_CREDENTIALS_DEFAULT_DIRECTORY}/credentials'
