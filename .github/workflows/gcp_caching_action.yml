@@ -40,5 +40,5 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 web/scripts/gcp_caching_script.py
+          python3 web/scripts/gcp_caching_script.py --credentials ${{ github.event.client_payload.google_creds_json }}
 
