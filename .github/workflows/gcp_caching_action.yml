@@ -1,34 +1,13 @@
 name: GCP Caching
 
 on:
-  schedule:
-    - cron: "0 1 * * *"
+  repository_dispatch:
+    types: gcp-caching-action-trigger
 
 jobs:
-  gcp_caching:
+  gcp-caching-trigger:
     runs-on: ubuntu-20.04
     steps:
-      - uses: 'actions/checkout@v3'
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v0'
-        with:
-          credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
-      - name: Use gcloud CLI
-        run: gcloud info
-      - name: Installing GCloud
-        run: |
-          export KUBECONFIG=/tmp/kubeconfig
-          gcloud container images list
-          gcloud components install beta --quiet
-          cat $GOOGLE_APPLICATION_CREDENTIALS
-          export GOOGLE_CREDS_CONTENT=$(cat $GOOGLE_APPLICATION_CREDENTIALS)
-          echo $GOOGLE_CREDS_CONTENT >> /home/runner/work/gcp_credentials.json
-          echo "google_creds_content=$(cat $GOOGLE_APPLICATION_CREDENTIALS)" >> $GITHUB_ENV
-
-
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Set up Python 3.9
@@ -36,14 +15,34 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Echo the values
+        run: |
+          echo "client_payload is: ${{ github.event.client_payload.client_payload }}"
+          echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"          
+
+
+      - name: Payload Extracting
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          pip3 install PyYAML
+          python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.payload }}" --provider gcp
+          env
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: ${{ github.event.client_payload.google_creds_json }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+      - name: Use gcloud CLI
+        run: gcloud info
+
       - name: Caching Tasks
         env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
-          MONGO_USER: ${{ secrets.MONGO_USER }}
-          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           GITHUB_ACTIONS_ENV: Yes
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
           python3 web/scripts/gcp_caching_script.py
+
