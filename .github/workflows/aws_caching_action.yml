@@ -23,6 +23,12 @@ jobs:
         with:
           python-version: 3.9
 
+
+      - name: Echo the values
+        run: |
+          echo "project_name is: ${{ github.event.client_payload.project_name }}"
+          
+
       - name: Caching Tasks
         env:
           MONGO_URL: ${{ github.event.client_payload.mongo_url }}
