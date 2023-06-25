@@ -28,7 +28,12 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
-        run: gcloud info
+        run: |
+          gcloud info
+          cat $GOOGLE_APPLICATION_CREDENTIALS
+          export GOOGLE_CREDS_CONTENT=$(cat $GOOGLE_APPLICATION_CREDENTIALS)
+          echo $GOOGLE_CREDS_CONTENT >> /home/runner/work/gcp_credentials.json
+          echo "google_creds_content=$(cat $GOOGLE_APPLICATION_CREDENTIALS)" >> $GITHUB_ENV
 
       - name: Caching Tasks
         env:
@@ -40,5 +45,4 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 web/scripts/gcp_caching_script.py --credentials "${{ github.event.client_payload.google_creds_json }}"
-
+          python3 web/scripts/gcp_caching_script.py
