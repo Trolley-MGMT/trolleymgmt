@@ -14,6 +14,7 @@ import boto3
 import getpass as gt
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+GITHUB_ACTIONS_ENV = os.getenv('GITHUB_ACTIONS_ENV')
 
 log_file_name = 'server.log'
 if DOCKER_ENV:
