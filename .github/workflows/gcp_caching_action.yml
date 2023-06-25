@@ -21,13 +21,6 @@ jobs:
           echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"          
 
 
-      - name: Payload Extracting
-        run: |
-          export PYTHONPATH=$PYTHONPATH:.
-          pip3 install PyYAML
-          python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.payload }}" --provider gcp
-          env
-
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
