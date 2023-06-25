@@ -1,7 +1,7 @@
-name: AWS Caching
+name: AWS Periodical Caching
 on:
-  repository_dispatch:
-    types: aws-caching-action-trigger
+  schedule:
+    - cron: "0 1 * * *"
 
 jobs:
   aws_caching:
@@ -12,8 +12,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          aws-access-key-id: ${{ github.event.client_payload.aws_access_key_id }}
-          aws-secret-access-key: ${{ github.event.client_payload.aws_secret_access_key }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Checkout Code
@@ -25,10 +25,9 @@ jobs:
 
       - name: Caching Tasks
         env:
-          MONGO_URL: ${{ github.event.client_payload.mongo_url }}
-          MONGO_USER: ${{ github.event.client_payload.mongo_user }}
-          MONGO_PASSWORD: ${{ github.event.client_payload.mongo_password }}
-          GITHUB_ACTIONS_ENV: Yes
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          MONGO_USER: ${{ secrets.MONGO_USER }}
+          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
