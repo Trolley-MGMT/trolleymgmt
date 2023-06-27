@@ -245,8 +245,11 @@ class ClusterOperation:
         }
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)
-
-        return response
+        logger.info(f'trigger_gcp_caching request returned with response: {response}')
+        if response.status_code == 204:
+            return True
+        else:
+            return False
 
     def trigger_aws_caching(self):
         json_data = {
@@ -261,7 +264,11 @@ class ClusterOperation:
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)
 
-        return response
+        logger.info(f'trigger_aws_caching request returned with response: {response}')
+        if response.status_code == 204:
+            return True
+        else:
+            return False
 
     def delete_aks_cluster(self):
         json_data = {

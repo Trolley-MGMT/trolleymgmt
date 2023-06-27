@@ -19,6 +19,7 @@
 
 
 
+
     </script>
 </head>
 
@@ -115,20 +116,20 @@
                             </p>
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item" style="display: none;" id="build-aks-clusters-div" >
+                            <li class="nav-item" id="build-aks-clusters-div">
                                 <a href="build-aks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="build-eks-clusters-div" >
+                            <li class="nav-item" id="build-eks-clusters-div">
                                 <a href="build-eks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>EKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="build-gke-clusters-div" >
-                                <a href="build-gke-clusters" class="nav-link" >
+                            <li class="nav-item" id="build-gke-clusters-div">
+                                <a href="build-gke-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
                                 </a>
@@ -144,19 +145,19 @@
                             </p>
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item" style="display: none;" id="manage-aks-clusters-div" >
+                            <li class="nav-item" id="manage-aks-clusters-div">
                                 <a href="manage-aks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-eks-clusters-div" >
+                            <li class="nav-item" style="display: none;" id="manage-eks-clusters-div">
                                 <a href="manage-eks-clusters" class="nav-link active">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>EKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-gke-clusters-div" >
+                            <li class="nav-item" id="manage-gke-clusters-div">
                                 <a href="manage-gke-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
@@ -172,20 +173,20 @@
                                 <i class="fas fa-angle-left right"></i>
                             </p>
                         </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item" style="display: none;" id="manage-az-vm-instances-div">
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item" id="manage-az-vm-instances-div">
                                 <a href="manage-az-vm-instances" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AZ VM Instances</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-aws-ec2-instances-div">
+                            <li class="nav-item" id="manage-aws-ec2-instances-div">
                                 <a href="manage-aws-ec2-instances" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AWS EC2 Instances</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-gcp-vm-instances-div">
+                            <li class="nav-item" id="manage-gcp-vm-instances-div">
                                 <a href="manage-gcp-vm-instances" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GCP VM Instances</p>
@@ -303,96 +304,115 @@
         <!-- Content Header (Page header) -->
         <div class="content-header">
             <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                    </div><!-- /.col -->
-                    <div id="clusters-data">
-                    </div>
-                </div><!-- /.row -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Manage EKS clusters</h3>
-
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                                <i class="fas fa-times"></i>
-                            </button>
+                <div class="col-md-6" id="callout-div" style="display: none;">
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-bullhorn"></i>
+                            </h3>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card card-warning" id="client-user-select-dropdowns-box" style="display: none;">
-                            <div class="card-body">
-                                <form>
-                                    <div class="row">
-                                        <div class="col-sm-4">
-                                            <div class="form-group">
-                                                <label>Select Filter (Client/User)</label>
-                                                <select class="form-control" id="filter-type-dropdown">
-                                                    <option>Users</option>
-                                                    <option>Clients</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
+                        <div class="card-body">
+                            <div class="callout callout-info">
+                                <p>Please add your providers details in the <a href="manage-settings"
+                                                                               style="color:#FFFFFF;"> Settings </a>
+                                    menu to be able to manage EKS Clusters! </p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card card-warning" id="teams-users-dropdowns-box" style="display: none;">
-                            <div class="card-body">
-                                <form>
-                                    <div class="row">
-                                        <div class="col-sm-6">
-                                            <div class="form-group">
-                                                <label>Select Team</label>
-                                                <select class="form-control" id="team-names-dropdown">
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <div class="form-group">
-                                                <label>Select User</label>
-                                                <select class="form-control" id="user-names-dropdown">
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
+                </div>
+                <div id="clusters-manage-elements-div" style="display: none;">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                        </div><!-- /.col -->
+                        <div id="clusters-data">
+                        </div>
+                    </div><!-- /.row -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Manage EKS clusters</h3>
 
-                                </form>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card card-warning" id="clients-dropdowns-box" style="display: none;">
-                            <div class="card-body">
-                                <form>
-                                    <div class="row">
-                                        <div class="col-sm-6">
-                                            <div class="form-group">
-                                                <label>Select Client</label>
-                                                <select class="form-control" id="client-names-dropdown">
-                                                </select>
+                        <div class="col-md-4">
+                            <div class="card card-warning" id="client-user-select-dropdowns-box" style="display: none;">
+                                <div class="card-body">
+                                    <form>
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <label>Select Filter (Client/User)</label>
+                                                    <select class="form-control" id="filter-type-dropdown">
+                                                        <option>Users</option>
+                                                        <option>Clients</option>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-
-                                </form>
+                                    </form>
+                                </div>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="card card-warning" id="teams-users-dropdowns-box" style="display: none;">
+                                <div class="card-body">
+                                    <form>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Select Team</label>
+                                                    <select class="form-control" id="team-names-dropdown">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Select User</label>
+                                                    <select class="form-control" id="user-names-dropdown">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card card-warning" id="clients-dropdowns-box" style="display: none;">
+                                <div class="card-body">
+                                    <form>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Select Client</label>
+                                                    <select class="form-control" id="client-names-dropdown">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-striped projects" id="eks-clusters-management-table">
+                            </table>
+                        </div>
+                        <!--                    -->
+                    </div><!-- /.container-fluid -->
+                    <div>
+                        <button type="submit" class="btn btn-info" id="trigger-clusters-discovery"
+                                style="display: none;">Scan for clusters
+                        </button>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped projects" id="eks-clusters-management-table">
-                        </table>
-                    </div>
-                    <!--                    -->
-                </div><!-- /.container-fluid -->
-                <div>
-                    <button type="submit" class="btn btn-info" id="trigger-clusters-discovery" style="display: none;">Scan for clusters
-                    </button>
                 </div>
             </div>
             <!-- /.content-header -->

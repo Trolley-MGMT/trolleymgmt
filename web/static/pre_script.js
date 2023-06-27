@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    let trolley_url = 'localhost'
+    let trolley_url = 'http://localhost';
     let stored_user_type = window.localStorage.getItem("userType");
     let userType = "";
     let userName = "";
@@ -32,41 +32,6 @@ $(document).ready(function() {
         var awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
         var azureCredentials = settingsDataArray[0].azure_credentials
         var googleCredsJson = settingsDataArray[0].google_creds_json
-    }
-
-
-    if (userType == "admin") {
-        $("#build-clusters-div").show()
-        if ((!isEmpty(githubRepository)) && (!isEmpty(githubActionsToken))) {
-            if (!isEmpty(googleCredsJson)) {
-                $("#build-gke-clusters-div").show()
-                $("#manage-gke-clusters-div").show()
-                $("#manage-gcp-vm-instances-div").show()
-            }
-            if ((!isEmpty(awsAccessKeyId)) && (!isEmpty(awsSecretAccessKey))) {
-                $("#build-eks-clusters-div").show()
-                $("#manage-eks-clusters-div").show()
-                $("#manage-aws-ec2-instances-div").show()
-            }
-            if (!isEmpty(azureCredentials)) {
-                $("#build-aks-clusters-div").show()
-                $("#manage-aks-clusters-div").show()
-                $("#manage-az-vm-instances-div").show()
-            }
-        }
-
-        $("#users-div").show()
-        $("#teams-div").show()
-        $("#clients-div").show()
-        $("#dashboards-div").show()
-        $("#settings-div").show()
-        $("#trigger-clusters-discovery").show()
-        $("#trigger-instances-discovery").show()
-    } else if (userType == "superuser") {
-        $("#build-clusters-div").show()
-        $("#settings-div").show()
-        $("#trigger-clusters-discovery").show()
-        $("#trigger-instances-discovery").show()
     }
     try {
         window.localStorage.setItem("userName", data['user_name']);
@@ -109,9 +74,6 @@ $(document).ready(function() {
     let provider = 'something';
     let fullHREF = window.location.href;
     let pathname = window.location.pathname.split('/');
-    //    if (fullHREF.includes("?")) {
-    //        query = true;
-    //    }
 
     let clusters_manage_table_header = `<table class="table table-striped projects">
         <thead>
@@ -289,7 +251,124 @@ $(document).ready(function() {
         provider = 'gcp'
         window.localStorage.setItem("clusterType", clusterType);
         window.localStorage.setItem("provider", provider);
+    } else {
+        clusterType = 'none'
     }
+
+
+    if (userType == "admin") {
+        $("#build-clusters-div").show()
+        $("#users-div").show()
+        $("#teams-div").show()
+        $("#clients-div").show()
+        $("#dashboards-div").show()
+        $("#settings-div").show()
+        $("#trigger-clusters-discovery").show()
+        $("#trigger-instances-discovery").show()
+        if ((isEmpty(githubRepository)) && (isEmpty(githubActionsToken))) {
+            $("#cluster-build-elements-div").hide()
+            $("#callout-div").show()
+        } else if (clusterType == 'gke') {
+            if (buildPage) {
+                if (isEmpty(googleCredsJson)) {
+                    $("#clusters-build-elements-div").hide()
+                    $("#callout-div").show()
+                } else {
+                    $("#clusters-build-elements-div").show()
+                    $("#callout-div").hide()
+                }
+            } else if (clustersManagePage) {
+                if (isEmpty(googleCredsJson)) {
+                    $("#clusters-manage-elements-div").hide()
+                    $("#callout-div").show()
+                } else {
+                    $("#clusters-manage-elements-div").show()
+                    $("#callout-div").hide()
+                }
+            } else if (instancesManagePage) {
+                if (isEmpty(googleCredsJson)) {
+                    $("#instances-manage-elements-div").hide()
+                    $("#callout-div").show()
+                } else {
+                    $("#instances-manage-elements-div").show()
+                    $("#callout-div").hide()
+                }
+            }
+        } else if (clusterType == 'eks'){
+            if (buildPage) {
+            if ((isEmpty(awsAccessKeyId)) && (isEmpty(awsSecretAccessKey))) {
+                $("#cluster-build-elements-div").hide()
+                $("#callout-div").show()
+            } else {
+                $("#cluster-build-elements-div").show()
+                $("#callout-div").hide()
+            }
+            } else if (clustersManagePage) {
+                if ((isEmpty(awsAccessKeyId)) && (isEmpty(awsSecretAccessKey))) {
+                    $("#cluster-manage-elements-div").hide()
+                    $("#callout-div").show()
+                } else {
+                    $("#cluster-manage-elements-div").show()
+                    $("#callout-div").hide()
+                }
+            } else if (instancesManagePage) {
+                if ((isEmpty(awsAccessKeyId)) && (isEmpty(awsSecretAccessKey))) {
+                    $("#instances-manage-elements-div").hide()
+                    $("#callout-div").show()
+                } else {
+                    $("#instances-manage-elements-div").show()
+                    $("#callout-div").hide()
+                }
+            }
+        } else if (clusterType == 'aks'){
+            if (buildPage) {
+            if (isEmpty(azureCredentials)) {
+                $("#cluster-build-elements-div").hide()
+                $("#callout-div").show()
+            } else {
+                $("#cluster-build-elements-div").show()
+                $("#callout-div").hide()
+            }
+            } else if (clustersManagePage) {
+                if (isEmpty(azureCredentials)) {
+                    $("#cluster-manage-elements-div").hide()
+                    $("#callout-div").show()
+                } else {
+                    $("#cluster-manage-elements-div").show()
+                    $("#callout-div").hide()
+                }
+            } else if (instancesManagePage) {
+                if (isEmpty(azureCredentials)) {
+                    $("#instances-manage-elements-div").hide()
+                    $("#callout-div").show()
+                } else {
+                    $("#instances-manage-elements-div").show()
+                    $("#callout-div").hide()
+                }
+            }
+                } else if (userType == "superuser") {
+                    $("#build-clusters-div").show()
+                    $("#settings-div").show()
+                    $("#trigger-clusters-discovery").show()
+                    $("#trigger-instances-discovery").show()
+    }
+    else if (userType == "superuser") {
+        $("#build-clusters-div").show()
+        $("#settings-div").show()
+        $("#trigger-clusters-discovery").show()
+        $("#trigger-instances-discovery").show()
+    }
+    }
+
+    $("#users-div").show()
+    $("#teams-div").show()
+    $("#clients-div").show()
+    $("#dashboards-div").show()
+    $("#settings-div").show()
+    $("#trigger-clusters-discovery").show()
+    $("#trigger-instances-discovery").show()
+
+
 
     try {
         populate_logged_in_assets();
@@ -323,7 +402,7 @@ $(document).ready(function() {
         populate_teams_data();
     }
     if (clustersManagePage) {
-        store_clusters()
+//        store_clusters()
         let userType = window.localStorage.getItem("userType");
         if (userType == 'admin') {
             $("#teams-users-dropdowns-box").show();
@@ -586,8 +665,6 @@ $(document).ready(function() {
         githubActionsToken = $('#github-actions-token').val();
         userName = window.localStorage.getItem("userName")
 
-
-
         let add_settings_data = JSON.stringify({
             "provider": cloud_provider,
             "aws_access_key_id": AWSAccessKeyID,
@@ -600,6 +677,9 @@ $(document).ready(function() {
 
 
         url = trolley_url + "/settings";
+
+        swal_message = 'A request to change settings was sent'
+
         const xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -610,6 +690,13 @@ $(document).ready(function() {
         };
         xhr.send(add_settings_data);
 
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: swal_message,
+            showConfirmButton: false,
+            timer: 5000
+        })
 
         $("#aws-access-key-id").hide();
         $("#aws-access-key-id-div").hide();
@@ -967,6 +1054,8 @@ $(document).ready(function() {
             $.each(dataArray, function(key, value) {
                 if (value.cluster_name === objectName) {
                     discovered = value.discovered
+                } else {
+                    discovered = false;
                 }
             });
             let clusterType = window.localStorage.getItem("clusterType");
@@ -1994,8 +2083,6 @@ $(document).ready(function() {
         $.each(dataArray, function(key, value) {
             if (value.cluster_name === objectName) {
                 discovered = value.discovered
-            } else {
-                discovered = false;
             }
         });
         //        Fix this

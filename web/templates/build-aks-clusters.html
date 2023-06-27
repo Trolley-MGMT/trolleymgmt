@@ -18,6 +18,9 @@
       var data = {{ data|tojson }};
 
 
+
+
+
     </script>
 </head>
 
@@ -119,13 +122,13 @@
                                     <p>AKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="build-eks-clusters-div">
+                            <li class="nav-item" id="build-eks-clusters-div">
                                 <a href="build-eks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>EKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="build-gke-clusters-div">
+                            <li class="nav-item" id="build-gke-clusters-div">
                                 <a href="build-gke-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
@@ -142,19 +145,19 @@
                             </p>
                         </a>
                         <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item" style="display: none;" id="manage-aks-clusters-div">
+                            <li class="nav-item" id="manage-aks-clusters-div">
                                 <a href="manage-aks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-eks-clusters-div">
+                            <li class="nav-item" id="manage-eks-clusters-div">
                                 <a href="manage-eks-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>EKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-gke-clusters-div">
+                            <li class="nav-item" id="manage-gke-clusters-div">
                                 <a href="manage-gke-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
@@ -170,20 +173,20 @@
                                 <i class="fas fa-angle-left right"></i>
                             </p>
                         </a>
-                        <ul class="nav nav-treeview" style="display: none;">
+                        <ul class="nav nav-treeview">
                             <li class="nav-item" style="display: none;" id="manage-az-vm-instances-div">
                                 <a href="manage-az-vm-instances" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AZ VM Instances</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-aws-ec2-instances-div">
+                            <li class="nav-item" id="manage-aws-ec2-instances-div">
                                 <a href="manage-aws-ec2-instances" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>AWS EC2 Instances</p>
                                 </a>
                             </li>
-                            <li class="nav-item" style="display: none;" id="manage-gcp-vm-instances-div">
+                            <li class="nav-item" id="manage-gcp-vm-instances-div">
                                 <a href="manage-gcp-vm-instances" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GCP VM Instances</p>
@@ -301,82 +304,84 @@
         <!-- Content Header (Page header) -->
         <div class="content-header">
             <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1 class="m-0">Build an AKS cluster</h1>
-                    </div><!-- /.col -->
-                </div><!-- /.row -->
-                <div class="col-lg-2 align-content-lg-center">
-                    <!-- select -->
-                    <div class="form-group">
-                        <label>Select the amount of nodes</label>
-                        <select class="form-control" id="aks-nodes-amt">
-                            <option>1</option>
-                            <option>2</option>
-                            <option>3</option>
-                            <option>4</option>
-                            <option>5</option>
-                        </select>
+                <div class="col-md-6" id="callout-div" style="display: none;">
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-bullhorn"></i>
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="callout callout-info">
+                                <p>Please add your providers and GitHub details in the <a href="manage-settings"
+                                                                               style="color:#FFFFFF;"> Settings </a>
+                                    menu to be able to build AKS Clusters! </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-lg-2 align-content-lg-center">
-                    <!-- select -->
-                    <div class="form-group">
-                        <label>Select the Kubernetes version</label>
-                        <select class="form-control" id="aks-versions-dropdown">
-                            <option>1.24.0</option>
-                            <option>1.23.8</option>
-                            <option>1.22.11</option>
-                            <option>1.21.14</option>
-                        </select>
+                <div id="clusters-build-elements-div" style="display: none;">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1 class="m-0">Build an AKS cluster</h1>
+                        </div><!-- /.col -->
+                    </div><!-- /.row -->
+                    <div class="col-lg-2 align-content-lg-center">
+                        <!-- select -->
+                        <div class="form-group">
+                            <label>Select the amount of nodes</label>
+                            <select class="form-control" id="aks-nodes-amt">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="col-lg-4 align-content-lg-center">
-                    <div class="form-group">
-                        <label>Select Location</label>
-                        <br>
-                        <select class="col-lg-8 align-content-lg-center" id="aks-locations-dropdown">
-                        </select>
+                    <div class="col-lg-2 align-content-lg-center">
+                        <!-- select -->
+                        <div class="form-group">
+                            <label>Select the Kubernetes version</label>
+                            <select class="form-control" id="aks-versions-dropdown">
+                                <option>1.24.0</option>
+                                <option>1.23.8</option>
+                                <option>1.22.11</option>
+                                <option>1.21.14</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <!--                <div class="col-lg-4 align-content-lg-center">-->
-                <!--                    &lt;!&ndash; select &ndash;&gt;-->
-                <!--                    <div class="form-group">-->
-                <!--                        <label>Select Helm Installations</label>-->
-                <!--                        <br>-->
-                <!--                        <select class="col-lg-8 align-content-lg-center" multiple id="helm-installs-dropdown">-->
-                <!--                        </select>-->
-                <!--                    </div>-->
-                <!--                </div>-->
-                <div class="col-lg-2 align-content-lg-center">
-                    <!-- select -->
-                    <div class="form-group">
-                        <label>Select the expiration time</label>
-                        <select class="form-control" id="aks-expiration-time">
-                            <option value="1">1h</option>
-                            <option value="2">2h</option>
-                            <option value="4">4h</option>
-                            <option value="8">8h</option>
-                            <option value="12">12h</option>
-                            <option value="24">24h</option>
-                            <option value="48">2d</option>
-                            <option value="96">4d</option>
-                            <option value="168">7d</option>
-                            <option value="336">14d</option>
-                            <option value="720">30d</option>
-                        </select>
+                    <div class="col-lg-4 align-content-lg-center">
+                        <div class="form-group">
+                            <label>Select Location</label>
+                            <br>
+                            <select class="col-lg-8 align-content-lg-center" id="aks-locations-dropdown">
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <br>
-                <!--                <div class="col-lg-4 align-content-lg-center">-->
-                <!--                    <div class="form-group">-->
-                <!--                        <label>Deployment YAML</label>-->
-                <!--                        <textarea class="form-control" rows="6" id="deployment-yaml"-->
-                <!--                                  placeholder="Insert your deployment yaml here"></textarea>-->
-                <!--                    </div>-->
-                <!--                </div>-->
-                <button type="submit" class="btn btn-info" id="build-cluster-button">Build Cluster!</button>
-            </div><!-- /.container-fluid -->
+                    <div class="col-lg-2 align-content-lg-center">
+                        <!-- select -->
+                        <div class="form-group">
+                            <label>Select the expiration time</label>
+                            <select class="form-control" id="aks-expiration-time">
+                                <option value="1">1h</option>
+                                <option value="2">2h</option>
+                                <option value="4">4h</option>
+                                <option value="8">8h</option>
+                                <option value="12">12h</option>
+                                <option value="24">24h</option>
+                                <option value="48">2d</option>
+                                <option value="96">4d</option>
+                                <option value="168">7d</option>
+                                <option value="336">14d</option>
+                                <option value="720">30d</option>
+                            </select>
+                        </div>
+                    </div>
+                    <br>
+                    <button type="submit" class="btn btn-info" id="build-cluster-button">Build Cluster!</button>
+                </div><!-- /.container-fluid -->
+            </div>
         </div>
         <!-- /.content-header -->
     </div>

@@ -644,9 +644,7 @@ def retrieve_user(user_email: str):
     @param user_email:  retrieve a returning user data
     @return:
     """
-    print(f'Listing all the collections')
     logger.info(f'Listing all the collections')
-    print(db.list_collection_names())
     logger.info(db.list_collection_names())
     mongo_query = {USER_EMAIL: user_email}
     logger.info(f'Running the {mongo_query}')
@@ -1189,8 +1187,8 @@ def insert_provider_data_object(providers_data_object: dict) -> bool:
             else:
                 logger.error(f'provider was not inserted properly')
                 return False
-    except:
-        logger.error(f'provider data was not inserted properly')
+    except Exception as e:
+        logger.error(f'provider data was not inserted properly with error: {e}')
 
 
 def retrieve_provider_data_object(user_email: str, provider: str) -> Mapping[str, Any]:

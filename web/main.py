@@ -260,7 +260,8 @@ def render_page(page_name: str = '', cluster_name: str = '', client_name: str = 
         return render_template('login.html')
 
 
-def gcp_caching(project_name: str, google_creds_json: str, github_repository: str, github_actions_token: str) -> bool:
+def gcp_caching(user_email: str, project_name: str, google_creds_json: str, github_repository: str,
+                github_actions_token: str) -> bool:
     """
     This endpoint triggers a GCP Caching Action using a GitHub Action
     """
@@ -268,6 +269,16 @@ def gcp_caching(project_name: str, google_creds_json: str, github_repository: st
                GITHUB_REPOSITORY: github_repository,
                GITHUB_ACTIONS_TOKEN: github_actions_token, 'mongo_password': os.getenv('MONGO_PASSWORD'),
                'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
+    if not github_repository or not github_actions_token:
+        github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
+        try:
+            github_actions_token_decrypted = crypter.decrypt(github_data['github_actions_token']).decode("utf-8")
+            github_repository = github_data['github_repository']
+            content['github_repository'] = github_repository
+            content['github_actions_token'] = github_actions_token_decrypted
+        except Exception as e:
+            logger.error(f'problem decrypting github_actions_token_decrypted with error {e}')
+            return False
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_gcp_caching():
         return True
@@ -275,7 +286,7 @@ def gcp_caching(project_name: str, google_creds_json: str, github_repository: st
         return False
 
 
-def aws_caching(project_name: str, aws_access_key_id: str, aws_secret_access_key: str,
+def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_secret_access_key: str,
                 github_repository: str,
                 github_actions_token: str) -> bool:
     """
@@ -287,6 +298,16 @@ def aws_caching(project_name: str, aws_access_key_id: str, aws_secret_access_key
                GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
                'mongo_password': os.getenv('MONGO_PASSWORD'),
                'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
+    if not github_repository or not github_actions_token:
+        github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
+        try:
+            github_actions_token_decrypted = crypter.decrypt(github_data['github_actions_token']).decode("utf-8")
+            github_repository = github_data['github_repository']
+            content['github_repository'] = github_repository
+            content['github_actions_token'] = github_actions_token_decrypted
+        except Exception as e:
+            logger.error(f'problem decrypting github_actions_token_decrypted with error {e}')
+            return False
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_aws_caching():
         return True
@@ -546,17 +567,24 @@ def settings():
                 content[GCP_PROJECT_ID] = gcp_project_id
             encoded_provider_details = encode_provider_details(content)
             if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
-                if content['google_creds_json']:
-                    gcp_caching(PROJECT_NAME, content['google_creds_json'],
-                                github_repository=content[GITHUB_REPOSITORY],
-                                github_actions_token=content[GITHUB_ACTIONS_TOKEN])
-                    # Thread(target=gcp_caching_script.main, args=(credentials,)).start()
-                if content['aws_access_key_id'] and content['aws_secret_access_key']:
-                    aws_caching(PROJECT_NAME, content['aws_access_key_id'], content['aws_secret_access_key'],
-                                github_repository=content[GITHUB_REPOSITORY],
-                                github_actions_token=content[GITHUB_ACTIONS_TOKEN])
-                    # Thread(target=aws_caching_script.main, args=(aws_access_key_id, aws_secret_access_key)).start()
-                return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+                if content[PROVIDER] == GCP:
+                    if content['google_creds_json']:
+                        if gcp_caching(user_email, PROJECT_NAME, content['google_creds_json'],
+                                       github_repository=content[GITHUB_REPOSITORY],
+                                       github_actions_token=content[GITHUB_ACTIONS_TOKEN]):
+                            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+                        else:
+                            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+                elif content[PROVIDER] == AWS:
+                    if content['aws_access_key_id'] and content['aws_secret_access_key']:
+                        if aws_caching(user_email, PROJECT_NAME, content['aws_access_key_id'],
+                                       content['aws_secret_access_key'],
+                                       github_repository=content[GITHUB_REPOSITORY],
+                                       github_actions_token=content[GITHUB_ACTIONS_TOKEN]):
+                            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+                        else:
+                            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+                    return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
             else:
                 return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
         else:
@@ -575,14 +603,14 @@ def settings():
         except Exception as e:
             github_actions_token_decrypted = ""
             github_repository = ""
-            logger.warning(f'problem decrypting github_actions_token_decrypted with error {e}')
+            logger.error(f'problem decrypting github_actions_token_decrypted with error {e}')
         try:
             aws_access_key_id = crypter.decrypt(aws_credentials_data['aws_access_key_id']).decode("utf-8")
             aws_secret_access_key = crypter.decrypt(aws_credentials_data['aws_secret_access_key']).decode("utf-8")
         except Exception as e:
             aws_access_key_id = ""
             aws_secret_access_key = ""
-            logger.warning(f'problem decrypting aws credentials with error {e}')
+            logger.error(f'problem decrypting aws credentials with error {e}')
         try:
             azure_credentials = crypter.decrypt(az_credentials_data['azure_credentials']).decode("utf-8")
         except Exception as e:
