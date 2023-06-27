@@ -759,7 +759,7 @@ def fetch_regions():
     else:
         regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=GKE)
     if len(regions) == 0:
-        return jsonify("Regions data was not found"), 400
+        return jsonify("Regions data was not found"), 200
     else:
         return jsonify(regions), 200
 

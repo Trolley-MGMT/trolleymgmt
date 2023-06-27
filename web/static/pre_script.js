@@ -266,7 +266,7 @@ $(document).ready(function() {
         $("#trigger-clusters-discovery").show()
         $("#trigger-instances-discovery").show()
         if ((isEmpty(githubRepository)) && (isEmpty(githubActionsToken))) {
-            $("#cluster-build-elements-div").hide()
+            $("#clusters-build-elements-div").hide()
             $("#callout-div").show()
         } else if (clusterType == 'gke') {
             if (buildPage) {
@@ -297,10 +297,10 @@ $(document).ready(function() {
         } else if (clusterType == 'eks'){
             if (buildPage) {
             if ((isEmpty(awsAccessKeyId)) && (isEmpty(awsSecretAccessKey))) {
-                $("#cluster-build-elements-div").hide()
+                $("#clusters-build-elements-div").hide()
                 $("#callout-div").show()
             } else {
-                $("#cluster-build-elements-div").show()
+                $("#clusters-build-elements-div").show()
                 $("#callout-div").hide()
             }
             } else if (clustersManagePage) {
@@ -323,10 +323,10 @@ $(document).ready(function() {
         } else if (clusterType == 'aks'){
             if (buildPage) {
             if (isEmpty(azureCredentials)) {
-                $("#cluster-build-elements-div").hide()
+                $("#clusters-build-elements-div").hide()
                 $("#callout-div").show()
             } else {
-                $("#cluster-build-elements-div").show()
+                $("#clusters-build-elements-div").show()
                 $("#callout-div").hide()
             }
             } else if (clustersManagePage) {
@@ -620,7 +620,7 @@ $(document).ready(function() {
 
         url = trolley_url + "/provider";
 
-        swal_message = 'A request to add a provider was sent'
+        swal_message = 'A request to add a provider was sent. Please allow a few minutes for a scan!'
         var forms = document.querySelectorAll('.needs-validation')
 
         // Loop over them and prevent submission

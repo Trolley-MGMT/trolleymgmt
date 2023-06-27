@@ -574,16 +574,20 @@ def retrieve_client_per_cluster_name(cluster_type: str = '', cluster_name: str =
 
 
 def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
-    if provider == GKE:
-        cache_object = gke_cache.find()[0]
-    elif provider == EKS:
-        cache_object = aws_cache.find()[0]
-    elif provider == AKS:
-        cache_object = aks_cache.find()[0]
-    elif provider == HELM:
-        return helm_cache.find()[0]['helms_installs']
-    else:
-        cache_object = gke_cache.find()[0]
+    try:
+        if provider == GKE:
+            cache_object = gke_cache.find()[0]
+        elif provider == EKS:
+            cache_object = aws_cache.find()[0]
+        elif provider == AKS:
+            cache_object = aks_cache.find()[0]
+        elif provider == HELM:
+            return helm_cache.find()[0]['helms_installs']
+        else:
+            cache_object = gke_cache.find()[0]
+    except Exception as e:
+        logger.error(f'Retrieving cache failed due to: {e} error')
+        return []
     return cache_object[cache_type]
 
 
