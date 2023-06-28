@@ -27,7 +27,7 @@ web/front/yarn-error.log*
 web/test.py
 web/front/src/components/mockdata.json
 web/scripts/__pycache__
-web/scripts/script.js
+web/static/script.js
 .config
 deployment_utils/.config
 web/__pycache__/
