@@ -8,6 +8,7 @@ from typing import Any, Mapping
 
 import gridfs
 from bson import ObjectId
+from gridfs.grid_file import GridOutCursor
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -648,8 +649,6 @@ def retrieve_user(user_email: str):
     @param user_email:  retrieve a returning user data
     @return:
     """
-    logger.info(f'Listing all the collections')
-    logger.info(db.list_collection_names())
     mongo_query = {USER_EMAIL: user_email}
     logger.info(f'Running the {mongo_query}')
     user_object = users.find_one(mongo_query)
@@ -662,8 +661,61 @@ def retrieve_user(user_email: str):
         file = fs.find_one({"_id": profile_image_id})
         user_object['profile_image'] = file
         logger.info(f'The result of the query is: {user_object}')
-    except:
-        logger.error(f'There was a problem here')
+    # if not user_object:
+    #     logger.warning(f'Nothing was found in the users db')
+    #     return None
+    # try:
+    #     profile_image_id = user_object['profile_image_id']
+    #     objInstance = ObjectId(profile_image_id['$oid'])
+    #     file = fs.find_one({"_id": objInstance})
+    #     user_object['profile_image'] = file
+    #     logger.info(f'The result of the query is: {user_object}')
+    except Exception as e:
+        logger.error(f'There was a problem here with error: {e}')
+    return user_object
+
+
+def user_exists(user_email: str) -> bool:
+    mongo_query = {USER_EMAIL: user_email}
+    logger.info(f'Running the {mongo_query}')
+    users_object = users.find_one(mongo_query)
+    if not users_object:
+        logger.info(f'Nothing was found in the users db')
+        return False
+    else:
+        return True
+
+
+def team_exists(team_name: str) -> bool:
+    mongo_query = {TEAM_NAME: team_name}
+    logger.info(f'Running the {mongo_query}')
+    teams_object = teams.find_one(mongo_query)
+    if not teams_object:
+        logger.info(f'Nothing was found in the users db')
+        return False
+    else:
+        return True
+
+
+def retrieve_team(user_email: str):
+    """
+    @param user_email:  retrieve a returning user data
+    @return:
+    """
+    mongo_query = {USER_EMAIL: user_email}
+    logger.info(f'Running the {mongo_query}')
+    user_object = users.find_one(mongo_query)
+    logger.info(f'The result of the query is: {user_object}')
+    if not user_object:
+        logger.warning(f'Nothing was found in the users db')
+        return None
+    try:
+        profile_image_id = user_object['profile_image_id']
+        file = fs.find_one({"_id": profile_image_id})
+        user_object['profile_image'] = file
+        logger.info(f'The result of the query is: {user_object}')
+    except Exception as e:
+        logger.error(f'There was a problem here with error: {e}')
     return user_object
 
 
@@ -707,12 +759,9 @@ def update_user(user_email: str, update_type: str, update_value: str) -> bool:
         existing_user_object = users.find_one(mongo_query)
         if existing_user_object:
             newvalues = {"$set": {update_type: update_value}}
-            # result = users.replace_one(existing_user_object, existing_user_object)
             result = users.update_one(mongo_query, newvalues)
-
             return True
     except:
-        print("dsf")
         return False
 
 
@@ -750,33 +799,51 @@ def retrieve_invited_user(user_email: str):
     return user_object
 
 
-def delete_user(user_email: str = "", user_name: str = ""):
+def delete_user(user_email: str = "", user_name: str = "", delete_completely: bool = False):
     """
+    @param delete_completely:
     @param user_email:  deleting a user using his email
     @param user_name:  deleting a user using his user_name
     @return:
     """
     if user_email:
         myquery = {USER_EMAIL: user_email}
+        if delete_completely:
+            result = users.delete_one(myquery)
+            if result.deleted_count > 0:
+                return True
         newvalues = {"$set": {'availability': False}}
         result = users.update_one(myquery, newvalues)
     elif user_name:
         myquery = {USER_NAME.lower(): user_name}
+        if delete_completely:
+            result = users.delete_one(myquery)
+            if result.deleted_count > 0:
+                return True
         newvalues = {"$set": {'availability': False}}
         result = users.update_one(myquery, newvalues)
     else:
         myquery = {USER_EMAIL: user_email}
+        if delete_completely:
+            result = users.delete_one(myquery)
+            if result.deleted_count > 0:
+                return True
         newvalues = {"$set": {'availability': False}}
         result = users.update_one(myquery, newvalues)
     return result.raw_result['updatedExisting']
 
 
-def delete_team(team_name: str = ""):
+def delete_team(team_name: str = "", delete_completely: bool = False):
     """
+    @param delete_completely:
     @param team_name:  deleting a team using its name
     @return:
     """
     myquery = {TEAM_NAME.lower(): team_name}
+    if delete_completely:
+        result = teams.delete_one(myquery)
+        if result.deleted_count > 0:
+            return True
     newvalues = {"$set": {'availability': False}}
     result = teams.update_one(myquery, newvalues)
     return result.raw_result['updatedExisting']
@@ -876,7 +943,17 @@ def insert_file(profile_image_filename: str = '') -> ObjectId:
     with open(profile_image_filename, 'rb') as f:
         contents = f.read()
 
-    return fs.put(contents, filename=profile_image_filename)
+    grid_file_id = fs.put(contents, filename=profile_image_filename)
+    return grid_file_id
+
+
+def get_files() -> GridOutCursor:
+    files = fs.find()
+    return files
+
+
+def delete_file(file_id):
+    fs.delete(file_id)
 
 
 def insert_deployment_yaml(deployment_yaml_object: dict):
@@ -885,6 +962,42 @@ def insert_deployment_yaml(deployment_yaml_object: dict):
         return True
     except:
         return False
+
+
+def update_user_profile_image_id(user_email: str, grid_file_id: ObjectId):
+    mongo_query = {USER_EMAIL.lower(): user_email}
+    existing_user_object = users.find_one(mongo_query)
+    new_user_object = {'profile_image_id': grid_file_id, '_id': existing_user_object['_id'],
+                       'first_name': existing_user_object['first_name'], 'last_name': existing_user_object['last_name'],
+                       'user_name': existing_user_object['user_name'], 'team_name': existing_user_object['team_name'],
+                       'hashed_password': existing_user_object['hashed_password'],
+                       'user_email': existing_user_object['user_email'],
+                       'confirmation_url': existing_user_object['confirmation_url'],
+                       'registration_status': existing_user_object['registration_status'],
+                       'user_type': existing_user_object['user_type'],
+                       'profile_image_filename': existing_user_object['profile_image_filename'],
+                       'availability': existing_user_object['availability'],
+                       'created_timestamp': existing_user_object['created_timestamp']}
+
+    if existing_user_object:
+        users.delete_one(mongo_query)
+        result = users.insert_one(new_user_object)
+        if result.inserted_id:
+            logger.info(f'users data was updated properly')
+            return True
+        else:
+            logger.info(f'users data was not updated properly')
+            return False
+    else:
+        result = users.insert_one(new_user_object)
+        logger.info(result.acknowledged)
+        if result.inserted_id:
+            logger.info(f'users data was inserted properly')
+            return True
+        else:
+            logger.error(f'users data was not inserted properly')
+            return False
+    pass
 
 
 def insert_cluster_data_object(cluster_data_object: dict) -> bool:
@@ -1422,3 +1535,23 @@ def insert_team(team_data_object: dict) -> bool:
                 return False
     except:
         logger.error(f'team data was not inserted properly')
+
+
+def insert_dict(collection_name: str, collection_dict: dict):
+    """
+    This function inserts a dict document into a selected collection
+    @param collection_dict: dictionary of the content we want to put into the collection
+    @param collection_name: the name of the collection we want to insert
+    """
+    if collection_name == 'teams':
+        result = teams.insert_one(collection_dict)
+    elif collection_name == 'users':
+        result = users.insert_one(collection_dict)
+    elif collection_name == 'files':
+        result = fs.new_file(collection_dict)
+    if result.inserted_id:
+        logger.info(f'Dictionary was inserted properly')
+        return True
+    else:
+        logger.error(f'Dictionary was not inserted properly')
+        return True

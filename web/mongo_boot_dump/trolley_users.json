@@ -1,0 +1,20 @@
+[{
+  "_id": {
+    "$oid": "649bbf3fbc7464e87d5d836d"
+  },
+  "first_name": "admin",
+  "last_name": "adminovitch",
+  "user_name": "admin-adminovitch",
+  "hashed_password": "sha256$Ab0xm8ZprKjjLT7r$764eb739bef91a8fcf0dc3f156968ef29642563f8c07a70cb763630bc17749a0",
+  "team_name": "it",
+  "user_email": "admin@trolley.org",
+  "confirmation_url": "http://localhost/confirm/ImFkbWluQHRyb2xsZXkub3JnIg.ZJu_PQ.-nJWjD1VeF4XWPzAHmF0kHkzd_k",
+  "registration_status": "confirmed",
+  "user_type": "admin",
+  "profile_image_filename": "static/img/thumbnail_admin_adminovitch.jpeg",
+  "availability": true,
+  "created_timestamp": 1687928639,
+  "profile_image_id": {
+    "$oid": "649bbf3ebc7464e87d5d836b"
+  }
+}]

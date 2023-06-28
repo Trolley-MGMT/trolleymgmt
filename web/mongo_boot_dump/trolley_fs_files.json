@@ -1,0 +1,11 @@
+[{
+  "_id": {
+    "$oid": "649bbf3ebc7464e87d5d836b"
+  },
+  "filename": "thumbnail_admin_adminovitch.jpg",
+  "chunkSize": 261120,
+  "length": 20601,
+  "uploadDate": {
+    "$date": "2023-06-28T05:03:58.838Z"
+  }
+}]

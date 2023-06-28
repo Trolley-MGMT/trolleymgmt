@@ -54,16 +54,16 @@ PROJECT_NAME = os.getenv('PROJECT_NAME', "trolley-dev")
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 import mongo_handler.mongo_utils
 from cluster_operations import ClusterOperation
-from mongo_handler.mongo_objects import UserObject, GithubObject, DeploymentYAMLObject, ProviderObject
+from mongo_handler.mongo_objects import UserObject, GithubObject, ProviderObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
     ZONES_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-    NAMES, REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN
+    REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN
 
 from mail_handler import MailSender
 from utils import random_string, apply_yaml
-from scripts import gcp_discovery_script, aws_discovery_script, gcp_caching_script, aws_caching_script
+from scripts import gcp_discovery_script, aws_discovery_script
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
@@ -317,7 +317,7 @@ def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_
 
 @app.route('/get_clusters_data', methods=[GET])
 @login_required
-# @cache.cached(timeout=180)
+@cache.cached(timeout=180)
 def get_clusters_data():
     """
     Ths endpoint allows providing basic clusters data that was gathered upon the clusters' creation.
@@ -746,7 +746,7 @@ def index():
 
 @app.route('/fetch_regions', methods=[GET])
 @login_required
-# @cache.cached(timeout=180)
+@cache.cached(timeout=180)
 def fetch_regions():
     cluster_type = request.args.get(CLUSTER_TYPE)
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
@@ -766,7 +766,7 @@ def fetch_regions():
 
 @app.route('/fetch_machine_series', methods=[GET])
 @login_required
-# @cache.cached(timeout=180)
+@cache.cached(timeout=180)
 def fetch_machine_series():
     cluster_type = request.args.get(CLUSTER_TYPE)
     region_name = request.args.get(REGION_NAME.lower())
@@ -778,7 +778,7 @@ def fetch_machine_series():
 
 @app.route('/fetch_machine_types', methods=[GET])
 @login_required
-# @cache.cached(timeout=180)
+@cache.cached(timeout=180)
 def fetch_machine_types():
     cluster_type = request.args.get(CLUSTER_TYPE)
     machine_series = request.args.get('machine_series')

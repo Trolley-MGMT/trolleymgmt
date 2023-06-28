@@ -1,0 +1,8 @@
+[{
+  "_id": {
+    "$oid": "649bbf3dbc7464e87d5d836a"
+  },
+  "team_name": "it",
+  "availability": true,
+  "team_additional_info": "it folks"
+}]
