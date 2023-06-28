@@ -661,15 +661,6 @@ def retrieve_user(user_email: str):
         file = fs.find_one({"_id": profile_image_id})
         user_object['profile_image'] = file
         logger.info(f'The result of the query is: {user_object}')
-    # if not user_object:
-    #     logger.warning(f'Nothing was found in the users db')
-    #     return None
-    # try:
-    #     profile_image_id = user_object['profile_image_id']
-    #     objInstance = ObjectId(profile_image_id['$oid'])
-    #     file = fs.find_one({"_id": objInstance})
-    #     user_object['profile_image'] = file
-    #     logger.info(f'The result of the query is: {user_object}')
     except Exception as e:
         logger.error(f'There was a problem here with error: {e}')
     return user_object

@@ -635,7 +635,6 @@ def settings():
 
 @app.route('/clients', methods=[GET, POST, PUT, DELETE])
 @login_required
-@cache.cached(timeout=180)
 def client():
     """
     This endpoint adds/gets and deletes a client data
@@ -673,7 +672,6 @@ def client():
 
 @app.route('/users', methods=[GET, POST, PUT, DELETE])
 @login_required
-@cache.cached(timeout=180)
 def users():
     """
     This endpoint adds/gets a new user
@@ -703,7 +701,6 @@ def users():
 
 @app.route('/teams', methods=[GET, POST, PUT, DELETE])
 @login_required
-@cache.cached(timeout=180)
 def teams():
     """
     This endpoint adds and gets teams

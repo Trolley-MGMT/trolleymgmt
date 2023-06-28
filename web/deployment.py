@@ -15,8 +15,12 @@ DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 log_file_name = 'server.log'
 if DOCKER_ENV:
     log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+    PRE_SCRIPT_FILE_PATH = 'web/static/pre_script.js'
+    SCRIPT_FILE_PATH = 'web/static/script.js'
 else:
     log_file_path = f'{os.getcwd()}/{log_file_name}'
+    PRE_SCRIPT_FILE_PATH = 'static/pre_script.js'
+    SCRIPT_FILE_PATH = 'static/script.js'
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +55,9 @@ def mongo_dump(collection_name: str):
 
 
 def js_builder():
-    with open('web/static/pre_script.js', 'r') as f:
+    with open(PRE_SCRIPT_FILE_PATH, 'r') as f:
         lines = f.readlines()
-    with open('web/static/script.js', 'w') as f:
+    with open(SCRIPT_FILE_PATH, 'w') as f:
         logger.info('successfully opened the static.js file')
         for line in lines:
             if "trolley_url = " in line:
