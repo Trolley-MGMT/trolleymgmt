@@ -20,6 +20,7 @@ COPY web/main.py /app
 COPY web/deployment.py /app
 COPY web/templates /app/templates
 COPY web/mongo_handler /app/mongo_handler
+COPY web/mongo_boot_dump /app/mongo_boot_dump
 COPY web/variables /app/variables
 COPY web/trolley_small.png /app
 
