@@ -251,19 +251,32 @@ Short Video Demo:
 
 [![Watch the video](https://i9.ytimg.com/vi/GHJHqFtwDHc/mq2.jpg?sqp=CMSns6MG&rs=AOn4CLAkfQDCGLI02dkYu2PPDsX8tj3aGg)](https://www.youtube.com/watch?v=GHJHqFtwDHc)
 
-## First user registration flow
+## First user logging in flow
 
-The UI currently consists of the following flows:
-This is the Registration menu that will allow the user to register with his current team's name
 
-![](documentation/register.png)
+Trolley comes preloaded with an admin user that can be used to start inviting the users and teams into the project.
+To log in as an admin please use the following credentials:
 
-The first user to register will become an Admin user in the IT team.
-He will be able to invite new users to the system.
-
+```shell
+user: admin@trolley.org
+password: tr00lley
+```
 This is the Login menu that will allow the users to login to the system
 
 ![](documentation/login.png)
+
+### Setting up teams in Trolley:
+
+In order to add new teams to Trolley please use the Teams page:
+
+![](documentation/add_teams.png)
+
+### Inviting users to Trolley:
+
+To invite users go to the Users page and add new users within their teams.
+The users will receive an invitation to join Trolley
+
+![](documentation/invite_users.png)
 
 ### Setting up access to AWS/GCP/Azure and GitHub
 
