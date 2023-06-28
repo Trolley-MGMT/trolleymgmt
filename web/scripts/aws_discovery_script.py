@@ -13,6 +13,8 @@ import boto3
 from dotenv import load_dotenv
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+KUBERNETES_SERVICE_HOST = os.getenv('KUBERNETES_SERVICE_HOST', '0.0.0.0')
+
 
 if DOCKER_ENV:
     from mongo_handler.mongo_objects import AWSS3FilesObject, AWSS3BucketsObject, \
@@ -251,6 +253,8 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
 
 
 if __name__ == '__main__':
+    if KUBERNETES_SERVICE_HOST != '0.0.0.0':
+        sys.exit('Running in Kubernetes. No need for discovery here')
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--fetch-files', action='store_true', default=True, help='Fetch files or not')
     parser.add_argument('--fetch-buckets', action='store_true', default=True, help='Fetch buckets or not')

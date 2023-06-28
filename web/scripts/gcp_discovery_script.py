@@ -18,6 +18,7 @@ from google.cloud import compute_v1
 from hurry.filesize import size
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+KUBERNETES_SERVICE_HOST = os.getenv('KUBERNETES_SERVICE_HOST', '0.0.0.0')
 
 log_file_name = 'server.log'
 if DOCKER_ENV:
@@ -348,6 +349,8 @@ def get_credentials(user_email: str):
 
 
 if __name__ == '__main__':
+    if KUBERNETES_SERVICE_HOST != '0.0.0.0':
+        sys.exit('Running in Kubernetes. No need for discovery here')
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--fetch-gke-clusters', action='store_true', default=True, help='Fetch GKE clusters or not')
     parser.add_argument('--fetch-vm-instances', action='store_true', default=True,
