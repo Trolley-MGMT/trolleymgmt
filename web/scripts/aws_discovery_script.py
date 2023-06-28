@@ -47,6 +47,13 @@ logging.basicConfig(
     handlers=handlers
 )
 
+if KUBERNETES_SERVICE_HOST != '0.0.0.0':
+    logger.info(f'Running in Kubernetes in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
+    sys.exit('Running in Kubernetes. No need for discovery here')
+else:
+    logger.info(
+        f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
+
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
 
@@ -253,11 +260,6 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
 
 
 if __name__ == '__main__':
-    if KUBERNETES_SERVICE_HOST != '0.0.0.0':
-        logger.info(f'Running in Kubernetes in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
-        sys.exit('Running in Kubernetes. No need for discovery here')
-    else:
-        logger.info(f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--fetch-files', action='store_true', default=True, help='Fetch files or not')
     parser.add_argument('--fetch-buckets', action='store_true', default=True, help='Fetch buckets or not')

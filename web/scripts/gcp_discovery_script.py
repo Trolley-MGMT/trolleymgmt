@@ -38,6 +38,13 @@ logging.basicConfig(
     handlers=handlers
 )
 
+if KUBERNETES_SERVICE_HOST != '0.0.0.0':
+    logger.info(f'Running in Kubernetes in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
+    sys.exit('Running in Kubernetes. No need for discovery here')
+else:
+    logger.info(
+        f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
+
 if DOCKER_ENV:
     from mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
     from mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, update_discovered_gke_cluster_object, \
@@ -349,11 +356,6 @@ def get_credentials(user_email: str):
 
 
 if __name__ == '__main__':
-    if KUBERNETES_SERVICE_HOST != '0.0.0.0':
-        logger.info(f'Running in Kubernetes in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
-        sys.exit('Running in Kubernetes. No need for discovery here')
-    else:
-        logger.info(f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--fetch-gke-clusters', action='store_true', default=True, help='Fetch GKE clusters or not')
     parser.add_argument('--fetch-vm-instances', action='store_true', default=True,
