@@ -5,10 +5,10 @@ import sys
 
 from dotenv import load_dotenv
 
-from web.mongo_handler.mongo_utils import insert_dict, insert_file, get_files, delete_file, \
-    update_user_profile_image_id, retrieve_user, delete_user, user_exists, team_exists, delete_team
-from web.mongo_handler.variables import TEAM_NAME
-from web.variables.variables import USER_EMAIL, USER_NAME
+from mongo_handler.mongo_utils import insert_dict, insert_file, get_files, delete_file, \
+    update_user_profile_image_id, delete_user, user_exists, team_exists, delete_team
+from mongo_handler.variables import TEAM_NAME
+from variables.variables import USER_EMAIL, USER_NAME
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
