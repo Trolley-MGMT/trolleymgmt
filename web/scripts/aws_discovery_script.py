@@ -47,25 +47,24 @@ logging.basicConfig(
     handlers=handlers
 )
 
-if KUBERNETES_SERVICE_HOST != '0.0.0.0':
-    logger.info(f'Running in Kubernetes in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
-    sys.exit('Running in Kubernetes. No need for discovery here')
-else:
-    logger.info(
-        f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
 
 FETCH_INTERVAL = int(os.environ.get('FETCH_INTERVAL', "30"))
 DEFAULT_AWS_REGION = os.environ.get('DEFAULT_AWS_REGION', "us-east-1")
-try:
-    EC2_CLIENT = boto3.client('ec2', region_name=DEFAULT_AWS_REGION)
-    S3_CLIENT = boto3.client('s3')
-    EKS_CLIENT = boto3.client('eks', region_name=DEFAULT_AWS_REGION)
-    ACCOUNT_ID = int(boto3.client('sts').get_caller_identity().get('Account'))
-except Exception as e:
-    logger.error(f'AWS was not installed on this machine')
+if KUBERNETES_SERVICE_HOST != '0.0.0.0':
+    logger.info(f'Running in Kubernetes in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
+else:
+    logger.info(
+        f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
+    try:
+        EC2_CLIENT = boto3.client('ec2', region_name=DEFAULT_AWS_REGION)
+        S3_CLIENT = boto3.client('s3')
+        EKS_CLIENT = boto3.client('eks', region_name=DEFAULT_AWS_REGION)
+        ACCOUNT_ID = int(boto3.client('sts').get_caller_identity().get('Account'))
+    except Exception as e:
+        logger.error(f'AWS was not installed on this machine')
 
 TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
