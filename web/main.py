@@ -25,9 +25,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
-log_file_name = 'server.log'
+log_file_name = 'trolley_server.log'
 if DOCKER_ENV:
-    log_file_path = f'{os.getcwd()}/web/{log_file_name}'
+    log_file_path = f'/var/log/{log_file_name}'
+    # log_file_path = f'{os.getcwd()}/web/{log_file_name}'
 else:
     log_file_path = f'{os.getcwd()}/{log_file_name}'
 
@@ -896,8 +897,10 @@ def register():
             image_extension = profile_image.mimetype.split('/')[1]
             image_file_name = f'thumbnail_{first_name}_{last_name}.{image_extension}'
             thumbnail_file_path = f'{cur_dir}/static/img/{image_file_name}'
+            logger.info(f'Saving the thumbnail in {thumbnail_file_path} path')
             full_file_path = os.path.join(app.config['UPLOAD_FOLDER'], image_file_name)
             full_thumbnail_file_path = os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_file_path)
+            logger.info(f'Or maybe saving the thumbnail in {full_thumbnail_file_path} full_thumbnail_file_path')
             FileStorage(profile_image.save(full_file_path))
             image = Image.open(full_file_path)
             new_image = image.resize((192, 192))
