@@ -14,7 +14,7 @@ POST = 'POST'
 OK = 'OK'
 FAILURE = 'Failure'
 
-#object types
+# object types
 OBJECT_TYPE = 'object_type'
 CLUSTER = 'cluster'
 INSTANCE = 'instance'
@@ -33,7 +33,6 @@ CLUSTER_TYPE = 'cluster_type'
 GKE = 'gke'
 GKE_AUTOPILOT = 'gke_autopilot'
 TROLLEY_PROJECT_NAME = 'trolley'
-
 
 # GENERAL
 HELM = 'helm'
@@ -100,7 +99,7 @@ HELM_INSTALLS_LIST = 'helm_installs_list'
 GKE_VERSIONS_LIST = 'versions_list'
 GKE_IMAGE_TYPES = 'gke_image_types'
 
-#GITHUB
+# GITHUB
 
 GITHUB_REPOSITORY = 'github_repository'
 GITHUB_ACTIONS_TOKEN = 'github_actions_token'

@@ -8,7 +8,7 @@ from dataclasses import asdict
 import requests
 from dotenv import load_dotenv
 
-from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME
+from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME, PROJECT_NAME
 from mongo_handler.mongo_utils import retrieve_cluster_details
 from mongo_handler.mongo_objects import EKSCTLNodeGroupObject, EKSCTLObject, EKSCTLMetadataObject
 
@@ -288,13 +288,18 @@ class ClusterOperation:
         gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=self.cluster_name,
                                                        discovered=self.discovered)
         gke_zone_name = gke_cluster_details[ZONE_NAME.lower()]
+        project_name = gke_cluster_details[PROJECT_NAME.lower()]
         print(f'Attempting to delete {self.cluster_name} in {gke_zone_name}')
         json_data = {
             "event_type": "gke-delete-api-trigger",
             "client_payload": {"cluster_name": self.cluster_name,
                                "zone_name": gke_zone_name,
-                               "project_name": self.project_name,
-                               "google_creds_json": self.google_creds_json}
+                               "project_name": project_name,
+                               "google_creds_json": self.google_creds_json,
+                               "mongo_user": self.mongo_user,
+                               "mongo_password": self.mongo_password,
+                               "mongo_url": self.mongo_url
+                               }
         }
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)
@@ -318,6 +323,9 @@ class ClusterOperation:
                  "region_name": eks_cluster_region_name,
                  "aws_access_key_id": aws_access_key_id,
                  "aws_secret_access_key": aws_secret_access_key,
+                 "mongo_user": self.mongo_user,
+                 "mongo_password": self.mongo_password,
+                 "mongo_url": self.mongo_url
                  }
         }
         response = requests.post(self.github_actions_api_url,
