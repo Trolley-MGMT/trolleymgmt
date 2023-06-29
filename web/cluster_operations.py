@@ -8,11 +8,19 @@ from dataclasses import asdict
 import requests
 from dotenv import load_dotenv
 
-from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME, PROJECT_NAME
-from web.mongo_handler.mongo_utils import retrieve_cluster_details
-from web.mongo_handler.mongo_objects import EKSCTLNodeGroupObject, EKSCTLObject, EKSCTLMetadataObject
+
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+GITHUB_ENV = os.getenv('GITHUB_ENV', False)
+
+if GITHUB_ENV:
+    from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME, PROJECT_NAME
+    from web.mongo_handler.mongo_utils import retrieve_cluster_details
+    from web.mongo_handler.mongo_objects import EKSCTLNodeGroupObject, EKSCTLObject, EKSCTLMetadataObject
+else:
+    from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME, PROJECT_NAME
+    from mongo_handler.mongo_utils import retrieve_cluster_details
+    from mongo_handler.mongo_objects import EKSCTLNodeGroupObject, EKSCTLObject, EKSCTLMetadataObject
 
 log_file_name = 'server.log'
 if DOCKER_ENV:
