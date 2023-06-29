@@ -305,10 +305,10 @@ $(document).ready(function() {
             }
             } else if (clustersManagePage) {
                 if ((isEmpty(awsAccessKeyId)) && (isEmpty(awsSecretAccessKey))) {
-                    $("#cluster-manage-elements-div").hide()
+                    $("#clusters-manage-elements-div").hide()
                     $("#callout-div").show()
                 } else {
-                    $("#cluster-manage-elements-div").show()
+                    $("#clusters-manage-elements-div").show()
                     $("#callout-div").hide()
                 }
             } else if (instancesManagePage) {
@@ -331,10 +331,10 @@ $(document).ready(function() {
             }
             } else if (clustersManagePage) {
                 if (isEmpty(azureCredentials)) {
-                    $("#cluster-manage-elements-div").hide()
+                    $("#clusters-manage-elements-div").hide()
                     $("#callout-div").show()
                 } else {
-                    $("#cluster-manage-elements-div").show()
+                    $("#clusters-manage-elements-div").show()
                     $("#callout-div").hide()
                 }
             } else if (instancesManagePage) {

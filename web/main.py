@@ -318,7 +318,6 @@ def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_
 
 @app.route('/get_clusters_data', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
 def get_clusters_data():
     """
     Ths endpoint allows providing basic clusters data that was gathered upon the clusters' creation.
@@ -332,7 +331,6 @@ def get_clusters_data():
 
 @app.route('/get_instances_data', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
 def get_instances_data():
     """
     Ths endpoint allows providing basic instances data that was gathered.
@@ -346,7 +344,6 @@ def get_instances_data():
 
 @app.route('/get_agent_cluster_data', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
 def get_agent_cluster_data():
     """
     This endpoint allows providing an additional cluster data that is being collected by the deployed Trolley Agent
@@ -744,7 +741,7 @@ def index():
 
 @app.route('/fetch_regions', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
+# @cache.cached(timeout=180)
 def fetch_regions():
     cluster_type = request.args.get(CLUSTER_TYPE)
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
@@ -764,7 +761,7 @@ def fetch_regions():
 
 @app.route('/fetch_machine_series', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
+# @cache.cached(timeout=180)
 def fetch_machine_series():
     cluster_type = request.args.get(CLUSTER_TYPE)
     region_name = request.args.get(REGION_NAME.lower())
@@ -776,7 +773,7 @@ def fetch_machine_series():
 
 @app.route('/fetch_machine_types', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
+# @cache.cached(timeout=180)
 def fetch_machine_types():
     cluster_type = request.args.get(CLUSTER_TYPE)
     machine_series = request.args.get('machine_series')
@@ -788,7 +785,7 @@ def fetch_machine_types():
 
 @app.route('/fetch_zones', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
+# @cache.cached(timeout=180)
 def fetch_zones():
     cluster_type = request.args.get(CLUSTER_TYPE)
     region_name = request.args.get(REGION_NAME.lower())
