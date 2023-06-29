@@ -263,12 +263,12 @@ if __name__ == '__main__':
         logger.info(f'Running in Kubernetes in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
     else:
         logger.info(
-            f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
-    parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('--fetch-files', action='store_true', default=True, help='Fetch files or not')
-    parser.add_argument('--fetch-buckets', action='store_true', default=True, help='Fetch buckets or not')
-    parser.add_argument('--fetch-ec2-instances', action='store_true', default=True, help='Fetch EC2 instances or not')
-    parser.add_argument('--fetch-eks-clusters', action='store_true', default=True, help='Fetch EKS clusters or not')
-    args = parser.parse_args()
-    main(is_fetching_files=args.fetch_files, is_fetching_buckets=args.fetch_buckets,
-         is_fetching_ec2_instances=args.fetch_ec2_instances, is_fetching_eks_clusters=args.fetch_eks_clusters)
+            f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host')
+        parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
+        parser.add_argument('--fetch-files', action='store_true', default=True, help='Fetch files or not')
+        parser.add_argument('--fetch-buckets', action='store_true', default=True, help='Fetch buckets or not')
+        parser.add_argument('--fetch-ec2-instances', action='store_true', default=True, help='Fetch EC2 instances or not')
+        parser.add_argument('--fetch-eks-clusters', action='store_true', default=True, help='Fetch EKS clusters or not')
+        args = parser.parse_args()
+        main(is_fetching_files=args.fetch_files, is_fetching_buckets=args.fetch_buckets,
+             is_fetching_ec2_instances=args.fetch_ec2_instances, is_fetching_eks_clusters=args.fetch_eks_clusters)
