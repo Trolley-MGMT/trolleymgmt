@@ -402,7 +402,7 @@ $(document).ready(function() {
         populate_teams_data();
     }
     if (clustersManagePage) {
-//        store_clusters()
+        store_clusters()
         let userType = window.localStorage.getItem("userType");
         if (userType == 'admin') {
             $("#teams-users-dropdowns-box").show();
