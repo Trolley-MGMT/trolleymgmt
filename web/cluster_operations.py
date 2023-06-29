@@ -8,9 +8,9 @@ from dataclasses import asdict
 import requests
 from dotenv import load_dotenv
 
-from variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME, PROJECT_NAME
-from mongo_handler.mongo_utils import retrieve_cluster_details
-from mongo_handler.mongo_objects import EKSCTLNodeGroupObject, EKSCTLObject, EKSCTLMetadataObject
+from web.variables.variables import GKE, ZONE_NAME, EKS, REGION_NAME, PROJECT_NAME
+from web.mongo_handler.mongo_utils import retrieve_cluster_details
+from web.mongo_handler.mongo_objects import EKSCTLNodeGroupObject, EKSCTLObject, EKSCTLMetadataObject
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
