@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Post Deployment Tasks
+      - name: Expired Cluster Script
         env:
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
