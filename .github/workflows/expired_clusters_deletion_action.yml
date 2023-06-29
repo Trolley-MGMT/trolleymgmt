@@ -1,6 +1,11 @@
 name: Expired Clusters Deletion
 on:
-#  workflow_dispatch:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        required: true
+        description: branch_name
+        default: master
   schedule:
     - cron: "5 * * * *"
 
@@ -21,9 +26,8 @@ jobs:
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
         run: |
-          export PYTHONPATH=/home/runner/work/Trolley-Management/Trolley-Management
+          export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          cd web/scripts
-          python3 expired_clusters_deletion.py --cluster_type gke
-          python3 expired_clusters_deletion.py --cluster_type eks
-          python3 expired_clusters_deletion.py --cluster_type aks
+          python3 web/scripts/expired_clusters_deletion.py --cluster_type gke
+          python3 web/scripts/expired_clusters_deletion.py --cluster_type eks
+          python3 web/scripts/expired_clusters_deletion.py --cluster_type aks
