@@ -36,7 +36,7 @@ jobs:
         env:
           CREDENTIALS:  ${{ secrets.AZURE_CREDENTIALS }}
         with:
-          creds: $CREDENTIALS
+          creds: ${{ env.CREDENTIALS }}
 
 
       - name: Caching Tasks
