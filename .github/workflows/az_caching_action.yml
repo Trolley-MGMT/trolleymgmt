@@ -32,7 +32,7 @@ jobs:
 
       - name: 'Az CLI login'
 
-        uses: azure/actions/login@v1
+        uses: azure/actions/login@v1.4.3
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}"
 
