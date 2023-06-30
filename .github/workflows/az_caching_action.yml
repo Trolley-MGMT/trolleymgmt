@@ -34,7 +34,7 @@ jobs:
 
         uses: azure/login@v1
         with:
-          creds: ${{ github.event.client_payload.azure_credentials }}"
+          creds: ${{ secrets.AZURE_CREDENTIALS }}"
 
 
       - name: Caching Tasks
