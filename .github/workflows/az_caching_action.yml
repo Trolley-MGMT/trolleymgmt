@@ -5,7 +5,7 @@ on:
 
 jobs:
   az_caching:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pages: write
@@ -32,7 +32,7 @@ jobs:
 
       - name: 'Az CLI login'
 
-        uses: azure/login@v1
+        uses: azure/actions/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}"
 
