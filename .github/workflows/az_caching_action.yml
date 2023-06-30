@@ -30,10 +30,10 @@ jobs:
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
 
 
-      - name: Az CLI login
+      - name: 'Az CLI login'
         uses: Azure/login@v1
         env:
-          CREDENTIALS:  ${{ github.event.client_payload.azure_credentials }}"
+          CREDENTIALS:  ${{ secrets.AZURE_CREDENTIALS }}
         with:
           creds: ${{ env.CREDENTIALS }}
 

@@ -27,7 +27,7 @@ jobs:
       - name: Az CLI login
         uses: Azure/login@v1
         env:
-          CREDENTIALS:  ${{ github.event.client_payload.azure_credentials }}"
+          CREDENTIALS:  ${{ secrets.AZURE_CREDENTIALS }}
         with:
           creds: ${{ env.CREDENTIALS }}
 
