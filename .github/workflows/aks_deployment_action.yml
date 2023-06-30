@@ -24,10 +24,12 @@ jobs:
           echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"
           echo "user_name is: ${{ github.event.client_payload.user_name }}"
 
-      - name: Azure Login
-        uses: azure/login@v1
+      - name: Az CLI login
+        uses: Azure/login@v1
+        env:
+          CREDENTIALS:  ${{ github.event.client_payload.azure_credentials }}"
         with:
-          creds: ${{ github.event.client_payload.azure_credentials }}"
+          creds: ${{ env.CREDENTIALS }}
 
       - name: AKS Deployment Script
         uses: azure/CLI@v1
