@@ -1,7 +1,7 @@
 name: AZ Caching
 on:
-  schedule:
-    - cron: "0 1 * * *"
+  repository_dispatch:
+    types: gcp-caching-action-trigger
 
 jobs:
   aks_caching:
@@ -16,18 +16,24 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Echo the values
+        run: |
+          echo "client_payload is: ${{ github.event.client_payload.client_payload }}"
+          echo "azure_credentials is: ${{ github.event.client_payload.azure_credentials }}"      
+          echo "project_name is: ${{ github.event.client_payload.project_name }}"
+
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ github.event.client_payload.azure_credentials }}"
 
       - name: Caching Tasks
         env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
-          MONGO_USER: ${{ secrets.MONGO_USER }}
-          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-          PROJECT_ID: ${{ secrets.PROJECT_ID }}
-          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+          MONGO_URL: ${{ github.event.client_payload.mongo_url }}
+          MONGO_USER: ${{ github.event.client_payload.mongo_user }}
+          MONGO_PASSWORD: ${{ github.event.client_payload.mongo_password }}
+          PROJECT_NAME: ${{ github.event.client_payload.project_name }}
+          GITHUB_ACTIONS_ENV: Yes
 
         run: |
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
