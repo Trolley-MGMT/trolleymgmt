@@ -1,7 +1,7 @@
 name: AZ Caching
 on:
   repository_dispatch:
-    types: gcp-caching-action-trigger
+    types: az-caching-action-trigger
 
 jobs:
   aks_caching:
