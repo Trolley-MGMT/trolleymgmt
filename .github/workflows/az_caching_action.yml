@@ -6,6 +6,10 @@ on:
 jobs:
   az_caching:
     runs-on: ubuntu-20.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - uses: 'actions/checkout@v3'
 
@@ -24,7 +28,9 @@ jobs:
           echo "azure_subscription_id is: ${{ github.event.client_payload.azure_subscription_id }}"      
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
 
+
       - name: 'Az CLI login'
+
         uses: azure/login@v1
         with:
           client-id: ${{ github.event.client_payload.azure_client_id }}"
