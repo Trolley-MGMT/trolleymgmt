@@ -19,10 +19,12 @@ jobs:
           echo "${{ github.event.client_payload.cluster_name }}"
           echo "${{ github.event.client_payload.azure_credentials }}"
 
-      - name: Azure Login
-        uses: azure/login@v1
+      - name: Az CLI login
+        uses: Azure/login@v1
+        env:
+          CREDENTIALS:  ${{ github.event.client_payload.azure_credentials }}
         with:
-          creds:  ${{ github.event.client_payload.azure_credentials }}"
+          creds: ${{ env.CREDENTIALS }}
 
       - name: Deleting Cluster
         if: always()
