@@ -34,7 +34,7 @@ jobs:
 
         uses: azure/actions/login@v1
         env:
-          CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+          CREDENTIALS: ${{ github.event.client_payload.azure_credentials }}"
         with:
           creds: $CREDENTIALS
 
