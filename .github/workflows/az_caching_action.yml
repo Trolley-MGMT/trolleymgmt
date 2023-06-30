@@ -23,6 +23,7 @@ jobs:
       - name: Echo the values
         run: |
           echo "client_payload is: ${{ github.event.client_payload.client_payload }}"
+          echo "azure_credentials is: ${{ github.event.client_payload.azure_credentials }}"      
           echo "azure_client_id is: ${{ github.event.client_payload.azure_client_id }}"      
           echo "azure_tenant_id is: ${{ github.event.client_payload.azure_tenant_id }}"      
           echo "azure_subscription_id is: ${{ github.event.client_payload.azure_subscription_id }}"      
@@ -33,9 +34,8 @@ jobs:
 
         uses: azure/login@v1
         with:
-          client-id: ${{ github.event.client_payload.azure_client_id }}"
-          tenant-id: ${{ github.event.client_payload.azure_tenant_id }}"
-          subscription-id: ${{ github.event.client_payload.azure_subscription_id }}"
+          creds: ${{ github.event.client_payload.azure_credentials }}"
+
 
       - name: Caching Tasks
         env:
