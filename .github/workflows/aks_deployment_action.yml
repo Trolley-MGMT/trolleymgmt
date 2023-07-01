@@ -56,90 +56,11 @@ jobs:
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          az aks get-credentials --name ${{ env.CLUSTER_NAME }} --overwrite-existing --resource-group ${{ env.RESOURCE_GROUP }}
+          az aks get-credentials --name ${{ env.CLUSTER_NAME }} --overwrite-existing --resource-group ${{ env.AZ_RESOURCE_GROUP }}
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type aks --project_name ${{ env.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --resource_group ${{ env.RESOURCE_GROUP }} --location ${{ env.AKS_LOCATION }} --expiration_time ${{ env.EXPIRATION_TIME }}
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type aks --project_name ${{ env.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --resource_group ${{ env.AZ_RESOURCE_GROUP }} --location ${{ env.AZ_LOCATION }} --expiration_time ${{ env.EXPIRATION_TIME }}
 
       - name: Deleting Cluster
         if: always()
         run: |
-          az aks delete --name=${{ env.CLUSTER_NAME }} --resource-group=${{ env.RESOURCE_GROUP }} --yes
-
-
-#name: AKS Deployment
-#on:
-#  repository_dispatch:
-#    types: aks-build-api-trigger
-#
-#jobs:
-#  deploy-aks-cluster:
-#    runs-on: ubuntu-20.04
-#    steps:
-#      - name: Checkout Code
-#        uses: actions/checkout@v2
-#      - name: Set up Python 3.9
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: 3.9
-#
-#
-#      - name: Echo the values
-#        run: |
-#          echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
-#          echo "cluster_version is: ${{ github.event.client_payload.cluster_version }}"
-#          echo "aks_location is: ${{ github.event.client_payload.aks_location }}"
-#          echo "aks_resource_group is: ${{ github.event.client_payload.aks_resource_group }}"
-#          echo "azure_credentials is: ${{ github.event.client_payload.azure_credentials }}"
-#          echo "expiration_time is: ${{ github.event.client_payload.expiration_time }}"
-#          echo "user_name is: ${{ github.event.client_payload.user_name }}"
-#
-#      - name: Az CLI login
-#        uses: Azure/login@v1
-#        env:
-#          CREDENTIALS:  ${{ github.event.client_payload.azure_credentials }}
-#        with:
-#          creds: ${{ env.CREDENTIALS }}
-#
-#
-#      - name: Set Azure Subscription
-#        uses: azure/CLI@v1
-#        with:
-#          azcliversion: 2.0.72
-#          inlineScript: az account set --subscription d8902b79-0bbb-4e38-bd5c-007bfc5ff1b8
-#
-#      - name: Create AKS Cluster
-#        uses: azure/CLI@v1
-#        with:
-#          azcliversion: 2.0.72
-#          inlineScript: az aks create --resource-group ${{ github.event.client_payload.aks_resource_group }} --name ${{ github.event.client_payload.cluster_name }} --enable-addons monitoring --generate-ssh-keys --kubernetes-version ${{ github.event.client_payload.cluster_version }} --node-count ${{ github.event.client_payload.num_nodes }} --node-vm-size Standard_DS2_v2
-#
-#
-##      - name: AKS Deployment Script
-##        uses: azure/CLI@v1
-##        with:
-##          azcliversion: 2.30.0
-##          inlineScript: |
-##            az account show
-##            az aks create --resource-group ${{ github.event.client_payload.aks_resource_group }} --location ${{ github.event.client_payload.aks_location }} --name ${{ github.event.client_payload.cluster_name }} --node-count ${{ github.event.client_payload.num_nodes }} --enable-addons monitoring --generate-ssh-keys --kubernetes-version ${{ github.event.client_payload.cluster_version }}
-#
-#      - name: Post Deployment Tasks
-#        env:
-#          MONGO_USER: ${{ secrets.MONGO_USER }}
-#          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-#          PROJECT_ID: ${{ secrets.PROJECT_ID }}
-#          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-#          MONGO_URL: ${{ secrets.MONGO_URL }}
-#          KUBECONFIG: /home/runner/.kube/config
-#
-#        run: |
-#          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-#          which helm >> /tmp/helm_path
-#          export PYTHONPATH=$PYTHONPATH:.
-#          az aks get-credentials --name ${{ github.event.client_payload.cluster_name }} --overwrite-existing --resource-group myResourceGroup
-#          pip3 install -r web/requirements.txt
-#          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type aks --project_name ${{ secrets.PROJECT_NAME }} --cluster_name ${{ github.event.client_payload.cluster_name }} --user_name ${{ github.event.client_payload.user_name }} --resource_group myResourceGroup --region_name ${{ github.event.client_payload.aks_location }} --expiration_time ${{ github.event.client_payload.expiration_time }}
-#
-#      - name: Deleting Cluster
-#        if: always()
-#        run: |
-#          az aks delete --name=${{ github.event.client_payload.cluster_name }} --resource-group=MyResourceGroup --yes
+          az aks delete --name=${{ env.CLUSTER_NAME }} --resource-group=${{ env.AZ_RESOURCE_GROUP }} --yes
