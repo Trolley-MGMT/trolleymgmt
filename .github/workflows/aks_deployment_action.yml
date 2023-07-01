@@ -1,4 +1,4 @@
-name: Build AKS Cluster
+name: AKS Deployment
 
 on:
   repository_dispatch:
@@ -14,23 +14,56 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ github.event.client_payload.azure_credentials }}
+      - name: Echo the values
+        run: |
+          echo "cluster_name is: ${{ github.event.client_payload.client_payload }}"
+          echo "azure_credentials is: ${{ github.event.client_payload.azure_credentials }}"
 
 
-    - name: Set Azure Subscription
-      run: az account set --subscription d8902b79-0bbb-4e38-bd5c-007bfc5ff1b8
+      - name: Payload Extracting
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          pip3 install PyYAML
+          python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.payload }}" --provider az
 
-    - name: Create AKS Cluster
-      run:  az aks create --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --node-count 1 --generate-ssh-keys --node-vm-size Standard_DS2_v2
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ github.event.client_payload.azure_credentials }}
 
-    - name: Get AKS Credentials
-      run: az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }}
+
+      - name: Set Azure Subscription
+        run: az account set --subscription d8902b79-0bbb-4e38-bd5c-007bfc5ff1b8
+
+      - name: Create AKS Cluster
+        run: az aks create --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --node-count 1 --generate-ssh-keys --node-vm-size Standard_DS2_v2
+
+      - name: Get AKS Credentials
+        run: az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }}
+
+
+      - name: Post Deployment Tasks
+        env:
+          MONGO_URL: ${{ env.MONGO_URL }}
+          MONGO_USER: ${{ env.MONGO_USER }}
+          MONGO_PASSWORD: ${{ env.MONGO_PASSWORD }}
+          PROJECT_ID: ${{ env.PROJECT_ID }}
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
+          KUBECONFIG: /home/runner/.kube/config
+
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          az aks get-credentials --name ${{ env.CLUSTER_NAME }} --overwrite-existing --resource-group ${{ env.RESOURCE_GROUP }}
+          pip3 install -r web/requirements.txt
+          python3 deployment_utils/kubernetes_post_deployment.py --cluster_type aks --project_name ${{ env.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --resource_group ${{ env.RESOURCE_GROUP }} --location ${{ env.AKS_LOCATION }} --expiration_time ${{ env.EXPIRATION_TIME }}
+
+      - name: Deleting Cluster
+        if: always()
+        run: |
+          az aks delete --name=${{ env.CLUSTER_NAME }} --resource-group=${{ env.RESOURCE_GROUP }} --yes
 
 
 #name: AKS Deployment
