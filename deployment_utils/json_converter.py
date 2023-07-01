@@ -5,8 +5,7 @@ import platform
 
 import yaml
 
-from web.variables.variables import AWS, GCP
-
+from web.variables.variables import AWS, GCP, AZ
 
 if 'Darwin' in platform.system():
     EKSCTL_DEPLOYMENT_FILE = f'{os.getcwd()}/eksctl_deployment_file.yaml'
@@ -24,6 +23,9 @@ def main(incoming_string: str = '', provider: str = ''):
     gke_machine_type = ''
     image_type = ''
     eksctl_deployment_file = ''
+    az_location = ''
+    az_resource_group = ''
+    az_subscription_id = ''
     if provider == AWS:
         eksctl_deployment_file = encoded_content['eksctl_deployment_file']
         print(f'eksctl_object is: {eksctl_deployment_file}')
@@ -38,7 +40,17 @@ def main(incoming_string: str = '', provider: str = ''):
         image_type = encoded_content['image_type']
         print(f'gke_machine_type is: {gke_machine_type}')
         print(f'gcp_project_id is: {gcp_project_id}')
+    elif provider == AZ:
+        az_location = encoded_content['az_location']
+        az_resource_group = encoded_content['az_resource_group']
+        az_subscription_id = encoded_content['az_subscription_id']
+        print(f'az_location is: {az_location}')
+        print(f'az_resource_group is: {az_resource_group}')
+        print(f'az_subscription_id is: {az_subscription_id}')
 
+    mongo_url = encoded_content['mongo_url']
+    mongo_user = encoded_content['mongo_user']
+    mongo_password = encoded_content['mongo_password']
     cluster_name = encoded_content['cluster_name']
     project_name = encoded_content['project_name']
     user_name = encoded_content['user_name']
@@ -46,6 +58,10 @@ def main(incoming_string: str = '', provider: str = ''):
     region_name = encoded_content['region_name']
     num_nodes = encoded_content['num_nodes']
     expiration_time = encoded_content['expiration_time']
+
+    print(f'mongo_url is: {mongo_url}')
+    print(f'mongo_user is: {mongo_user}')
+    print(f'mongo_password is: {mongo_password}')
     print(f'cluster_name is: {cluster_name}')
     print(f'project_name is: {project_name}')
     print(f'user_name is: {user_name}')
@@ -58,16 +74,22 @@ def main(incoming_string: str = '', provider: str = ''):
 
     if not 'Darwin' in platform.system():
         with open(GITHUB_ACTIONS_ENV_FILE, "w") as myfile:
-            myfile.write(f"GCP_PROJECT_ID={gcp_project_id}\n")
             myfile.write(f"PROJECT_NAME={project_name}\n")
+            myfile.write(f"MONGO_URL={mongo_url}\n")
+            myfile.write(f"MONGO_USER={mongo_user}\n")
+            myfile.write(f"MONGO_PASSWORD={mongo_password}\n")
             myfile.write(f"CLUSTER_NAME={cluster_name}\n")
             myfile.write(f"USER_NAME={user_name}\n")
             myfile.write(f"CLUSTER_VERSION={cluster_version}\n")
+            myfile.write(f"GCP_PROJECT_ID={gcp_project_id}\n")
             myfile.write(f"GKE_MACHINE_TYPE={gke_machine_type}\n")
             myfile.write(f"REGION_NAME={region_name}\n")
             myfile.write(f"ZONE_NAME={zone_name}\n")
             myfile.write(f"IMAGE_TYPE={image_type}\n")
             myfile.write(f"NUM_NODES={num_nodes}\n")
+            myfile.write(f"AZ_LOCATION={az_location}\n")
+            myfile.write(f"AZ_RESOURCE_GROUP={az_resource_group}\n")
+            myfile.write(f"AZ_SUBSCRIPTION_ID={az_subscription_id}\n")
             myfile.write(f"EKSCTL_DEPLOYMENT_FILE={eksctl_deployment_file}\n")
             myfile.write(f"EXPIRATION_TIME={expiration_time}\n")
 
