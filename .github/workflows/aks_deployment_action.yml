@@ -22,24 +22,15 @@ jobs:
       with:
         creds: ${{ github.event.client_payload.azure_credentials }}
 
+
     - name: Set Azure Subscription
-      uses: azure/CLI@v1
-      with:
-        azcliversion: 2.0.72
-        inlineScript: az account set --subscription d8902b79-0bbb-4e38-bd5c-007bfc5ff1b8
+      run: az account set --subscription d8902b79-0bbb-4e38-bd5c-007bfc5ff1b8
 
     - name: Create AKS Cluster
-      uses: azure/CLI@v1
-      with:
-        azcliversion: 2.0.72
-        inlineScript: az aks create --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --node-count 1 --generate-ssh-keys --node-vm-size Standard_DS2_v2
+      run:  az aks create --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --node-count 1 --generate-ssh-keys --node-vm-size Standard_DS2_v2
 
     - name: Get AKS Credentials
-      uses: azure/CLI@v1
-      with:
-        azcliversion: 2.0.72
-        inlineScript: az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }}
-
+      run: az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }}
 
 
 #name: AKS Deployment
