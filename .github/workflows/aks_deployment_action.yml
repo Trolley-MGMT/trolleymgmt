@@ -32,13 +32,19 @@ jobs:
         with:
           creds: ${{ env.CREDENTIALS }}
 
-      - name: AKS Deployment Script
+
+      - name: Set Azure Subscription
         uses: azure/CLI@v1
         with:
-          azcliversion: 2.30.0
-          inlineScript: |
-            az account show
-            az aks create --resource-group ${{ github.event.client_payload.aks_resource_group }} --location ${{ github.event.client_payload.aks_location }} --name ${{ github.event.client_payload.cluster_name }} --node-count ${{ github.event.client_payload.num_nodes }} --enable-addons monitoring --generate-ssh-keys --kubernetes-version ${{ github.event.client_payload.cluster_version }}
+          azcliversion: 2.0.72
+          inlineScript: az account set --subscription d8902b79-0bbb-4e38-bd5c-007bfc5ff1b8
+
+      - name: Create AKS Cluster
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.0.72
+          inlineScript: az aks create --resource-group ${{ github.event.client_payload.aks_resource_group }}" --name ${{ github.event.client_payload.cluster_name }}" --node-count ${{ github.event.client_payload.num_nodes }} --node-vm-size Standard_DS2_v2
+
 
       - name: Post Deployment Tasks
         env:
