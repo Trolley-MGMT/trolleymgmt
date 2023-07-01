@@ -53,9 +53,11 @@ jobs:
 
       - name: Post Deployment Tasks
         env:
-          MONGO_USER: ${{ secrets.MONGO_USER }}
-          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-          MONGO_URL: ${{ secrets.MONGO_URL }}
+          MONGO_URL: ${{ env.MONGO_URL }}
+          MONGO_USER: ${{ env.MONGO_USER }}
+          MONGO_PASSWORD: ${{ env.MONGO_PASSWORD }}
+          PROJECT_ID: ${{ env.PROJECT_ID }}
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
           KUBECONFIG: /tmp/kubeconfig
 
         run: |
