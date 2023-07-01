@@ -18,6 +18,7 @@ def main(incoming_string: str = '', provider: str = ''):
     print(f'incoming_string is: {incoming_string}')
     encoded_content = ast.literal_eval(incoming_string)
     print(f'encoded content is: {encoded_content}')
+    region_name = ''
     zone_name = ''
     gcp_project_id = ''
     gke_machine_type = ''
@@ -27,17 +28,18 @@ def main(incoming_string: str = '', provider: str = ''):
     az_resource_group = ''
     az_subscription_id = ''
     if provider == AWS:
+        region_name = encoded_content['region_name']
         eksctl_deployment_file = encoded_content['eksctl_deployment_file']
         print(f'eksctl_object is: {eksctl_deployment_file}')
         file = open(EKSCTL_DEPLOYMENT_FILE, "w")
         yaml.dump(eksctl_deployment_file, file)
         file.close()
-
     elif provider == GCP:
         zone_name = encoded_content['zone_name']
         gcp_project_id = encoded_content['gcp_project_id']
         gke_machine_type = encoded_content['gke_machine_type']
         image_type = encoded_content['image_type']
+        region_name = encoded_content['region_name']
         print(f'gke_machine_type is: {gke_machine_type}')
         print(f'gcp_project_id is: {gcp_project_id}')
     elif provider == AZ:
@@ -55,7 +57,6 @@ def main(incoming_string: str = '', provider: str = ''):
     project_name = encoded_content['project_name']
     user_name = encoded_content['user_name']
     cluster_version = encoded_content['cluster_version']
-    region_name = encoded_content['region_name']
     num_nodes = encoded_content['num_nodes']
     expiration_time = encoded_content['expiration_time']
 
