@@ -32,7 +32,7 @@ jobs:
       uses: azure/CLI@v1
       with:
         azcliversion: 2.0.72
-        inlineScript: az aks create --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --node-count 1 --node-vm-size Standard_DS2_v2
+        inlineScript: az aks create --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --node-count 1 --generate-ssh-keys --node-vm-size Standard_DS2_v2
 
     - name: Get AKS Credentials
       uses: azure/CLI@v1
