@@ -51,6 +51,9 @@ EMAIL_AUTHENTICATION = os.getenv('MAIL_AUTHENTICATION', False)
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
 PROJECT_NAME = os.getenv('PROJECT_NAME', "trolley-dev")
+MONGO_URL = os.getenv('MONGO_URL', 'localhost')
+MONGO_USER = os.getenv('MONGO_USER', 'admin')
+MONGO_PASSWORD = os.getenv('MONGO_PASSWORD', 'yes')
 
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 import mongo_handler.mongo_utils
@@ -60,7 +63,8 @@ from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
     ZONES_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
-    REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN
+    REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN, \
+    EKS_RESOURCE_GROUPS, LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP
 
 from mail_handler import MailSender
 from utils import random_string, apply_yaml
@@ -261,32 +265,6 @@ def render_page(page_name: str = '', cluster_name: str = '', client_name: str = 
         return render_template('login.html')
 
 
-def gcp_caching(user_email: str, project_name: str, google_creds_json: str, github_repository: str,
-                github_actions_token: str) -> bool:
-    """
-    This endpoint triggers a GCP Caching Action using a GitHub Action
-    """
-    content = {'project_name': project_name, 'google_creds_json': google_creds_json,
-               GITHUB_REPOSITORY: github_repository,
-               GITHUB_ACTIONS_TOKEN: github_actions_token, 'mongo_password': os.getenv('MONGO_PASSWORD'),
-               'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
-    if not github_repository or not github_actions_token:
-        github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
-        try:
-            github_actions_token_decrypted = crypter.decrypt(github_data['github_actions_token']).decode("utf-8")
-            github_repository = github_data['github_repository']
-            content['github_repository'] = github_repository
-            content['github_actions_token'] = github_actions_token_decrypted
-        except Exception as e:
-            logger.error(f'problem decrypting github_actions_token_decrypted with error {e}')
-            return False
-    cluster_operation = ClusterOperation(**content)
-    if cluster_operation.trigger_gcp_caching():
-        return True
-    else:
-        return False
-
-
 def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_secret_access_key: str,
                 github_repository: str,
                 github_actions_token: str) -> bool:
@@ -311,6 +289,59 @@ def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_
             return False
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_aws_caching():
+        return True
+    else:
+        return False
+
+
+def az_caching(user_email: str, project_name: str, azure_credentials: str, github_repository: str,
+               github_actions_token: str) -> bool:
+    """
+    This endpoint triggers a EKS Cluster deployment using a GitHub Action
+    """
+
+    content = {'project_name': project_name, 'azure_credentials': azure_credentials,
+               GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
+               'mongo_password': os.getenv('MONGO_PASSWORD'),
+               'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
+    if not github_repository or not github_actions_token:
+        github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
+        try:
+            github_actions_token_decrypted = crypter.decrypt(github_data['github_actions_token']).decode("utf-8")
+            github_repository = github_data['github_repository']
+            content['github_repository'] = github_repository
+            content['github_actions_token'] = github_actions_token_decrypted
+        except Exception as e:
+            logger.error(f'problem decrypting github_actions_token_decrypted with error {e}')
+            return False
+    cluster_operation = ClusterOperation(**content)
+    if cluster_operation.trigger_az_caching():
+        return True
+    else:
+        return False
+
+
+def gcp_caching(user_email: str, project_name: str, google_creds_json: str, github_repository: str,
+                github_actions_token: str) -> bool:
+    """
+    This endpoint triggers a GCP Caching Action using a GitHub Action
+    """
+    content = {'project_name': project_name, 'google_creds_json': google_creds_json,
+               GITHUB_REPOSITORY: github_repository,
+               GITHUB_ACTIONS_TOKEN: github_actions_token, 'mongo_password': os.getenv('MONGO_PASSWORD'),
+               'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
+    if not github_repository or not github_actions_token:
+        github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
+        try:
+            github_actions_token_decrypted = crypter.decrypt(github_data['github_actions_token']).decode("utf-8")
+            github_repository = github_data['github_repository']
+            content['github_repository'] = github_repository
+            content['github_actions_token'] = github_actions_token_decrypted
+        except Exception as e:
+            logger.error(f'problem decrypting github_actions_token_decrypted with error {e}')
+            return False
+    cluster_operation = ClusterOperation(**content)
+    if cluster_operation.trigger_gcp_caching():
         return True
     else:
         return False
@@ -427,6 +458,9 @@ def trigger_gke_deployment():
     content[GCP_PROJECT_ID] = gcp_project_id
     content['cluster_name'] = cluster_name
     content['project_name'] = PROJECT_NAME
+    content['mongo_url'] = MONGO_URL
+    content['mongo_user'] = MONGO_USER
+    content['mongo_password'] = MONGO_PASSWORD
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_gke_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
@@ -447,6 +481,9 @@ def trigger_eks_deployment():
     cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
     content['project_name'] = PROJECT_NAME
+    content['mongo_url'] = MONGO_URL
+    content['mongo_user'] = MONGO_USER
+    content['mongo_password'] = MONGO_PASSWORD
     cluster_operation = ClusterOperation(**content)
     cluster_operation.build_eksctl_object()
     if cluster_operation.trigger_eks_build_github_action():
@@ -468,6 +505,10 @@ def trigger_aks_deployment():
     cluster_name = f'{user_name}-{AKS}-{random_string(8)}'
     content['cluster_name'] = cluster_name
     content['project_name'] = PROJECT_NAME
+    content['mongo_url'] = MONGO_URL
+    content['mongo_user'] = MONGO_USER
+    content['mongo_password'] = MONGO_PASSWORD
+    content['az_subscription_id'] = json.loads(content['azure_credentials'])['subscriptionId']
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_aks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
@@ -500,6 +541,14 @@ def delete_cluster():
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     content['project_name'] = PROJECT_NAME
+    content['mongo_url'] = MONGO_URL
+    content['mongo_user'] = MONGO_USER
+    content['mongo_password'] = MONGO_PASSWORD
+    content['az_subscription_id'] = json.loads(content['azure_credentials'])['subscriptionId']
+    az_resource_group = \
+    mongo_handler.mongo_utils.retrieve_cluster_details(content[CLUSTER_TYPE], content[CLUSTER_NAME.lower()],
+                                                       content[DISCOVERED])[AZ_RESOURCE_GROUP]
+    content[AZ_RESOURCE_GROUP] = az_resource_group
     cluster_operations = ClusterOperation(**content)
     if content[CLUSTER_TYPE] == GKE:
         cluster_operations.delete_gke_cluster()
@@ -583,8 +632,18 @@ def settings():
                         else:
                             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
                     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-            else:
-                return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+                elif content[PROVIDER] == AZ:
+                    if content['azure_credentials']:
+                        if az_caching(user_email, PROJECT_NAME, content['azure_credentials'],
+                                      github_repository=content[GITHUB_REPOSITORY],
+                                      github_actions_token=content[GITHUB_ACTIONS_TOKEN]):
+                            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+                        else:
+                            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+                    else:
+                        return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+                else:
+                    return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     elif request.method == GET:
@@ -761,7 +820,6 @@ def fetch_regions():
 
 @app.route('/fetch_machine_series', methods=[GET])
 @login_required
-# @cache.cached(timeout=180)
 def fetch_machine_series():
     cluster_type = request.args.get(CLUSTER_TYPE)
     region_name = request.args.get(REGION_NAME.lower())
@@ -773,7 +831,6 @@ def fetch_machine_series():
 
 @app.route('/fetch_machine_types', methods=[GET])
 @login_required
-# @cache.cached(timeout=180)
 def fetch_machine_types():
     cluster_type = request.args.get(CLUSTER_TYPE)
     machine_series = request.args.get('machine_series')
@@ -785,7 +842,6 @@ def fetch_machine_types():
 
 @app.route('/fetch_zones', methods=[GET])
 @login_required
-# @cache.cached(timeout=180)
 def fetch_zones():
     cluster_type = request.args.get(CLUSTER_TYPE)
     region_name = request.args.get(REGION_NAME.lower())
@@ -810,7 +866,6 @@ def fetch_zones():
 
 @app.route('/fetch_subnets', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
 def fetch_subnets():
     cluster_type = request.args.get(CLUSTER_TYPE)
     zone_names = request.args.get(ZONE_NAMES.lower())
@@ -833,7 +888,6 @@ def fetch_subnets():
 
 @app.route('/fetch_client_name_per_cluster', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
 def fetch_client_name_per_cluster():
     cluster_type = request.args.get(CLUSTER.lower())
     cluster_name = request.args.get(CLUSTER_NAME.lower())
@@ -843,7 +897,6 @@ def fetch_client_name_per_cluster():
 
 @app.route('/fetch_gke_versions', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
 def fetch_gke_versions():
     gke_versions_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_VERSIONS_LIST, provider=GKE)
     return jsonify(gke_versions_list)
@@ -851,11 +904,22 @@ def fetch_gke_versions():
 
 @app.route('/fetch_gke_image_types', methods=[GET])
 @login_required
-@cache.cached(timeout=180)
 def fetch_gke_image_types():
     logger.info(f'A request to fetch available GKE image types has arrived')
     gke_image_types_list = mongo_handler.mongo_utils.retrieve_cache(cache_type=GKE_IMAGE_TYPES, provider=GKE)
     return jsonify(gke_image_types_list)
+
+
+@app.route('/fetch_eks_resource_groups', methods=[GET])
+# @login_required
+def fetch_eks_resource_groups():
+    logger.info(f'A request to fetch available EKS resource groups has arrived')
+    location = request.args.get(LOCATION_NAME.lower())
+    eks_resource_groups = mongo_handler.mongo_utils.retrieve_eks_resource_groups(location=location)
+    if eks_resource_groups:
+        return jsonify(eks_resource_groups), 200
+    else:
+        return jsonify([]), 200
 
 
 @app.route('/register', methods=[GET, POST])

@@ -117,7 +117,6 @@ class AKSObject:
     kubeconfig: str
     nodes_names: list
     nodes_ips: list
-    resource_group: str
     created_timestamp: int
     human_created_timestamp: str
     expiration_timestamp: int

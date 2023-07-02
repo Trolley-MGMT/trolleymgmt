@@ -309,13 +309,15 @@ class ClusterOperation:
     def delete_aks_cluster(self):
         json_data = {
             "event_type": "aks-delete-api-trigger",
-            "client_payload": {"cluster_name": self.cluster_name,
-                               "mongo_user": self.mongo_user,
-                               "mongo_password": self.mongo_password,
-                               "mongo_url": self.mongo_url,
-                               "az_subscription_id": self.az_subscription_id,
-                               "az_resource_group": self.az_resource_group,
-                               }
+            "client_payload": {
+                "azure_credentials": self.azure_credentials,
+                "cluster_name": self.cluster_name,
+                "mongo_user": self.mongo_user,
+                "mongo_password": self.mongo_password,
+                "mongo_url": self.mongo_url,
+                "az_subscription_id": self.az_subscription_id,
+                "az_resource_group": self.az_resource_group,
+            }
         }
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)

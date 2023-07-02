@@ -64,6 +64,8 @@ NODES_IPS = 'nodes_IPs'
 RESOURCE_GROUP = 'resource_group'
 PROJECT_ID = 'project_id'
 CLUSTER_DEPLOYMENT_YAML = 'cluster_deployment_yaml'
+DISCOVERED = 'discovered'
+
 #  USER
 USER_NAME = 'USER_NAME'
 USER_ID = 'USER_ID'
@@ -90,6 +92,9 @@ EKS_ZONES = 'eks_zones'
 AKS_VERSION = 'AKS_VERSION'
 AKS_LOCATION = 'AKS_LOCATION'
 AKS = 'aks'
+
+#AZ
+AZ_RESOURCE_GROUP = 'az_resource_group'
 
 # CACHE TYPES
 REGIONS_LIST = 'regions_list'
