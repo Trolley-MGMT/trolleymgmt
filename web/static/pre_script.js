@@ -502,7 +502,9 @@ $(document).ready(function() {
                 "num_nodes": AKSNodesAmount,
                 "cluster_version": AKSKubernetesVersion,
                 "expiration_time": AKSExpirationTime,
+                "az_location_name": AKSLocationName,
                 "aks_location": AKSLocation,
+                "az_resource_group": AKSResourceGroup,
                 "github_repository": githubRepository,
                 "github_actions_token": githubActionsToken,
                 "aws_access_key_id": awsAccessKeyId,
@@ -600,66 +602,13 @@ $(document).ready(function() {
         })
     });
 
-    $("#add-provider-button").click(function() {
-        let data = ''
-        var cloud_provider = $('#cloud-providers-dropdown').val().toLowerCase();
-        AWSAccessKeyID = $('#aws-access-key-id').val();
-        AWSSecretAccessKey = $('#aws-secret-access-key').val();
-        AzureCredentials = $('#azure-credentials').val();
-        GoogleCredsJSON = $('#google-creds-json').val();
-
-
-        let add_provider_data = JSON.stringify({
-            "provider": cloud_provider,
-            "aws_access_key_id": AWSAccessKeyID,
-            "aws_secret_access_key": AWSSecretAccessKey,
-            "azure_credentials": AzureCredentials,
-            "google_creds_json": GoogleCredsJSON
-        });
-
-
-        url = trolley_url + "/provider";
-
-        swal_message = 'A request to add a provider was sent. Please allow a few minutes for a scan!'
-        var forms = document.querySelectorAll('.needs-validation')
-
-        // Loop over them and prevent submission
-        Array.prototype.slice.call(forms)
-            .forEach(function(form) {
-                form.addEventListener('submit', function(event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", url, true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                var json = JSON.parse(xhr.responseText);
-            }
-        };
-        xhr.send(add_provider_data);
-
-        Swal.fire({
-            position: 'top-end',
-            icon: 'success',
-            title: swal_message,
-            showConfirmButton: false,
-            timer: 5000
-        })
-    });
 
     $("#save-settings-button").click(function() {
         let data = ''
         var cloud_provider = $('#cloud-providers-dropdown').val().toLowerCase();
         AWSAccessKeyID = $('#aws-access-key-id').val();
         AWSSecretAccessKey = $('#aws-secret-access-key').val();
-        azureCredentials = $('#azure-credentials').val();
+        AzureCredentials = $('#azure-credentials').val();
         googleCredsJSON = $('#google-creds-json').val();
         githubRepository = $('#github-repository').val();
         githubActionsToken = $('#github-actions-token').val();
@@ -669,7 +618,7 @@ $(document).ready(function() {
             "provider": cloud_provider,
             "aws_access_key_id": AWSAccessKeyID,
             "aws_secret_access_key": AWSSecretAccessKey,
-            "azure_credentials": azureCredentials,
+            "azure_credentials": AzureCredentials,
             "google_creds_json": googleCredsJSON,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
@@ -1249,6 +1198,7 @@ $(document).ready(function() {
                         $.each(response, function(key, value) {
                             clustersData.push({
                                 cluster_name: value['cluster_name'],
+                                az_resource_group: value['az_resource_group'],
                                 user_name: value['user_name'],
                                 client_name: value['client_name'],
                                 cluster_version: value['cluster_version'],
@@ -1730,11 +1680,6 @@ $(document).ready(function() {
             $("#github-repository").show();
             $("#github-repository-div").show();
             $("#github-actions-token").show();
-            //            $("#github-actions-token-div").show();
-            //            $("#update-az-settings-button").show();
-            //            $("#update-az-settings-label").show();
-            //            $("#update-gcp-settings-button").show();
-            //            $("#update-gcp-settings-label").show();
         } else {
 
             if (isEmpty(settingsDataArray[0].aws_access_key_id)) {
@@ -2050,6 +1995,28 @@ $(document).ready(function() {
         })
     }
 
+
+    function populate_resource_groups(locationName) {
+        var $dropdown = $("#aks-resource-groups-dropdown");
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: trolley_url + "/fetch_eks_resource_groups?location_name=" + locationName,
+                type: 'GET',
+                success: function(response) {
+                    if (response.length > 0) {
+                            $.each(response, function(key, value) {
+                                $dropdown.append($("<option />").val(value).text(value));
+                            });
+                    }
+                    resolve(response)
+                },
+                error: function(error) {
+                    alert("Failure fetching resource groups data")
+                },
+            })
+        })
+    }
+
     function trigger_cloud_provider_discovery(provider, objectType) {
         let cloud_provider_discovery_data = JSON.stringify({
             "provider": provider,
@@ -2219,6 +2186,12 @@ $(document).ready(function() {
         var gke_region = $('#gke-regions-dropdown').val();
         $("#gke-zones-dropdown").empty();
         populate_zones(gke_region);
+    })
+
+    $('#aks-locations-dropdown').change(function() {
+        var locationName = $('#aks-locations-dropdown').val();
+        $("#aks-resource-groups-dropdown").empty();
+        populate_resource_groups(locationName);
     })
 
     $('#gke-zones-dropdown').change(function() {
@@ -2413,17 +2386,6 @@ $(document).ready(function() {
             $("#google-creds-json-label").hide();
             $("#google-creds-json-div").hide();
             $("#google-creds-json").hide();
-            if (isEmpty(settingsDataArray)) {
-                $("#azure-credentials-label").show();
-                $("#azure-credentials-div").show();
-                $("#azure-credentials").show();
-                $("#update-aws-settings-button").hide();
-                $("#update-aws-settings-label").hide();
-                $("#update-az-settings-button").hide();
-                $("#update-az-settings-label").hide();
-                $("#update-gcp-settings-button").hide();
-                $("#update-gcp-settings-label").hide();
-            } else
             if (isEmpty(settingsDataArray[0].azure_credentials)) {
                 $("#azure-credentials-label").show();
                 $("#azure-credentials-div").show();

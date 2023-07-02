@@ -19,19 +19,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     </script>
 </head>
 
@@ -140,7 +127,7 @@
                                     <p>EKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" id="build-gke-clusters-div" >
+                            <li class="nav-item" id="build-gke-clusters-div">
                                 <a href="build-gke-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
@@ -148,7 +135,7 @@
                             </li>
                         </ul>
                     </li>
-                                        <li class="nav-item" id="manage-clusters-div">
+                    <li class="nav-item" id="manage-clusters-div">
                         <a href="#" class="nav-link">
                             <i class="fad fa-wrench"></i>
                             <p>
@@ -169,7 +156,7 @@
                                     <p>EKS Clusters</p>
                                 </a>
                             </li>
-                            <li class="nav-item" id="manage-gke-clusters-div" >
+                            <li class="nav-item" id="manage-gke-clusters-div">
                                 <a href="manage-gke-clusters" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>GKE Clusters</p>
@@ -331,8 +318,8 @@
 
                                 <select class="form-control form-control-border" id="cloud-providers-dropdown">
                                     <option>AWS</option>
-                                    <option>GCP</option>
                                     <option>Azure</option>
+                                    <option>GCP</option>
                                 </select>
                                 <div id="aws-access-key-id-div">
                                     <label for="aws-access-key-id" class="form-label" id="aws-access-key-id-label"
@@ -350,13 +337,21 @@
                                            style="display:none"
                                            placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" required>
                                 </div>
+
+
                                 <div id="azure-credentials-div" style="display:none">
                                     <label for="azure-credentials" class="form-label" id="azure-credentials-label"
                                            style="display:none">Azure Credentials</label>
-                                    <input type="text" class="form-control form-control-border" id="azure-credentials"
-                                           style="display:none"
-                                           placeholder="d8er22sc-0000-5esd-be90-00r3fcywfs9s" required>
+                                    <textarea class="form-control form-control-border" rows="3" id="azure-credentials"
+                                              style="display:none"
+                                              placeholder="{
+    'clientId':'5bzv2cjd-ltzv-9wh0-0y71-sbgzmawk43ss',
+    'clientSecret': 'rusx1slb22b951xw8cro40nf626qjagiekn7ewtw',
+    'subscriptionId': '4jfdbqjx-lwjn-guar-q4fm-gnv9h72pkbov',
+    'tenantId': conq8y4a-xp87-43yt-kp1v-ae7hf3fna4ym'
+}"></textarea>
                                 </div>
+
                                 <div id="google-creds-json-div"><label for="google-creds-json" class="form-label"
                                                                        id="google-creds-json-label"
                                                                        style="display:none">Google Cloud

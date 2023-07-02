@@ -557,8 +557,8 @@ def delete_cluster():
     elif content[CLUSTER_TYPE] == AKS:
         cluster_operations.delete_aks_cluster()
     mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content[CLUSTER_TYPE],
-                                                       cluster_name=content['cluster_name'],
-                                                       discovered=content['discovered'],
+                                                       cluster_name=content[CLUSTER_NAME.lower()],
+                                                       discovered=content[DISCOVERED],
                                                        availability=False)
     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
 

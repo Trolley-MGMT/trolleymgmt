@@ -19,8 +19,6 @@
 
 
 
-
-
     </script>
 </head>
 
@@ -314,7 +312,8 @@
                         <div class="card-body">
                             <div class="callout callout-info">
                                 <p>Please add your providers and GitHub details in the <a href="manage-settings"
-                                                                               style="color:#FFFFFF;"> Settings </a>
+                                                                                          style="color:#FFFFFF;">
+                                    Settings </a>
                                     menu to be able to build AKS Clusters! </p>
                             </div>
                         </div>
@@ -344,10 +343,11 @@
                         <div class="form-group">
                             <label>Select the Kubernetes version</label>
                             <select class="form-control" id="aks-versions-dropdown">
-                                <option>1.24.0</option>
-                                <option>1.23.8</option>
-                                <option>1.22.11</option>
-                                <option>1.21.14</option>
+                                <option>1.26.3</option>
+                                <option>1.26.0</option>
+                                <option>1.25.5</option>
+                                <option>1.24.10</option>
+                                <option>1.24.9</option>
                             </select>
                         </div>
                     </div>
@@ -356,6 +356,14 @@
                             <label>Select Location</label>
                             <br>
                             <select class="col-lg-8 align-content-lg-center" id="aks-locations-dropdown">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 align-content-lg-center">
+                        <div class="form-group">
+                            <label>Select Resource Group</label>
+                            <br>
+                            <select class="col-lg-8 align-content-lg-center" id="aks-resource-groups-dropdown">
                             </select>
                         </div>
                     </div>
