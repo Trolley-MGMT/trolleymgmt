@@ -60,7 +60,7 @@ jobs:
           pip3 install -r web/requirements.txt
           python3 deployment_utils/kubernetes_post_deployment.py --cluster_type aks --project_name ${{ env.PROJECT_NAME }} --cluster_name ${{ env.CLUSTER_NAME }} --user_name ${{ env.USER_NAME }} --resource_group ${{ env.AZ_RESOURCE_GROUP }} --region_name ${{ env.AZ_LOCATION }} --expiration_time ${{ env.EXPIRATION_TIME }}
 
-      - name: Deleting Cluster
-        if: always()
-        run: |
-          az aks delete --name=${{ env.CLUSTER_NAME }} --resource-group=${{ env.AZ_RESOURCE_GROUP }} --yes
+#      - name: Deleting Cluster
+#        if: always()
+#        run: |
+#          az aks delete --name=${{ env.CLUSTER_NAME }} --resource-group=${{ env.AZ_RESOURCE_GROUP }} --yes
