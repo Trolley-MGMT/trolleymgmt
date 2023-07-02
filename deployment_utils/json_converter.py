@@ -24,7 +24,7 @@ def main(incoming_string: str = '', provider: str = ''):
     gke_machine_type = ''
     image_type = ''
     eksctl_deployment_file = ''
-    az_location = ''
+    az_location_name = ''
     az_resource_group = ''
     az_subscription_id = ''
     if provider == AWS:
@@ -43,10 +43,10 @@ def main(incoming_string: str = '', provider: str = ''):
         print(f'gke_machine_type is: {gke_machine_type}')
         print(f'gcp_project_id is: {gcp_project_id}')
     elif provider == AZ:
-        az_location = encoded_content['az_location']
+        az_location_name = encoded_content['az_location_name']
         az_resource_group = encoded_content['az_resource_group']
         az_subscription_id = encoded_content['az_subscription_id']
-        print(f'az_location is: {az_location}')
+        print(f'az_location_name is: {az_location_name}')
         print(f'az_resource_group is: {az_resource_group}')
         print(f'az_subscription_id is: {az_subscription_id}')
 
@@ -88,7 +88,7 @@ def main(incoming_string: str = '', provider: str = ''):
             myfile.write(f"ZONE_NAME={zone_name}\n")
             myfile.write(f"IMAGE_TYPE={image_type}\n")
             myfile.write(f"NUM_NODES={num_nodes}\n")
-            myfile.write(f"AZ_LOCATION={az_location}\n")
+            myfile.write(f"AZ_LOCATION_NAME={az_location_name}\n")
             myfile.write(f"AZ_RESOURCE_GROUP={az_resource_group}\n")
             myfile.write(f"AZ_SUBSCRIPTION_ID={az_subscription_id}\n")
             myfile.write(f"EKSCTL_DEPLOYMENT_FILE={eksctl_deployment_file}\n")
