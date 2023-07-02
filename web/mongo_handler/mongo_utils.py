@@ -105,7 +105,8 @@ invited_users: Collection = db.invited_users
 teams: Collection = db.teams
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
-aks_cache: Collection = db.aks_cache
+aks_locations_cache: Collection = db.aks_locations_cache
+aks_resource_groups_cache: Collection = db.aks_resource_groups_cache
 gke_cache: Collection = db.gke_cache
 gke_machines_cache: Collection = db.gke_machines_cache
 gke_machines_types_cache: Collection = db.gke_machines_types_cache
@@ -379,7 +380,9 @@ def retrieve_expired_clusters(cluster_type: str) -> list:
 
 
 def insert_cache_object(caching_object: dict = None, provider: str = None, machine_types: bool = False,
-                        gke_full_cache: bool = False, gke_machine_series: bool = False,
+                        aks_locations: bool = False, aks_resource_groups: bool = False,
+                        gke_full_cache: bool = False,
+                        gke_machine_series: bool = False,
                         gke_series_and_machine_types: bool = False, aws_series_and_machine_types: bool = False,
                         gke_zones_and_series: bool = False, aws_regions_and_series: bool = False) -> bool:
     """
@@ -517,7 +520,6 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             except Exception as e:
                 logger.error(f'failure to insert data into aws_series_and_machine_types_cache table with error: {e}')
                 return False
-        # aws_cache.drop()
         try:
             mongo_response = aws_cache.insert_one(caching_object)
             logger.info(mongo_response.acknowledged)
@@ -527,15 +529,43 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             logger.error(f'failure to insert data into aws_cache table with error: {e}')
             return False
     elif provider == AKS:
-        aks_cache.drop()
-        try:
-            mongo_response = aks_cache.insert_one(caching_object)
-            logger.info(mongo_response.acknowledged)
-            logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
-            return True
-        except Exception as e:
-            logger.error(f'failure to insert data into aks_cache table with error: {e}')
-            return False
+        if aks_locations:
+            aks_locations_cache.drop()
+            try:
+                mongo_response = aks_locations_cache.insert_one(caching_object)
+                logger.info(mongo_response.acknowledged)
+                logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+                return True
+            except Exception as e:
+                logger.error(f'failure to insert data into aks_locations_cache table with error: {e}')
+                return False
+        elif aks_resource_groups:
+            try:
+                myquery = {'location': caching_object['location']}
+                if aks_resource_groups_cache.find_one(myquery):
+                    newvalues = {"$set": {'location': caching_object['location'],
+                                          'resource_groups_list': caching_object['resource_groups_list']}}
+                    mongo_response = aks_resource_groups_cache.update_one(myquery, newvalues)
+                    logger.info(mongo_response.acknowledged)
+                else:
+                    mongo_response = aks_resource_groups_cache.insert_one(caching_object)
+                    logger.info(mongo_response.acknowledged)
+                return True
+            except Exception as e:
+                logger.error(f'failure to insert data into aks_resource_groups_cache table with error: {e}')
+                return False
+
+            #
+            #
+            # try:
+            #     mongo_response = aks_resource_groups_cache.insert_one(caching_object)
+            #     logger.info(mongo_response.acknowledged)
+            #     logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
+            #     return True
+            # except Exception as e:
+            #     logger.error(f'failure to insert data into aks_resource_groups_cache table with error: {e}')
+            #     return False
+            # aks_resources_groups
     elif provider == HELM:
         helm_cache.drop()
         try:
@@ -581,7 +611,7 @@ def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
         elif provider == EKS:
             cache_object = aws_cache.find()[0]
         elif provider == AKS:
-            cache_object = aks_cache.find()[0]
+            cache_object = aks_locations_cache.find()[0]
         elif provider == HELM:
             return helm_cache.find()[0]['helms_installs']
         else:
@@ -633,7 +663,7 @@ def retrieve_compute_per_machine_type(provider: str = '', machine_type: str = ''
     elif provider == EKS:
         cache_object = aws_cache.find()[0]
     elif provider == AKS:
-        cache_object = aks_cache.find()[0]
+        cache_object = aks_locations_cache.find()[0]
     elif provider == HELM:
         return helm_cache.find()[0]['helms_installs']
     else:
@@ -643,6 +673,13 @@ def retrieve_compute_per_machine_type(provider: str = '', machine_type: str = ''
         if machine['machine_type'] == machine_type:
             return machine
 
+def retrieve_eks_resource_groups(location: str = '') -> list:
+    mongo_query = {'location': location}
+    aks_resource_groups = aks_resource_groups_cache.find_one(mongo_query)
+    if aks_resource_groups:
+        return aks_resource_groups['resource_groups_list']
+    else:
+        return []
 
 def retrieve_user(user_email: str):
     """

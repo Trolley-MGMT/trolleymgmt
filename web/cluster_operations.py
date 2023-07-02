@@ -8,8 +8,6 @@ from dataclasses import asdict
 import requests
 from dotenv import load_dotenv
 
-
-
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 GITHUB_ENV = os.getenv('GITHUB_ENV', False)
 
@@ -65,7 +63,8 @@ else:
 class ClusterOperation:
     def __init__(self, provider: str = "", user_email: str = "", github_actions_token: str = "",
                  github_repository: str = "", user_name: str = "", project_name: str = "", cluster_name: str = "",
-                 cluster_type: str = "", cluster_version: str = "", aks_location: str = "",
+                 cluster_type: str = "", cluster_version: str = "", az_location_name: str = "",
+                 az_resource_group: str = "", az_subscription_id: str = "",
                  region_name: str = "", zone_name: str = "", gcp_project_id: str = "", gke_machine_type: str = "",
                  gke_region: str = "", gke_zone: str = "", eks_machine_type: str = "",
                  eks_volume_size: int = "",
@@ -89,7 +88,9 @@ class ClusterOperation:
         self.github_repository = github_repository
         self.cluster_type = cluster_type
         self.cluster_version = cluster_version
-        self.aks_location = aks_location
+        self.az_location_name = az_location_name
+        self.az_resource_group = az_resource_group
+        self.az_subscription_id = az_subscription_id
         self.region_name = region_name
         self.zone_name = zone_name
         self.eks_machine_type = eks_machine_type
@@ -207,15 +208,24 @@ class ClusterOperation:
             return False
 
     def trigger_aks_build_github_action(self) -> bool:
+        encoded_data = {
+            "mongo_url": self.mongo_url,
+            "mongo_user": self.mongo_user,
+            "mongo_password": self.mongo_password,
+            "cluster_name": self.cluster_name,
+            "project_name": self.project_name,
+            "user_name": self.user_name,
+            "cluster_version": self.cluster_version,
+            "az_location_name": self.az_location_name,
+            "az_resource_group": self.az_resource_group,
+            "az_subscription_id": self.az_subscription_id,
+            "num_nodes": str(self.num_nodes),
+            "expiration_time": self.expiration_time,
+        }
         json_data = {
             "event_type": "aks-build-api-trigger",
-            "client_payload": {"cluster_name": self.cluster_name,
-                               "user_name": self.user_name,
-                               "cluster_version": self.cluster_version,
-                               "aks_location": self.aks_location,
-                               "num_nodes": str(self.num_nodes),
-                               "azure_credentials": self.azure_credentials,
-                               "expiration_time": self.expiration_time}
+            "client_payload": {"azure_credentials": self.azure_credentials,
+                               "payload": str(encoded_data)}
         }
         response = requests.post(self.github_actions_api_url,
                                  headers=self.github_action_request_header, json=json_data)
@@ -273,6 +283,24 @@ class ClusterOperation:
                                  headers=self.github_action_request_header, json=json_data)
 
         logger.info(f'trigger_aws_caching request returned with response: {response}')
+        if response.status_code == 204:
+            return True
+        else:
+            return False
+
+    def trigger_az_caching(self):
+        json_data = {
+            "event_type": "az-caching-action-trigger",
+            "client_payload": {"azure_credentials": self.azure_credentials,
+                               "project_name": self.project_name,
+                               "mongo_user": self.mongo_user,
+                               "mongo_password": self.mongo_password,
+                               "mongo_url": self.mongo_url}
+        }
+        response = requests.post(self.github_actions_api_url,
+                                 headers=self.github_action_request_header, json=json_data)
+
+        logger.info(f'trigger_az_caching request returned with response: {response}')
         if response.status_code == 204:
             return True
         else:

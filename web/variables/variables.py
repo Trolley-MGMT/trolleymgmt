@@ -50,6 +50,7 @@ ZONE_NAMES = 'ZONE_NAMES'
 NAMES = 'NAMES'
 IMAGE_TYPE = 'IMAGE_TYPE'
 REGION_NAME = 'REGION_NAME'
+LOCATION_NAME='LOCATION_NAME'
 REGION_ZONE = 'REGION_ZONE'
 APPLICATION_JSON = 'application/json'
 AVAILABILITY = 'availability'
@@ -98,7 +99,7 @@ ZONES_LIST = 'zones_list'
 HELM_INSTALLS_LIST = 'helm_installs_list'
 GKE_VERSIONS_LIST = 'versions_list'
 GKE_IMAGE_TYPES = 'gke_image_types'
-
+EKS_RESOURCE_GROUPS = 'eks_resource_groups'
 # GITHUB
 
 GITHUB_REPOSITORY = 'github_repository'

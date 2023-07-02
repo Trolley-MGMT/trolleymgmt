@@ -26,7 +26,6 @@ class ProviderObject:
     aws_secret_access_key: bytes
     azure_credentials: bytes
     google_creds_json: bytes
-    # gcp_project_id: bytes
     user_email: str
     created_timestamp: int
 
@@ -126,6 +125,9 @@ class AKSObject:
     region_name: str
     cluster_version: str
     num_nodes: int
+    vCPU: int
+    totalvCPU: int
+    total_memory: str
     availability: bool = True
 
 
@@ -234,9 +236,13 @@ class EKSCTLObject:
 
 
 @dataclass
-class AKSCacheObject:
+class AKSLocationsCacheObject:
     locations_dict: dict
 
+@dataclass
+class AKSResourceGroupObject:
+    location: str
+    resource_groups_list: list
 
 @dataclass
 class HelmCacheObject:
