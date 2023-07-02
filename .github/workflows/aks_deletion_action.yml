@@ -19,11 +19,6 @@ jobs:
           echo "${{ github.event.client_payload.cluster_name }}"
           echo "${{ github.event.client_payload.azure_credentials }}"
 
-      - name: Payload Extracting
-        run: |
-          export PYTHONPATH=$PYTHONPATH:.
-          pip3 install PyYAML
-          python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.payload }}" --provider azure
 
       - name: Azure Login
         uses: azure/login@v1
@@ -32,22 +27,20 @@ jobs:
 
 
       - name: Set Azure Subscription
-        run: az account set --subscription ${{ env.AZ_SUBSCRIPTION_ID }}
+        run: az account set --subscription ${{ github.event.client_payload.az_subscription_id }}
 
       - name: Deleting Cluster
         if: always()
         env:
-          MONGO_URL: ${{ env.MONGO_URL }}
-          MONGO_USER: ${{ env.MONGO_USER }}
-          MONGO_PASSWORD: ${{ env.MONGO_PASSWORD }}
-          PROJECT_ID: ${{ env.PROJECT_ID }}
-          PROJECT_NAME: ${{ env.PROJECT_NAME }}
-          CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-          AZ_LOCATION: ${{ env.AZ_LOCATION }}
-          RESOURCE_GROUP: ${{ env.AZ_RESOURCE_GROUP }}
+          MONGO_URL: ${{ github.event.client_payload.mongo_url }}
+          MONGO_USER: ${{ github.event.client_payload.mongo_user }}
+          MONGO_PASSWORD: ${{ github.event.client_payload.mongo_password }}
+          CLUSTER_NAME: ${{ github.event.client_payload.cluster_name }}
+          RESOURCE_GROUP: ${{ github.event.client_payload.az_resource_group }}
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/set_cluster_availability.py --cluster_type aks --cluster_name ${{ env.CLUSTER_NAME }} --availability False
-          az aks delete --name=${{ env.CLUSTER_NAME }} --resource-group=${{ env.AZ_RESOURCE_GROUP }} --yes
+          python3 deployment_utils/set_cluster_availability.py --cluster_type aks --cluster_name ${{ github.event.client_payload.cluster_name }}} --availability False
+          az aks delete --name=${{ github.event.client_payload.cluster_name }}} --resource-group=Trolley --yes
+#          az aks delete --name=${{ github.event.client_payload.cluster_name }}} --resource-group=${{ github.event.client_payload.az_resource_group }} --yes
