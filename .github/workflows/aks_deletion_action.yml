@@ -19,23 +19,35 @@ jobs:
           echo "${{ github.event.client_payload.cluster_name }}"
           echo "${{ github.event.client_payload.azure_credentials }}"
 
-      - name: Az CLI login
-        uses: Azure/login@v1
-        env:
-          CREDENTIALS:  ${{ github.event.client_payload.azure_credentials }}
+      - name: Payload Extracting
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          pip3 install PyYAML
+          python3 deployment_utils/json_converter.py --incoming_string "${{ github.event.client_payload.payload }}" --provider azure
+
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          creds: ${{ env.CREDENTIALS }}
+          creds: ${{ github.event.client_payload.azure_credentials }}
+
+
+      - name: Set Azure Subscription
+        run: az account set --subscription ${{ env.AZ_SUBSCRIPTION_ID }}
 
       - name: Deleting Cluster
         if: always()
         env:
-          MONGO_USER: ${{ secrets.MONGO_USER }}
-          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-          PROJECT_ID: ${{ secrets.PROJECT_ID }}
-          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-          MONGO_URL: ${{ secrets.MONGO_URL }}
+          MONGO_URL: ${{ env.MONGO_URL }}
+          MONGO_USER: ${{ env.MONGO_USER }}
+          MONGO_PASSWORD: ${{ env.MONGO_PASSWORD }}
+          PROJECT_ID: ${{ env.PROJECT_ID }}
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
+          CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          AZ_LOCATION: ${{ env.AZ_LOCATION }}
+          RESOURCE_GROUP: ${{ env.AZ_RESOURCE_GROUP }}
+
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/set_cluster_availability.py --cluster_type aks --cluster_name ${{ github.event.client_payload.cluster_name }} --availability False
-          az aks delete --name=${{ github.event.client_payload.cluster_name }} --resource-group=MyResourceGroup --yes
+          python3 deployment_utils/set_cluster_availability.py --cluster_type aks --cluster_name ${{ env.CLUSTER_NAME }} --availability False
+          az aks delete --name=${{ env.CLUSTER_NAME }} --resource-group=${{ env.AZ_RESOURCE_GROUP }} --yes
