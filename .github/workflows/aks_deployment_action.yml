@@ -10,9 +10,8 @@ env:
   CLUSTER_NAME: ${{ github.event.client_payload.cluster_name }}
 
 jobs:
-  build:
+  deploy-aks-cluster:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2

@@ -46,7 +46,7 @@ def main(incoming_string: str = '', provider: str = ''):
         az_location_name = encoded_content['az_location_name']
         az_resource_group = encoded_content['az_resource_group']
         az_subscription_id = encoded_content['az_subscription_id']
-        print(f'az_location_name is: {az_location_name}')
+        print(f'az_location_nam is: {az_location_name}')
         print(f'az_resource_group is: {az_resource_group}')
         print(f'az_subscription_id is: {az_subscription_id}')
 

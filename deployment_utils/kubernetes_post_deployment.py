@@ -17,7 +17,6 @@ from web.mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSOb
 from web.utils import apply_yaml
 from web.variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS
 
-
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
 
@@ -33,7 +32,6 @@ ZONE_NAME = os.environ.get('ZONE_NAME')
 REGION_NAME = os.environ.get('REGION_NAME')
 AZ_LOCATION_NAME = os.environ.get('AZ_LOCATION_NAME')
 EXPIRATION_TIME = os.environ.get('EXPIRATION_TIME')
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -191,7 +189,8 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
-                                          cluster_version=cluster_version, num_nodes=3)
+                                          cluster_version=cluster_version, num_nodes=num_nodes, vCPU=vCPU,
+                                          total_memory=total_memory, totalvCPU=vCPU * num_nodes)
         insert_aks_deployment(aks_deployment_object=asdict(aks_deployment_object))
     try:
         deployment_yaml_dict = retrieve_deployment_yaml(cluster_type, cluster_name)
@@ -219,4 +218,4 @@ if __name__ == '__main__':
         kubeconfig_yaml = f.read()
         print(f'The kubeconfig content is: {kubeconfig_yaml}')
 
-    main(cluster_type=args.cluster_type,  resource_group=args.resource_group)
+    main(cluster_type=args.cluster_type, resource_group=args.resource_group)
