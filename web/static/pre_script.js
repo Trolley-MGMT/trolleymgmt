@@ -475,7 +475,7 @@ $(document).ready(function() {
         EKSNodesAmount = $('#eks-nodes-amt').val();
         GKENodesAmount = $('#gke-nodes-amt').val();
         HelmInstalls = $('#helm-installs-dropdown').val();
-        AKSLocation = $('#aks-locations-dropdown').val();
+        AKSLocationName = $('#aks-locations-dropdown').val();
         EKSLocation = $('#eks-locations-dropdown').val();
         EKSZones = $('#eks-zones-dropdown').val();
         EKSMachinesSeries = $('#eks-machines-series-dropdown').val();
@@ -503,7 +503,6 @@ $(document).ready(function() {
                 "cluster_version": AKSKubernetesVersion,
                 "expiration_time": AKSExpirationTime,
                 "az_location_name": AKSLocationName,
-                "aks_location": AKSLocation,
                 "az_resource_group": AKSResourceGroup,
                 "github_repository": githubRepository,
                 "github_actions_token": githubActionsToken,
