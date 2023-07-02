@@ -110,6 +110,7 @@ class EKSObject:
 
 @dataclass
 class AKSObject:
+    az_resource_group: str
     cluster_name: str
     context_name: str
     user_name: str

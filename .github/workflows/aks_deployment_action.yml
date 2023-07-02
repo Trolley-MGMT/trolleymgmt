@@ -48,9 +48,9 @@ jobs:
           PROJECT_ID: ${{ env.PROJECT_ID }}
           PROJECT_NAME: ${{ env.PROJECT_NAME }}
           CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-          RESOURCE_GROUP: ${{ env.AZ_RESOURCE_GROUP }}
           KUBECONFIG: /home/runner/.kube/config
           AZ_LOCATION: ${{ env.AZ_LOCATION }}
+          AZ_RESOURCE_GROUP: ${{ env.AZ_RESOURCE_GROUP }}
           EXPIRATION_TIME: ${{ env.EXPIRATION_TIME }}
 
 
