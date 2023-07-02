@@ -476,6 +476,7 @@ $(document).ready(function() {
         GKENodesAmount = $('#gke-nodes-amt').val();
         HelmInstalls = $('#helm-installs-dropdown').val();
         AKSLocationName = $('#aks-locations-dropdown').val();
+        AKSResourceGroup = $('#aks-resource-groups-dropdown').val();
         EKSLocation = $('#eks-locations-dropdown').val();
         EKSZones = $('#eks-zones-dropdown').val();
         EKSMachinesSeries = $('#eks-machines-series-dropdown').val();
