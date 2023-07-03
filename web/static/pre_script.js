@@ -498,7 +498,7 @@ $(document).ready(function() {
         DeploymentYAML = $('#deployment-yaml').val();
 
         try {
-            var trigger_az_deployment_data = JSON.stringify({
+            var trigger_aks_deployment_data = JSON.stringify({
                 "user_name": userName,
                 "num_nodes": AKSNodesAmount,
                 "cluster_version": AKSKubernetesVersion,
@@ -561,9 +561,9 @@ $(document).ready(function() {
         }
 
 
-        if (clusterType === 'az') {
-            url = trolley_url + "/trigger_az_deployment";
-            trigger_data = trigger_az_deployment_data
+        if (clusterType === 'aks') {
+            url = trolley_url + "/trigger_aks_deployment";
+            trigger_data = trigger_aks_deployment_data
             expiration_time = azExpirationTime
         } else if (clusterType == 'eks') {
             url = trolley_url + "/trigger_eks_deployment";
@@ -2218,6 +2218,7 @@ $(document).ready(function() {
     $('#gke-regions-dropdown').change(function() {
         var gke_region = $('#gke-regions-dropdown').val();
         $("#gke-zones-dropdown").empty();
+        $("#gke-versions-dropdown").empty();
         populate_zones(gke_region);
     })
 
