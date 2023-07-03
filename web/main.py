@@ -546,8 +546,8 @@ def delete_cluster():
     content['mongo_password'] = MONGO_PASSWORD
     content['az_subscription_id'] = json.loads(content['azure_credentials'])['subscriptionId']
     az_resource_group = \
-    mongo_handler.mongo_utils.retrieve_cluster_details(content[CLUSTER_TYPE], content[CLUSTER_NAME.lower()],
-                                                       content[DISCOVERED])[AZ_RESOURCE_GROUP]
+        mongo_handler.mongo_utils.retrieve_cluster_details(content[CLUSTER_TYPE], content[CLUSTER_NAME.lower()],
+                                                           content[DISCOVERED])[AZ_RESOURCE_GROUP]
     content[AZ_RESOURCE_GROUP] = az_resource_group
     cluster_operations = ClusterOperation(**content)
     if content[CLUSTER_TYPE] == GKE:
@@ -800,7 +800,6 @@ def index():
 
 @app.route('/fetch_regions', methods=[GET])
 @login_required
-# @cache.cached(timeout=180)
 def fetch_regions():
     cluster_type = request.args.get(CLUSTER_TYPE)
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
@@ -816,6 +815,19 @@ def fetch_regions():
         return jsonify("Regions data was not found"), 200
     else:
         return jsonify(regions), 200
+
+
+@app.route('/fetch_kubernetes_versions', methods=[GET])
+# @login_required
+def fetch_kubernetes_versions():
+    cluster_type = request.args.get(CLUSTER_TYPE.lower())
+    location_name = request.args.get(LOCATION_NAME.lower())
+    logger.info(f'A request to fetch kubernetes versions for {cluster_type} and {location_name} location has arrived')
+    kubernetes_versions_list = mongo_handler.mongo_utils.retrieve_kubernetes_versions(location_name=location_name, provider=cluster_type)
+    if len(kubernetes_versions_list) == 0:
+        return jsonify("kubernetes_versions_list data was not found"), 200
+    else:
+        return kubernetes_versions_list
 
 
 @app.route('/fetch_machine_series', methods=[GET])
@@ -902,6 +914,17 @@ def fetch_gke_versions():
     return jsonify(gke_versions_list)
 
 
+# @app.route('/fetch_aks_versions', methods=[GET])
+# # @login_required
+# def fetch_aks_versions():
+#     location_name = request.args.get(LOCATION_NAME.lower())
+#     logger.info(f'A request to fetch kubernetes versions for {location_name} location has arrived')
+#     kubernetes_versions_list = mongo_handler.mongo_utils.retrieve_kubernetes_versions(location_name=location_name, provider=AKS)
+#     if len(kubernetes_versions_list) == 0:
+#         return jsonify("kubernetes_versions_list data was not found"), 200
+#     else:
+#         return kubernetes_versions_list
+
 @app.route('/fetch_gke_image_types', methods=[GET])
 @login_required
 def fetch_gke_image_types():
@@ -910,14 +933,14 @@ def fetch_gke_image_types():
     return jsonify(gke_image_types_list)
 
 
-@app.route('/fetch_eks_resource_groups', methods=[GET])
+@app.route('/fetch_az_resource_groups', methods=[GET])
 # @login_required
-def fetch_eks_resource_groups():
+def fetch_az_resource_groups():
     logger.info(f'A request to fetch available EKS resource groups has arrived')
     location = request.args.get(LOCATION_NAME.lower())
-    eks_resource_groups = mongo_handler.mongo_utils.retrieve_eks_resource_groups(location=location)
-    if eks_resource_groups:
-        return jsonify(eks_resource_groups), 200
+    az_resource_groups = mongo_handler.mongo_utils.retrieve_az_resource_groups(location=location)
+    if az_resource_groups:
+        return jsonify(az_resource_groups), 200
     else:
         return jsonify([]), 200
 

@@ -59,8 +59,3 @@ jobs:
           az aks get-credentials --name ${{ env.CLUSTER_NAME }} --overwrite-existing --resource-group ${{ env.AZ_RESOURCE_GROUP }}
           pip3 install -r web/requirements.txt
           python3 deployment_utils/kubernetes_post_deployment.py --cluster_type aks
-
-#      - name: Deleting Cluster
-#        if: always()
-#        run: |
-#          az aks delete --name=${{ env.CLUSTER_NAME }} --resource-group=${{ env.AZ_RESOURCE_GROUP }} --yes

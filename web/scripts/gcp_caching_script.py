@@ -13,6 +13,7 @@ from google.oauth2 import service_account
 from googleapiclient import discovery
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+GCP_CREDENTIALS = os.getenv('GCP_CREDENTIALS', False)
 
 log_file_name = 'server.log'
 if DOCKER_ENV:
@@ -37,12 +38,14 @@ logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 if DOCKER_ENV:
     from mongo_handler.mongo_utils import insert_cache_object
     from mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, \
-        GKESeriesAndMachineTypesObject, GKEZonesAndMachineSeriesObject, GKEMachinesCacheObject
+        GKESeriesAndMachineTypesObject, GKEZonesAndMachineSeriesObject, GKEMachinesCacheObject, \
+        GKEKubernetesVersionsCacheObject
     from variables.variables import GKE
 else:
     from web.mongo_handler.mongo_utils import insert_cache_object
     from web.mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, \
-        GKESeriesAndMachineTypesObject, GKEZonesAndMachineSeriesObject, GKEMachinesCacheObject
+        GKESeriesAndMachineTypesObject, GKEZonesAndMachineSeriesObject, GKEMachinesCacheObject, \
+        GKEKubernetesVersionsCacheObject
     from web.variables.variables import GKE
 
 project_folder = os.path.expanduser(os.getcwd())
@@ -95,7 +98,8 @@ def fetch_regions(gcp_project_id: str) -> list:
     return regions_list
 
 
-def fetch_versions(zones_list: list, gcp_project_id: str, service):
+def fetch_kubernetes_versions(zones_list: list, gcp_project_id: str, service):
+    kubernetes_versions_dict = {}
     for zone in zones_list:
         name = f'projects/{gcp_project_id}/locations/{zone}'
         request = service.projects().locations().getServerConfig(name=name)
@@ -103,7 +107,8 @@ def fetch_versions(zones_list: list, gcp_project_id: str, service):
         available_gke_versions = []
         for stable_gke_version in response['channels'][2]['validVersions']:
             available_gke_versions.append(stable_gke_version)
-        return available_gke_versions
+        kubernetes_versions_dict[zone] = available_gke_versions
+    return kubernetes_versions_dict
 
 
 def fetch_gke_image_types(zones_list: list, gcp_project_id: str, service):
@@ -191,15 +196,27 @@ def main(gcp_credentials: str):
                 FETCHED_CREDENTIALS_FILE_PATH)
             service = discovery.build('container', 'v1', credentials=credentials)
         except Exception as e:
-            logger.error(f'Credentials were not provided with a file')
+            logger.error(f'Credentials were not provided with a file with error: {e}')
+
         logger.info('Attempting to fetch zones')
         zones_list = fetch_zones(gcp_project_id)
         logger.info('Attempting to fetch regions')
         regions_list = fetch_regions(gcp_project_id)
         logger.info('Attempting to fetch gke_image_types')
         gke_image_types = fetch_gke_image_types(zones_list=zones_list, gcp_project_id=gcp_project_id, service=service)
+
+        logger.info('Attempting to fetch gke_kubernetes_versions_list')
+        kubernetes_versions_all_locations = fetch_kubernetes_versions(zones_list=zones_list,
+                                                                      gcp_project_id=gcp_project_id, service=service)
+        for region_name in kubernetes_versions_all_locations:
+            gke_kubernetes_versions_caching_object = GKEKubernetesVersionsCacheObject(
+                region_name=region_name,
+                kubernetes_versions_list=kubernetes_versions_all_locations[region_name]
+            )
+            insert_cache_object(caching_object=asdict(gke_kubernetes_versions_caching_object), provider=GKE,
+                                gke_kubernetes_versions=True)
+
         logger.info('Attempting to fetch versions_list')
-        versions_list = fetch_versions(zones_list=zones_list, gcp_project_id=gcp_project_id, service=service)
         zones_regions_dict = create_regions_and_zones_dict(regions_list=regions_list, zones_list=zones_list)
         logger.info('Attempting to fetch machine_types_all_zones')
         machine_types_all_zones = fetch_machine_types_per_zone(zones_list, gcp_project_id=gcp_project_id,
@@ -214,7 +231,6 @@ def main(gcp_credentials: str):
         # Inserting a whole GKE Cache Object
         gke_caching_object = GKECacheObject(
             zones_list=zones_list,
-            versions_list=versions_list,
             regions_list=regions_list,
             gke_image_types=gke_image_types,
             regions_zones_dict=zones_regions_dict)
@@ -270,4 +286,5 @@ if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--credentials', type=str, help='GCP Credentials')
     args = parser.parse_args()
+    # main(GCP_CREDENTIALS)
     main(args.credentials)

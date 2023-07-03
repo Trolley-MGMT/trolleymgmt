@@ -142,7 +142,6 @@ class EKSMachineTypeObject:
 class GKECacheObject:
     zones_list: list
     regions_list: list
-    versions_list: list
     gke_image_types: list
     regions_zones_dict: dict
 
@@ -160,6 +159,32 @@ class GKEMachineTypeObject:
     machine_type: str
     vCPU: int
     memory: int
+
+
+@dataclass
+class AZMachineTypeObject:
+    location_name: str
+    machine_type: str
+    vCPU: int
+    memory: int
+
+
+@dataclass
+class AZMachinesCacheObject:
+    location_name: str
+    machines_list: list
+
+
+@dataclass
+class AKSKubernetesVersionsCacheObject:
+    location_name: str
+    kubernetes_versions_list: list
+
+
+@dataclass
+class GKEKubernetesVersionsCacheObject:
+    region_name: str
+    kubernetes_versions_list: list
 
 
 @dataclass
@@ -209,16 +234,17 @@ class AWSRegionsAndMachineSeriesObject:
     series_list: list
 
 
-
 @dataclass
 class AWSSeriesAndMachineTypesObject:
     machine_series: str
     machines_list: list
 
+
 @dataclass
 class EKSCTLMetadataObject:
     name: str
     region: str
+
 
 @dataclass
 class EKSCTLNodeGroupObject:
@@ -226,6 +252,7 @@ class EKSCTLNodeGroupObject:
     instanceType: str
     desiredCapacity: int
     volumeSize: int
+
 
 @dataclass
 class EKSCTLObject:
@@ -236,13 +263,15 @@ class EKSCTLObject:
 
 
 @dataclass
-class AKSLocationsCacheObject:
+class AZLocationsCacheObject:
     locations_dict: dict
 
+
 @dataclass
-class AKSResourceGroupObject:
-    location: str
+class AZResourceGroupObject:
+    location_name: str
     resource_groups_list: list
+
 
 @dataclass
 class HelmCacheObject:

@@ -134,7 +134,7 @@ $(document).ready(function() {
         teamsPage = false;
         queryPage = false;
         settingsPage = false;
-    } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-aks')) || (pathname[1].includes('manage-gke'))) {
+    } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-az')) || (pathname[1].includes('manage-gke'))) {
         buildPage = false;
         clustersDataPage = false;
         dataPage = false;
@@ -475,8 +475,8 @@ $(document).ready(function() {
         EKSNodesAmount = $('#eks-nodes-amt').val();
         GKENodesAmount = $('#gke-nodes-amt').val();
         HelmInstalls = $('#helm-installs-dropdown').val();
-        AKSLocationName = $('#aks-locations-dropdown').val();
-        AKSResourceGroup = $('#aks-resource-groups-dropdown').val();
+        AZLocationName = $('#az-locations-dropdown').val();
+        AZResourceGroup = $('#az-resource-groups-dropdown').val();
         EKSLocation = $('#eks-locations-dropdown').val();
         EKSZones = $('#eks-zones-dropdown').val();
         EKSMachinesSeries = $('#eks-machines-series-dropdown').val();
@@ -498,13 +498,13 @@ $(document).ready(function() {
         DeploymentYAML = $('#deployment-yaml').val();
 
         try {
-            var trigger_aks_deployment_data = JSON.stringify({
+            var trigger_az_deployment_data = JSON.stringify({
                 "user_name": userName,
                 "num_nodes": AKSNodesAmount,
                 "cluster_version": AKSKubernetesVersion,
                 "expiration_time": AKSExpirationTime,
-                "az_location_name": AKSLocationName,
-                "az_resource_group": AKSResourceGroup,
+                "az_location_name": AZLocationName,
+                "az_resource_group": AZResourceGroup,
                 "github_repository": githubRepository,
                 "github_actions_token": githubActionsToken,
                 "aws_access_key_id": awsAccessKeyId,
@@ -561,10 +561,10 @@ $(document).ready(function() {
         }
 
 
-        if (clusterType === 'aks') {
-            url = trolley_url + "/trigger_aks_deployment";
-            trigger_data = trigger_aks_deployment_data
-            expiration_time = AKSExpirationTime
+        if (clusterType === 'az') {
+            url = trolley_url + "/trigger_az_deployment";
+            trigger_data = trigger_az_deployment_data
+            expiration_time = azExpirationTime
         } else if (clusterType == 'eks') {
             url = trolley_url + "/trigger_eks_deployment";
             trigger_data = trigger_eks_deployment_data
@@ -580,7 +580,7 @@ $(document).ready(function() {
         }
 
         swal_message = 'An ' + clusterType + ' deployment was requested for ' +
-            AKSKubernetesVersion + ' kubernetes version with ' +
+            azKubernetesVersion + ' kubernetes version with ' +
             expiration_time + ' hours expiration time'
 
         const xhr = new XMLHttpRequest();
@@ -655,6 +655,7 @@ $(document).ready(function() {
         $("#aws-secret-access-key").hide();
         $("#azure-credentials-div").hide();
         $("#azure-credentials-label").hide();
+
         $("#google-creds-json-label").hide();
         $("#google-creds-json-div").hide();
         $("#github-repository-div").hide();
@@ -1379,7 +1380,7 @@ $(document).ready(function() {
             full_table = clusters_manage_table_header + clustersHTML + clusters_manage_table_footer
 
         });
-        if (clusterType == 'aks') {
+        if (clusterType == 'az') {
             $('#aks-clusters-management-table').append(full_table);
         } else if (clusterType == 'eks') {
             $('#eks-clusters-management-table').append(full_table);
@@ -1606,7 +1607,7 @@ $(document).ready(function() {
 
     function populate_regions() {
         if (clusterType == 'aks') {
-            var $dropdown = $("#aks-locations-dropdown");
+            var $dropdown = $("#az-locations-dropdown");
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-locations-dropdown");
         } else if (clusterType == 'gke') {
@@ -1680,8 +1681,8 @@ $(document).ready(function() {
             $("#github-repository").show();
             $("#github-repository-div").show();
             $("#github-actions-token").show();
+            $("#update-az-settings-label").show();
         } else {
-
             if (isEmpty(settingsDataArray[0].aws_access_key_id)) {
                 $("#aws-access-key-id").show();
                 $("#aws-access-key-id-label").show();
@@ -1771,7 +1772,7 @@ $(document).ready(function() {
 
     function populate_zones(region_name) {
         if (clusterType == 'aks') {
-            var $dropdown = $("#aks-zones-dropdown");
+            var $dropdown = $("#az-zones-dropdown");
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-zones-dropdown");
         } else if (clusterType == 'gke') {
@@ -1812,7 +1813,7 @@ $(document).ready(function() {
 
     function populate_subnets(zone_names) {
         if (clusterType == 'aks') {
-            var $dropdown = $("#aks-subnets-dropdown");
+            var $dropdown = $("#az-subnets-dropdown");
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-subnets-dropdown");
         } else if (clusterType == 'gke') {
@@ -1851,7 +1852,7 @@ $(document).ready(function() {
 
     function populate_vpcs(selected_location) {
         if (clusterType == 'aks') {
-            var $dropdown = $("#aks-locations-dropdown");
+            var $dropdown = $("#az-locations-dropdown");
             var url = trolley_url + "/fetch_aws_vpcs?aws_region=" + selected_location;
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-vpcs-dropdown");
@@ -1938,17 +1939,17 @@ $(document).ready(function() {
     function populate_kubernetes_versions(selected_location) {
         if (clusterType == 'aks') {
             var $dropdown = $("#aks-versions-dropdown");
-            var url = trolley_url + "/fetch_aks_versions?az_region=" + selected_location;
+//            var url = trolley_url + "/fetch_kubernetes_versions?location_name=" + selected_location + "&cluster_type=" + clusterType,
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-versions-dropdown");
-            var url = trolley_url + "/fetch_eks_versions?aws_region=" + selected_location;
+//            var url = trolley_url + "/fetch_eks_versions?aws_region=" + selected_location;
         } else if (clusterType == 'gke') {
             var $dropdown = $("#gke-versions-dropdown");
-            var url = trolley_url + "/fetch_gke_versions?gcp_zone=" + selected_location;
+//            var url = trolley_url + "/fetch_gke_versions?gcp_zone=" + selected_location;
         }
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: url,
+                url: trolley_url + "/fetch_kubernetes_versions?location_name=" + selected_location + "&cluster_type=" + clusterType,
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -1965,9 +1966,40 @@ $(document).ready(function() {
         })
     }
 
+
+//    function populate_kubernetes_versions(selected_location) {
+//        if (clusterType == 'aks') {
+//            var $dropdown = $("#aks-versions-dropdown");
+//            var url = trolley_url + "/fetch_aks_versions?az_region=" + selected_location;
+//        } else if (clusterType == 'eks') {
+//            var $dropdown = $("#eks-versions-dropdown");
+//            var url = trolley_url + "/fetch_eks_versions?aws_region=" + selected_location;
+//        } else if (clusterType == 'gke') {
+//            var $dropdown = $("#gke-versions-dropdown");
+//            var url = trolley_url + "/fetch_gke_versions?gcp_zone=" + selected_location;
+//        }
+//        return new Promise((resolve, reject) => {
+//            $.ajax({
+//                url: url,
+//                type: 'GET',
+//                success: function(response) {
+//                    if (response.length > 0) {
+//                        $.each(response, function(key, value) {
+//                            $dropdown.append($("<option />").val(value).text(value));
+//                        });
+//                    }
+//                    resolve(response)
+//                },
+//                error: function(error) {
+//                    alert("Failure fetching Kubernetes versions data")
+//                },
+//            })
+//        })
+//    }
+
     function populate_kubernetes_image_types(selected_location) {
         if (clusterType == 'aks') {
-            var $dropdown = $("#aks-locations-dropdown");
+            var $dropdown = $("#az-locations-dropdown");
             var url = trolley_url + "/fetch_aws_vpcs?aws_region=" + selected_location;
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-vpcs-dropdown");
@@ -1997,10 +2029,10 @@ $(document).ready(function() {
 
 
     function populate_resource_groups(locationName) {
-        var $dropdown = $("#aks-resource-groups-dropdown");
+        var $dropdown = $("#az-resource-groups-dropdown");
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: trolley_url + "/fetch_eks_resource_groups?location_name=" + locationName,
+                url: trolley_url + "/fetch_az_resource_groups?location_name=" + locationName,
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
@@ -2016,6 +2048,7 @@ $(document).ready(function() {
             })
         })
     }
+
 
     function trigger_cloud_provider_discovery(provider, objectType) {
         let cloud_provider_discovery_data = JSON.stringify({
@@ -2188,12 +2221,13 @@ $(document).ready(function() {
         populate_zones(gke_region);
     })
 
-    $('#aks-locations-dropdown').change(function() {
-        var locationName = $('#aks-locations-dropdown').val();
-        $("#aks-resource-groups-dropdown").empty();
-        populate_resource_groups(locationName);
+    $('#az-locations-dropdown').change(function() {
+        var az_location = $('#az-locations-dropdown').val();
+        $("#az-resource-groups-dropdown").empty();
+        populate_resource_groups(az_location);
+        $("#aks-versions-dropdown").empty();
+        populate_kubernetes_versions(az_location);
     })
-
     $('#gke-zones-dropdown').change(function() {
         var gke_zones = $('#gke-zones-dropdown').val();
         $("#gke-versions-dropdown").empty();

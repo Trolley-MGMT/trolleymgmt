@@ -48,8 +48,8 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
-        ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER
+    USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
+    ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER, LOCATION_NAME, REGION_NAME
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
@@ -105,14 +105,19 @@ invited_users: Collection = db.invited_users
 teams: Collection = db.teams
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
-aks_locations_cache: Collection = db.aks_locations_cache
-aks_resource_groups_cache: Collection = db.aks_resource_groups_cache
+az_locations_cache: Collection = db.az_locations_cache
+az_resource_groups_cache: Collection = db.az_resource_groups_cache
+az_machines_cache: Collection = db.az_machines_cache
+aks_kubernetes_versions_cache: Collection = db.aks_kubernetes_versions_cache
+
 gke_cache: Collection = db.gke_cache
 gke_machines_cache: Collection = db.gke_machines_cache
 gke_machines_types_cache: Collection = db.gke_machines_types_cache
 gke_machines_series_cache: Collection = db.gke_machines_series_cache
 gke_zones_and_series_cache: Collection = db.gke_zones_and_series_cache
 gke_series_and_machine_types_cache: Collection = db.gke_series_and_machine_types_cache
+gke_kubernetes_versions_cache: Collection = db.gke_kubernetes_versions_cache
+
 helm_cache: Collection = db.helm_cache
 aws_cache: Collection = db.aws_cache
 aws_machines_cache: Collection = db.aws_machines_cache
@@ -257,10 +262,6 @@ def retrieve_available_clusters(cluster_type: str, client_name: str = '', user_n
                 clusters_object = aks_clusters.find({AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
                 discovered_clusters_object = az_discovered_aks_clusters.find(
                     {AVAILABILITY: True, CLIENT_NAME.lower(): client_name})
-        # if not user_name or is_admin(user_name):
-        #     clusters_object = aks_clusters.find({AVAILABILITY: True})
-        # else:
-        #     clusters_object = aks_clusters.find({AVAILABILITY: True, USER_NAME.lower(): user_name})
     else:
         clusters_object = []
     for cluster in clusters_object:
@@ -380,9 +381,9 @@ def retrieve_expired_clusters(cluster_type: str) -> list:
 
 
 def insert_cache_object(caching_object: dict = None, provider: str = None, machine_types: bool = False,
-                        aks_locations: bool = False, aks_resource_groups: bool = False,
-                        gke_full_cache: bool = False,
-                        gke_machine_series: bool = False,
+                        az_locations: bool = False, az_resource_groups: bool = False,
+                        aks_kubernetes_versions: bool = False, gke_kubernetes_versions: bool = False,
+                        gke_full_cache: bool = False, gke_machine_series: bool = False,
                         gke_series_and_machine_types: bool = False, aws_series_and_machine_types: bool = False,
                         gke_zones_and_series: bool = False, aws_regions_and_series: bool = False) -> bool:
     """
@@ -470,6 +471,23 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             except Exception as e:
                 logger.error(f'failure to insert data into gke_machines_cache table with error: {e}')
                 return False
+        if gke_kubernetes_versions:
+            try:
+                myquery = {'region_name': caching_object['region_name']}
+                if gke_kubernetes_versions_cache.find_one(myquery):
+                    newvalues = {"$set": {'kubernetes_versions_list': caching_object['kubernetes_versions_list'],
+                                          'region_name': caching_object['region_name']}}
+                    mongo_response = gke_kubernetes_versions_cache.update_one(myquery, newvalues)
+                    logger.info(mongo_response.acknowledged)
+                else:
+                    values = {'kubernetes_versions_list': caching_object['kubernetes_versions_list'],
+                              'region_name': caching_object['region_name']}
+                    mongo_response = gke_kubernetes_versions_cache.insert_one(values)
+                    logger.info(mongo_response.acknowledged)
+                return True
+            except Exception as e:
+                logger.error(f'failure to insert data into gke_kubernetes_versions_cache table with error: {e}')
+                return False
         else:
             pass
     elif provider == EKS:
@@ -529,43 +547,65 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
             logger.error(f'failure to insert data into aws_cache table with error: {e}')
             return False
     elif provider == AKS:
-        if aks_locations:
-            aks_locations_cache.drop()
+        if az_locations:
+            az_locations_cache.drop()
             try:
-                mongo_response = aks_locations_cache.insert_one(caching_object)
+                mongo_response = az_locations_cache.insert_one(caching_object)
                 logger.info(mongo_response.acknowledged)
                 logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
                 return True
             except Exception as e:
-                logger.error(f'failure to insert data into aks_locations_cache table with error: {e}')
+                logger.error(f'failure to insert data into az_locations_cache table with error: {e}')
                 return False
-        elif aks_resource_groups:
+        elif az_resource_groups:
             try:
-                myquery = {'location': caching_object['location']}
-                if aks_resource_groups_cache.find_one(myquery):
-                    newvalues = {"$set": {'location': caching_object['location'],
+                myquery = {'location_name': caching_object['location_name']}
+                if az_resource_groups_cache.find_one(myquery):
+                    newvalues = {"$set": {'location_name': caching_object['location_name'],
                                           'resource_groups_list': caching_object['resource_groups_list']}}
-                    mongo_response = aks_resource_groups_cache.update_one(myquery, newvalues)
+                    mongo_response = az_resource_groups_cache.update_one(myquery, newvalues)
                     logger.info(mongo_response.acknowledged)
                 else:
-                    mongo_response = aks_resource_groups_cache.insert_one(caching_object)
+                    mongo_response = az_resource_groups_cache.insert_one(caching_object)
                     logger.info(mongo_response.acknowledged)
                 return True
             except Exception as e:
                 logger.error(f'failure to insert data into aks_resource_groups_cache table with error: {e}')
                 return False
-
-            #
-            #
-            # try:
-            #     mongo_response = aks_resource_groups_cache.insert_one(caching_object)
-            #     logger.info(mongo_response.acknowledged)
-            #     logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
-            #     return True
-            # except Exception as e:
-            #     logger.error(f'failure to insert data into aks_resource_groups_cache table with error: {e}')
-            #     return False
-            # aks_resources_groups
+        if machine_types:
+            try:
+                myquery = {'location_name': caching_object['location_name']}
+                if az_machines_cache.find_one(myquery):
+                    newvalues = {"$set": {'machines_list': caching_object['machines_list'],
+                                          'location_name': caching_object['location_name']}}
+                    mongo_response = az_machines_cache.update_one(myquery, newvalues)
+                    logger.info(mongo_response.acknowledged)
+                else:
+                    values = {'machines_list': caching_object['machines_list'],
+                              'location_name': caching_object['location_name']}
+                    mongo_response = az_machines_cache.insert_one(values)
+                    logger.info(mongo_response.acknowledged)
+                return True
+            except Exception as e:
+                logger.error(f'failure to insert data into az_machines_cache table with error: {e}')
+                return False
+        if aks_kubernetes_versions:
+            try:
+                myquery = {"location_name": caching_object['location_name']}
+                if aks_kubernetes_versions_cache.find_one(myquery):
+                    newvalues = {"$set": {'kubernetes_versions_list': caching_object['kubernetes_versions_list'],
+                                          'location_name': caching_object['location_name']}}
+                    mongo_response = aks_kubernetes_versions_cache.update_one(myquery, newvalues)
+                    logger.info(mongo_response.acknowledged)
+                else:
+                    values = {'kubernetes_versions_list': caching_object['kubernetes_versions_list'],
+                              'location_name': caching_object['location_name']}
+                    mongo_response = aks_kubernetes_versions_cache.insert_one(values)
+                    logger.info(mongo_response.acknowledged)
+                return True
+            except Exception as e:
+                logger.error(f'failure to insert data into az_machines_cache table with error: {e}')
+                return False
     elif provider == HELM:
         helm_cache.drop()
         try:
@@ -611,7 +651,7 @@ def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
         elif provider == EKS:
             cache_object = aws_cache.find()[0]
         elif provider == AKS:
-            cache_object = aks_locations_cache.find()[0]
+            cache_object = az_locations_cache.find()[0]
         elif provider == HELM:
             return helm_cache.find()[0]['helms_installs']
         else:
@@ -620,6 +660,24 @@ def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
         logger.error(f'Retrieving cache failed due to: {e} error')
         return []
     return cache_object[cache_type]
+
+
+def retrieve_kubernetes_versions(location_name: str = '', provider: str = '') -> list:
+    try:
+        if provider == GKE:
+            mongo_query = {REGION_NAME.lower(): location_name}
+            kubernetes_versions_clusters_list = gke_kubernetes_versions_cache.find_one(mongo_query)
+        elif provider == EKS:
+            kubernetes_versions_clusters_list = []
+        elif provider == AKS:
+            mongo_query = {LOCATION_NAME.lower(): location_name}
+            kubernetes_versions_clusters_list = aks_kubernetes_versions_cache.find_one(mongo_query)
+        else:
+            kubernetes_versions_clusters_list = []
+    except Exception as e:
+        logger.error(f'Retrieving kubernetes_versions_clusters_list cache failed due to: {e} error')
+        return []
+    return kubernetes_versions_clusters_list['kubernetes_versions_list']
 
 
 def retrieve_machine_series(region_name: str = '', cluster_type: str = '') -> list:
@@ -663,7 +721,7 @@ def retrieve_compute_per_machine_type(provider: str = '', machine_type: str = ''
     elif provider == EKS:
         cache_object = aws_cache.find()[0]
     elif provider == AKS:
-        cache_object = aks_locations_cache.find()[0]
+        cache_object = az_locations_cache.find()[0]
     elif provider == HELM:
         return helm_cache.find()[0]['helms_installs']
     else:
@@ -673,13 +731,15 @@ def retrieve_compute_per_machine_type(provider: str = '', machine_type: str = ''
         if machine['machine_type'] == machine_type:
             return machine
 
-def retrieve_eks_resource_groups(location: str = '') -> list:
-    mongo_query = {'location': location}
-    aks_resource_groups = aks_resource_groups_cache.find_one(mongo_query)
+
+def retrieve_az_resource_groups(location: str = '') -> list:
+    mongo_query = {'location_name': location}
+    aks_resource_groups = az_resource_groups_cache.find_one(mongo_query)
     if aks_resource_groups:
         return aks_resource_groups['resource_groups_list']
     else:
         return []
+
 
 def retrieve_user(user_email: str):
     """
