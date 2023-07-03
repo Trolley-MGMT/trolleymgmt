@@ -134,7 +134,7 @@ $(document).ready(function() {
         teamsPage = false;
         queryPage = false;
         settingsPage = false;
-    } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-az')) || (pathname[1].includes('manage-gke'))) {
+    } else if ((pathname[1].includes('manage-eks')) || (pathname[1].includes('manage-aks')) || (pathname[1].includes('manage-gke'))) {
         buildPage = false;
         clustersDataPage = false;
         dataPage = false;
