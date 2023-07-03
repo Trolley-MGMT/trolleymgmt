@@ -564,7 +564,7 @@ $(document).ready(function() {
         if (clusterType === 'aks') {
             url = trolley_url + "/trigger_aks_deployment";
             trigger_data = trigger_aks_deployment_data
-            expiration_time = azExpirationTime
+            expiration_time = AKSExpirationTime
         } else if (clusterType == 'eks') {
             url = trolley_url + "/trigger_eks_deployment";
             trigger_data = trigger_eks_deployment_data
@@ -580,7 +580,7 @@ $(document).ready(function() {
         }
 
         swal_message = 'An ' + clusterType + ' deployment was requested for ' +
-            azKubernetesVersion + ' kubernetes version with ' +
+            AKSKubernetesVersion + ' kubernetes version with ' +
             expiration_time + ' hours expiration time'
 
         const xhr = new XMLHttpRequest();
@@ -1380,7 +1380,7 @@ $(document).ready(function() {
             full_table = clusters_manage_table_header + clustersHTML + clusters_manage_table_footer
 
         });
-        if (clusterType == 'az') {
+        if (clusterType == 'aks') {
             $('#aks-clusters-management-table').append(full_table);
         } else if (clusterType == 'eks') {
             $('#eks-clusters-management-table').append(full_table);
