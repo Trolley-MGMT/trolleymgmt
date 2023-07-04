@@ -38,7 +38,8 @@ jobs:
         run: az account set --subscription ${{ env.AZ_SUBSCRIPTION_ID }}
 
       - name: Create AKS Cluster
-        run: az aks create --resource-group ${{ env.AZ_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --location ${{ env.AZ_LOCATION_NAME }}  --node-count ${{ env.NUM_NODES }} --generate-ssh-keys --node-vm-size Standard_DS2_v2
+        run: az aks create --resource-group ${{ env.AZ_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --location ${{ env.AZ_LOCATION_NAME }}  --node-count ${{ env.NUM_NODES }} --generate-ssh-keys --node-vm-size ${{ env.AZ_MACHINE_TYPE }}
+#        run: az aks create --resource-group ${{ env.AZ_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --location ${{ env.AZ_LOCATION_NAME }}  --node-count ${{ env.NUM_NODES }} --generate-ssh-keys --node-vm-size Standard_DS2_v2
 
       - name: Post Deployment Tasks
         env:

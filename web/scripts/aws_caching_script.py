@@ -256,8 +256,6 @@ def main(aws_access_key_id, aws_secret_access_key):
             )
             insert_cache_object(caching_object=asdict(aws_series_and_machine_types_object), provider=EKS,
                                 aws_series_and_machine_types=True)
-        end_time = time.monotonic()
-        logger.info(timedelta(seconds=end_time - start_time))
     except Exception as e:
         logger.error(f'Trouble connecting to AWS {e}')
 

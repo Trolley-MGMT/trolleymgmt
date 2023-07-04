@@ -165,6 +165,7 @@ class GKEMachineTypeObject:
 class AZMachineTypeObject:
     location_name: str
     machine_type: str
+    machine_series: str
     vCPU: int
     memory: int
 
@@ -271,6 +272,17 @@ class AZLocationsCacheObject:
 class AZResourceGroupObject:
     location_name: str
     resource_groups_list: list
+
+
+@dataclass
+class AZZonesAndMachineSeriesObject:
+    location_name: str
+    series_list: list
+
+@dataclass
+class AZSeriesAndMachineTypesObject:
+    machine_series: str
+    machines_list: list
 
 
 @dataclass

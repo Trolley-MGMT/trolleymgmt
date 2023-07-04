@@ -8,6 +8,8 @@ $(document).ready(function() {
     let default_gke_machine_type = "e2-medium";
     let default_eks_machine_series = "m5";
     let default_eks_machine_type = "m5.large";
+    let default_az_machine_series = "D";
+    let default_az_machine_type = "Standard_DS2_v2";
 
     if (isEmpty(stored_user_type) == true) {
         try {
@@ -382,10 +384,12 @@ $(document).ready(function() {
         if (provider == 'gcp') {
             $("#gke-machines-series-dropdown").append($("<option />").val(default_gke_machine_series).text(default_gke_machine_series));
             $("#gke-machines-types-dropdown").append($("<option />").val(default_gke_machine_type).text(default_gke_machine_type));
-        }
-        else if (provider == 'aws') {
+        } else if (provider == 'aws') {
             $("#eks-machines-series-dropdown").append($("<option />").val(default_eks_machine_series).text(default_eks_machine_series));
             $("#eks-machines-types-dropdown").append($("<option />").val(default_eks_machine_type).text(default_eks_machine_type));
+        } else if (provider == 'az') {
+            $("#az-machines-series-dropdown").append($("<option />").val(default_az_machine_series).text(default_az_machine_series));
+            $("#az-machines-types-dropdown").append($("<option />").val(default_az_machine_type).text(default_az_machine_type));
         }
 
     }
@@ -477,6 +481,7 @@ $(document).ready(function() {
         HelmInstalls = $('#helm-installs-dropdown').val();
         AZLocationName = $('#az-locations-dropdown').val();
         AZResourceGroup = $('#az-resource-groups-dropdown').val();
+        AZMachineType = $('#az-machines-types-dropdown').val();
         EKSLocation = $('#eks-locations-dropdown').val();
         EKSZones = $('#eks-zones-dropdown').val();
         EKSMachinesSeries = $('#eks-machines-series-dropdown').val();
@@ -505,6 +510,7 @@ $(document).ready(function() {
                 "expiration_time": AKSExpirationTime,
                 "az_location_name": AZLocationName,
                 "az_resource_group": AZResourceGroup,
+                "az_machine_type": AZMachineType,
                 "github_repository": githubRepository,
                 "github_actions_token": githubActionsToken,
                 "aws_access_key_id": awsAccessKeyId,
@@ -1622,6 +1628,7 @@ $(document).ready(function() {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(key));
                         });
+                        populate_machine_series('eastus')
                     } else if (clusterType == 'eks') {
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
@@ -1788,6 +1795,7 @@ $(document).ready(function() {
                             $.each(response, function(key, value) {
                                 $dropdown.append($("<option />").val(value.name).text(value.displayName));
                             });
+                            populate_machine_series(region_name)
                         } else if (clusterType == 'eks') {
                             $.each(response, function(key, value) {
                                 $dropdown.append($("<option />").val(value).text(value));
@@ -1886,6 +1894,10 @@ $(document).ready(function() {
             var $dropdown = $("#eks-machines-series-dropdown");
             var default_machine_series = default_eks_machine_series;
             var default_instance_type = default_eks_machine_type;
+        } else if (clusterType == 'aks') {
+            var $dropdown = $("#az-machines-series-dropdown");
+            var default_machine_series = default_az_machine_series;
+            var default_instance_type = default_az_machine_type;
         }
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -1899,7 +1911,7 @@ $(document).ready(function() {
 
                         });
                         $dropdown.val(default_machine_series)
-                        $("#gke-machines-types-dropdown").val(default_machine_type);
+//                        $("#gke-machines-types-dropdown").val(default_machine_type);
                     }
                     resolve(response)
                 },
@@ -1915,6 +1927,8 @@ $(document).ready(function() {
             var $dropdown = $("#gke-machines-types-dropdown");
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-machines-types-dropdown");
+        } else if (clusterType == 'aks') {
+            var $dropdown = $("#az-machines-types-dropdown");
         }
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -2227,7 +2241,11 @@ $(document).ready(function() {
         $("#az-resource-groups-dropdown").empty();
         populate_resource_groups(az_location);
         $("#aks-versions-dropdown").empty();
+        $("#az-machines-types-dropdown").empty();
+        $("#az-machines-series-dropdown").empty();
         populate_kubernetes_versions(az_location);
+        populate_machine_series(az_location);
+        populate_machine_types(default_az_machine_series);
     })
     $('#gke-zones-dropdown').change(function() {
         var gke_zones = $('#gke-zones-dropdown').val();
@@ -2253,6 +2271,12 @@ $(document).ready(function() {
         var eks_machine_series = $('#eks-machines-series-dropdown').val();
         $("#eks-machines-types-dropdown").empty();
         populate_machine_types(eks_machine_series);
+    })
+
+    $('#az-machines-series-dropdown').change(function() {
+        var az_machine_series = $('#az-machines-series-dropdown').val();
+        $("#az-machines-types-dropdown").empty();
+        populate_machine_types(az_machine_series);
     })
 
     $('#filter-type-dropdown').change(function() {

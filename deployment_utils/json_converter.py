@@ -27,6 +27,7 @@ def main(incoming_string: str = '', provider: str = ''):
     az_location_name = ''
     az_resource_group = ''
     az_subscription_id = ''
+    az_machine_type = ''
     if provider == AWS:
         region_name = encoded_content['region_name']
         eksctl_deployment_file = encoded_content['eksctl_deployment_file']
@@ -46,9 +47,11 @@ def main(incoming_string: str = '', provider: str = ''):
         az_location_name = encoded_content['az_location_name']
         az_resource_group = encoded_content['az_resource_group']
         az_subscription_id = encoded_content['az_subscription_id']
+        az_machine_type = encoded_content['az_machine_type']
         print(f'az_location_nam is: {az_location_name}')
         print(f'az_resource_group is: {az_resource_group}')
         print(f'az_subscription_id is: {az_subscription_id}')
+        print(f'az_machine_type is: {az_machine_type}')
 
     mongo_url = encoded_content['mongo_url']
     mongo_user = encoded_content['mongo_user']
@@ -91,6 +94,7 @@ def main(incoming_string: str = '', provider: str = ''):
             myfile.write(f"AZ_LOCATION_NAME={az_location_name}\n")
             myfile.write(f"AZ_RESOURCE_GROUP={az_resource_group}\n")
             myfile.write(f"AZ_SUBSCRIPTION_ID={az_subscription_id}\n")
+            myfile.write(f"AZ_MACHINE_TYPE={az_machine_type}\n")
             myfile.write(f"EKSCTL_DEPLOYMENT_FILE={eksctl_deployment_file}\n")
             myfile.write(f"EXPIRATION_TIME={expiration_time}\n")
 

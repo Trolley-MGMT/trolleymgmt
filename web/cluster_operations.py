@@ -64,7 +64,7 @@ class ClusterOperation:
     def __init__(self, provider: str = "", user_email: str = "", github_actions_token: str = "",
                  github_repository: str = "", user_name: str = "", project_name: str = "", cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", az_location_name: str = "",
-                 az_resource_group: str = "", az_subscription_id: str = "",
+                 az_resource_group: str = "", az_subscription_id: str = "", az_machine_type: str = "",
                  region_name: str = "", zone_name: str = "", gcp_project_id: str = "", gke_machine_type: str = "",
                  gke_region: str = "", gke_zone: str = "", eks_machine_type: str = "",
                  eks_volume_size: int = "",
@@ -91,6 +91,7 @@ class ClusterOperation:
         self.az_location_name = az_location_name
         self.az_resource_group = az_resource_group
         self.az_subscription_id = az_subscription_id
+        self.az_machine_type = az_machine_type
         self.region_name = region_name
         self.zone_name = zone_name
         self.eks_machine_type = eks_machine_type
@@ -213,6 +214,7 @@ class ClusterOperation:
             "mongo_user": self.mongo_user,
             "mongo_password": self.mongo_password,
             "cluster_name": self.cluster_name,
+            "az_machine_type": self.az_machine_type,
             "project_name": self.project_name,
             "user_name": self.user_name,
             "cluster_version": self.cluster_version,
