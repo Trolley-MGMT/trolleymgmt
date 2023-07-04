@@ -20,6 +20,9 @@
 
 
 
+
+
+
     </script>
 </head>
 
@@ -326,9 +329,17 @@
                             <h1 class="m-0">Build an AKS cluster</h1>
                         </div><!-- /.col -->
                     </div><!-- /.row -->
+                    <div class="col-lg-4 align-content-lg-center">
+                        <div class="form-group">
+                            <label>Select Location</label>
+                            <br>
+                            <select class="col-lg-8 align-content-lg-center" id="az-locations-dropdown">
+                            </select>
+                        </div>
+                    </div>
                     <div class="col-lg-2 align-content-lg-center">
                         <!-- select -->
-                        <div class="form-group">
+                        <div class="form-group" id="aks-nodes-amt-label" style="display: none;">
                             <label>Select the amount of nodes</label>
                             <select class="form-control" id="aks-nodes-amt">
                                 <option>1</option>
@@ -341,7 +352,7 @@
                     </div>
                     <div class="col-lg-2 align-content-lg-center">
                         <!-- select -->
-                        <div class="form-group">
+                        <div class="form-group" id="aks-versions-label" style="display: none;">
                             <label>Select the Kubernetes version</label>
                             <select class="form-control" id="aks-versions-dropdown">
                                 <option>1.26.3</option>
@@ -353,7 +364,7 @@
                         </div>
                     </div>
                     <div class="col-lg-4 align-content-lg-center">
-                        <div class="form-group">
+                        <div class="form-group" id="az-resource-group-label" style="display: none;">
                             <label>Select Resource Group</label>
                             <br>
                             <select class="col-lg-8 align-content-lg-center" id="az-resource-groups-dropdown">
@@ -361,15 +372,7 @@
                         </div>
                     </div>
                     <div class="col-lg-4 align-content-lg-center">
-                        <div class="form-group">
-                            <label>Select Location</label>
-                            <br>
-                            <select class="col-lg-8 align-content-lg-center" id="az-locations-dropdown">
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 align-content-lg-center">
-                        <div class="form-group">
+                        <div class="form-group" id="az-machines-series-label" style="display: none;">
                             <label>Select Machine Series</label>
                             <br>
                             <select class="col-lg-8 align-content-lg-center" id="az-machines-series-dropdown">
@@ -377,7 +380,7 @@
                         </div>
                     </div>
                     <div class="col-lg-4 align-content-lg-center">
-                        <div class="form-group">
+                        <div class="form-group" id="az-machines-types-label" style="display: none;">
                             <label>Select Machine Type</label>
                             <br>
                             <select class="col-lg-8 align-content-lg-center" id="az-machines-types-dropdown">
@@ -386,7 +389,7 @@
                     </div>
                     <div class="col-lg-2 align-content-lg-center">
                         <!-- select -->
-                        <div class="form-group">
+                        <div class="form-group" id="aks-expiration-time-label" style="display: none;">
                             <label>Select the expiration time</label>
                             <select class="form-control" id="aks-expiration-time">
                                 <option value="1">1h</option>
@@ -404,7 +407,16 @@
                         </div>
                     </div>
                     <br>
-                    <button type="submit" class="btn btn-info" id="build-cluster-button">Build Cluster!</button>
+                    <button type="submit" class="btn btn-info" id="build-cluster-button" style="display: none;">Build
+                        Cluster!
+                    </button>
+                    <div class="col-lg-4 align-content-lg-center" id="az-warning-label">
+                        <div class="callout callout-info">
+                            <h5>System Info!</h5>
+                            <p>Select a location with an existing Resource Group to be able to build a
+                                cluster!</p>
+                        </div>
+                    </div>
                 </div><!-- /.container-fluid -->
             </div>
         </div>
@@ -423,7 +435,7 @@
         <strong>Copyright &copy; 2022-2023 <a href="https://trolley.io">trolley</a></strong>
         All rights reserved.
         <div class="float-right d-none d-sm-inline-block">
-            <b>Version</b> 0.4
+            <b>Version</b> {{ data.version }}
         </div>
     </footer>
 </div>

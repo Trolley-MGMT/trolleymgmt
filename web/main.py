@@ -28,7 +28,6 @@ DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 log_file_name = 'trolley_server.log'
 if DOCKER_ENV:
     log_file_path = f'/var/log/{log_file_name}'
-    # log_file_path = f'{os.getcwd()}/web/{log_file_name}'
 else:
     log_file_path = f'{os.getcwd()}/{log_file_name}'
 
@@ -64,8 +63,9 @@ from variables.variables import POST, GET, EKS, \
     ZONES_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
     REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN, \
-    EKS_RESOURCE_GROUPS, LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP
+    LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP
 
+from web.__init__ import __version__
 from mail_handler import MailSender
 from utils import random_string, apply_yaml
 from scripts import gcp_discovery_script, aws_discovery_script
@@ -258,7 +258,7 @@ def render_page(page_name: str = '', cluster_name: str = '', client_name: str = 
         is_login_pass = False
     if is_login_pass:
         data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'],
-                'cluster_name': cluster_name, 'client_name': client_name}
+                'cluster_name': cluster_name, 'client_name': client_name, 'version': __version__}
         profile_image = base64_data.decode('utf-8')
         return render_template(page_name, data=data, image=profile_image)
     else:
@@ -1052,7 +1052,7 @@ def login():
             user_email = user_object['user_email']
             user_type = mongo_handler.mongo_utils.check_user_type(user_email)
             data = {'user_name': user_object['user_name'], 'first_name': user_object['first_name'],
-                    'user_type': user_type}
+                    'user_type': user_type, 'version': __version__}
             logger.info(f'data content is: {data}')
             return render_template('index.html', data=data, image=profile_image)
         else:

@@ -2050,9 +2050,25 @@ $(document).ready(function() {
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
+                       $("#az-resource-group-label").show();
+                       $("#az-machines-types-label").show();
+                       $("#az-machines-series-label").show();
+                       $("#aks-versions-label").show();
+                       $("#aks-expiration-time-label").show();
+                       $("#az-warning-label").hide();
+                       $("#build-cluster-button").show();
                             $.each(response, function(key, value) {
                                 $dropdown.append($("<option />").val(value).text(value));
                             });
+                    }
+                    else {
+                       $("#az-resource-group-label").hide();
+                       $("#az-machines-types-label").hide();
+                       $("#az-machines-series-label").hide();
+                       $("#aks-versions-label").hide();
+                       $("#aks-expiration-time-label").hide();
+                       $("#az-warning-label").show();
+                       $("#build-cluster-button").hide();
                     }
                     resolve(response)
                 },
