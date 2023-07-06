@@ -65,7 +65,7 @@ from variables.variables import POST, GET, EKS, \
     REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN, \
     LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP
 
-from web.__init__ import __version__
+from __init__ import __version__
 from mail_handler import MailSender
 from utils import random_string, apply_yaml
 from scripts import gcp_discovery_script, aws_discovery_script
