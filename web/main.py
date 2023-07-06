@@ -544,11 +544,16 @@ def delete_cluster():
     content['mongo_url'] = MONGO_URL
     content['mongo_user'] = MONGO_USER
     content['mongo_password'] = MONGO_PASSWORD
-    content['az_subscription_id'] = json.loads(content['azure_credentials'])['subscriptionId']
-    az_resource_group = \
-        mongo_handler.mongo_utils.retrieve_cluster_details(content[CLUSTER_TYPE], content[CLUSTER_NAME.lower()],
-                                                           content[DISCOVERED])[AZ_RESOURCE_GROUP]
-    content[AZ_RESOURCE_GROUP] = az_resource_group
+    if content[CLUSTER_TYPE] == GKE:
+        pass
+    elif content[CLUSTER_TYPE] == EKS:
+        pass
+    elif content[CLUSTER_TYPE] == AKS:
+        content['az_subscription_id'] = json.loads(content['azure_credentials'])['subscriptionId']
+        az_resource_group = \
+            mongo_handler.mongo_utils.retrieve_cluster_details(content[CLUSTER_TYPE], content[CLUSTER_NAME.lower()],
+                                                               content[DISCOVERED])['resource_group']
+        content[AZ_RESOURCE_GROUP] = az_resource_group
     cluster_operations = ClusterOperation(**content)
     if content[CLUSTER_TYPE] == GKE:
         cluster_operations.delete_gke_cluster()

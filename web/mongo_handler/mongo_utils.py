@@ -216,7 +216,6 @@ def retrieve_available_clusters(cluster_type: str, client_name: str = '', user_n
     if cluster_type == GKE:
         if not user_name and not client_name:
             return []
-            # clusters_object = gke_clusters.find({AVAILABILITY: True})
         elif is_admin(user_name):
             discovered_clusters_object = gcp_discovered_gke_clusters.find({AVAILABILITY: True})
             clusters_object = gke_clusters.find({AVAILABILITY: True})
@@ -336,7 +335,10 @@ def retrieve_cluster_details(cluster_type: str, cluster_name: str, discovered: b
         else:
             cluster_object = eks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     elif cluster_type == AKS:
-        cluster_object = aks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+        if discovered:
+            cluster_object = az_discovered_aks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
+        else:
+            cluster_object = aks_clusters.find_one({CLUSTER_NAME.lower(): cluster_name})
     else:
         cluster_object = []
     del cluster_object['_id']
@@ -650,6 +652,7 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                 logger.error(f'failure to insert data into gke_zones_and_series_cache table with error: {e}')
                 return False
 
+
 def retrieve_clients_data() -> list:
     clients_data_list = []
     mongo_query = {AVAILABILITY.lower(): True}
@@ -749,11 +752,12 @@ def retrieve_machine_types(machine_series: str = '', cluster_type: str = '') -> 
 def retrieve_compute_per_machine_type(provider: str = '', machine_type: str = '', region_name: str = '') -> dict:
     if provider == GKE:
         mongo_query = {'region': region_name}
-        cache_object = gke_machines_types_cache.find_one(mongo_query)
+        cache_object = gke_machines_cache.find_one(mongo_query)
+        # cache_object = gke_machines_types_cache.find_one(mongo_query)
     elif provider == EKS:
         cache_object = aws_cache.find()[0]
     elif provider == AKS:
-        cache_object = az_locations_cache.find()[0]
+        cache_object = az_machines_cache.find()[0]
     elif provider == HELM:
         return helm_cache.find()[0]['helms_installs']
     else:
@@ -1356,6 +1360,76 @@ def update_discovered_gke_cluster_object(gke_cluster_object: dict) -> bool:
                 return False
     except:
         logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
+
+
+def insert_discovered_cluster_object(discovered_cluster_object: dict, cluster_type: str) -> bool:
+    """
+    @param discovered_cluster_object: The clusters list to save
+    """
+    logger.info(f'{discovered_cluster_object}')
+    try:
+        mongo_query = {CLUSTER_NAME.lower(): discovered_cluster_object[CLUSTER_NAME.lower()]}
+        if cluster_type == AKS:
+            existing_data_object = az_discovered_aks_clusters.find_one(mongo_query)
+        elif cluster_type == GKE:
+            existing_data_object = gcp_discovered_gke_clusters.find_one(mongo_query)
+        elif cluster_type == EKS:
+            existing_data_object = aws_discovered_eks_clusters.find_one(mongo_query)
+        if existing_data_object:
+            if cluster_type == AKS:
+                result = az_discovered_aks_clusters.replace_one(existing_data_object, discovered_cluster_object)
+            elif cluster_type == GKE:
+                result = gcp_discovered_gke_clusters.replace_one(existing_data_object, discovered_cluster_object)
+            elif cluster_type == EKS:
+                result = aws_discovered_eks_clusters.replace_one(existing_data_object, discovered_cluster_object)
+            logger.info(f'discovered_cluster_object was updated properly')
+            return result.raw_result['updatedExisting']
+        else:
+            if cluster_type == AKS:
+                result = az_discovered_aks_clusters.insert_one(discovered_cluster_object)
+            elif cluster_type == GKE:
+                result = gcp_discovered_gke_clusters.insert_one(discovered_cluster_object)
+            elif cluster_type == EKS:
+                result = aws_discovered_eks_clusters.insert_one(discovered_cluster_object)
+
+            logger.info(result.acknowledged)
+            if result.inserted_id:
+                logger.info(f'discovered_cluster_object was inserted properly')
+                return True
+            else:
+                logger.error(f'discovered_cluster_object was not inserted properly')
+                return False
+    except Exception as e:
+        logger.error(f'discovered_cluster_object was not inserted properly with error: {e}')
+
+
+# def update_discovered_cluster_object(discovered_cluster_object: dict) -> bool:
+#     """
+#     @param discovered_cluster_object: The gke cluster list to update
+#     """
+#     logger.info(f'{discovered_cluster_object}')
+#     try:
+#         mongo_query = {CLUSTER_NAME.lower(): gke_cluster_object[CLUSTER_NAME.lower()]}
+#         existing_data_object = gke_clusters.find_one(mongo_query)
+#         gke_cluster_object['user_name'] = existing_data_object['user_name']
+#         gke_cluster_object['expiration_timestamp'] = existing_data_object['expiration_timestamp']
+#         gke_cluster_object['human_expiration_timestamp'] = existing_data_object['human_expiration_timestamp']
+#         gke_cluster_object['kubeconfig'] = existing_data_object['kubeconfig']
+#         if existing_data_object:
+#             result = gke_clusters.replace_one(existing_data_object, gke_cluster_object)
+#             logger.info(f'aws_discovered_eks_clusters was updated properly')
+#             return result.raw_result['updatedExisting']
+#         else:
+#             result = gke_clusters.insert_one(gke_cluster_object)
+#             logger.info(result.acknowledged)
+#             if result.inserted_id:
+#                 logger.info(f'gcp_discovered_gke_clusters was inserted properly')
+#                 return True
+#             else:
+#                 logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
+#                 return False
+#     except:
+#         logger.error(f'gcp_discovered_gke_clusters was not inserted properly')
 
 
 def insert_gcp_vm_instances_object(gcp_vm_instances_object: list) -> bool:

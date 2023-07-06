@@ -44,11 +44,8 @@ jobs:
           GITHUB_ACTIONS_ENV: Yes
 
         run: |
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-          (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/runner/.bash_profile
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install az
           which az
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 web/scripts/aks_caching_script.py
+          python3 web/scripts/az_caching_script.py

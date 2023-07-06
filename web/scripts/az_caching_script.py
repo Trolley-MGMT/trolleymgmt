@@ -20,7 +20,7 @@ CURRENTLY_ALLOWED_LOCATIONS = 'australiacentral,australiacentral2,australiaeast,
                               'norwayeast,norwaywest,qatarcentral,southafricanorth,southcentralus,southeastasia,' \
                               'southindia,swedencentral,switzerlandnorth,switzerlandwest,uaecentral,uaenorth,uksouth,' \
                               'ukwest,westcentralus,westeurope,westus,westus2,westus3'
-CURRENTLY_ALLOWED_LOCATIONS = CURRENTLY_ALLOWED_LOCATIONS.split(',')
+CURRENTLY_ALLOWED_LOCATIONS_LIST = CURRENTLY_ALLOWED_LOCATIONS.split(',')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -38,7 +38,7 @@ def fetch_locations() -> dict:
     regions_list_response = json.loads(result.stdout)
     regions_dict = {}
     for region in regions_list_response:
-        if region['name'] in CURRENTLY_ALLOWED_LOCATIONS:
+        if region['name'] in CURRENTLY_ALLOWED_LOCATIONS_LIST:
             regions_dict[region['displayName']] = region['name']
     return regions_dict
 
@@ -46,7 +46,7 @@ def fetch_locations() -> dict:
 def fetch_resource_groups() -> dict:
     logger.info(f'A request to fetch resource groups has arrived')
     resource_groups_dict = {}
-    for location_name in CURRENTLY_ALLOWED_LOCATIONS:
+    for location_name in CURRENTLY_ALLOWED_LOCATIONS_LIST:
         command = f'{AZ_RESOURCE_GROUPS_COMMAND} \"[?location==\'{location_name}\']\"'
         logger.info(f'Running a {command} command')
         result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
@@ -62,7 +62,7 @@ def fetch_resource_groups() -> dict:
 def fetch_machine_types_per_location() -> dict:
     machine_types_list = []
     machines_for_zone_dict = {}
-    for location_name in CURRENTLY_ALLOWED_LOCATIONS:
+    for location_name in CURRENTLY_ALLOWED_LOCATIONS_LIST:
         command = f'{AZ_VM_SIZES_COMMAND} {location_name}'
         logger.info(f'Running a {command} command')
         result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
@@ -85,7 +85,7 @@ def fetch_machine_types_per_location() -> dict:
 def fetch_kubernetes_versions() -> dict:
     logger.info(f'A request to fetch kubernetes versions has arrived')
     kubernetes_versions_dict = {}
-    for location_name in CURRENTLY_ALLOWED_LOCATIONS:
+    for location_name in CURRENTLY_ALLOWED_LOCATIONS_LIST:
         command = f'{AKS_KUBERNETES_VERSIONS_COMMAND} {location_name}'
         logger.info(f'Running a {command} command')
         result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)

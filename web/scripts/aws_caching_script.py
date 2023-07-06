@@ -145,9 +145,6 @@ def fetch_machine_types_per_region(region: str, ec2) -> list:
 
 
 def main(aws_access_key_id, aws_secret_access_key):
-    start_time = time.monotonic()
-    logger.info(f'aws_access_key_id is: {aws_access_key_id}')
-    logger.info(f'aws_secret_access_key is: {aws_secret_access_key}')
     if aws_access_key_id and aws_secret_access_key:
         if not os.path.exists(FETCHED_CREDENTIALS_DIR_PATH):
             os.makedirs(FETCHED_CREDENTIALS_DIR_PATH)

@@ -24,12 +24,13 @@ COPY web/mongo_boot_dump /app/mongo_boot_dump
 COPY web/variables /app/variables
 COPY web/trolley_small.png /app
 
-ADD web/scripts/aks_caching_script.py aks_caching_script.py
+ADD web/scripts/az_caching_script.py az_caching_script.py
 ADD web/scripts/gcp_caching_script.py gcp_caching_script.py
 ADD web/scripts/aws_caching_script.py aws_caching_script.py
 ADD web/scripts/aws_discovery_script.py aws_discovery_script.py
+ADD web/scripts/az_discovery_script.py az_discovery_script.py
 ADD web/scripts/gcp_discovery_script.py gcp_discovery_script.py
-RUN chmod +x trolley_api.sh aks_cache.sh aws_cache.sh gcp_cache.sh aws_discovery.sh gcp_discovery.sh
+RUN chmod +x trolley_api.sh az_cache.sh aws_cache.sh gcp_cache.sh aws_discovery.sh az_discovery.sh gcp_discovery.sh
 
 CMD ./trolley_api.sh
 #ENTRYPOINT ["tail", "-f", "/dev/null"]

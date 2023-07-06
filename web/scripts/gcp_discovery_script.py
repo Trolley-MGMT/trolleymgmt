@@ -42,7 +42,7 @@ if KUBERNETES_SERVICE_HOST != '0.0.0.0':
     logger.info(f'Running in Kubernetes in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
 else:
     logger.info(
-        f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
+        f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host.')
 
 if DOCKER_ENV:
     from mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
@@ -270,7 +270,7 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
     if is_fetching_gke_clusters:
         discovered_clusters_to_add = []
         discovered_clusters_to_update = []
-        trolley_built_clusters = retrieve_available_clusters('gke')
+        trolley_built_clusters = retrieve_available_clusters(GKE)
         gke_discovered_clusters = fetch_gke_clusters(service)
         for gke_discovered_cluster in gke_discovered_clusters:
             for trolley_built_cluster in trolley_built_clusters:
@@ -280,9 +280,9 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
                     discovered_clusters_to_update.append(gke_discovered_cluster)
             if gke_discovered_cluster not in trolley_built_clusters:
                 discovered_clusters_to_add.append(gke_discovered_cluster)
-        print(f'List of discovered GKE clusters: {gke_discovered_clusters}')
-        print(f'List of trolley built GKE clusters: {trolley_built_clusters}')
-        print(f'List of discovered clusters to add: {discovered_clusters_to_add}')
+        logger.info(f'List of discovered GKE clusters: {gke_discovered_clusters}')
+        logger.info(f'List of trolley built GKE clusters: {trolley_built_clusters}')
+        logger.info(f'List of discovered clusters to add: {discovered_clusters_to_add}')
         if not gke_discovered_clusters:
             drop_discovered_clusters(cluster_type=GKE)
         for discovered_cluster_to_add in discovered_clusters_to_add:
