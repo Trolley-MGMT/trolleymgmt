@@ -552,7 +552,7 @@ def delete_cluster():
         content['az_subscription_id'] = json.loads(content['azure_credentials'])['subscriptionId']
         az_resource_group = \
             mongo_handler.mongo_utils.retrieve_cluster_details(content[CLUSTER_TYPE], content[CLUSTER_NAME.lower()],
-                                                               content[DISCOVERED])['resource_group']
+                                                               content[DISCOVERED])['az_resource_group']
         content[AZ_RESOURCE_GROUP] = az_resource_group
     cluster_operations = ClusterOperation(**content)
     if content[CLUSTER_TYPE] == GKE:

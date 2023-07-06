@@ -143,7 +143,7 @@ def fetch_aks_clusters() -> list:
             cluster_object = {'cluster_name': cluster['name'], 'user_name': 'vacant',
                               'cluster_version': cluster['currentKubernetesVersion'],
                               'region_name': cluster['location'],
-                              'resource_group': cluster['resourceGroup'],
+                              'az_resource_group': cluster['resourceGroup'],
                               'machine_type': machine_type,
                               'num_nodes': num_nodes,
                               'discovered': True,
