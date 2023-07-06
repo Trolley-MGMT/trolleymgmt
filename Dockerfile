@@ -14,6 +14,9 @@ RUN pip install -r requirements.txt
 # installing gcloud
 RUN curl -sSL https://sdk.cloud.google.com | bash
 
+# Installing AZ CLI
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
 COPY . /app
 COPY web/static /app/static
 COPY web/main.py /app
