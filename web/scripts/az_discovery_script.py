@@ -79,7 +79,7 @@ else:
     KUBECONFIG_PATH = '/root/.kube/config'
 
 
-def get_credentials(user_email: str):
+def get_credentials(user_email: str) -> tuple:
     """
     This function fetches the credentials needed to authenticate with Azure
     @param user_email:
@@ -95,6 +95,8 @@ def get_credentials(user_email: str):
             os.environ['AZURE_CLIENT_ID'] = decrypted_credentials['clientId']
             os.environ['AZURE_CLIENT_SECRET'] = decrypted_credentials['clientSecret']
             os.environ['AZURE_TENANT_ID'] = decrypted_credentials['tenantId']
+            return decrypted_credentials['clientId'], decrypted_credentials['clientSecret'], decrypted_credentials[
+                'tenantId']
         except Exception as e:
             logger.error(f"azure credentials were not found {e}")
 
@@ -115,11 +117,12 @@ def generate_kubeconfig(cluster_name: str, resource_group: str):
             return kubeconfig
 
 
-def fetch_aks_clusters() -> list:
+def fetch_aks_clusters(azure_client_id: str, azure_client_secret: str, azure_tenant_id: str) -> list:
     logger.info(f'A request to fetch resource groups has arrived')
     logger.info(f'Running a {AZ_LIST_GROUPS_AND_CLUSTERS_COMMAND} command')
     aks_clusters_list = []
-    result = run('az login', stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    az_login_command = f"az login --service-principal -u {azure_client_id} -p {azure_client_secret} --tenant {azure_tenant_id}"
+    result = run(az_login_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     logger.info(f'result of the az login request: {result.stderr} {result.stdout}')
     result = run(AZ_LIST_GROUPS_AND_CLUSTERS_COMMAND, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     logger.info(f'result of the az request: {result.stderr} {result.stdout}')
@@ -164,12 +167,12 @@ def fetch_aks_clusters() -> list:
 
 
 def main(is_fetching_aks_clusters, user_email):
-    get_credentials(user_email)
+    azure_client_id, azure_client_secret, azure_tenant_id = get_credentials(user_email)
     logger.info(f'printing all the environment variables: {os.environ}')
     if is_fetching_aks_clusters:
         discovered_clusters_to_add = []
         trolley_built_clusters = retrieve_available_clusters(AKS)
-        aks_discovered_clusters = fetch_aks_clusters()
+        aks_discovered_clusters = fetch_aks_clusters(azure_client_id, azure_client_secret, azure_tenant_id)
         for aks_discovered_cluster in aks_discovered_clusters:
             if not trolley_built_clusters:
                 discovered_clusters_to_add.append(aks_discovered_cluster)
