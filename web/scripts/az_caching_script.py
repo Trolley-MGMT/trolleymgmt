@@ -89,12 +89,11 @@ def fetch_kubernetes_versions() -> dict:
         command = f'{AKS_KUBERNETES_VERSIONS_COMMAND} {location_name}'
         logger.info(f'Running a {command} command')
         result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-        logger.info(f'result of the command run is: {result.stdout}, {result.stderr}')
         available_kubernetes_versions_response = json.loads(result.stdout)
         if available_kubernetes_versions_response:
             available_kubernetes_versions_list = []
-            for kubernetes_version in available_kubernetes_versions_response['orchestrators']:
-                available_kubernetes_versions_list.append(kubernetes_version['orchestratorVersion'])
+            for kubernetes_version in available_kubernetes_versions_response['values']:
+                available_kubernetes_versions_list.append(kubernetes_version['version'])
                 kubernetes_versions_dict[location_name] = available_kubernetes_versions_list
     return kubernetes_versions_dict
 
