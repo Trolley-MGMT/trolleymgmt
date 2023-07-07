@@ -120,6 +120,7 @@ def fetch_aks_clusters() -> list:
     logger.info(f'Running a {AZ_LIST_GROUPS_AND_CLUSTERS_COMMAND} command')
     aks_clusters_list = []
     result = run(AZ_LIST_GROUPS_AND_CLUSTERS_COMMAND, stdout=PIPE, stderr=PIPE, text=True, shell=True)
+    logger.info(f'result of the az request: {result.stderr} {result.stdout}')
     az_resource_groups_and_clusters_response = json.loads(result.stdout)
     for resource_group_and_cluster in az_resource_groups_and_clusters_response:
         cluster_name = resource_group_and_cluster['Name']
