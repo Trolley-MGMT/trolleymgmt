@@ -16,6 +16,7 @@ jobs:
 
       - name: Echo the values
         run: |
+          echo "project_name is: ${{ github.event.client_payload.project_name }}"
           echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
           echo "zone_name is: ${{ github.event.client_payload.zone_name }}"
           echo "discovered is: ${{ github.event.client_payload.discovered }}"
@@ -33,6 +34,7 @@ jobs:
       - name: Deleting Cluster
         if: always()
         env:
+          PROJECT_NAME: ${{ github.event.client_payload.project_name }}
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
