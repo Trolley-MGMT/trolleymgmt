@@ -163,6 +163,7 @@ def fetch_aks_clusters() -> list:
 
 def main(is_fetching_aks_clusters, user_email):
     get_credentials(user_email)
+    logger.info(f'printing all the environment variables: {os.environ}')
     if is_fetching_aks_clusters:
         discovered_clusters_to_add = []
         trolley_built_clusters = retrieve_available_clusters(AKS)
