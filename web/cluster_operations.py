@@ -313,7 +313,7 @@ class ClusterOperation:
             "event_type": "aks-delete-api-trigger",
             "client_payload": {
                 "azure_credentials": self.azure_credentials,
-                "discovered": self.discovered,
+                "discovered": str(self.discovered),
                 "cluster_name": self.cluster_name,
                 "mongo_user": self.mongo_user,
                 "mongo_password": self.mongo_password,
