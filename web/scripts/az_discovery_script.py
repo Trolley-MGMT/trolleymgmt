@@ -162,6 +162,8 @@ def main(is_fetching_aks_clusters, user_email):
         trolley_built_clusters = retrieve_available_clusters(AKS)
         aks_discovered_clusters = fetch_aks_clusters()
         for aks_discovered_cluster in aks_discovered_clusters:
+            if not trolley_built_clusters:
+                discovered_clusters_to_add.append(aks_discovered_cluster)
             for trolley_built_cluster in trolley_built_clusters:
                 if aks_discovered_cluster['cluster_name'] != trolley_built_cluster['cluster_name']:
                     discovered_clusters_to_add.append(aks_discovered_cluster)

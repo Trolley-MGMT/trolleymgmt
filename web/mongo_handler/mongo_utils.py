@@ -203,7 +203,10 @@ def set_cluster_availability(cluster_type: str = '', cluster_name: str = '', dis
         else:
             result = eks_clusters.update_one(myquery, newvalues)
     elif cluster_type == AKS:
-        result = aks_clusters.update_one(myquery, newvalues)
+        if discovered:
+            result = az_discovered_aks_clusters.update_one(myquery, newvalues)
+        else:
+            result = aks_clusters.update_one(myquery, newvalues)
     else:
         result = gke_clusters.update_one(myquery, newvalues)
     return result.raw_result['updatedExisting']

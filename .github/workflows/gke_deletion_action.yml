@@ -18,7 +18,7 @@ jobs:
         run: |
           echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
           echo "zone_name is: ${{ github.event.client_payload.zone_name }}"
-          echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"
+          echo "discovered is: ${{ github.event.client_payload.discovered }}"
 
 
       - id: 'auth'
@@ -40,5 +40,5 @@ jobs:
           gcloud components install beta --quiet
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/set_cluster_availability.py --cluster_type gke --cluster_name ${{ github.event.client_payload.cluster_name }} --availability False
           gcloud beta container clusters delete ${{ github.event.client_payload.cluster_name }} --zone ${{ github.event.client_payload.zone_name }} --quiet
+          python3 deployment_utils/set_cluster_availability.py --cluster_type gke --cluster_name ${{ github.event.client_payload.cluster_name }} --discovered ${{ github.event.client_payload.discovered }} --availability False

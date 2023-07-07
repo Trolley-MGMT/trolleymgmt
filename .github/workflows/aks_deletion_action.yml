@@ -16,8 +16,8 @@ jobs:
 
       - name: Echo the values
         run: |
-          echo "${{ github.event.client_payload.cluster_name }}"
-          echo "${{ github.event.client_payload.azure_credentials }}"
+          echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
+          echo "discovered is" ${{ github.event.client_payload.discovered }}"
 
 
       - name: Azure Login
@@ -41,5 +41,5 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          python3 deployment_utils/set_cluster_availability.py --cluster_type aks --cluster_name ${{ github.event.client_payload.cluster_name }} --availability False
           az aks delete --name=${{ github.event.client_payload.cluster_name }} --resource-group=Trolley --yes
+          python3 deployment_utils/set_cluster_availability.py --cluster_type aks --cluster_name ${{ github.event.client_payload.cluster_name }} --discovered ${{ github.event.client_payload.discovered }} --availability False
