@@ -566,10 +566,6 @@ def delete_cluster():
         cluster_operations.delete_eks_cluster()
     elif content[CLUSTER_TYPE] == AKS:
         cluster_operations.delete_aks_cluster()
-    # mongo_handler.mongo_utils.set_cluster_availability(cluster_type=content[CLUSTER_TYPE],
-    #                                                    cluster_name=content[CLUSTER_NAME.lower()],
-    #                                                    discovered=content[DISCOVERED],
-    #                                                    availability=False)
     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
 
 
@@ -598,7 +594,7 @@ def insert_cluster_data():
 @login_required
 def settings():
     """
-    This endpoint saves Trolley settings
+    This endpoint saves Trolley settings and initiates a cloud scan if the provided credentials are correct
     """
     function_name = inspect.stack()[0][3]
     logger.info(f'A request for {function_name} was requested')
