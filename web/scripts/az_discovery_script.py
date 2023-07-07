@@ -90,11 +90,6 @@ def get_credentials(user_email: str) -> tuple:
     if provider_data:
         try:
             decrypted_credentials_ = crypter.decrypt(provider_data['azure_credentials']).decode("utf-8")
-            decrypted_credentials = json.loads(decrypted_credentials_)
-            logger.info(f"decrypted_credentials are: {decrypted_credentials}")
-            os.environ['AZURE_CLIENT_ID'] = decrypted_credentials['clientId']
-            os.environ['AZURE_CLIENT_SECRET'] = decrypted_credentials['clientSecret']
-            os.environ['AZURE_TENANT_ID'] = decrypted_credentials['tenantId']
             return decrypted_credentials['clientId'], decrypted_credentials['clientSecret'], decrypted_credentials[
                 'tenantId']
         except Exception as e:
@@ -168,7 +163,6 @@ def fetch_aks_clusters(azure_client_id: str, azure_client_secret: str, azure_ten
 
 def main(is_fetching_aks_clusters, user_email):
     azure_client_id, azure_client_secret, azure_tenant_id = get_credentials(user_email)
-    logger.info(f'printing all the environment variables: {os.environ}')
     if is_fetching_aks_clusters:
         discovered_clusters_to_add = []
         trolley_built_clusters = retrieve_available_clusters(AKS)
