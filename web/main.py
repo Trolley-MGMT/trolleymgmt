@@ -23,7 +23,6 @@ import yaml
 from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from web.scripts import az_discovery_script
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
