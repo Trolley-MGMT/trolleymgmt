@@ -53,9 +53,6 @@ jobs:
           (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/runner/.bash_profile
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install az
-          which az
-          az version
-          echo "hi there"
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
           python3 web/scripts/az_caching_script.py
