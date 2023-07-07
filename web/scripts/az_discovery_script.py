@@ -10,22 +10,22 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from pathlib import Path
 from subprocess import PIPE, run
 
+from cryptography.fernet import Fernet
 from hurry.filesize import size
-
-
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 KUBERNETES_SERVICE_HOST = os.getenv('KUBERNETES_SERVICE_HOST', '0.0.0.0')
 
-
 if DOCKER_ENV:
     from mongo_handler.mongo_utils import retrieve_available_clusters, drop_discovered_clusters, \
-        insert_discovered_cluster_object, retrieve_compute_per_machine_type
+        insert_discovered_cluster_object, retrieve_compute_per_machine_type, retrieve_credentials_data_object
     from mongo_handler.variables import AKS
+    from variables.variables import GKE, GCP, AZ
 else:
     from web.mongo_handler.mongo_utils import retrieve_available_clusters, drop_discovered_clusters, \
-        insert_discovered_cluster_object, retrieve_compute_per_machine_type
+        insert_discovered_cluster_object, retrieve_compute_per_machine_type, retrieve_credentials_data_object
     from web.mongo_handler.variables import AKS
+    from web.variables.variables import GKE, GCP, AZ
 
 log_file_name = 'server.log'
 if DOCKER_ENV:
@@ -69,11 +69,34 @@ TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
 
+key = os.getenv('SECRET_KEY').encode()
+crypter = Fernet(key)
+
 if 'Darwin' in platform.system():
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
 
 else:
     KUBECONFIG_PATH = '/root/.kube/config'
+
+
+def get_credentials(user_email: str):
+    """
+    This function fetches the credentials needed to authenticate with Azure
+    @param user_email:
+    @return:
+    """
+    provider_data = retrieve_credentials_data_object(AZ, user_email)
+    logger.info(f"provider_data {provider_data}")
+    if provider_data:
+        try:
+            decrypted_credentials_ = crypter.decrypt(provider_data['azure_credentials']).decode("utf-8")
+            decrypted_credentials = json.loads(decrypted_credentials_)
+            logger.info(f"decrypted_credentials are: {decrypted_credentials}")
+            os.environ['AZURE_CLIENT_ID'] = decrypted_credentials['clientId']
+            os.environ['AZURE_CLIENT_SECRET'] = decrypted_credentials['clientSecret']
+            os.environ['AZURE_TENANT_ID'] = decrypted_credentials['tenantId']
+        except Exception as e:
+            logger.error(f"azure credentials were not found {e}")
 
 
 def generate_kubeconfig(cluster_name: str, resource_group: str):
@@ -138,6 +161,7 @@ def fetch_aks_clusters() -> list:
 
 
 def main(is_fetching_aks_clusters, user_email):
+    get_credentials(user_email)
     if is_fetching_aks_clusters:
         discovered_clusters_to_add = []
         trolley_built_clusters = retrieve_available_clusters(AKS)
