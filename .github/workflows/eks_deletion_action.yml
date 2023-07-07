@@ -19,7 +19,7 @@ jobs:
           echo "region_name is: ${{ github.event.client_payload.region_name }}"
           echo "cluster_name is: ${{ github.event.client_payload.cluster_name }}"
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
-          echo "discovered is: ${{ github.event.client_payload.discovered }}"
+          
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
