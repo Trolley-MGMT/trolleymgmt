@@ -13,9 +13,8 @@ from subprocess import PIPE, run
 from hurry.filesize import size
 
 from web.mongo_handler.mongo_utils import retrieve_available_clusters, drop_discovered_clusters, \
-    update_discovered_gke_cluster_object, insert_discovered_cluster_object, retrieve_compute_per_machine_type
+    insert_discovered_cluster_object, retrieve_compute_per_machine_type
 from web.mongo_handler.variables import AKS
-from web.variables.variables import AZ
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 KUBERNETES_SERVICE_HOST = os.getenv('KUBERNETES_SERVICE_HOST', '0.0.0.0')
@@ -44,22 +43,6 @@ else:
     logger.info(
         f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host. No need for discovery here')
 
-# if DOCKER_ENV:
-#     from mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
-#     from mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, update_discovered_gke_cluster_object, \
-#         insert_gcp_vm_instances_object, \
-#         insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
-#         retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
-#     from variables.variables import GKE, GCP
-# else:
-#     from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
-#     from web.mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, \
-#         update_discovered_gke_cluster_object, \
-#         insert_gcp_vm_instances_object, \
-#         insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
-#         retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
-#     from web.variables.variables import GKE, GCP
-
 CURRENTLY_ALLOWED_LOCATIONS = 'australiacentral,australiacentral2,australiaeast,australiasoutheast,brazilsouth,' \
                               'brazilsoutheast,canadacentral,canadaeast,centralindia,centralus,eastasia,eastus,' \
                               'eastus2,francecentral,francesouth,germanynorth,germanywestcentral,japaneast,japanwest,' \
@@ -77,7 +60,6 @@ AZ_GENERATE_KUBECONFIG_COMMAND = 'az aks get-credentials'
 TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
-
 
 if 'Darwin' in platform.system():
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
@@ -100,7 +82,6 @@ def generate_kubeconfig(cluster_name: str, resource_group: str):
             kubeconfig = f.read()
             logger.info(f'The kubeconfig content is: {kubeconfig}')
             return kubeconfig
-
 
 
 def fetch_aks_clusters() -> list:

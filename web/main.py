@@ -70,7 +70,7 @@ from variables.variables import POST, GET, EKS, \
 from __init__ import __version__
 from mail_handler import MailSender
 from utils import random_string, apply_yaml
-from scripts import gcp_discovery_script, aws_discovery_script
+from scripts import gcp_discovery_script, aws_discovery_script, az_discovery_script
 
 key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
