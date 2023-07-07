@@ -12,12 +12,21 @@ from subprocess import PIPE, run
 
 from hurry.filesize import size
 
-from web.mongo_handler.mongo_utils import retrieve_available_clusters, drop_discovered_clusters, \
-    insert_discovered_cluster_object, retrieve_compute_per_machine_type
-from web.mongo_handler.variables import AKS
+
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 KUBERNETES_SERVICE_HOST = os.getenv('KUBERNETES_SERVICE_HOST', '0.0.0.0')
+
+
+if DOCKER_ENV:
+    from mongo_handler.mongo_utils import retrieve_available_clusters, drop_discovered_clusters, \
+        insert_discovered_cluster_object, retrieve_compute_per_machine_type
+    from mongo_handler.variables import AKS
+else:
+
+    from web.mongo_handler.mongo_utils import retrieve_available_clusters, drop_discovered_clusters, \
+        insert_discovered_cluster_object, retrieve_compute_per_machine_type
+    from web.mongo_handler.variables import AKS
 
 log_file_name = 'server.log'
 if DOCKER_ENV:
