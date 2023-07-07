@@ -25,7 +25,9 @@ jobs:
           echo "client_payload is: ${{ github.event.client_payload.client_payload }}"
           echo "azure_credentials is: ${{ github.event.client_payload.azure_credentials }}"            
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
-
+          echo "client_id is: ${{ github.event.client_payload.client_id }}"
+          echo "client_secret is: ${{ github.event.client_payload.client_secret }}"
+          echo "tenant_id is: ${{ github.event.client_payload.tenant_id }}"
 
       - name: Az CLI login
         uses: Azure/login@v1
@@ -41,6 +43,9 @@ jobs:
           MONGO_USER: ${{ github.event.client_payload.mongo_user }}
           MONGO_PASSWORD: ${{ github.event.client_payload.mongo_password }}
           PROJECT_NAME: ${{ github.event.client_payload.project_name }}
+          AZURE_CLIENT_ID: ${{ github.event.client_payload.client_id }}
+          AZURE_CLIENT_SECRET: ${{ github.event.client_payload.client_secret }}
+          AZURE_TENANT_ID: ${{ github.event.client_payload.tenant_id }}
           GITHUB_ACTIONS_ENV: Yes
 
         run: |

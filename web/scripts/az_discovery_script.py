@@ -119,14 +119,6 @@ def fetch_aks_clusters() -> list:
                     vCPU = retrieve_compute_per_machine_type(AKS, machine_type)['vCPU']
                     memory = retrieve_compute_per_machine_type(AKS, machine_type, cluster['location'])[
                         'memory']
-                    # created_epoch_time = calendar.timegm(t.timetuple())
-                    # cluster_object['created_timestamp'] = created_epoch_time
-                    # cluster_object['human_created_timestamp'] = datetime.datetime.fromtimestamp(
-                    #     created_epoch_time).strftime('%d-%m-%Y %H:%M:%S')
-                    # cluster_object['expiration_timestamp'] = TS_IN_20_YEARS
-                    # cluster_object['human_expiration_timestamp'] = datetime.datetime.fromtimestamp(
-                    #     TS_IN_20_YEARS).strftime(
-                    #     '%d-%m-%Y %H:%M:%S')
             totalvCPU = vCPU * num_nodes
             total_memory = size(memory * num_nodes * 1024)
             cluster_object = {'cluster_name': cluster['name'], 'user_name': 'vacant',

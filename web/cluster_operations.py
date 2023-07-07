@@ -1,4 +1,5 @@
 import getpass
+import json
 import logging
 import os
 import platform
@@ -291,9 +292,15 @@ class ClusterOperation:
             return False
 
     def trigger_az_caching(self):
+        client_id = json.loads(self.azure_credentials)['clientId']
+        client_secret = json.loads(self.azure_credentials)['clientSecret']
+        tenant_id = json.loads(self.azure_credentials)['tenantId']
         json_data = {
             "event_type": "az-caching-action-trigger",
             "client_payload": {"azure_credentials": self.azure_credentials,
+                               "client_id": client_id,
+                               "client_secret": client_secret,
+                               "tenant_id": tenant_id,
                                "project_name": self.project_name,
                                "mongo_user": self.mongo_user,
                                "mongo_password": self.mongo_password,
