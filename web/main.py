@@ -501,7 +501,7 @@ def trigger_eks_deployment():
 @login_required
 def trigger_aks_deployment():
     """
-    This endpoint allows an AKS Cluster deployment
+    This endpoint allows a AKS Cluster deployment
     """
     content = request.get_json()
     function_name = inspect.stack()[0][3]

@@ -48,11 +48,11 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
+        USER_NAME, USER_EMAIL, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
         ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER, LOCATION_NAME, REGION_NAME
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, HELM, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
+        USER_NAME, USER_EMAIL, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
         ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER, LOCATION_NAME, REGION_NAME
 
 project_folder = os.path.expanduser(os.getcwd())
@@ -120,7 +120,6 @@ gke_zones_and_series_cache: Collection = db.gke_zones_and_series_cache
 gke_series_and_machine_types_cache: Collection = db.gke_series_and_machine_types_cache
 gke_kubernetes_versions_cache: Collection = db.gke_kubernetes_versions_cache
 
-helm_cache: Collection = db.helm_cache
 aws_cache: Collection = db.aws_cache
 aws_machines_cache: Collection = db.aws_machines_cache
 aws_regions_and_series_cache: Collection = db.aws_regions_and_series_cache
@@ -688,8 +687,6 @@ def retrieve_cache(cache_type: str = '', provider: str = '') -> list:
             cache_object = aws_cache.find()[0]
         elif provider == AKS:
             cache_object = az_locations_cache.find()[0]
-        elif provider == HELM:
-            return helm_cache.find()[0]['helms_installs']
         else:
             cache_object = gke_cache.find()[0]
     except Exception as e:
@@ -756,13 +753,10 @@ def retrieve_compute_per_machine_type(provider: str = '', machine_type: str = ''
     if provider == GKE:
         mongo_query = {'region': region_name}
         cache_object = gke_machines_cache.find_one(mongo_query)
-        # cache_object = gke_machines_types_cache.find_one(mongo_query)
     elif provider == EKS:
         cache_object = aws_cache.find()[0]
     elif provider == AKS:
         cache_object = az_machines_cache.find()[0]
-    elif provider == HELM:
-        return helm_cache.find()[0]['helms_installs']
     else:
         cache_object = gke_cache.find()[0]
     machines_list = cache_object['machines_list']

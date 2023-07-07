@@ -14,6 +14,10 @@ if __name__ == '__main__':
         availability = True
     else:
         availability = False
+    if args.discovered == 'True':
+        discovered = True
+    else:
+        discovered = False
     print(f'Settings {args.cluster_name} cluster on {args.cluster_type} cloud to {args.availability} availability')
-    set_cluster_availability(cluster_type=args.cluster_type, cluster_name=args.cluster_name, discovered=args.discovered,
+    set_cluster_availability(cluster_type=args.cluster_type, cluster_name=args.cluster_name, discovered=discovered,
                              availability=availability)
