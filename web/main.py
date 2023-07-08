@@ -357,6 +357,8 @@ def get_clusters_data():
     cluster_type = request.args.get(CLUSTER_TYPE)
     client_name = request.args.get(CLIENT_NAME.lower())
     user_name = request.args.get(USER_NAME.lower())
+    if user_name == 'null':
+        user_name = ''
     clusters_list = mongo_handler.mongo_utils.retrieve_available_clusters(cluster_type, client_name, user_name)
     return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 

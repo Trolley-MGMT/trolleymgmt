@@ -707,14 +707,14 @@ $(document).ready(function() {
         $("#add-client-card-title-div").show();
         $("#add-client-button").hide();
         $("#submit-client-button").show();
-        $("#clients-main-div").hide();
+        $("#clients-top-div").hide();
     })
 
     $("#add-user-button").click(function() {
         $("#add-user-card-title-div").show();
         $("#add-user-button").hide();
         $("#submit-user-button").show();
-        $("#users-main-div").hide();
+        $("#users-top-div").hide();
         populate_team_names()
     })
 
@@ -722,7 +722,7 @@ $(document).ready(function() {
         $("#add-team-card-title-div").show();
         $("#add-team-button").hide();
         $("#submit-team-button").show();
-        $("#teams-main-div").hide();
+        $("#teams-top-div").hide();
     })
 
     $("#submit-user-button").click(function() {
@@ -2357,6 +2357,8 @@ $(document).ready(function() {
                 $("#gke-clusters-management-table").empty()
             } else if (provider == "aws") {
                 $("#eks-clusters-management-table").empty()
+            } else if (provider == "az") {
+                $("#aks-clusters-management-table").empty()
             }
             populate_clusters(userName, clientName);
         } else if (window.localStorage.getItem("objectType") == 'instance') {
@@ -2364,6 +2366,8 @@ $(document).ready(function() {
                 $("#gcp-vm-instances-management-table").empty()
             } else if (provider == "aws") {
                 $("#aws-ec2-instances-management-table").empty()
+            } else if (provider == "az") {
+                $("#az-vm-instances-management-table").empty()
             }
             populate_instances(provider, userName, clientName);
         }
@@ -2381,6 +2385,8 @@ $(document).ready(function() {
                 $("#gke-clusters-management-table").empty()
             } else if (provider == "aws") {
                 $("#eks-clusters-management-table").empty()
+            } else if (provider == "az") {
+                $("#aks-clusters-management-table").empty()
             }
             populate_clusters(userName, clientName);
         } else if (window.localStorage.getItem("objectType") == 'instance') {
@@ -2388,6 +2394,8 @@ $(document).ready(function() {
                 $("#gcp-vm-instances-management-table").empty()
             } else if (provider == "aws") {
                 $("#aws-ec2-instances-management-table").empty()
+            } else if (provider == "az") {
+                $("#az-vm-instances-management-table").empty()
             }
             populate_instances(provider, userName, clientName);
         }
@@ -2405,6 +2413,8 @@ $(document).ready(function() {
                 $("#gke-clusters-management-table").empty()
             } else if (provider == "aws") {
                 $("#eks-clusters-management-table").empty()
+            } else if (provider == "az") {
+                $("#aks-clusters-management-table").empty()
             }
             populate_clusters(userName, clientName);
         } else if (window.localStorage.getItem("objectType") == 'instance') {
@@ -2412,6 +2422,8 @@ $(document).ready(function() {
                 $("#gcp-vm-instances-management-table").empty()
             } else if (provider == "aws") {
                 $("#aws-ec2-instances-management-table").empty()
+            } else if (provider == "az") {
+                $("#az-vm-instances-management-table").empty()
             }
             populate_instances(provider, userName, clientName);
         }
