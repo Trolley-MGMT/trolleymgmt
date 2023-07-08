@@ -154,6 +154,9 @@ class ClusterOperation:
         encoded_data = {
             "gcp_project_id": self.gcp_project_id,
             "project_name": self.project_name,
+            "mongo_url": self.mongo_url,
+            "mongo_user": self.mongo_user,
+            "mongo_password": self.mongo_password,
             "cluster_name": self.cluster_name,
             "user_name": self.user_name,
             "cluster_version": self.cluster_version,
@@ -184,6 +187,9 @@ class ClusterOperation:
         aws_access_key_id, aws_secret_access_key = self.get_aws_credentials()
         encoded_data = {
             "cluster_name": self.cluster_name,
+            "mongo_url": self.mongo_url,
+            "mongo_user": self.mongo_user,
+            "mongo_password": self.mongo_password,
             "project_name": self.project_name,
             "user_name": self.user_name,
             "cluster_version": self.cluster_version,
