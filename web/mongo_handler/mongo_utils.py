@@ -782,7 +782,7 @@ def retrieve_user(user_email: str):
     mongo_query = {USER_EMAIL: user_email}
     logger.info(f'Running the {mongo_query}')
     user_object = users.find_one(mongo_query)
-    logger.info(f'The result of the query is: {user_object}')
+    logger.info(f'The result of the retrieve_user query is: {user_object}')
     if not user_object:
         logger.warning(f'Nothing was found in the users db')
         return None
@@ -790,7 +790,7 @@ def retrieve_user(user_email: str):
         profile_image_id = user_object['profile_image_id']
         file = fs.find_one({"_id": profile_image_id})
         user_object['profile_image'] = file
-        logger.info(f'The result of the query is: {user_object}')
+        logger.info(f'The result of the retrieve_user query is: {user_object}')
     except Exception as e:
         logger.error(f'There was a problem here with error: {e}')
     return user_object
@@ -826,7 +826,7 @@ def retrieve_team(user_email: str):
     mongo_query = {USER_EMAIL: user_email}
     logger.info(f'Running the {mongo_query}')
     user_object = users.find_one(mongo_query)
-    logger.info(f'The result of the query is: {user_object}')
+    logger.info(f'The result of the retrieve_team query is: {user_object}')
     if not user_object:
         logger.warning(f'Nothing was found in the users db')
         return None
@@ -834,7 +834,7 @@ def retrieve_team(user_email: str):
         profile_image_id = user_object['profile_image_id']
         file = fs.find_one({"_id": profile_image_id})
         user_object['profile_image'] = file
-        logger.info(f'The result of the query is: {user_object}')
+        logger.info(f'The result of the retrieve_team query is: {user_object}')
     except Exception as e:
         logger.error(f'There was a problem here with error: {e}')
     return user_object

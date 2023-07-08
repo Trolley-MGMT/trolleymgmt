@@ -90,6 +90,7 @@ def get_credentials(user_email: str) -> tuple:
     if provider_data:
         try:
             decrypted_credentials_ = crypter.decrypt(provider_data['azure_credentials']).decode("utf-8")
+            decrypted_credentials = json.loads(decrypted_credentials_)
             return decrypted_credentials['clientId'], decrypted_credentials['clientSecret'], decrypted_credentials[
                 'tenantId']
         except Exception as e:
