@@ -121,7 +121,6 @@ def fetch_aks_clusters(azure_client_id: str, azure_client_secret: str, azure_ten
     result = run(az_login_command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
     logger.info(f'result of the az login request: {result.stderr} {result.stdout}')
     result = run(AZ_LIST_GROUPS_AND_CLUSTERS_COMMAND, stdout=PIPE, stderr=PIPE, text=True, shell=True)
-    logger.info(f'result of the az request: {result.stderr} {result.stdout}')
     az_resource_groups_and_clusters_response = json.loads(result.stdout)
     for resource_group_and_cluster in az_resource_groups_and_clusters_response:
         cluster_name = resource_group_and_cluster['Name']
@@ -145,7 +144,7 @@ def fetch_aks_clusters(azure_client_id: str, azure_client_secret: str, azure_ten
                     memory = retrieve_compute_per_machine_type(AKS, machine_type, cluster['location'])[
                         'memory']
             totalvCPU = vCPU * num_nodes
-            total_memory = size(memory * num_nodes * 1024)
+            total_memory = size(memory * num_nodes * 1024 * 1024)
             cluster_object = {'cluster_name': cluster['name'], 'user_name': 'vacant',
                               'cluster_version': cluster['currentKubernetesVersion'],
                               'region_name': cluster['location'],

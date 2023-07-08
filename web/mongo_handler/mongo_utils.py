@@ -624,9 +624,9 @@ def insert_cache_object(caching_object: dict = None, provider: str = None, machi
                 return False
         elif az_series_and_machine_types:
             try:
-                myquery = {'series': caching_object['machine_series']}
+                myquery = {'machine_series': caching_object['machine_series']}
                 if az_series_and_machine_types_cache.find_one(myquery):
-                    newvalues = {"$set": {'series': caching_object['machine_series'],
+                    newvalues = {"$set": {'machine_series': caching_object['machine_series'],
                                           'machines_list': caching_object['machines_list']}}
                     mongo_response = az_series_and_machine_types_cache.update_one(myquery, newvalues)
                     logger.info(mongo_response.acknowledged)
@@ -1618,7 +1618,10 @@ def add_data_to_cluster(object_type: str, cluster_type: str = '', cluster_name: 
         else:
             result = eks_clusters.update_one(myquery, newvalues)
     elif cluster_type == AKS:
-        result = aks_clusters.update_one(myquery, newvalues)
+        if discovered:
+            result = az_discovered_aks_clusters.update_one(myquery, newvalues)
+        else:
+            result = aks_clusters.update_one(myquery, newvalues)
     else:
         result = gke_clusters.update_one(myquery, newvalues)
     return result.raw_result['updatedExisting']

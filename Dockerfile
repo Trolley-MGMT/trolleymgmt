@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 RUN apt-get update -y
-RUN apt-get install -y python3 bash-completion
+RUN apt-get install -y python3 bash-completion nano
 RUN apt-get update && apt-get install -y git g++ python3-pip curl sudo unzip
 RUN pip install --upgrade pip
 
@@ -12,7 +12,7 @@ WORKDIR /app
 RUN pip install -r requirements.txt
 
 # installing gcloud
-RUN curl -sSL https://sdk.cloud.google.com | bash
+#RUN curl -sSL https://sdk.cloud.google.com | bash
 
 # Installing AZ CLI
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash

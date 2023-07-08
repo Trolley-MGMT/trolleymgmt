@@ -3,6 +3,8 @@ from dataclasses import asdict
 import logging
 from subprocess import PIPE, run
 
+from hurry.filesize import size
+
 from web.mongo_handler.mongo_utils import insert_cache_object
 from web.mongo_handler.mongo_objects import AZMachineTypeObject, \
     AZMachinesCacheObject, AZResourceGroupObject, AZLocationsCacheObject, AKSKubernetesVersionsCacheObject, \
@@ -69,13 +71,14 @@ def fetch_machine_types_per_location() -> dict:
         if result.returncode == 0:
             machine_types_response = json.loads(result.stdout)
             for machine in machine_types_response:
-                machine_series = machine['name'].split('_')[1][0]
-                machine_type_object = AZMachineTypeObject(location_name=location_name,
-                                                          machine_series=machine_series,
-                                                          machine_type=machine['name'],
-                                                          vCPU=machine['numberOfCores'],
-                                                          memory=machine['memoryInMb'])
-                machine_types_list.append(machine_type_object)
+                if machine['numberOfCores'] >= 2 and machine['memoryInMb'] >= 1024:
+                    machine_series = machine['name'].split('_')[1][0]
+                    machine_type_object = AZMachineTypeObject(location_name=location_name,
+                                                              machine_series=machine_series,
+                                                              machine_type=machine['name'],
+                                                              vCPU=machine['numberOfCores'],
+                                                              memory=machine['memoryInMb'])
+                    machine_types_list.append(machine_type_object)
             machines_for_zone_dict[location_name] = machine_types_list
         else:
             logger.info(f'{location_name} is not enabled')
