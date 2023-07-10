@@ -20,6 +20,19 @@ jobs:
         with:
           python-version: 3.9
 
+
+      - name: Extracting Trolley version
+        run: |
+          export PYTHONPATH='/home/runner/work/trolleymgmt/trolleymgmt/web'
+          python3 -c "from __init__ import __version__; print(__version__)" > trolley_version_tag
+          cat trolley_version_tag
+          echo "trolley_version_tag=$(cat trolley_version_tag)" >> $GITHUB_ENV
+          
+
+      - name: Checking the values
+        run: |
+          echo "The docker_tag tag is: ${{ env.docker_tag }}"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -33,4 +46,4 @@ jobs:
 
       - name: Build and Push
         run: |
-          docker buildx build --push --platform linux/arm64,linux/amd64  -t  pavelzagalsky/trolley_server -f Dockerfile .
+          docker buildx build --push --platform linux/arm64,linux/amd64  -t  pavelzagalsky/trolley_server:${{ env.trolley_version_tag }}  -f Dockerfile .
