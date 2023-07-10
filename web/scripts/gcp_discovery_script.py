@@ -334,17 +334,17 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
 
 def get_credentials(user_email: str):
     provider_data = retrieve_provider_data_object(user_email, 'gcp')
-    print(f"provider_data {provider_data}")
+    logger.info(f"provider_data {provider_data}")
     if provider_data:
         try:
             google_creds = provider_data['google_creds_json']
             decrypted_credentials_ = crypter.decrypt(google_creds)
             decrypted_credentials = json.loads(decrypted_credentials_)
-            print(f"decrypted_credentials {decrypted_credentials}")
+            logger.info(f"decrypted_credentials {decrypted_credentials}")
             with open(CREDENTIALS_PATH_TO_SAVE, 'w') as fp:
                 json.dump(decrypted_credentials, fp)
-        except:
-            print("google creds json were not found")
+        except Exception as e:
+            logger.error(f'google creds json were not found with error: {e}')
         credentials_file = Path(CREDENTIALS_PATH_TO_SAVE)
         if not credentials_file.is_file():
             logger.warning(f'{CREDENTIALS_PATH_TO_SAVE} file does not exist')
