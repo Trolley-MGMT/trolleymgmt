@@ -112,14 +112,16 @@ def list_all_instances(project_id: str, ) -> list:
         A dictionary with zone names as keys (in form of "zones/{zone_name}") and
         iterable collections of Instance objects as values.
     """
+    logger.info(
+        f'A request to list all instances was issued with the following variables: CREDENTIALS_PATH_TO_SAVE: {CREDENTIALS_PATH_TO_SAVE}')
     if os.path.exists(CREDENTIALS_PATH_TO_SAVE):
         try:
             with open(CREDENTIALS_PATH_TO_SAVE, "r") as f:
                 credentials = f.read()
-                print(f'The credentials file content is: {credentials}')
+                logger.info(f'The credentials file content is: {credentials}')
             instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH_TO_SAVE)
         except Exception as e:
-            print(
+            logger.error(
                 f'There was an issue getting the info with the credentials file on {CREDENTIALS_PATH_TO_SAVE} path: {e}')
     else:
         try:
@@ -128,7 +130,7 @@ def list_all_instances(project_id: str, ) -> list:
                 print(f'The credentials file content is: {credentials}')
             instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_DEFAULT_PATH)
         except Exception as e:
-            print(
+            logger.error(
                 f'There was an issue getting the info with the credentials file on {CREDENTIALS_DEFAULT_PATH} path: {e}')
     request = compute_v1.AggregatedListInstancesRequest()
     request.project = project_id
@@ -151,8 +153,9 @@ def list_all_instances(project_id: str, ) -> list:
                             internal_ip = networking_interface.network_i_p
                             for access_config in networking_interface.access_configs:
                                 external_ip = access_config.nat_i_p
-                    except:
+                    except Exception as e:
                         external_ip = ''
+                        logger.warning(f'External IP was not found: {e}')
                     instance_object = GCPInstanceDataObject(timestamp=TS, project_name=project_id,
                                                             instance_name=instance.name, user_name="vacant",
                                                             client_name="vacant", availability=True,
