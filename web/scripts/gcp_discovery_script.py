@@ -73,6 +73,7 @@ TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
 PYTHON_ANYWHERE_SCRIPT = os.environ.get('VIRTUALENVWRAPPER_SCRIPT', '')
+logger.info(f'PYTHON_ANYWHERE_SCRIPT is: {PYTHON_ANYWHERE_SCRIPT}')
 
 if 'Darwin' in platform.system():
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
