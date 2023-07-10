@@ -11,6 +11,7 @@ from collections import defaultdict
 from dataclasses import asdict
 from pathlib import Path
 from subprocess import run, PIPE
+from socket import gethostname
 import time
 
 from cryptography.fernet import Fernet
@@ -71,6 +72,9 @@ TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
+
+RUNNING_ON = gethostname()
+logger.info(f'gcp_discovery_script runs on: {RUNNING_ON}')
 
 if 'Darwin' in platform.system():
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
@@ -262,7 +266,8 @@ def fetch_gke_clusters(service) -> list:
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_vm_instances: bool = False,
          is_fetching_gke_clusters: bool = False, user_email: str = ''):
-    print("creating a temp dir for gcp")
+    logger.info("Creating a temp dir for gcp")
+    logger.info(f'Checking if GCP_CREDENTIALS_TEMP_DIRECTORY: {GCP_CREDENTIALS_TEMP_DIRECTORY} exists')
     if not os.path.exists(GCP_CREDENTIALS_TEMP_DIRECTORY):
         os.mkdir(GCP_CREDENTIALS_TEMP_DIRECTORY)
     credentials = get_credentials(user_email)
