@@ -72,9 +72,7 @@ TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
-
-RUNNING_ON = gethostname()
-logger.info(f'gcp_discovery_script runs on: {RUNNING_ON}')
+PYTHON_ANYWHERE_SCRIPT = os.environ.get('VIRTUALENVWRAPPER_SCRIPT', '')
 
 if 'Darwin' in platform.system():
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
@@ -82,12 +80,16 @@ if 'Darwin' in platform.system():
     GCP_CREDENTIALS_TEMP_DIRECTORY = f'{os.getcwd()}/.gcp'
     CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 else:
-    KUBECONFIG_PATH = '/root/.kube/config'
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/app/.gcp/gcp_credentials.json'
-    GCP_CREDENTIALS_TEMP_DIRECTORY = "/home/app/.gcp"
-    GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
-    CREDENTIALS_DEFAULT_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
-    CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
+    if PYTHON_ANYWHERE_SCRIPT == '/usr/local/bin/virtualenvwrapper.sh':
+        GCP_CREDENTIALS_TEMP_DIRECTORY = '/var/www/.gcp'
+        CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
+    else:
+        KUBECONFIG_PATH = '/root/.kube/config'
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/app/.gcp/gcp_credentials.json'
+        GCP_CREDENTIALS_TEMP_DIRECTORY = "/home/app/.gcp"
+        GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
+        CREDENTIALS_DEFAULT_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
+        CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 
 logger.info(f"CREDENTIALS_PATH_TO_SAVE is: {CREDENTIALS_PATH_TO_SAVE}")
 
@@ -266,8 +268,6 @@ def fetch_gke_clusters(service) -> list:
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_vm_instances: bool = False,
          is_fetching_gke_clusters: bool = False, user_email: str = ''):
-    logger.info(f'gcp_discovery_script runs on: {RUNNING_ON}')
-    
     logger.info("Creating a temp dir for gcp")
     logger.info(f'Checking if GCP_CREDENTIALS_TEMP_DIRECTORY: {GCP_CREDENTIALS_TEMP_DIRECTORY} exists')
     if not os.path.exists(GCP_CREDENTIALS_TEMP_DIRECTORY):
