@@ -349,14 +349,13 @@ class ClusterOperation:
         gke_cluster_details = retrieve_cluster_details(cluster_type=GKE, cluster_name=self.cluster_name,
                                                        discovered=self.discovered)
         gke_zone_name = gke_cluster_details[ZONE_NAME.lower()]
-        project_name = gke_cluster_details[PROJECT_NAME.lower()]
         print(f'Attempting to delete {self.cluster_name} in {gke_zone_name}')
         json_data = {
             "event_type": "gke-delete-api-trigger",
             "client_payload": {"cluster_name": self.cluster_name,
                                "discovered": self.discovered,
                                "zone_name": gke_zone_name,
-                               "project_name": project_name,
+                               "project_name": self.project_name,
                                "google_creds_json": self.google_creds_json,
                                "mongo_user": self.mongo_user,
                                "mongo_password": self.mongo_password,
