@@ -662,7 +662,6 @@ def retrieve_clients_data() -> list:
     for client_data in clients_data_object:
         del client_data['_id']
         clients_data_list.append(client_data)
-    logger.info(f'The content of clients_data_list is: {clients_data_list}')
     return clients_data_list
 
 
