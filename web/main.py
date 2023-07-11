@@ -56,6 +56,8 @@ MONGO_USER = os.getenv('MONGO_USER', 'admin')
 MONGO_PASSWORD = os.getenv('MONGO_PASSWORD', 'yes')
 
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
+logger.info(os.environ)
+
 import mongo_handler.mongo_utils
 from cluster_operations import ClusterOperation
 from mongo_handler.mongo_objects import UserObject, GithubObject, ProviderObject
@@ -173,7 +175,6 @@ def login_processor(user_email: str = "", password: str = "", new: bool = False)
             password = request.form['user_password']
     logger.info(f'The request comes with {user_email} email')
     user_object = mongo_handler.mongo_utils.retrieve_user(user_email)
-    logger.info(f'user_object is: {user_object}')
     session["registration_status"] = user_object['registration_status']
     if not user_object:
         logger.error('failed here')
@@ -754,7 +755,6 @@ def users():
         logged_user_name = request.args.get('logged_user_name')
         logger.info(f'logged_user_name is {logged_user_name}')
         users_data = mongo_handler.mongo_utils.retrieve_users_data(logged_user_name)
-        logger.info(f'users_data is: {users_data}')
         return jsonify(sorted(users_data, key=lambda d: d['user_name']))
     elif request.method == DELETE:
         content = request.get_json()

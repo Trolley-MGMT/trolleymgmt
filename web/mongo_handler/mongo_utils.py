@@ -662,7 +662,6 @@ def retrieve_clients_data() -> list:
     for client_data in clients_data_object:
         del client_data['_id']
         clients_data_list.append(client_data)
-    logger.info(f'The content of clients_data_list is: {clients_data_list}')
     return clients_data_list
 
 
@@ -782,7 +781,6 @@ def retrieve_user(user_email: str):
     mongo_query = {USER_EMAIL: user_email}
     logger.info(f'Running the {mongo_query}')
     user_object = users.find_one(mongo_query)
-    logger.info(f'The result of the retrieve_user query is: {user_object}')
     if not user_object:
         logger.warning(f'Nothing was found in the users db')
         return None
@@ -790,7 +788,6 @@ def retrieve_user(user_email: str):
         profile_image_id = user_object['profile_image_id']
         file = fs.find_one({"_id": profile_image_id})
         user_object['profile_image'] = file
-        logger.info(f'The result of the retrieve_user query is: {user_object}')
     except Exception as e:
         logger.error(f'There was a problem here with error: {e}')
     return user_object
@@ -978,7 +975,6 @@ def retrieve_deployment_yaml(cluster_type: str, cluster_name: str) -> dict:
     """
     mongo_query = {CLUSTER_TYPE: cluster_type, CLUSTER_NAME.lower(): cluster_name}
     deployment_yaml_object = deployment_yamls.find_one(mongo_query)
-    logger.info(f'found user_object is: {deployment_yaml_object}')
     if not deployment_yaml_object:
         return {}
     else:
@@ -993,7 +989,6 @@ def remove_deployment_yaml(cluster_type: str, cluster_name: str) -> bool:
     """
     mongo_query = {CLUSTER_TYPE: cluster_type, CLUSTER_NAME.lower(): cluster_name}
     deployment_yaml_object = deployment_yamls.delete_one(mongo_query)
-    logger.info(f'found user_object is: {deployment_yaml_object}')
     if not deployment_yaml_object:
         return False
     else:

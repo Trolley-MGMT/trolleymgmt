@@ -71,19 +71,27 @@ TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
+PYTHONANYWHERE_DOMAIN = os.environ.get('PYTHONANYWHERE_DOMAIN', '')
 
 if 'Darwin' in platform.system():
+    logger.info('Running the gcp_discovery_script on Mac OS')
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
     CREDENTIALS_DEFAULT_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
     GCP_CREDENTIALS_TEMP_DIRECTORY = f'{os.getcwd()}/.gcp'
     CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 else:
-    KUBECONFIG_PATH = '/root/.kube/config'
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/app/.gcp/gcp_credentials.json'
-    GCP_CREDENTIALS_TEMP_DIRECTORY = "/home/app/.gcp"
-    GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
-    CREDENTIALS_DEFAULT_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
-    CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
+    if PYTHONANYWHERE_DOMAIN == 'pythonanywhere.com':
+        logger.info('Running the gcp_discovery_script on Python Anywhere')
+        GCP_CREDENTIALS_TEMP_DIRECTORY = '/var/www/.gcp'
+        CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
+    else:
+        logger.info('Running the gcp_discovery_script god knows where')
+        KUBECONFIG_PATH = '/root/.kube/config'
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/app/.gcp/gcp_credentials.json'
+        GCP_CREDENTIALS_TEMP_DIRECTORY = "/home/app/.gcp"
+        GCP_CREDENTIALS_DEFAULT_DIRECTORY = "/home/app/.gcp"
+        CREDENTIALS_DEFAULT_PATH = f'{GCP_CREDENTIALS_DEFAULT_DIRECTORY}/gcp_credentials.json'
+        CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 
 logger.info(f"CREDENTIALS_PATH_TO_SAVE is: {CREDENTIALS_PATH_TO_SAVE}")
 
@@ -112,14 +120,16 @@ def list_all_instances(project_id: str, ) -> list:
         A dictionary with zone names as keys (in form of "zones/{zone_name}") and
         iterable collections of Instance objects as values.
     """
+    logger.info(
+        f'A request to list all instances was issued with the following variables: CREDENTIALS_PATH_TO_SAVE: {CREDENTIALS_PATH_TO_SAVE}')
     if os.path.exists(CREDENTIALS_PATH_TO_SAVE):
         try:
             with open(CREDENTIALS_PATH_TO_SAVE, "r") as f:
                 credentials = f.read()
-                print(f'The credentials file content is: {credentials}')
+                logger.info(f'The credentials file content is: {credentials}')
             instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_PATH_TO_SAVE)
         except Exception as e:
-            print(
+            logger.error(
                 f'There was an issue getting the info with the credentials file on {CREDENTIALS_PATH_TO_SAVE} path: {e}')
     else:
         try:
@@ -128,7 +138,7 @@ def list_all_instances(project_id: str, ) -> list:
                 print(f'The credentials file content is: {credentials}')
             instance_client = compute_v1.InstancesClient.from_service_account_file(CREDENTIALS_DEFAULT_PATH)
         except Exception as e:
-            print(
+            logger.error(
                 f'There was an issue getting the info with the credentials file on {CREDENTIALS_DEFAULT_PATH} path: {e}')
     request = compute_v1.AggregatedListInstancesRequest()
     request.project = project_id
@@ -151,8 +161,9 @@ def list_all_instances(project_id: str, ) -> list:
                             internal_ip = networking_interface.network_i_p
                             for access_config in networking_interface.access_configs:
                                 external_ip = access_config.nat_i_p
-                    except:
+                    except Exception as e:
                         external_ip = ''
+                        logger.warning(f'External IP was not found: {e}')
                     instance_object = GCPInstanceDataObject(timestamp=TS, project_name=project_id,
                                                             instance_name=instance.name, user_name="vacant",
                                                             client_name="vacant", availability=True,
@@ -259,9 +270,12 @@ def fetch_gke_clusters(service) -> list:
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_vm_instances: bool = False,
          is_fetching_gke_clusters: bool = False, user_email: str = ''):
-    print("creating a temp dir for gcp")
+    logger.info(f'PYTHONANYWHERE_DOMAIN content is:{PYTHONANYWHERE_DOMAIN}')
+    logger.info("Creating a temp dir for gcp")
+    logger.info(f'Checking if GCP_CREDENTIALS_TEMP_DIRECTORY: {GCP_CREDENTIALS_TEMP_DIRECTORY} exists')
     if not os.path.exists(GCP_CREDENTIALS_TEMP_DIRECTORY):
         os.mkdir(GCP_CREDENTIALS_TEMP_DIRECTORY)
+    logger.info(f'Trying to fetch credentials for {user_email} user_email')
     credentials = get_credentials(user_email)
     if not credentials:
         sys.exit("provider credentials were not found")
@@ -324,17 +338,17 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
 
 def get_credentials(user_email: str):
     provider_data = retrieve_provider_data_object(user_email, 'gcp')
-    print(f"provider_data {provider_data}")
+    logger.info(f"provider_data {provider_data}")
     if provider_data:
         try:
             google_creds = provider_data['google_creds_json']
             decrypted_credentials_ = crypter.decrypt(google_creds)
             decrypted_credentials = json.loads(decrypted_credentials_)
-            print(f"decrypted_credentials {decrypted_credentials}")
+            logger.info(f"decrypted_credentials {decrypted_credentials}")
             with open(CREDENTIALS_PATH_TO_SAVE, 'w') as fp:
                 json.dump(decrypted_credentials, fp)
-        except:
-            print("google creds json were not found")
+        except Exception as e:
+            logger.error(f'google creds json were not found with error: {e}')
         credentials_file = Path(CREDENTIALS_PATH_TO_SAVE)
         if not credentials_file.is_file():
             logger.warning(f'{CREDENTIALS_PATH_TO_SAVE} file does not exist')
