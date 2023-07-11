@@ -76,15 +76,18 @@ PYTHON_ANYWHERE_SCRIPT = os.environ.get('VIRTUALENVWRAPPER_SCRIPT', '')
 logger.info(f'PYTHON_ANYWHERE_SCRIPT is: {PYTHON_ANYWHERE_SCRIPT}')
 
 if 'Darwin' in platform.system():
+    logger.info('Running the gcp_discovery_script on Mac OS')
     KUBECONFIG_PATH = f'/Users/{LOCAL_USER}/.kube/config'  # path to the GCP credentials
     CREDENTIALS_DEFAULT_PATH = f'/Users/{LOCAL_USER}/.gcp/gcp_credentials.json'
     GCP_CREDENTIALS_TEMP_DIRECTORY = f'{os.getcwd()}/.gcp'
     CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 else:
     if PYTHON_ANYWHERE_SCRIPT == '/usr/local/bin/virtualenvwrapper.sh':
+        logger.info('Running the gcp_discovery_script on Python Anywhere')
         GCP_CREDENTIALS_TEMP_DIRECTORY = '/var/www/.gcp'
         CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
     else:
+        logger.info('Running the gcp_discovery_script god knows where')
         KUBECONFIG_PATH = '/root/.kube/config'
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/app/.gcp/gcp_credentials.json'
         GCP_CREDENTIALS_TEMP_DIRECTORY = "/home/app/.gcp"
