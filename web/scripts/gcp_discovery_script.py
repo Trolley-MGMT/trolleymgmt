@@ -72,8 +72,8 @@ TS = int(time.time())
 TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
-PYTHON_ANYWHERE_SCRIPT = os.environ.get('VIRTUALENVWRAPPER_SCRIPT', '')
-logger.info(f'PYTHON_ANYWHERE_SCRIPT is: {PYTHON_ANYWHERE_SCRIPT}')
+PYTHONANYWHERE_DOMAIN = os.environ.get('PYTHONANYWHERE_DOMAIN', '')
+logger.info(f'PYTHONANYWHERE_DOMAIN is: {PYTHONANYWHERE_DOMAIN}')
 
 if 'Darwin' in platform.system():
     logger.info('Running the gcp_discovery_script on Mac OS')
@@ -82,7 +82,7 @@ if 'Darwin' in platform.system():
     GCP_CREDENTIALS_TEMP_DIRECTORY = f'{os.getcwd()}/.gcp'
     CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
 else:
-    if PYTHON_ANYWHERE_SCRIPT == '/usr/local/bin/virtualenvwrapper.sh':
+    if PYTHONANYWHERE_DOMAIN == 'pythonanywhere.com':
         logger.info('Running the gcp_discovery_script on Python Anywhere')
         GCP_CREDENTIALS_TEMP_DIRECTORY = '/var/www/.gcp'
         CREDENTIALS_PATH_TO_SAVE = f'{GCP_CREDENTIALS_TEMP_DIRECTORY}/gcp_credentials.json'
@@ -272,7 +272,7 @@ def fetch_gke_clusters(service) -> list:
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_vm_instances: bool = False,
          is_fetching_gke_clusters: bool = False, user_email: str = ''):
-    logger.info(f'PYTHON_ANYWHERE_SCRIPT content is:{PYTHON_ANYWHERE_SCRIPT}')
+    logger.info(f'PYTHONANYWHERE_DOMAIN content is:{PYTHONANYWHERE_DOMAIN}')
     logger.info("Creating a temp dir for gcp")
     logger.info(f'Checking if GCP_CREDENTIALS_TEMP_DIRECTORY: {GCP_CREDENTIALS_TEMP_DIRECTORY} exists')
     if not os.path.exists(GCP_CREDENTIALS_TEMP_DIRECTORY):
