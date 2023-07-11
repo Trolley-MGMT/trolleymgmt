@@ -73,7 +73,6 @@ TS_IN_20_YEARS = TS + 60 * 60 * 24 * 365 * 20
 LOCAL_USER = gt.getuser()
 GCP_PROJECT_NAME = os.environ.get('GCP_PROJECT_NAME', 'trolley-361905')
 PYTHONANYWHERE_DOMAIN = os.environ.get('PYTHONANYWHERE_DOMAIN', '')
-logger.info(f'PYTHONANYWHERE_DOMAIN is: {PYTHONANYWHERE_DOMAIN}')
 
 if 'Darwin' in platform.system():
     logger.info('Running the gcp_discovery_script on Mac OS')
@@ -277,6 +276,7 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
     logger.info(f'Checking if GCP_CREDENTIALS_TEMP_DIRECTORY: {GCP_CREDENTIALS_TEMP_DIRECTORY} exists')
     if not os.path.exists(GCP_CREDENTIALS_TEMP_DIRECTORY):
         os.mkdir(GCP_CREDENTIALS_TEMP_DIRECTORY)
+    logger.info(f'Trying to fetch credentials for {user_email} user_email')
     credentials = get_credentials(user_email)
     if not credentials:
         sys.exit("provider credentials were not found")
