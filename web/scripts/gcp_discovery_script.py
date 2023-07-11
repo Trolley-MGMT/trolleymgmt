@@ -11,7 +11,6 @@ from collections import defaultdict
 from dataclasses import asdict
 from pathlib import Path
 from subprocess import run, PIPE
-from socket import gethostname
 import time
 
 from cryptography.fernet import Fernet
