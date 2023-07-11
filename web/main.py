@@ -54,8 +54,11 @@ PROJECT_NAME = os.getenv('PROJECT_NAME', "trolley-dev")
 MONGO_URL = os.getenv('MONGO_URL', 'localhost')
 MONGO_USER = os.getenv('MONGO_USER', 'admin')
 MONGO_PASSWORD = os.getenv('MONGO_PASSWORD', 'yes')
+PYTHON_ANYWHERE_SCRIPT = os.environ.get('VIRTUALENVWRAPPER_SCRIPT', '')
 
+logger.info(f'PYTHON_ANYWHERE_SCRIPT is: {PYTHON_ANYWHERE_SCRIPT}')
 logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
+
 import mongo_handler.mongo_utils
 from cluster_operations import ClusterOperation
 from mongo_handler.mongo_objects import UserObject, GithubObject, ProviderObject
