@@ -272,7 +272,7 @@ def fetch_gke_clusters(service) -> list:
 
 def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_fetching_vm_instances: bool = False,
          is_fetching_gke_clusters: bool = False, user_email: str = ''):
-    logger.info("What the heck")
+    logger.info(f'PYTHON_ANYWHERE_SCRIPT content is:{PYTHON_ANYWHERE_SCRIPT}')
     logger.info("Creating a temp dir for gcp")
     logger.info(f'Checking if GCP_CREDENTIALS_TEMP_DIRECTORY: {GCP_CREDENTIALS_TEMP_DIRECTORY} exists')
     if not os.path.exists(GCP_CREDENTIALS_TEMP_DIRECTORY):
