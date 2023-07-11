@@ -976,7 +976,6 @@ def retrieve_deployment_yaml(cluster_type: str, cluster_name: str) -> dict:
     """
     mongo_query = {CLUSTER_TYPE: cluster_type, CLUSTER_NAME.lower(): cluster_name}
     deployment_yaml_object = deployment_yamls.find_one(mongo_query)
-    logger.info(f'found user_object is: {deployment_yaml_object}')
     if not deployment_yaml_object:
         return {}
     else:
@@ -991,7 +990,6 @@ def remove_deployment_yaml(cluster_type: str, cluster_name: str) -> bool:
     """
     mongo_query = {CLUSTER_TYPE: cluster_type, CLUSTER_NAME.lower(): cluster_name}
     deployment_yaml_object = deployment_yamls.delete_one(mongo_query)
-    logger.info(f'found user_object is: {deployment_yaml_object}')
     if not deployment_yaml_object:
         return False
     else:
