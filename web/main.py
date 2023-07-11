@@ -755,7 +755,6 @@ def users():
         logged_user_name = request.args.get('logged_user_name')
         logger.info(f'logged_user_name is {logged_user_name}')
         users_data = mongo_handler.mongo_utils.retrieve_users_data(logged_user_name)
-        logger.info(f'users_data is: {users_data}')
         return jsonify(sorted(users_data, key=lambda d: d['user_name']))
     elif request.method == DELETE:
         content = request.get_json()
