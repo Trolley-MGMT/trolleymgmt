@@ -65,7 +65,6 @@ def main(incoming_string: str = '', provider: str = ''):
 
     print(f'mongo_url is: {mongo_url}')
     print(f'mongo_user is: {mongo_user}')
-    print(f'mongo_password is: {mongo_password}')
     print(f'cluster_name is: {cluster_name}')
     print(f'project_name is: {project_name}')
     print(f'user_name is: {user_name}')

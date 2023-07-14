@@ -12,6 +12,7 @@ from dataclasses import asdict
 from pathlib import Path
 from subprocess import run, PIPE
 import time
+import yaml
 
 from cryptography.fernet import Fernet
 from google.cloud import compute_v1
@@ -45,16 +46,16 @@ else:
         f'Running in a non Kubernetes environment in a {KUBERNETES_SERVICE_HOST} host.')
 
 if DOCKER_ENV:
-    from mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
+    from mongo_handler.mongo_objects import GKEObject, GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
     from mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, update_discovered_gke_cluster_object, \
-        insert_gcp_vm_instances_object, \
+        insert_gcp_vm_instances_object, insert_gke_deployment ,\
         insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
         retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
     from variables.variables import GKE, GCP
 else:
-    from web.mongo_handler.mongo_objects import GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
+    from web.mongo_handler.mongo_objects import GKEObject, GCPBucketsObject, GCPFilesObject, GCPInstanceDataObject
     from web.mongo_handler.mongo_utils import insert_discovered_gke_cluster_object, \
-        update_discovered_gke_cluster_object, \
+        update_discovered_gke_cluster_object, insert_gke_deployment ,\
         insert_gcp_vm_instances_object, \
         insert_gcp_buckets_object, insert_gcp_files_object, retrieve_available_clusters, retrieve_instances, \
         retrieve_compute_per_machine_type, retrieve_provider_data_object, drop_discovered_clusters
@@ -213,7 +214,6 @@ def fetch_gke_clusters(service) -> list:
             clusters_list = response['clusters']
             for cluster in clusters_list:
                 if cluster['status'] == 'RUNNING':
-                    cluster_object = {'cluster_name': cluster['name'], 'user_name': 'vacant'}
                     cluster_creation_time_object = cluster['createTime'].split("+")[0].split("T")
                     cluster_creation_date = cluster_creation_time_object[0].split("-")
                     cluster_creation_time = cluster_creation_time_object[1].split(":")
@@ -224,33 +224,21 @@ def fetch_gke_clusters(service) -> list:
                                           int(cluster_creation_time[1]),
                                           int(cluster_creation_time[2]))
                     created_epoch_time = calendar.timegm(t.timetuple())
-                    cluster_object['created_timestamp'] = created_epoch_time
-                    cluster_object['human_created_timestamp'] = datetime.datetime.fromtimestamp(
-                        created_epoch_time).strftime('%d-%m-%Y %H:%M:%S')
-                    cluster_object['expiration_timestamp'] = TS_IN_20_YEARS
-                    cluster_object['human_expiration_timestamp'] = datetime.datetime.fromtimestamp(
-                        TS_IN_20_YEARS).strftime(
+                    human_created_timestamp = datetime.datetime.fromtimestamp(created_epoch_time).strftime(
                         '%d-%m-%Y %H:%M:%S')
-                    cluster_object['cluster_version'] = cluster['currentMasterVersion']
-                    cluster_object['region_name'] = cluster['locations']
-                    cluster_object['zone_name'] = cluster['zone']
+                    expiration_timestamp = TS_IN_20_YEARS
+                    human_expiration_timestamp = datetime.datetime.fromtimestamp(
+                        TS_IN_20_YEARS).strftime('%d-%m-%Y %H:%M:%S')
+
                     try:
-                        cluster_object['tags'] = cluster['resourceLabels']
-                    except:
-                        pass
-                    cluster_object['availability'] = True
-                    cluster_object['nodes_names'] = []
-                    cluster_object['nodes_ips'] = []
-                    cluster_object['os_image'] = cluster['nodeConfig']['imageType']
-                    cluster_object['node_pools'] = cluster['nodePools']
-                    cluster_object['node_pools'] = cluster['nodePools']
-                    cluster_object['discovered'] = True
-                    try:
-                        cluster_object['kubeconfig'] = generate_kubeconfig(cluster_name=cluster['name'],
-                                                                           zone=cluster['zone'])
-                    except:
-                        print("failed to work with gcloud")
-                        cluster_object['kubeconfig'] = ""
+                        kubeconfig_ = generate_kubeconfig(cluster_name=cluster['name'],
+                                                         zone=cluster['zone'])
+                        kubeconfig_yaml = yaml.safe_load(kubeconfig_)
+                        context_name = kubeconfig_yaml['current-context']
+                        kubeconfig = crypter.encrypt(str.encode(kubeconfig_))
+                    except Exception as e:
+                        kubeconfig = ''
+                        logger.warning(f'failed to work with gcloud: {e}')
                     num_nodes = 0
                     for node_pool in cluster['nodePools']:
                         num_nodes += node_pool['initialNodeCount']
@@ -258,13 +246,22 @@ def fetch_gke_clusters(service) -> list:
                         vCPU = retrieve_compute_per_machine_type('gke', machine_type, cluster['locations'][0])['vCPU']
                         memory = retrieve_compute_per_machine_type('gke', machine_type, cluster['locations'][0])[
                             'memory']
-                        cluster_object['totalvCPU'] = vCPU * num_nodes
                         total_memory = memory * num_nodes * 1024
-                        cluster_object['total_memory'] = size(total_memory)
-                        cluster_object['machine_type'] = machine_type
-                        cluster_object['vCPU'] = vCPU
-                    cluster_object['num_nodes'] = num_nodes
-                    gke_clusters_object.append(cluster_object)
+                    gke_cluster_object = GKEObject(cluster_name=cluster['name'], context_name=context_name,
+                                                   user_name='vacant',
+                                                   kubeconfig=kubeconfig, nodes_names=[], nodes_ips=[],
+                                                   project_name=GCP_PROJECT_NAME,
+                                                   zone_name=cluster['zone'], created_timestamp=created_epoch_time,
+                                                   human_created_timestamp=human_created_timestamp,
+                                                   expiration_timestamp=expiration_timestamp,
+                                                   human_expiration_timestamp=human_expiration_timestamp,
+                                                   cluster_version=cluster['currentMasterVersion'], runtime_version='',
+                                                   os_image=cluster['nodeConfig']['imageType'],
+                                                   region_name=cluster['locations'],
+                                                   num_nodes=num_nodes,
+                                                   machine_type=machine_type, vCPU=vCPU, total_memory=size(total_memory),
+                                                   totalvCPU=vCPU * num_nodes)
+                    gke_clusters_object.append(gke_cluster_object)
     return gke_clusters_object
 
 
@@ -300,7 +297,7 @@ def main(is_fetching_files: bool = False, is_fetching_buckets: bool = False, is_
         if not gke_discovered_clusters:
             drop_discovered_clusters(cluster_type=GKE)
         for discovered_cluster_to_add in discovered_clusters_to_add:
-            insert_discovered_gke_cluster_object(discovered_cluster_to_add)
+            insert_discovered_gke_cluster_object(asdict(discovered_cluster_to_add))
         for discovered_cluster_to_update in discovered_clusters_to_update:
             update_discovered_gke_cluster_object(discovered_cluster_to_update)
     if is_fetching_vm_instances:

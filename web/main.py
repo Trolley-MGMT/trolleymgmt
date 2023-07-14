@@ -66,7 +66,7 @@ from variables.variables import POST, GET, EKS, \
     ZONES_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
     REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN, \
-    LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP
+    LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP, MACHINE_SERIES
 
 from __init__ import __version__
 from mail_handler import MailSender
@@ -361,7 +361,19 @@ def get_clusters_data():
     if user_name == 'null':
         user_name = ''
     clusters_list = mongo_handler.mongo_utils.retrieve_available_clusters(cluster_type, client_name, user_name)
-    return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
+    clusters_decrypted = []
+    for cluster in clusters_list:
+        try:
+            kubeconfig_decrypted = crypter.decrypt(cluster['kubeconfig']).decode("utf-8")
+            cluster['kubeconfig'] = kubeconfig_decrypted
+            del cluster['kubeconfig_encrypted']
+        except Exception as e:
+            logger.warning(f'Cluster did not have encrypted kubeconfig: {e}')
+        clusters_decrypted.append(cluster)
+    if len(clusters_decrypted) == 0:
+        return jsonify([]), 200
+    else:
+        return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
 @app.route('/get_instances_data', methods=[GET])
@@ -852,11 +864,16 @@ def fetch_machine_series():
 @login_required
 def fetch_machine_types():
     cluster_type = request.args.get(CLUSTER_TYPE)
-    machine_series = request.args.get('machine_series')
+    machine_series = request.args.get(MACHINE_SERIES.lower())
+    region_name = request.args.get(REGION_NAME.lower())
     logger.info(f'A request to fetch machine types for {cluster_type} has arrived')
     machine_types = mongo_handler.mongo_utils.retrieve_machine_types(machine_series=machine_series,
-                                                                     cluster_type=cluster_type)
-    return jsonify(machine_types)
+                                                                     cluster_type=cluster_type, region_name=region_name)
+    if machine_types:
+        return Response(json.dumps(machine_types), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return jsonify([]), 200
+
 
 
 @app.route('/fetch_zones', methods=[GET])

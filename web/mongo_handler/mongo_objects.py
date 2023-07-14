@@ -43,7 +43,7 @@ class GKEObject:
     cluster_name: str
     context_name: str
     user_name: str
-    kubeconfig: str
+    kubeconfig: bytes
     nodes_names: list
     nodes_ips: list
     created_timestamp: int
@@ -69,7 +69,7 @@ class GKEAutopilotObject:
     cluster_name: str
     context_name: str
     user_name: str
-    kubeconfig: str
+    kubeconfig: bytes
     nodes_names: list
     nodes_ips: list
     created_timestamp: int
@@ -89,7 +89,7 @@ class EKSObject:
     cluster_name: str
     context_name: str
     user_name: str
-    kubeconfig: str
+    kubeconfig: bytes
     nodes_names: list
     nodes_ips: list
     created_timestamp: int
@@ -114,7 +114,7 @@ class AKSObject:
     cluster_name: str
     context_name: str
     user_name: str
-    kubeconfig: str
+    kubeconfig: bytes
     nodes_names: list
     nodes_ips: list
     created_timestamp: int
@@ -227,6 +227,7 @@ class AWSMachineTypeObject:
     machine_type: str
     vCPU: int
     memory: int
+    unit_price: float
 
 
 @dataclass

@@ -4,7 +4,7 @@ import platform
 import sys
 import time
 from dataclasses import asdict
-from typing import Any, Mapping
+from typing import Any, Mapping, List, Set
 
 import gridfs
 from bson import ObjectId
@@ -137,14 +137,14 @@ logger.info(f'Listing all the collections')
 logger.info(db.list_collection_names())
 
 
-def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = None) -> bool:
+def insert_gke_deployment(cluster_type: str = '', gke_cluster_object: dict = None) -> bool:
     """
     @param cluster_type: The type of the cluster we want to add to the DB. Ex: GKE/GKE Autopilot
-    @param gke_deployment_object: The dictionary with all the cluster data.
+    @param gke_cluster_object: The dictionary with all the cluster data.
     """
     if cluster_type == GKE:
         try:
-            mongo_response = gke_clusters.insert_one(gke_deployment_object)
+            mongo_response = gke_clusters.insert_one(gke_cluster_object)
             logger.info(mongo_response.acknowledged)
             logger.info(f'Inserted ID for Mongo DB is: {mongo_response.inserted_id}')
             return True
@@ -153,26 +153,26 @@ def insert_gke_deployment(cluster_type: str = '', gke_deployment_object: dict = 
             return False
     elif cluster_type == GKE_AUTOPILOT:
         try:
-            gke_autopilot_clusters.insert_one(gke_deployment_object)
+            gke_autopilot_clusters.insert_one(gke_cluster_object)
             return True
         except Exception as e:
             logger.error(f'failure to insert data into gke_autopilot_clusters table with error: {e}')
             return False
 
 
-def insert_eks_deployment(eks_deployment_object: dict = None) -> bool:
+def insert_eks_deployment(eks_cluster_object: dict = None) -> bool:
     """
-    @param eks_deployment_object: The dictionary with all the cluster data.
+    @param eks_cluster_object: The dictionary with all the cluster data.
     """
-    eks_clusters.insert_one(eks_deployment_object)
+    eks_clusters.insert_one(eks_cluster_object)
     return True
 
 
-def insert_aks_deployment(aks_deployment_object: dict = None) -> bool:
+def insert_aks_deployment(aks_cluster_object: dict = None) -> bool:
     """
-    @param aks_deployment_object: The dictionary with all the cluster data.
+    @param aks_cluster_object: The dictionary with all the cluster data.
     """
-    aks_clusters.insert_one(aks_deployment_object)
+    aks_clusters.insert_one(aks_cluster_object)
     return True
 
 
@@ -712,29 +712,59 @@ def retrieve_kubernetes_versions(location_name: str = '', provider: str = '') ->
     return kubernetes_versions_clusters_list['kubernetes_versions_list']
 
 
-def retrieve_machine_series(region_name: str = '', cluster_type: str = '') -> list:
+def retrieve_machine_series(region_name: str = '', cluster_type: str = '') -> set[Any] | list[Any]:
     if cluster_type == GKE:
         mongo_query = {'zone': region_name}
         machine_series_object = gke_zones_and_series_cache.find_one(mongo_query)
     elif cluster_type == EKS:
         mongo_query = {'region': region_name}
-        machine_series_object = aws_regions_and_series_cache.find_one(mongo_query)
+        machine_series_object = aws_machines_cache.find_one(mongo_query)
     elif cluster_type == AKS:
         mongo_query = {'location_name': region_name}
         machine_series_object = az_locations_and_series_cache.find_one(mongo_query)
     else:
         mongo_query = {'zone': region_name}
         machine_series_object = gke_zones_and_series_cache.find_one(mongo_query)
-    return machine_series_object['series_list']
+    try:
+        unique_machine_series = set()
+        for machine in machine_series_object['machines_list']:
+            machine_series = machine.get('machine_series')
+            if machine_series:
+                unique_machine_series.add(machine_series)
+        return unique_machine_series
+    except Exception as e:
+        logger.warning(
+            f'No machine series were found for cluster_type: {cluster_type} and region_name: {region_name} with error: {e}')
+        return []
 
 
-def retrieve_machine_types(machine_series: str = '', cluster_type: str = '') -> list:
+# def retrieve_machine_types(machine_series: str = '', cluster_type: str = '') -> list:
+#     if cluster_type == GKE:
+#         mongo_query = {'machine_series': machine_series}
+#         machine_types_object = gke_series_and_machine_types_cache.find_one(mongo_query)
+#     elif cluster_type == EKS:
+#         mongo_query = {'machine_series': machine_series}
+#         machine_types_object = aws_series_and_machine_types_cache.find_one(mongo_query)
+#     elif cluster_type == AKS:
+#         mongo_query = {'machine_series': machine_series}
+#         machine_types_object = az_series_and_machine_types_cache.find_one(mongo_query)
+#     else:
+#         mongo_query = {'machine_series': machine_series}
+#         machine_types_object = gke_series_and_machine_types_cache.find_one(mongo_query)
+#     try:
+#         machines_list = machine_types_object['machines_list']
+#         return machines_list
+#     except:
+#         return []
+
+def retrieve_machine_types(machine_series: str = '', region_name: str = '', cluster_type: str = '') -> list:
+    machine_types_response = []
     if cluster_type == GKE:
         mongo_query = {'machine_series': machine_series}
         machine_types_object = gke_series_and_machine_types_cache.find_one(mongo_query)
     elif cluster_type == EKS:
-        mongo_query = {'machine_series': machine_series}
-        machine_types_object = aws_series_and_machine_types_cache.find_one(mongo_query)
+        mongo_query = {'region': region_name}
+        machine_types_object = aws_machines_cache.find_one(mongo_query)
     elif cluster_type == AKS:
         mongo_query = {'machine_series': machine_series}
         machine_types_object = az_series_and_machine_types_cache.find_one(mongo_query)
@@ -742,8 +772,10 @@ def retrieve_machine_types(machine_series: str = '', cluster_type: str = '') -> 
         mongo_query = {'machine_series': machine_series}
         machine_types_object = gke_series_and_machine_types_cache.find_one(mongo_query)
     try:
-        machines_list = machine_types_object['machines_list']
-        return machines_list
+        for machine_type in machine_types_object['machines_list']:
+            if machine_type['machine_series'] == machine_series:
+                machine_types_response.append(machine_type)
+        return machine_types_response
     except:
         return []
 

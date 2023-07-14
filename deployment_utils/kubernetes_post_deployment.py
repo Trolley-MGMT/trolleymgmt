@@ -7,6 +7,7 @@ from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 import yaml
+from cryptography.fernet import Fernet
 from hurry.filesize import size
 from kubernetes import client, config
 from kubernetes.client import V1NodeList
@@ -17,10 +18,11 @@ from web.mongo_handler.mongo_objects import GKEObject, GKEAutopilotObject, EKSOb
 from web.utils import apply_yaml
 from web.variables.variables import GKE, GKE_AUTOPILOT, EKS, AKS
 
-MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
-MONGO_USER = os.environ['MONGO_USER']
+key = os.getenv('SECRET_KEY').encode()
+crypter = Fernet(key)
 
 KUBECONFIG_PATH = os.environ['KUBECONFIG']
+MONGO_USER = os.environ['MONGO_USER']
 MONGO_URL = os.environ['MONGO_URL']
 JOB_NAME = os.getenv('JOB_NAME')
 BUILD_ID = os.getenv('BUILD_ID')
@@ -125,12 +127,11 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
         kubeconfig_path = KUBECONFIG_PATH
     print(f'The kubeconfig path is: {kubeconfig_path}')
     with open(kubeconfig_path, "r") as f:
-        kubeconfig = f.read()
-        print(f'The kubeconfig content is: {kubeconfig}')
-        kubeconfig_yaml = yaml.safe_load(kubeconfig)
-        print(kubeconfig_yaml)
+        kubeconfig_ = f.read()
+        print(f'The kubeconfig content is: {kubeconfig_}')
+        kubeconfig_yaml = yaml.safe_load(kubeconfig_)
         context_name = kubeconfig_yaml['current-context']
-        print(f'The current context is: {context_name}')
+    kubeconfig = crypter.encrypt(str.encode(kubeconfig_))
     node_info = k8s_api.list_node()
     nodes_ips = get_nodes_ips(node_info)
     nodes_names = get_nodes_names(node_info)
@@ -145,9 +146,9 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
     expiration_timestamp = expiration_time * 60 * 60 + timestamp
     human_expiration_timestamp = datetime.utcfromtimestamp(expiration_timestamp).strftime('%d-%m-%Y %H:%M:%S')
     if cluster_type == GKE:
-        gke_deployment_object = GKEObject(cluster_name=cluster_name, context_name=context_name, user_name=user_name,
-                                          kubeconfig=kubeconfig,
-                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_name=PROJECT_NAME,
+        gke_cluster_object = GKEObject(cluster_name=cluster_name, context_name=context_name, user_name=user_name,
+                                          kubeconfig=kubeconfig, nodes_names=nodes_names, nodes_ips=nodes_ips,
+                                          project_name=PROJECT_NAME,
                                           zone_name=zone_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_time,
@@ -156,13 +157,11 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
                                           os_image=os_image, region_name=region_name, num_nodes=num_nodes,
                                           machine_type=machine_type, vCPU=vCPU, total_memory=total_memory,
                                           totalvCPU=vCPU * num_nodes)
-        insert_gke_deployment(cluster_type=GKE, gke_deployment_object=asdict(gke_deployment_object))
-        # send_slack_message(deployment_object=gke_deployment_object)
+        insert_gke_deployment(cluster_type=GKE, gke_cluster_object=asdict(gke_cluster_object))
     elif cluster_type == GKE_AUTOPILOT:
-        gke_autopilot_deployment_object = GKEAutopilotObject(
+        gke_autopilot_cluster_object = GKEAutopilotObject(
             cluster_name=cluster_name, context_name=context_name, user_name=user_name, kubeconfig=kubeconfig,
-            nodes_names=nodes_names,
-            nodes_ips=nodes_ips, project_name=project_name,
+            nodes_names=nodes_names, nodes_ips=nodes_ips, project_name=project_name,
             zone_name=zone_name, region_name=region_name,
             created_timestamp=timestamp,
             human_created_timestamp=human_created_timestamp,
@@ -170,31 +169,30 @@ def main(kubeconfig_path: str = '', cluster_type: str = '', project_name: str = 
             human_expiration_timestamp=human_expiration_timestamp,
             cluster_version=cluster_version, num_nodes=num_nodes)
         insert_gke_deployment(cluster_type=GKE_AUTOPILOT,
-                              gke_deployment_object=asdict(gke_autopilot_deployment_object))
+                              gke_cluster_object=asdict(gke_autopilot_cluster_object))
     elif cluster_type == EKS:
-        eks_deployment_object = EKSObject(cluster_name=cluster_name, context_name=context_name, user_name=user_name,
-                                          kubeconfig=kubeconfig,
-                                          nodes_names=nodes_names, nodes_ips=nodes_ips, project_name=project_name,
-                                          zone_name=zone_name, region_name=region_name, created_timestamp=timestamp,
-                                          human_created_timestamp=human_created_timestamp,
+        eks_cluster_object = EKSObject(cluster_name=cluster_name, context_name=context_name, user_name=user_name,
+                                          kubeconfig=kubeconfig, nodes_names=nodes_names, nodes_ips=nodes_ips,
+                                          project_name=project_name, zone_name=zone_name, region_name=region_name,
+                                          created_timestamp=timestamp, human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version, num_nodes=num_nodes,
                                           machine_type=machine_type, vCPU=vCPU, total_memory=total_memory,
                                           totalvCPU=vCPU * num_nodes)
-        insert_eks_deployment(eks_deployment_object=asdict(eks_deployment_object))
+        insert_eks_deployment(eks_cluster_object=asdict(eks_cluster_object))
 
     elif cluster_type == AKS:
-        aks_deployment_object = AKSObject(az_resource_group=az_resource_group, cluster_name=cluster_name, context_name=context_name, user_name=user_name,
-                                          kubeconfig=kubeconfig,
-                                          nodes_names=nodes_names, nodes_ips=nodes_ips,
+        aks_cluster_object = AKSObject(az_resource_group=az_resource_group, cluster_name=cluster_name,
+                                          context_name=context_name, user_name=user_name,
+                                          kubeconfig=kubeconfig,  nodes_names=nodes_names, nodes_ips=nodes_ips,
                                           zone_name=zone_name, region_name=region_name, created_timestamp=timestamp,
                                           human_created_timestamp=human_created_timestamp,
                                           expiration_timestamp=expiration_timestamp,
                                           human_expiration_timestamp=human_expiration_timestamp,
                                           cluster_version=cluster_version, num_nodes=num_nodes, vCPU=vCPU,
                                           total_memory=total_memory, totalvCPU=vCPU * num_nodes)
-        insert_aks_deployment(aks_deployment_object=asdict(aks_deployment_object))
+        insert_aks_deployment(aks_cluster_object=asdict(aks_cluster_object))
     try:
         deployment_yaml_dict = retrieve_deployment_yaml(cluster_type, cluster_name)
     except:
