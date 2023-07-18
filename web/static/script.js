@@ -30,6 +30,7 @@ $(document).ready(function() {
     if (!isEmpty(settingsDataArray)) {
         var githubRepository = settingsDataArray[0].github_repository
         var githubActionsToken = settingsDataArray[0].github_actions_token
+        var infracostToken = settingsDataArray[0].infracost_token
         var awsAccessKeyId = settingsDataArray[0].aws_access_key_id
         var awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
         var azureCredentials = settingsDataArray[0].azure_credentials
@@ -390,6 +391,9 @@ $(document).ready(function() {
             $("#az-machines-series-dropdown").append($("<option />").val(default_az_machine_series).text(default_az_machine_series));
             $("#az-machines-types-dropdown").append($("<option />").val(default_az_machine_type).text(default_az_machine_type));
         }
+        $("#cost-label-div").show()
+        $("#cost-label").empty()
+        $("#cost-label").append('Select a machine type to reveal the forecasted price');
 
     }
 
@@ -617,6 +621,7 @@ $(document).ready(function() {
         googleCredsJSON = $('#google-creds-json').val();
         githubRepository = $('#github-repository').val();
         githubActionsToken = $('#github-actions-token').val();
+        infracostToken = $('#infracost-token').val();
         userName = window.localStorage.getItem("userName")
 
         let add_settings_data = JSON.stringify({
@@ -627,6 +632,7 @@ $(document).ready(function() {
             "google_creds_json": googleCredsJSON,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
+            "infracost_token": infracostToken,
         });
 
 
@@ -666,6 +672,8 @@ $(document).ready(function() {
         $("#github-repository-div").hide();
         $("#github-actions-token").hide();
         $("#github-actions-token-div").hide();
+        $("#infracost-token").hide();
+        $("#infracost-token-div").hide();
 
         if (cloud_provider == "aws") {
             $("#update-aws-settings-button").show();
@@ -679,6 +687,8 @@ $(document).ready(function() {
         }
         $("#update-github-settings-button").show();
         $("#update-github-settings-label").show();
+        $("#update-infracost-token-button").show();
+        $("#update-infracost-token-label").show();
     });
 
     $("#sign-in-button").click(function() {
@@ -869,6 +879,7 @@ $(document).ready(function() {
             "trolley_server_url": trolleyServerURL,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
+            "infracost_token": infracostToken,
             "aws_access_key_id": awsAccessKeyId,
             "aws_secret_access_key": awsSecretAccessKey,
             "azure_credentials": azureCredentials,
@@ -1001,6 +1012,18 @@ $(document).ready(function() {
         $("#update-github-settings-label").hide();
     })
 
+    $("#update-infracost-token-button").click(function() {
+        $("#infracost-token-div").show();
+        $("#infracost-token").show();
+        $("#update-infracost-token-button").hide();
+//        $("#github-provider-credentials-div").hide();
+//        $("#github-repository").hide();
+//        $("#github-repository-div").hide();
+//        $("#github-actions-token").hide();
+//        $("#github-actions-token-div").hide();
+//        $("#update-github-settings-button").hide();
+//        $("#update-github-settings-label").hide();
+    })
 
     function assign_object(objectType, objectName, dataArray, assignedObject) {
         let discovered = false
@@ -1246,7 +1269,8 @@ $(document).ready(function() {
                             azure_credentials: response.azure_credentials,
                             google_creds_json: response.google_creds_json,
                             github_repository: response.github_repository,
-                            github_actions_token: response.github_actions_token
+                            github_actions_token: response.github_actions_token,
+                            infracost_token: response.infracost_token
                         });
                         window.localStorage.setItem("settings", JSON.stringify(settingsData));
                         resolve(response)
@@ -1710,6 +1734,16 @@ $(document).ready(function() {
                 $("#update-github-settings-button").show();
                 $("#update-github-settings-label").show();
             }
+
+            if (isEmpty(settingsDataArray[0].infracost_token)) {
+                $("#infracost-token").show();
+                $("#infracost-token-div").show();
+                $("#update-infracost-token-button").hide();
+                $("#update-infracost-token-label").hide();
+            } else {
+                $("#update-infracost-token-button").show();
+                $("#update-infracost-token-label").show();
+            }
         }
 
 
@@ -1922,6 +1956,7 @@ $(document).ready(function() {
     function populate_machine_types(selected_machine_series) {
         if (clusterType == 'gke') {
             var $dropdown = $("#gke-machines-types-dropdown");
+            var regionName = $("#gke-zones-dropdown").val();
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-machines-types-dropdown");
             var regionName = $("#eks-locations-dropdown").val();
@@ -2325,6 +2360,17 @@ $(document).ready(function() {
         var gke_machine_series = $('#gke-machines-series-dropdown').val();
         $("#gke-machines-types-dropdown").empty();
         populate_machine_types(gke_machine_series);
+    })
+
+    $('#gke-machines-types-dropdown').change(function() {
+        var gkeMachineType = $('#gke-machines-types-dropdown').val();
+        let nodesAmount = $("#nodes-amount-dropdown").val();
+        $("#cost-label").empty();
+        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
+        var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
+        let unitPrice = findUnitPrice(fetchedMachineTypesData, gkeMachineType);
+        let totalPrice = findTotalPrice(unitPrice, 'gke');
+        $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
     })
 
     $('#eks-machines-series-dropdown').change(function() {
