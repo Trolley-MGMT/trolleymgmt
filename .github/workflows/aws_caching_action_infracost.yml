@@ -37,13 +37,8 @@ jobs:
           
       - name: Installing Infracost
         run: |
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-          (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/runner/.bash_profile
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           docker -v
           docker compose version
-          brew update
-          export HOMEBREW_NO_INSTALL_CLEANUP=TRUE
           pwd
           ls
           cd cloud-pricing-api
