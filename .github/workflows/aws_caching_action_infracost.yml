@@ -35,7 +35,7 @@ jobs:
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
           echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
           
-      - name: Installing Infracost
+      - name: Installing Infracost 1
         if: always()
         run: |
           docker -v
@@ -50,8 +50,15 @@ jobs:
           ls
           pwd
           docker-compose run init_job
-          docker-compose up api -d
 
+      - name: Installing Infracost 2
+        if: always()
+        run: |
+          cd cloud-pricing-api
+          echo "SELF_HOSTED_INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
+          INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}
+          SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY
+          docker-compose up api -d
       - name: Caching Tasks
         env:
           MONGO_URL: ${{ github.event.client_payload.mongo_url }}
