@@ -11,9 +11,12 @@ from dotenv import load_dotenv
 from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
 from googleapiclient import discovery
+import requests
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 GCP_CREDENTIALS = os.getenv('GCP_CREDENTIALS', False)
+INFRACOST_URL = os.getenv('INFRACOST_URL', 'http://localhost:4000')
+INFRACOST_TOKEN = os.getenv('INFRACOST_TOKEN', False)
 
 log_file_name = 'server.log'
 if DOCKER_ENV:
@@ -28,7 +31,7 @@ stdout_handler = logging.StreamHandler(stream=sys.stdout)
 handlers = [file_handler, stdout_handler]
 
 logging.basicConfig(
-    level=logging.WARNING,
+    level=logging.INFO,
     format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
     handlers=handlers
 )
@@ -75,6 +78,57 @@ else:
         FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/gcp_credentials.json'
 
 
+def fetch_pricing_for_gcp_vm(machine_type: str, region: str) -> float:
+    url = f'{INFRACOST_URL}/graphql'
+    # url = 'https://pricing.api.infracost.io/graphql'
+    headers = {
+        'X-Api-Key': f'{INFRACOST_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+
+    query = '''
+      query ($region: String!, $machineType: String!) {
+        products(
+          filter: {
+            vendorName: "gcp",
+            service: "Compute Engine",
+            productFamily: "Compute Instance",
+            region: $region,
+            attributeFilters: [
+              { key: "machineType", value: $machineType }
+            ]
+          },
+        ) {
+          prices(
+            filter: {
+              purchaseOption: "on_demand"
+            },
+          ) { USD }
+        }
+      }
+    '''
+
+    variables = {
+        "region": region,
+        "machineType": machine_type
+    }
+
+    data = {
+        'query': query,
+        'variables': variables
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        logger.info(response.json()['data']['products'])
+        return float(response.json()['data']['products'][0]['prices'][0]['USD'])
+    except Exception as e:
+        logger.error(
+            f'There was a problem fetching the unit price for in region: {region} with machine_type: {machine_type}'
+            f' with error: {e}')
+        return 0
+
+
 def fetch_zones(gcp_project_id: str) -> list:
     logger.info(f'A request to fetch zones has arrived for {gcp_project_id} project_id')
     compute_zones_client = ZonesClient()
@@ -101,6 +155,7 @@ def fetch_regions(gcp_project_id: str) -> list:
 def fetch_kubernetes_versions(zones_list: list, gcp_project_id: str, service):
     kubernetes_versions_dict = {}
     for zone in zones_list:
+        logger.info(f'Fetching kubernetes versions for {zone} zone')
         name = f'projects/{gcp_project_id}/locations/{zone}'
         request = service.projects().locations().getServerConfig(name=name)
         response = request.execute()
@@ -139,9 +194,11 @@ def create_regions_and_zones_dict(regions_list, zones_list):
 def fetch_machine_types_per_zone(zones_list: list, gcp_project_id: str, credentials) -> dict:
     logger.info(f'A request to fetch machine types has arrived')
     service = discovery.build('compute', 'beta', credentials=credentials)
-    machine_types_list = []
     machines_for_zone_dict = {}
+    # zones_list = ['asia-northeast1-a', 'asia-northeast1-b']
     for zone in zones_list:
+        machine_types_list = []
+        logger.info(f'Fetching machine types for {zone} zone')
         request = service.machineTypes().list(project=gcp_project_id, zone=zone)
         response = request.execute()
         for machine in response['items']:
@@ -149,16 +206,11 @@ def fetch_machine_types_per_zone(zones_list: list, gcp_project_id: str, credenti
                                                        machine_type=machine['name'],
                                                        machine_series=machine['name'].split('-')[0],
                                                        vCPU=machine['guestCpus'],
-                                                       memory=machine['memoryMb'])
-            machine_types_list.append(machine_type_object)
+                                                       memory=machine['memoryMb'],
+                                                       unit_price=0)
+            machine_types_list.append(asdict(machine_type_object))
         machines_for_zone_dict[zone] = machine_types_list
     return machines_for_zone_dict
-
-
-def fetch_vcpus_for_machine_types(machine_types_list, requested_machine_type):
-    for machine in machine_types_list:
-        if machine.machine_type == requested_machine_type:
-            return machine.vCPU
 
 
 def main(gcp_credentials: str):
@@ -221,10 +273,28 @@ def main(gcp_credentials: str):
         logger.info('Attempting to fetch machine_types_all_zones')
         machine_types_all_zones = fetch_machine_types_per_zone(zones_list, gcp_project_id=gcp_project_id,
                                                                credentials=credentials)
+        machines_for_zone_dict_clean = {}
+        for zone in machine_types_all_zones:
+            for machine in machine_types_all_zones[zone]:
+                machine_type = machine['machine_type']
+                region = zone.split('-')[0] + '-' + zone.split('-')[1]
+                if INFRACOST_TOKEN:
+                    unit_price = fetch_pricing_for_gcp_vm(machine_type, region)
+                else:
+                    unit_price = 0
+                print(unit_price)
+                if unit_price != 0:
+                    machine['unit_price'] = unit_price
+                    if zone not in machines_for_zone_dict_clean.keys():
+                        machines_for_zone_dict_clean[zone] = [machine]
+                    else:
+                        logger.info(f'Inserting a {machine_type} machine_type for {zone} zone')
+                        machines_for_zone_dict_clean[zone].insert(0, machine)
+
         for zone in machine_types_all_zones:
             gke_machines_caching_object = GKEMachinesCacheObject(
                 region=zone,
-                machines_list=machine_types_all_zones[zone]
+                machines_list=machines_for_zone_dict_clean[zone]
             )
             insert_cache_object(caching_object=asdict(gke_machines_caching_object), provider=GKE, machine_types=True)
 
@@ -237,46 +307,6 @@ def main(gcp_credentials: str):
         logger.info('Attempting to insert a GKE cache object')
         insert_cache_object(caching_object=asdict(gke_caching_object), provider=GKE, gke_full_cache=True)
 
-        # Inserting a GKE Zones and Machine Series Object
-        series_list = []
-        for zone in machine_types_all_zones:
-            for machine_type in machine_types_all_zones[zone]:
-                if not machine_type.machine_series in series_list:
-                    series_list.append(machine_type.machine_series)
-
-            gke_zones_and_machine_series_object = GKEZonesAndMachineSeriesObject(
-                zone=zone,
-                series_list=series_list
-            )
-            insert_cache_object(caching_object=asdict(gke_zones_and_machine_series_object), provider=GKE,
-                                gke_zones_and_series=True)
-
-        # Inserting a GKE Series and Machine Types Object
-        machines_series_list = []
-        for zone in machine_types_all_zones:
-            for machine_type in machine_types_all_zones[zone]:
-                if machine_type.machine_series not in machines_series_list:
-                    machines_series_list.append(machine_type.machine_series)
-
-        series_and_machine_types_dict = {}
-        for zone in machine_types_all_zones:
-            for machine_series in machines_series_list:
-                for machine_type in machine_types_all_zones[zone]:
-                    if machine_series not in series_and_machine_types_dict.keys():
-                        if machine_type.machine_series == machine_series:
-                            series_and_machine_types_dict[machine_series] = [machine_type.machine_type]
-                    else:
-                        if machine_type.machine_series == machine_series:
-                            if machine_type.machine_type not in series_and_machine_types_dict[machine_series]:
-                                series_and_machine_types_dict[machine_series].append(machine_type.machine_type)
-        for machine_series in series_and_machine_types_dict:
-            gke_series_and_machine_types_object = GKESeriesAndMachineTypesObject(
-                machine_series=machine_series,
-                machines_list=series_and_machine_types_dict[machine_series]
-            )
-            insert_cache_object(caching_object=asdict(gke_series_and_machine_types_object), provider=GKE,
-                                gke_series_and_machine_types=True)
-
 
     except Exception as e:
         logger.error(f'Trouble connecting to GCP: {e}')
@@ -286,5 +316,5 @@ if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--credentials', type=str, help='GCP Credentials')
     args = parser.parse_args()
-    # main(GCP_CREDENTIALS)
-    main(args.credentials)
+    main(GCP_CREDENTIALS)
+    # main(args.credentials)

@@ -39,6 +39,13 @@ class GithubObject:
 
 
 @dataclass
+class InfracostObject:
+    infracost_token: bytes
+    user_email: str
+    created_timestamp: int
+
+
+@dataclass
 class GKEObject:
     cluster_name: str
     context_name: str
@@ -159,6 +166,7 @@ class GKEMachineTypeObject:
     machine_type: str
     vCPU: int
     memory: int
+    unit_price: float
 
 
 @dataclass
@@ -168,6 +176,7 @@ class AZMachineTypeObject:
     machine_series: str
     vCPU: int
     memory: int
+    unit_price: float
 
 
 @dataclass
@@ -279,6 +288,7 @@ class AZResourceGroupObject:
 class AZZonesAndMachineSeriesObject:
     location_name: str
     series_list: list
+
 
 @dataclass
 class AZSeriesAndMachineTypesObject:

@@ -110,3 +110,4 @@ EKS_RESOURCE_GROUPS = 'eks_resource_groups'
 
 GITHUB_REPOSITORY = 'github_repository'
 GITHUB_ACTIONS_TOKEN = 'github_actions_token'
+INFRACOST_TOKEN = 'infracost_token'

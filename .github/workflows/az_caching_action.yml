@@ -28,6 +28,7 @@ jobs:
           echo "client_id is: ${{ github.event.client_payload.client_id }}"
           echo "client_secret is: ${{ github.event.client_payload.client_secret }}"
           echo "tenant_id is: ${{ github.event.client_payload.tenant_id }}"
+          echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
 
       - name: Az CLI login
         uses: Azure/login@v1
@@ -46,6 +47,8 @@ jobs:
           AZURE_CLIENT_ID: ${{ github.event.client_payload.client_id }}
           AZURE_CLIENT_SECRET: ${{ github.event.client_payload.client_secret }}
           AZURE_TENANT_ID: ${{ github.event.client_payload.tenant_id }}
+          INFRACOST_TOKEN: ${{ github.event.client_payload.infracost_token }}"
+          INFRACOST_URL: http://localhost:4000
           GITHUB_ACTIONS_ENV: Yes
 
         run: |

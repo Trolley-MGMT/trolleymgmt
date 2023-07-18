@@ -77,7 +77,7 @@ def main():
         delete_file(file._id)
     grid_file_id = insert_file(profile_image_filename='mongo_boot_dump/thumbnail_admin_adminovitch.jpg')
     update_user_profile_image_id(user_email='admin@trolley.org', grid_file_id=grid_file_id)
-    js_builder()
+    # js_builder()
 
 
 if __name__ == "__main__":
