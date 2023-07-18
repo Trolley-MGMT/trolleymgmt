@@ -35,10 +35,15 @@ jobs:
           (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/runner/.bash_profile
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install infracost
+          brew install docker-compose
           git clone https://github.com/infracost/cloud-pricing-api.git
           cd cloud-pricing-api
-          infracost auth login
-          cat ~/.config/infracost/credentials.yml
+          export SELF_HOSTED_INFRACOST_API_KEY=$(cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+          echo "SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY"
+          INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
+          SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY
+          docker-compose run init_job
+          docker-compose up api
 
       - name: Caching Tasks
         env:
