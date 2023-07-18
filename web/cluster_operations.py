@@ -286,7 +286,7 @@ class ClusterOperation:
 
     def trigger_gcp_caching(self):
         json_data = {
-            "event_type": "gcp-caching-action-infracost-trigger",
+            "event_type": "gcp-caching-action-trigger",
             "client_payload": {"project_name": self.project_name,
                                "google_creds_json": self.google_creds_json,
                                "infracost_token": self.infracost_token,
@@ -304,7 +304,7 @@ class ClusterOperation:
 
     def trigger_aws_caching(self):
         json_data = {
-            "event_type": "aws-caching-action-infracost-trigger",
+            "event_type": "aws-caching-action-trigger",
             "client_payload": {"project_name": self.project_name,
                                "aws_access_key_id": self.aws_access_key_id,
                                "aws_secret_access_key": self.aws_secret_access_key,
