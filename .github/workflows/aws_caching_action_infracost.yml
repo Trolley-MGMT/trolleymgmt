@@ -58,7 +58,7 @@ jobs:
           echo "SELF_HOSTED_INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
           INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}
           docker-compose up -d api
-          curl http://localhost:4000/health
+          curl --retry 50 --retry-max-time 120 http://localhost:4000/health
 
       - name: Caching Tasks
         env:
