@@ -44,9 +44,8 @@ jobs:
           ls
           cd cloud-pricing-api
           ls
-          echo "SELF_HOSTED_INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
-          INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}
-          SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY
+          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
           ls
           pwd
           docker-compose run init_job
@@ -55,8 +54,8 @@ jobs:
         if: always()
         run: |
           cd cloud-pricing-api
-          echo "SELF_HOSTED_INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
-          INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}
+          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
           docker-compose up -d api
           curl --retry 50 --retry-max-time 120 http://localhost:4000/health
 
