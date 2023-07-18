@@ -45,7 +45,7 @@ jobs:
           echo "google_creds_content=$(cat $GOOGLE_APPLICATION_CREDENTIALS)" >> $GITHUB_ENV
 
 
-      - name: Installing Infracost 1
+      - name: Installing Infracost
         if: always()
         run: |
           docker -v

@@ -35,7 +35,7 @@ jobs:
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
           echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
           
-      - name: Installing Infracost 1
+      - name: Installing Infracost
         if: always()
         run: |
           docker -v
