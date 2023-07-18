@@ -44,8 +44,8 @@ jobs:
           docker compose version
           brew update
           export HOMEBREW_NO_INSTALL_CLEANUP=TRUE
-          brew install infracost
-          brew install docker-compose
+          pwd
+          ls
           cd cloud-pricing-api
           export SELF_HOSTED_INFRACOST_API_KEY=$(cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
           echo "SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY"
