@@ -42,10 +42,12 @@ jobs:
           pwd
           ls
           cd cloud-pricing-api
-          export SELF_HOSTED_INFRACOST_API_KEY=$(cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
-          echo "SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY"
+          ls
+          echo "SELF_HOSTED_INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
           INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
           SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY
+          ls
+          pwd
           docker-compose run init_job -d
           docker-compose up api -d
 
