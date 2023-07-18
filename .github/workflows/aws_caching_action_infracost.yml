@@ -57,7 +57,7 @@ jobs:
           cd cloud-pricing-api
           echo "SELF_HOSTED_INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
           INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}
-          docker-compose up api
+          docker-compose up -d api
           curl http://localhost:4000/health
 
       - name: Caching Tasks
