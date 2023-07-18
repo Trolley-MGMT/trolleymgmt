@@ -50,7 +50,7 @@ jobs:
           pwd
           docker-compose run init_job
 
-      - name: Installing Infracost 2
+      - name: Caching Tasks
         if: always()
         run: |
           cd cloud-pricing-api
@@ -59,18 +59,15 @@ jobs:
           docker-compose up -d api
           curl --version
           curl --retry 20 --retry-all-errors http://localhost:4000/health
-
-      - name: Caching Tasks
-        env:
-          MONGO_URL: ${{ github.event.client_payload.mongo_url }}
-          MONGO_USER: ${{ github.event.client_payload.mongo_user }}
-          MONGO_PASSWORD: ${{ github.event.client_payload.mongo_password }}
-          PROJECT_NAME: ${{ github.event.client_payload.project_name }}
-          INFRACOST_TOKEN: ${{ github.event.client_payload.infracost_token }}"
-          INFRACOST_URL: http://localhost:4000
-          GITHUB_ACTIONS_ENV: Yes
-
-        run: |
+          export MONGO_URL=${{ github.event.client_payload.mongo_url }}
+          export MONGO_USER=${{ github.event.client_payload.mongo_user }}
+          export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
+          export PROJECT_NAME=${{ github.event.client_payload.project_name }}
+          export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
+          export INFRACOST_URL=http://localhost:4000
+          export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
           python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
+          
+

@@ -698,7 +698,7 @@ def retrieve_machine_series(region_name: str = '', cluster_type: str = '') -> li
             machine_series = machine.get('machine_series')
             if machine_series:
                 unique_machine_series.add(machine_series)
-        return list(unique_machine_series)  
+        return list(unique_machine_series)
     except Exception as e:
         logger.warning(
             f'No machine series were found for cluster_type: {cluster_type} and region_name: {region_name} with error: {e}')
