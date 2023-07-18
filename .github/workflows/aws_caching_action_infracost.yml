@@ -47,8 +47,8 @@ jobs:
           echo "SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY"
           INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
           SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY
-          docker-compose run init_job
-          docker-compose up api
+          docker-compose run init_job -d
+          docker-compose up api -d
 
       - name: Caching Tasks
         env:
