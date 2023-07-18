@@ -29,6 +29,16 @@ jobs:
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
           echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
           
+      - name: Installing Infracost
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+          (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/runner/.bash_profile
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install infracost
+          git clone https://github.com/infracost/cloud-pricing-api.git
+          cd cloud-pricing-api
+          infracost auth login
+          cat ~/.config/infracost/credentials.yml
 
       - name: Caching Tasks
         env:
@@ -42,5 +52,5 @@ jobs:
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          pip3 install -r web/requirements.txt
-          python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
+#          pip3 install -r web/requirements.txt
+#          python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
