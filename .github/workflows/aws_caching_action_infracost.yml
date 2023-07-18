@@ -59,6 +59,8 @@ jobs:
           INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}
           SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY
           docker-compose up api -d
+          curl http://localhost:4000/health
+          
       - name: Caching Tasks
         env:
           MONGO_URL: ${{ github.event.client_payload.mongo_url }}
