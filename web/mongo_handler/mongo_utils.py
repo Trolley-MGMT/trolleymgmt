@@ -679,7 +679,7 @@ def retrieve_kubernetes_versions(location_name: str = '', provider: str = '') ->
     return kubernetes_versions_clusters_list['kubernetes_versions_list']
 
 
-def retrieve_machine_series(region_name: str = '', cluster_type: str = '') -> set[Any] | list[Any]:
+def retrieve_machine_series(region_name: str = '', cluster_type: str = '') -> list:
     if cluster_type == GKE:
         mongo_query = {'region': region_name}
         machine_series_object = gke_machines_cache.find_one(mongo_query)
@@ -698,7 +698,7 @@ def retrieve_machine_series(region_name: str = '', cluster_type: str = '') -> se
             machine_series = machine.get('machine_series')
             if machine_series:
                 unique_machine_series.add(machine_series)
-        return unique_machine_series
+        return list(unique_machine_series)  
     except Exception as e:
         logger.warning(
             f'No machine series were found for cluster_type: {cluster_type} and region_name: {region_name} with error: {e}')
