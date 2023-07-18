@@ -23,7 +23,6 @@ import yaml
 from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
 log_file_name = 'trolley_server.log'
@@ -46,7 +45,6 @@ logging.basicConfig(
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
-
 EMAIL_AUTHENTICATION = os.getenv('MAIL_AUTHENTICATION', False)
 GMAIL_USER = os.getenv('GMAIL_USER', "trolley_user")
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', "trolley_password")
@@ -60,13 +58,13 @@ logger.info(os.environ)
 
 import mongo_handler.mongo_utils
 from cluster_operations import ClusterOperation
-from mongo_handler.mongo_objects import UserObject, GithubObject, ProviderObject
+from mongo_handler.mongo_objects import UserObject, GithubObject, ProviderObject, InfracostObject
 from variables.variables import POST, GET, EKS, \
     APPLICATION_JSON, CLUSTER_TYPE, GKE, AKS, DELETE, USER_NAME, REGIONS_LIST, \
     ZONES_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
     REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN, \
-    LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP
+    LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP, MACHINE_SERIES, INFRACOST_TOKEN
 
 from __init__ import __version__
 from mail_handler import MailSender
@@ -155,6 +153,13 @@ def encode_github_details(content: dict) -> GithubObject:
                                  github_repository=content['github_repository'],
                                  user_email=content['user_email'], created_timestamp=int(time.time()))
     return github_object
+
+
+def encode_infracost_details(content: dict) -> InfracostObject:
+    infracost_token = crypter.encrypt(str.encode(content['infracost_token']))
+    infracost_object = InfracostObject(infracost_token=infracost_token,
+                                       user_email=content['user_email'], created_timestamp=int(time.time()))
+    return infracost_object
 
 
 def login_processor(user_email: str = "", password: str = "", new: bool = False) -> tuple:
@@ -268,8 +273,7 @@ def render_page(page_name: str = '', cluster_name: str = '', client_name: str = 
 
 
 def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_secret_access_key: str,
-                github_repository: str,
-                github_actions_token: str) -> bool:
+                github_repository: str, github_actions_token: str, infracost_token: str) -> bool:
     """
     This endpoint triggers a EKS Cluster deployment using a GitHub Action
     """
@@ -277,10 +281,14 @@ def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_
     content = {'project_name': project_name, 'aws_access_key_id': aws_access_key_id,
                'aws_secret_access_key': aws_secret_access_key,
                GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
+               INFRACOST_TOKEN: infracost_token,
                'mongo_password': os.getenv('MONGO_PASSWORD'),
                'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
     if not github_repository or not github_actions_token:
         github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
+        if not github_data:
+            logger.warning(f'No github data for {user_email} user was found. AWS caching will not start')
+            return True
         try:
             github_actions_token_decrypted = crypter.decrypt(github_data['github_actions_token']).decode("utf-8")
             github_repository = github_data['github_repository']
@@ -297,17 +305,21 @@ def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_
 
 
 def az_caching(user_email: str, project_name: str, azure_credentials: str, github_repository: str,
-               github_actions_token: str) -> bool:
+               github_actions_token: str, infracost_token: str) -> bool:
     """
     This endpoint triggers a EKS Cluster deployment using a GitHub Action
     """
 
     content = {'project_name': project_name, 'azure_credentials': azure_credentials,
                GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
+               INFRACOST_TOKEN: infracost_token,
                'mongo_password': os.getenv('MONGO_PASSWORD'),
                'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
     if not github_repository or not github_actions_token:
         github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
+        if not github_data:
+            logger.warning(f'No github data for {user_email} user was found. AZ caching will not start')
+            return True
         try:
             github_actions_token_decrypted = crypter.decrypt(github_data['github_actions_token']).decode("utf-8")
             github_repository = github_data['github_repository']
@@ -324,16 +336,20 @@ def az_caching(user_email: str, project_name: str, azure_credentials: str, githu
 
 
 def gcp_caching(user_email: str, project_name: str, google_creds_json: str, github_repository: str,
-                github_actions_token: str) -> bool:
+                github_actions_token: str, infracost_token: str) -> bool:
     """
     This endpoint triggers a GCP Caching Action using a GitHub Action
     """
     content = {'project_name': project_name, 'google_creds_json': google_creds_json,
-               GITHUB_REPOSITORY: github_repository,
-               GITHUB_ACTIONS_TOKEN: github_actions_token, 'mongo_password': os.getenv('MONGO_PASSWORD'),
+               GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
+               INFRACOST_TOKEN: infracost_token,
+               'mongo_password': os.getenv('MONGO_PASSWORD'),
                'mongo_url': os.getenv('MONGO_URL'), 'mongo_user': os.getenv('MONGO_USER')}
     if not github_repository or not github_actions_token:
         github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
+        if not github_data:
+            logger.warning(f'No github data for {user_email} user was found. GCP caching will not start')
+            return True
         try:
             github_actions_token_decrypted = crypter.decrypt(github_data['github_actions_token']).decode("utf-8")
             github_repository = github_data['github_repository']
@@ -361,7 +377,19 @@ def get_clusters_data():
     if user_name == 'null':
         user_name = ''
     clusters_list = mongo_handler.mongo_utils.retrieve_available_clusters(cluster_type, client_name, user_name)
-    return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
+    clusters_decrypted = []
+    for cluster in clusters_list:
+        try:
+            kubeconfig_decrypted = crypter.decrypt(cluster['kubeconfig']).decode("utf-8")
+            cluster['kubeconfig'] = kubeconfig_decrypted
+            del cluster['kubeconfig_encrypted']
+        except Exception as e:
+            logger.warning(f'Cluster did not have encrypted kubeconfig: {e}')
+        clusters_decrypted.append(cluster)
+    if len(clusters_decrypted) == 0:
+        return jsonify([]), 200
+    else:
+        return Response(json.dumps(clusters_list), status=200, mimetype=APPLICATION_JSON)
 
 
 @app.route('/get_instances_data', methods=[GET])
@@ -613,6 +641,10 @@ def settings():
             if cluster_operation.github_check():
                 encoded_github_details = encode_github_details(content)
                 mongo_handler.mongo_utils.insert_github_data_object(asdict(encoded_github_details))
+        if content['infracost_token']:
+            if cluster_operation.infracost_check():
+                encoded_infracost_token = encode_infracost_details(content)
+                mongo_handler.mongo_utils.insert_infracost_data_object(asdict(encoded_infracost_token))
 
         # TODO find a better way to implement
         if validate_provider_data(content):
@@ -626,7 +658,8 @@ def settings():
                     if content['google_creds_json']:
                         if gcp_caching(user_email, PROJECT_NAME, content['google_creds_json'],
                                        github_repository=content[GITHUB_REPOSITORY],
-                                       github_actions_token=content[GITHUB_ACTIONS_TOKEN]):
+                                       github_actions_token=content[GITHUB_ACTIONS_TOKEN],
+                                       infracost_token=content[INFRACOST_TOKEN]):
                             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
                         else:
                             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -635,7 +668,8 @@ def settings():
                         if aws_caching(user_email, PROJECT_NAME, content['aws_access_key_id'],
                                        content['aws_secret_access_key'],
                                        github_repository=content[GITHUB_REPOSITORY],
-                                       github_actions_token=content[GITHUB_ACTIONS_TOKEN]):
+                                       github_actions_token=content[GITHUB_ACTIONS_TOKEN],
+                                       infracost_token=content[INFRACOST_TOKEN]):
                             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
                         else:
                             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -644,7 +678,8 @@ def settings():
                     if content['azure_credentials']:
                         if az_caching(user_email, PROJECT_NAME, content['azure_credentials'],
                                       github_repository=content[GITHUB_REPOSITORY],
-                                      github_actions_token=content[GITHUB_ACTIONS_TOKEN]):
+                                      github_actions_token=content[GITHUB_ACTIONS_TOKEN],
+                                      infracost_token=content[INFRACOST_TOKEN]):
                             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
                         else:
                             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
@@ -656,6 +691,7 @@ def settings():
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     elif request.method == GET:
         github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email)
+        infracost_data = mongo_handler.mongo_utils.retrieve_infracost_data_object(user_email)
         aws_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(provider=AWS,
                                                                                           user_email=user_email)
         az_credentials_data = mongo_handler.mongo_utils.retrieve_credentials_data_object(provider=AZ,
@@ -668,14 +704,20 @@ def settings():
         except Exception as e:
             github_actions_token_decrypted = ""
             github_repository = ""
-            logger.error(f'problem decrypting github_actions_token_decrypted with error {e}')
+            logger.warning(f'problem decrypting github_actions_token_decrypted with error {e}')
+
+        try:
+            infracost_token_decrypted = crypter.decrypt(infracost_data['infracost_token']).decode("utf-8")
+        except Exception as e:
+            infracost_token_decrypted = ""
+            logger.warning(f'problem decrypting infracost_token_decrypted with error {e}')
         try:
             aws_access_key_id = crypter.decrypt(aws_credentials_data['aws_access_key_id']).decode("utf-8")
             aws_secret_access_key = crypter.decrypt(aws_credentials_data['aws_secret_access_key']).decode("utf-8")
         except Exception as e:
             aws_access_key_id = ""
             aws_secret_access_key = ""
-            logger.error(f'problem decrypting aws credentials with error {e}')
+            logger.warning(f'problem decrypting aws credentials with error {e}')
         try:
             azure_credentials = crypter.decrypt(az_credentials_data['azure_credentials']).decode("utf-8")
         except Exception as e:
@@ -695,6 +737,7 @@ def settings():
                         'azure_credentials': azure_credentials,
                         'google_creds_json': google_creds_json,
                         'github_actions_token': github_actions_token_decrypted,
+                        'infracost_token': infracost_token_decrypted,
                         'github_repository': github_repository})
 
 
@@ -821,7 +864,7 @@ def fetch_regions():
     if len(regions) == 0:
         return jsonify("Regions data was not found"), 200
     else:
-        return jsonify(regions), 200
+        return jsonify(sorted(regions)), 200
 
 
 @app.route('/fetch_kubernetes_versions', methods=[GET])
@@ -830,7 +873,8 @@ def fetch_kubernetes_versions():
     cluster_type = request.args.get(CLUSTER_TYPE.lower())
     location_name = request.args.get(LOCATION_NAME.lower())
     logger.info(f'A request to fetch kubernetes versions for {cluster_type} and {location_name} location has arrived')
-    kubernetes_versions_list = mongo_handler.mongo_utils.retrieve_kubernetes_versions(location_name=location_name, provider=cluster_type)
+    kubernetes_versions_list = mongo_handler.mongo_utils.retrieve_kubernetes_versions(location_name=location_name,
+                                                                                      provider=cluster_type)
     if len(kubernetes_versions_list) == 0:
         return jsonify("kubernetes_versions_list data was not found"), 200
     else:
@@ -852,11 +896,16 @@ def fetch_machine_series():
 @login_required
 def fetch_machine_types():
     cluster_type = request.args.get(CLUSTER_TYPE)
-    machine_series = request.args.get('machine_series')
+    machine_series = request.args.get(MACHINE_SERIES.lower())
+    region_name = request.args.get(REGION_NAME.lower())
+
     logger.info(f'A request to fetch machine types for {cluster_type} has arrived')
     machine_types = mongo_handler.mongo_utils.retrieve_machine_types(machine_series=machine_series,
-                                                                     cluster_type=cluster_type)
-    return jsonify(machine_types)
+                                                                     cluster_type=cluster_type, region_name=region_name)
+    if machine_types:
+        return Response(json.dumps(machine_types), status=200, mimetype=APPLICATION_JSON)
+    else:
+        return jsonify([]), 200
 
 
 @app.route('/fetch_zones', methods=[GET])

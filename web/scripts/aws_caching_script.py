@@ -1,20 +1,21 @@
 import concurrent.futures
 
-from datetime import timedelta
+import getpass as gt
 import os
 import platform
 import sys
-import time
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from dataclasses import asdict
 import logging
 
 import boto3
-import getpass as gt
+import requests
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 GITHUB_ACTIONS_ENV = os.getenv('GITHUB_ACTIONS_ENV')
+INFRACOST_TOKEN = os.getenv('INFRACOST_TOKEN', '')
+INFRACOST_URL = os.getenv('INFRACOST_URL', 'http://localhost:4000')
 
 log_file_name = 'server.log'
 if DOCKER_ENV:
@@ -38,13 +39,11 @@ logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 
 if DOCKER_ENV:
     from mongo_handler.mongo_utils import insert_cache_object
-    from mongo_handler.mongo_objects import AWSCacheObject, AWSMachineTypeObject, AWSMachinesCacheObject, \
-        AWSRegionsAndMachineSeriesObject, AWSSeriesAndMachineTypesObject
+    from mongo_handler.mongo_objects import AWSCacheObject, AWSMachineTypeObject, AWSMachinesCacheObject
     from variables.variables import EKS
 else:
     from web.mongo_handler.mongo_utils import insert_cache_object
-    from web.mongo_handler.mongo_objects import AWSCacheObject, AWSMachineTypeObject, AWSMachinesCacheObject, \
-        AWSRegionsAndMachineSeriesObject, AWSSeriesAndMachineTypesObject
+    from web.mongo_handler.mongo_objects import AWSCacheObject, AWSMachineTypeObject, AWSMachinesCacheObject
     from web.variables.variables import EKS
 
 LOCAL_USER = gt.getuser()
@@ -63,6 +62,61 @@ else:
         CREDENTIALS_PATH = f'/{AWS_CREDENTIALS_DEFAULT_DIRECTORY}/credentials'
         FETCHED_CREDENTIALS_DIR_PATH = f'/app/.aws'
         FETCHED_CREDENTIALS_FILE_PATH = f'{FETCHED_CREDENTIALS_DIR_PATH}/credentials'
+
+
+def fetch_pricing_for_ec2_instance(machine_type: str, region: str) -> float:
+    url = f'{INFRACOST_URL}/graphql'
+    headers = {
+        'X-Api-Key': f'{INFRACOST_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+
+    query = '''
+        query GetProductPrices($vendor: String!, $service: String!, $region: String!, $instanceType: String!, $operatingSystem: String!, $tenancy: String!, $capacityStatus: String!, $preInstalledSw: String!, $purchaseOption: String!) {
+          products(filter: {
+            vendorName: $vendor,
+            service: $service,
+            region: $region,
+            attributeFilters: [
+              {key: "instanceType", value: $instanceType},
+              {key: "operatingSystem", value: $operatingSystem},
+              {key: "tenancy", value: $tenancy},
+              {key: "capacitystatus", value: $capacityStatus},
+              {key: "preInstalledSw", value: $preInstalledSw}
+            ]
+          }) {
+            prices(filter: {purchaseOption: $purchaseOption}) {
+              USD
+            }
+          }
+        }
+    '''
+
+    variables = {
+        'vendor': 'aws',
+        'service': 'AmazonEC2',
+        'region': region,
+        'instanceType': machine_type,
+        'operatingSystem': 'Linux',
+        'tenancy': 'Shared',
+        'capacityStatus': 'Used',
+        'preInstalledSw': 'NA',
+        'purchaseOption': 'on_demand'
+    }
+
+    data = {
+        'query': query,
+        'variables': variables
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        return float(response.json()['data']['products'][0]['prices'][0]['USD'])
+    except Exception as e:
+        logger.error(
+            f'There was a problem fetching the unit price for in region: {region} with machine_type: {machine_type}'
+            f' with error: {e}')
+        return 0
 
 
 def fetch_regions(ec2) -> list:
@@ -113,34 +167,38 @@ def fetch_subnets(zones_list: list, ec2) -> dict:
     return subnets_dict
 
 
-def fetch_machine_types_per_region(region: str, ec2) -> list:
+def fetch_machine_types_per_region(region: str, aws_access_key_id: str = '',
+                                   aws_secret_access_key: str = '') -> list:
     logger.info(f'A request to fetch machine_types per region has arrived')
     machine_types_list = []
     machine_types_list_ = []
-    machine_types_response = ec2.describe_instance_type_offerings(
-        LocationType='availability-zone'
-    )
+    ec2_client = boto3.client('ec2', region_name=region, aws_access_key_id=aws_access_key_id,
+                              aws_secret_access_key=aws_secret_access_key)
+    machine_types_response = ec2_client.describe_instance_type_offerings()
+
     for instance_response in machine_types_response['InstanceTypeOfferings']:
         machine_types_list_.append(instance_response['InstanceType'])
     for machine in machine_types_list_:
         logger.info(
             f'Adding a machine number: {len(machine_types_list)} out of {len(machine_types_list_)} in {region} region')
         try:
-            machine_type_response = ec2.describe_instance_types(
+            machine_type_response = ec2_client.describe_instance_types(
                 InstanceTypes=[
                     machine
                 ]
             )
-        except:
-            pass
+        except Exception as e:
+            logger.error(f'Error describing a {machine} type instance with error: {e}')
+
         machine_type_object = AWSMachineTypeObject(region=region,
                                                    machine_type=machine,
                                                    machine_series=machine.split('.')[0],
                                                    vCPU=machine_type_response['InstanceTypes'][0]['VCpuInfo'][
                                                        'DefaultVCpus'],
                                                    memory=machine_type_response['InstanceTypes'][0]['MemoryInfo'][
-                                                       'SizeInMiB'])
-        machine_types_list.append(machine_type_object)
+                                                       'SizeInMiB'],
+                                                   unit_price=0)
+        machine_types_list.append(asdict(machine_type_object))
     return machine_types_list
 
 
@@ -172,22 +230,37 @@ def main(aws_access_key_id, aws_secret_access_key):
 
         logger.info('Attempting to fetch regions_list')
         machines_for_zone_dict = {}
-        # regions_list = ['us-east-1', 'us-east-2']
+        # regions_list = ['eu-west-2', 'eu-west-3']
         regions_list = fetch_regions(ec2)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Submit the tasks to the executor
-            future_results = [executor.submit(fetch_machine_types_per_region, region, ec2) for region in regions_list]
+            future_results = [executor.submit(fetch_machine_types_per_region, region, aws_access_key_id,
+                                              aws_secret_access_key) for region in regions_list]
             for future in concurrent.futures.as_completed(future_results):
                 try:
                     result = future.result()
-                    machines_for_zone_dict[result[0].region] = result
+                    machines_for_zone_dict[result[0]['region']] = result
                 except Exception as e:
                     logger.error(f"An error occurred: {e}")
 
+        machines_for_zone_dict_clean = {}
         for region in machines_for_zone_dict:
+            for machine in machines_for_zone_dict[region]:
+                if INFRACOST_TOKEN:
+                    unit_price = fetch_pricing_for_ec2_instance(machine_type=machine['machine_type'],
+                                                                region=machine['region'])
+                else:
+                    unit_price = 0
+                if unit_price != 0:
+                    machine['unit_price'] = unit_price
+                    if machine['region'] not in machines_for_zone_dict_clean.keys():
+                        machines_for_zone_dict_clean[region] = [machine]
+                    else:
+                        machines_for_zone_dict_clean[region].insert(0, machine)
+
             aws_machines_caching_object = AWSMachinesCacheObject(
                 region=region,
-                machines_list=machines_for_zone_dict[region]
+                machines_list=machines_for_zone_dict_clean[region]
             )
             insert_cache_object(caching_object=asdict(aws_machines_caching_object), provider=EKS, machine_types=True)
 
@@ -214,45 +287,6 @@ def main(aws_access_key_id, aws_secret_access_key):
         logger.info('Attempting to insert an EKS cache_object')
         insert_cache_object(caching_object=asdict(aws_caching_object), provider=EKS)
 
-        # Inserting AWS Regions and Machine Series Object
-        series_list = []
-        for region in machines_for_zone_dict:
-            for machine_type in machines_for_zone_dict[region]:
-                if not machine_type.machine_series in series_list:
-                    series_list.append(machine_type.machine_series)
-
-            aws_regions_and_machine_series_object = AWSRegionsAndMachineSeriesObject(
-                region=region,
-                series_list=series_list
-            )
-            insert_cache_object(caching_object=asdict(aws_regions_and_machine_series_object), provider=EKS,
-                                aws_regions_and_series=True)
-
-        # Inserting a AWS Machine Series and Machine Types Object
-        machines_series_list = []
-        for region in machines_for_zone_dict:
-            for machine_type in machines_for_zone_dict[region]:
-                if machine_type.machine_series not in machines_series_list:
-                    machines_series_list.append(machine_type.machine_series)
-
-        series_and_machine_types_dict = {}
-        for region in machines_for_zone_dict:
-            for machine_series in machines_series_list:
-                for machine_type in machines_for_zone_dict[region]:
-                    if machine_series not in series_and_machine_types_dict.keys():
-                        if machine_type.machine_series == machine_series:
-                            series_and_machine_types_dict[machine_series] = [machine_type.machine_type]
-                    else:
-                        if machine_type.machine_series == machine_series:
-                            if machine_type.machine_type not in series_and_machine_types_dict[machine_series]:
-                                series_and_machine_types_dict[machine_series].append(machine_type.machine_type)
-        for machine_series in series_and_machine_types_dict:
-            aws_series_and_machine_types_object = AWSSeriesAndMachineTypesObject(
-                machine_series=machine_series,
-                machines_list=series_and_machine_types_dict[machine_series]
-            )
-            insert_cache_object(caching_object=asdict(aws_series_and_machine_types_object), provider=EKS,
-                                aws_series_and_machine_types=True)
     except Exception as e:
         logger.error(f'Trouble connecting to AWS {e}')
 

@@ -30,6 +30,7 @@ $(document).ready(function() {
     if (!isEmpty(settingsDataArray)) {
         var githubRepository = settingsDataArray[0].github_repository
         var githubActionsToken = settingsDataArray[0].github_actions_token
+        var infracostToken = settingsDataArray[0].infracost_token
         var awsAccessKeyId = settingsDataArray[0].aws_access_key_id
         var awsSecretAccessKey = settingsDataArray[0].aws_secret_access_key
         var azureCredentials = settingsDataArray[0].azure_credentials
@@ -296,15 +297,15 @@ $(document).ready(function() {
                     $("#callout-div").hide()
                 }
             }
-        } else if (clusterType == 'eks'){
+        } else if (clusterType == 'eks') {
             if (buildPage) {
-            if ((isEmpty(awsAccessKeyId)) && (isEmpty(awsSecretAccessKey))) {
-                $("#clusters-build-elements-div").hide()
-                $("#callout-div").show()
-            } else {
-                $("#clusters-build-elements-div").show()
-                $("#callout-div").hide()
-            }
+                if ((isEmpty(awsAccessKeyId)) && (isEmpty(awsSecretAccessKey))) {
+                    $("#clusters-build-elements-div").hide()
+                    $("#callout-div").show()
+                } else {
+                    $("#clusters-build-elements-div").show()
+                    $("#callout-div").hide()
+                }
             } else if (clustersManagePage) {
                 if ((isEmpty(awsAccessKeyId)) && (isEmpty(awsSecretAccessKey))) {
                     $("#clusters-manage-elements-div").hide()
@@ -322,15 +323,15 @@ $(document).ready(function() {
                     $("#callout-div").hide()
                 }
             }
-        } else if (clusterType == 'aks'){
+        } else if (clusterType == 'aks') {
             if (buildPage) {
-            if (isEmpty(azureCredentials)) {
-                $("#clusters-build-elements-div").hide()
-                $("#callout-div").show()
-            } else {
-                $("#clusters-build-elements-div").show()
-                $("#callout-div").hide()
-            }
+                if (isEmpty(azureCredentials)) {
+                    $("#clusters-build-elements-div").hide()
+                    $("#callout-div").show()
+                } else {
+                    $("#clusters-build-elements-div").show()
+                    $("#callout-div").hide()
+                }
             } else if (clustersManagePage) {
                 if (isEmpty(azureCredentials)) {
                     $("#clusters-manage-elements-div").hide()
@@ -348,18 +349,17 @@ $(document).ready(function() {
                     $("#callout-div").hide()
                 }
             }
-                } else if (userType == "superuser") {
-                    $("#build-clusters-div").show()
-                    $("#settings-div").show()
-                    $("#trigger-clusters-discovery").show()
-                    $("#trigger-instances-discovery").show()
-    }
-    else if (userType == "superuser") {
-        $("#build-clusters-div").show()
-        $("#settings-div").show()
-        $("#trigger-clusters-discovery").show()
-        $("#trigger-instances-discovery").show()
-    }
+        } else if (userType == "superuser") {
+            $("#build-clusters-div").show()
+            $("#settings-div").show()
+            $("#trigger-clusters-discovery").show()
+            $("#trigger-instances-discovery").show()
+        } else if (userType == "superuser") {
+            $("#build-clusters-div").show()
+            $("#settings-div").show()
+            $("#trigger-clusters-discovery").show()
+            $("#trigger-instances-discovery").show()
+        }
     }
 
     $("#users-div").show()
@@ -391,6 +391,9 @@ $(document).ready(function() {
             $("#az-machines-series-dropdown").append($("<option />").val(default_az_machine_series).text(default_az_machine_series));
             $("#az-machines-types-dropdown").append($("<option />").val(default_az_machine_type).text(default_az_machine_type));
         }
+        $("#cost-label-div").show()
+        $("#cost-label").empty()
+        $("#cost-label").append('Select a machine type to reveal the forecasted price');
 
     }
 
@@ -475,9 +478,9 @@ $(document).ready(function() {
     $("#build-cluster-button").click(function() {
         let data = ''
 
-        AKSNodesAmount = $('#aks-nodes-amt').val();
-        EKSNodesAmount = $('#eks-nodes-amt').val();
-        GKENodesAmount = $('#gke-nodes-amt').val();
+        AKSNodesAmount = $('#nodes-amount-dropdown').val();
+        EKSNodesAmount = $('#nodes-amount-dropdown').val();
+        GKENodesAmount = $('#nodes-amount-dropdown').val();
         HelmInstalls = $('#helm-installs-dropdown').val();
         AZLocationName = $('#az-locations-dropdown').val();
         AZResourceGroup = $('#az-resource-groups-dropdown').val();
@@ -496,9 +499,9 @@ $(document).ready(function() {
         GKEImageType = $('#gke-image-types-dropdown').val();
         GKEMachineType = $('#gke-machines-types-dropdown').val();
 
-        AKSExpirationTime = $('#aks-expiration-time').val();
-        EKSExpirationTime = $('#eks-expiration-time').val();
-        GKEExpirationTime = $('#gke-expiration-time').val();
+        AKSExpirationTime = $('#expiration-time-dropdown').val();
+        EKSExpirationTime = $('#expiration-time-dropdown').val();
+        GKEExpirationTime = $('#expiration-time-dropdown').val();
 
         DeploymentYAML = $('#deployment-yaml').val();
 
@@ -524,21 +527,21 @@ $(document).ready(function() {
 
         try {
             var trigger_eks_deployment_data = JSON.stringify({
-            "user_name": userName,
-            "num_nodes": EKSNodesAmount,
-            "cluster_version": EKSKubernetesVersion,
-            "expiration_time": EKSExpirationTime,
-            "eks_location": EKSLocation,
-            "eks_zones": EKSZones,
-            "eks_machine_type": EKSMachineType,
-            "eks_volume_size": EKSVolumeSize,
-            "github_repository": githubRepository,
-            "github_actions_token": githubActionsToken,
-            "aws_access_key_id": awsAccessKeyId,
-            "aws_secret_access_key": awsSecretAccessKey,
-            "azure_credentials": azureCredentials,
-            "google_creds_json": googleCredsJson
-        });
+                "user_name": userName,
+                "num_nodes": EKSNodesAmount,
+                "cluster_version": EKSKubernetesVersion,
+                "expiration_time": EKSExpirationTime,
+                "eks_location": EKSLocation,
+                "eks_zones": EKSZones,
+                "eks_machine_type": EKSMachineType,
+                "eks_volume_size": EKSVolumeSize,
+                "github_repository": githubRepository,
+                "github_actions_token": githubActionsToken,
+                "aws_access_key_id": awsAccessKeyId,
+                "aws_secret_access_key": awsSecretAccessKey,
+                "azure_credentials": azureCredentials,
+                "google_creds_json": googleCredsJson
+            });
         } catch {
             console.error('problem gathering all the needed credentials. A trigger will fail')
         }
@@ -546,22 +549,22 @@ $(document).ready(function() {
 
         try {
             var trigger_gke_deployment_data = JSON.stringify({
-            "cluster_type": 'gke',
-            "user_name": userName,
-            "gke_machine_type": GKEMachineType,
-            "num_nodes": GKENodesAmount,
-            "cluster_version": GKEKubernetesVersion,
-            "image_type": GKEImageType,
-            "expiration_time": GKEExpirationTime,
-            "gke_region": GKERegion,
-            "gke_zone": GKEZone,
-            "github_repository": githubRepository,
-            "github_actions_token": githubActionsToken,
-            "aws_access_key_id": awsAccessKeyId,
-            "aws_secret_access_key": awsSecretAccessKey,
-            "azure_credentials": azureCredentials,
-            "google_creds_json": googleCredsJson
-        });
+                "cluster_type": 'gke',
+                "user_name": userName,
+                "gke_machine_type": GKEMachineType,
+                "num_nodes": GKENodesAmount,
+                "cluster_version": GKEKubernetesVersion,
+                "image_type": GKEImageType,
+                "expiration_time": GKEExpirationTime,
+                "gke_region": GKERegion,
+                "gke_zone": GKEZone,
+                "github_repository": githubRepository,
+                "github_actions_token": githubActionsToken,
+                "aws_access_key_id": awsAccessKeyId,
+                "aws_secret_access_key": awsSecretAccessKey,
+                "azure_credentials": azureCredentials,
+                "google_creds_json": googleCredsJson
+            });
         } catch {
             console.error('problem gathering all the needed credentials. A trigger will fail')
         }
@@ -618,6 +621,7 @@ $(document).ready(function() {
         googleCredsJSON = $('#google-creds-json').val();
         githubRepository = $('#github-repository').val();
         githubActionsToken = $('#github-actions-token').val();
+        infracostToken = $('#infracost-token').val();
         userName = window.localStorage.getItem("userName")
 
         let add_settings_data = JSON.stringify({
@@ -628,6 +632,7 @@ $(document).ready(function() {
             "google_creds_json": googleCredsJSON,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
+            "infracost_token": infracostToken,
         });
 
 
@@ -667,6 +672,8 @@ $(document).ready(function() {
         $("#github-repository-div").hide();
         $("#github-actions-token").hide();
         $("#github-actions-token-div").hide();
+        $("#infracost-token").hide();
+        $("#infracost-token-div").hide();
 
         if (cloud_provider == "aws") {
             $("#update-aws-settings-button").show();
@@ -680,6 +687,8 @@ $(document).ready(function() {
         }
         $("#update-github-settings-button").show();
         $("#update-github-settings-label").show();
+        $("#update-infracost-token-button").show();
+        $("#update-infracost-token-label").show();
     });
 
     $("#sign-in-button").click(function() {
@@ -870,6 +879,7 @@ $(document).ready(function() {
             "trolley_server_url": trolleyServerURL,
             "github_repository": githubRepository,
             "github_actions_token": githubActionsToken,
+            "infracost_token": infracostToken,
             "aws_access_key_id": awsAccessKeyId,
             "aws_secret_access_key": awsSecretAccessKey,
             "azure_credentials": azureCredentials,
@@ -1002,6 +1012,18 @@ $(document).ready(function() {
         $("#update-github-settings-label").hide();
     })
 
+    $("#update-infracost-token-button").click(function() {
+        $("#infracost-token-div").show();
+        $("#infracost-token").show();
+        $("#update-infracost-token-button").hide();
+//        $("#github-provider-credentials-div").hide();
+//        $("#github-repository").hide();
+//        $("#github-repository-div").hide();
+//        $("#github-actions-token").hide();
+//        $("#github-actions-token-div").hide();
+//        $("#update-github-settings-button").hide();
+//        $("#update-github-settings-label").hide();
+    })
 
     function assign_object(objectType, objectName, dataArray, assignedObject) {
         let discovered = false
@@ -1247,7 +1269,8 @@ $(document).ready(function() {
                             azure_credentials: response.azure_credentials,
                             google_creds_json: response.google_creds_json,
                             github_repository: response.github_repository,
-                            github_actions_token: response.github_actions_token
+                            github_actions_token: response.github_actions_token,
+                            infracost_token: response.infracost_token
                         });
                         window.localStorage.setItem("settings", JSON.stringify(settingsData));
                         resolve(response)
@@ -1711,6 +1734,16 @@ $(document).ready(function() {
                 $("#update-github-settings-button").show();
                 $("#update-github-settings-label").show();
             }
+
+            if (isEmpty(settingsDataArray[0].infracost_token)) {
+                $("#infracost-token").show();
+                $("#infracost-token-div").show();
+                $("#update-infracost-token-button").hide();
+                $("#update-infracost-token-label").hide();
+            } else {
+                $("#update-infracost-token-button").show();
+                $("#update-infracost-token-label").show();
+            }
         }
 
 
@@ -1905,13 +1938,11 @@ $(document).ready(function() {
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
-
+                        $dropdown.empty()
                         $.each(response, function(key, value) {
                             $dropdown.append($("<option />").val(value).text(value));
-
                         });
                         $dropdown.val(default_machine_series)
-//                        $("#gke-machines-types-dropdown").val(default_machine_type);
                     }
                     resolve(response)
                 },
@@ -1925,20 +1956,28 @@ $(document).ready(function() {
     function populate_machine_types(selected_machine_series) {
         if (clusterType == 'gke') {
             var $dropdown = $("#gke-machines-types-dropdown");
+            var regionName = $("#gke-zones-dropdown").val();
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-machines-types-dropdown");
+            var regionName = $("#eks-locations-dropdown").val();
         } else if (clusterType == 'aks') {
             var $dropdown = $("#az-machines-types-dropdown");
         }
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: trolley_url + "/fetch_machine_types?machine_series=" + selected_machine_series + "&cluster_type=" + clusterType,
+                url: trolley_url + "/fetch_machine_types?machine_series=" + selected_machine_series + "&cluster_type=" + clusterType + "&region_name=" + regionName,
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
                         $dropdown.empty()
+                        window.localStorage.setItem("fetchedMachineTypes", JSON.stringify(response));
+                        $("#cost-label").empty()
+                        var unitPrice = response[0]['unit_price']
+                        let totalPrice = findTotalPrice(unitPrice, clusterType);
+                        let nodesAmount = $("#nodes-amount-dropdown").val();
+                        $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
                         $.each(response, function(key, value) {
-                            $dropdown.append($("<option />").val(value).text(value));
+                            $dropdown.append($("<option />").val(value.machine_type).text(value.machine_type));
                         });
                     }
                     resolve(response)
@@ -1953,13 +1992,13 @@ $(document).ready(function() {
     function populate_kubernetes_versions(selected_location) {
         if (clusterType == 'aks') {
             var $dropdown = $("#aks-versions-dropdown");
-//            var url = trolley_url + "/fetch_kubernetes_versions?location_name=" + selected_location + "&cluster_type=" + clusterType,
+            //            var url = trolley_url + "/fetch_kubernetes_versions?location_name=" + selected_location + "&cluster_type=" + clusterType,
         } else if (clusterType == 'eks') {
             var $dropdown = $("#eks-versions-dropdown");
-//            var url = trolley_url + "/fetch_eks_versions?aws_region=" + selected_location;
+            //            var url = trolley_url + "/fetch_eks_versions?aws_region=" + selected_location;
         } else if (clusterType == 'gke') {
             var $dropdown = $("#gke-versions-dropdown");
-//            var url = trolley_url + "/fetch_gke_versions?gcp_zone=" + selected_location;
+            //            var url = trolley_url + "/fetch_gke_versions?gcp_zone=" + selected_location;
         }
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -1981,35 +2020,35 @@ $(document).ready(function() {
     }
 
 
-//    function populate_kubernetes_versions(selected_location) {
-//        if (clusterType == 'aks') {
-//            var $dropdown = $("#aks-versions-dropdown");
-//            var url = trolley_url + "/fetch_aks_versions?az_region=" + selected_location;
-//        } else if (clusterType == 'eks') {
-//            var $dropdown = $("#eks-versions-dropdown");
-//            var url = trolley_url + "/fetch_eks_versions?aws_region=" + selected_location;
-//        } else if (clusterType == 'gke') {
-//            var $dropdown = $("#gke-versions-dropdown");
-//            var url = trolley_url + "/fetch_gke_versions?gcp_zone=" + selected_location;
-//        }
-//        return new Promise((resolve, reject) => {
-//            $.ajax({
-//                url: url,
-//                type: 'GET',
-//                success: function(response) {
-//                    if (response.length > 0) {
-//                        $.each(response, function(key, value) {
-//                            $dropdown.append($("<option />").val(value).text(value));
-//                        });
-//                    }
-//                    resolve(response)
-//                },
-//                error: function(error) {
-//                    alert("Failure fetching Kubernetes versions data")
-//                },
-//            })
-//        })
-//    }
+    //    function populate_kubernetes_versions(selected_location) {
+    //        if (clusterType == 'aks') {
+    //            var $dropdown = $("#aks-versions-dropdown");
+    //            var url = trolley_url + "/fetch_aks_versions?az_region=" + selected_location;
+    //        } else if (clusterType == 'eks') {
+    //            var $dropdown = $("#eks-versions-dropdown");
+    //            var url = trolley_url + "/fetch_eks_versions?aws_region=" + selected_location;
+    //        } else if (clusterType == 'gke') {
+    //            var $dropdown = $("#gke-versions-dropdown");
+    //            var url = trolley_url + "/fetch_gke_versions?gcp_zone=" + selected_location;
+    //        }
+    //        return new Promise((resolve, reject) => {
+    //            $.ajax({
+    //                url: url,
+    //                type: 'GET',
+    //                success: function(response) {
+    //                    if (response.length > 0) {
+    //                        $.each(response, function(key, value) {
+    //                            $dropdown.append($("<option />").val(value).text(value));
+    //                        });
+    //                    }
+    //                    resolve(response)
+    //                },
+    //                error: function(error) {
+    //                    alert("Failure fetching Kubernetes versions data")
+    //                },
+    //            })
+    //        })
+    //    }
 
     function populate_kubernetes_image_types(selected_location) {
         if (clusterType == 'aks') {
@@ -2050,25 +2089,24 @@ $(document).ready(function() {
                 type: 'GET',
                 success: function(response) {
                     if (response.length > 0) {
-                       $("#az-resource-group-label").show();
-                       $("#az-machines-types-label").show();
-                       $("#az-machines-series-label").show();
-                       $("#aks-versions-label").show();
-                       $("#aks-expiration-time-label").show();
-                       $("#az-warning-label").hide();
-                       $("#build-cluster-button").show();
-                            $.each(response, function(key, value) {
-                                $dropdown.append($("<option />").val(value).text(value));
-                            });
-                    }
-                    else {
-                       $("#az-resource-group-label").hide();
-                       $("#az-machines-types-label").hide();
-                       $("#az-machines-series-label").hide();
-                       $("#aks-versions-label").hide();
-                       $("#aks-expiration-time-label").hide();
-                       $("#az-warning-label").show();
-                       $("#build-cluster-button").hide();
+                        $("#az-resource-group-label").show();
+                        $("#az-machines-types-label").show();
+                        $("#az-machines-series-label").show();
+                        $("#aks-versions-label").show();
+                        $("#expiration-time-label").show();
+                        $("#az-warning-label").hide();
+                        $("#build-cluster-button").show();
+                        $.each(response, function(key, value) {
+                            $dropdown.append($("<option />").val(value).text(value));
+                        });
+                    } else {
+                        $("#az-resource-group-label").hide();
+                        $("#az-machines-types-label").hide();
+                        $("#az-machines-series-label").hide();
+                        $("#aks-versions-label").hide();
+                        $("#expiration-time-label").hide();
+                        $("#az-warning-label").show();
+                        $("#build-cluster-button").hide();
                     }
                     resolve(response)
                 },
@@ -2228,6 +2266,47 @@ $(document).ready(function() {
         $("#userNameLabel").text(data['first_name'].capitalize());
     }
 
+    function findUnitPrice(fetchedMachineTypesData, machineType) {
+        var foundItem = $.grep(fetchedMachineTypesData, function(item) {
+            return item.machine_type === machineType;
+        });
+        return foundItem.length ? foundItem[0].unit_price : null;
+    }
+
+    function findTotalPrice(unitPrice, clusterType) {
+        let nodesAmount = $("#nodes-amount-dropdown").val();
+        if (clusterType == "gke") {
+            var hoursAmount = $('#expiration-time-dropdown').val();
+        } else if (provider == "aws") {
+            var hoursAmount = $('#expiration-time-dropdown').val();
+        } else if (provider == "az") {
+            var hoursAmount = $('#expiration-time-dropdown').val();
+        }
+        return unitPrice * hoursAmount * nodesAmount
+    }
+
+    function findTotalPriceForExpirationNodesChange() {
+        $("#cost-label-div").show();
+        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
+        var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
+        let clusterType = window.localStorage.getItem("clusterType");
+        let nodesAmount = $("#nodes-amount-dropdown").val();
+        if (clusterType == 'gke') {
+            var machineType = $("#gke-machines-types-dropdown").val();
+        } else if (clusterType == 'eks') {
+            var regionName = $("#eks-locations-dropdown").val();
+            var machineType = $("#eks-machines-types-dropdown").val();
+        } else if (clusterType == 'aks') {
+            var $dropdown = $("#az-machines-types-dropdown");
+            var machineType = $("#az-machines-types-dropdown").val();
+        }
+
+        $("#cost-label").empty();
+        let unitPrice = findUnitPrice(fetchedMachineTypesData, machineType);
+        let totalPrice = findTotalPrice(unitPrice, clusterType);
+        $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
+    }
+
     $('#eks-locations-dropdown').change(function() {
         var eks_location = $('#eks-locations-dropdown').val();
         $("#eks-vpcs-dropdown").empty();
@@ -2283,16 +2362,47 @@ $(document).ready(function() {
         populate_machine_types(gke_machine_series);
     })
 
+    $('#gke-machines-types-dropdown').change(function() {
+        var gkeMachineType = $('#gke-machines-types-dropdown').val();
+        let nodesAmount = $("#nodes-amount-dropdown").val();
+        $("#cost-label").empty();
+        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
+        var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
+        let unitPrice = findUnitPrice(fetchedMachineTypesData, gkeMachineType);
+        let totalPrice = findTotalPrice(unitPrice, 'gke');
+        $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
+    })
+
     $('#eks-machines-series-dropdown').change(function() {
         var eks_machine_series = $('#eks-machines-series-dropdown').val();
         $("#eks-machines-types-dropdown").empty();
         populate_machine_types(eks_machine_series);
     })
 
+    $('#eks-machines-types-dropdown').change(function() {
+        var eksMachineType = $('#eks-machines-types-dropdown').val();
+        let nodesAmount = $("#nodes-amount-dropdown").val();
+        $("#cost-label").empty();
+        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
+        var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
+        let unitPrice = findUnitPrice(fetchedMachineTypesData, eksMachineType);
+        let totalPrice = findTotalPrice(unitPrice, 'eks');
+        $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
+    })
+
     $('#az-machines-series-dropdown').change(function() {
         var az_machine_series = $('#az-machines-series-dropdown').val();
         $("#az-machines-types-dropdown").empty();
         populate_machine_types(az_machine_series);
+    })
+
+
+    $('#expiration-time-dropdown').change(function() {
+        findTotalPriceForExpirationNodesChange();
+    })
+
+    $('#nodes-amount-dropdown').change(function() {
+        findTotalPriceForExpirationNodesChange();
     })
 
     $('#filter-type-dropdown').change(function() {

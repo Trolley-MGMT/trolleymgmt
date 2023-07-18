@@ -1,9 +1,13 @@
 import json
+import os
 from dataclasses import asdict
 import logging
 from subprocess import PIPE, run
 
-from hurry.filesize import size
+import requests
+
+INFRACOST_URL = os.getenv('INFRACOST_URL', 'http://localhost:4000')
+INFRACOST_TOKEN = os.getenv('INFRACOST_TOKEN', False)
 
 from web.mongo_handler.mongo_utils import insert_cache_object
 from web.mongo_handler.mongo_objects import AZMachineTypeObject, \
@@ -31,6 +35,59 @@ handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+
+def fetch_pricing_for_az_vm(machine_type: str, region: str) -> float:
+    url = f'{INFRACOST_URL}/graphql'
+    # url = 'https://pricing.api.infracost.io/graphql'
+    headers = {
+        'X-Api-Key': f'{INFRACOST_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+
+    query = '''
+        query ($region: String!, $machineType: String!) {
+          products(
+            filter: {
+              vendorName: "azure",
+              service: "Virtual Machines",
+              productFamily: "Compute",
+              region: $region,
+              attributeFilters: [
+                { key: "skuName", value: $machineType }
+                { key: "productName", value:"Virtual Machines DSv2 Series Linux"}
+              ]
+            },
+          ) {
+            prices(
+              filter: {
+                purchaseOption: "Consumption",
+                unit: "1 Hour"
+              },
+            ) { USD }
+          }
+        }
+    '''
+
+    variables = {
+        "region": region,
+        "machineType": machine_type
+    }
+
+    data = {
+        'query': query,
+        'variables': variables
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        logger.info(response.json()['data']['products'])
+        return float(response.json()['data']['products'][0]['prices'][0]['USD'])
+    except Exception as e:
+        logger.error(
+            f'There was a problem fetching the unit price for in region: {region} with machine_type: {machine_type}'
+            f' with error: {e}')
+        return 0
 
 
 def fetch_locations() -> dict:
@@ -77,8 +134,9 @@ def fetch_machine_types_per_location() -> dict:
                                                               machine_series=machine_series,
                                                               machine_type=machine['name'],
                                                               vCPU=machine['numberOfCores'],
-                                                              memory=machine['memoryInMb'])
-                    machine_types_list.append(machine_type_object)
+                                                              memory=machine['memoryInMb'],
+                                                              unit_price=0)
+                    machine_types_list.append(asdict(machine_type_object))
             machines_for_zone_dict[location_name] = machine_types_list
         else:
             logger.info(f'{location_name} is not enabled')
@@ -102,6 +160,10 @@ def fetch_kubernetes_versions() -> dict:
 
 
 def main():
+    # machine_type = 'DS2 v2'
+    # location = 'centralus'
+    # unit_price = fetch_pricing_for_az_vm(machine_type, location)
+
     kubernetes_versions_all_locations = fetch_kubernetes_versions()
     for location_name in kubernetes_versions_all_locations:
         aks_kubernetes_versions_caching_object = AKSKubernetesVersionsCacheObject(
@@ -111,22 +173,29 @@ def main():
         insert_cache_object(caching_object=asdict(aks_kubernetes_versions_caching_object), provider=AKS,
                             aks_kubernetes_versions=True)
     machine_types_all_locations = fetch_machine_types_per_location()
-    for location_name in machine_types_all_locations:
+    for location in machine_types_all_locations:
+        for machine in machine_types_all_locations[location]:
+            if '_' in machine['machine_type']:
+                machine_type = machine['machine_type'].replace('_', ' ')
+            else:
+                machine_type = machine['machine_type']
+            unit_price = fetch_pricing_for_az_vm(machine_type, location)
+            print(unit_price)
         az_machines_caching_object = AZMachinesCacheObject(
-            location_name=location_name,
-            machines_list=machine_types_all_locations[location_name]
+            location_name=location,
+            machines_list=machine_types_all_locations[location]
         )
         insert_cache_object(caching_object=asdict(az_machines_caching_object), provider=AKS, machine_types=True)
 
     # Inserting a AZ Zones and Machine Series Object
     series_list = []
-    for location_name in machine_types_all_locations:
-        for machine_type in machine_types_all_locations[location_name]:
+    for location in machine_types_all_locations:
+        for machine_type in machine_types_all_locations[location]:
             if not machine_type.machine_series in series_list:
                 series_list.append(machine_type.machine_series)
 
         az_zones_and_machine_series_object = AZZonesAndMachineSeriesObject(
-            location_name=location_name,
+            location_name=location,
             series_list=series_list
         )
         insert_cache_object(caching_object=asdict(az_zones_and_machine_series_object), provider=AKS,

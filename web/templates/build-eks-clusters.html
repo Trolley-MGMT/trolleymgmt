@@ -20,6 +20,8 @@
 
 
 
+
+
     </script>
 </head>
 
@@ -313,7 +315,8 @@
                         <div class="card-body">
                             <div class="callout callout-info">
                                 <p>Please add your providers and GitHub details in the <a href="manage-settings"
-                                                                               style="color:#FFFFFF;"> Settings </a>
+                                                                                          style="color:#FFFFFF;">
+                                    Settings </a>
                                     menu to be able to build EKS Clusters! </p>
                             </div>
                         </div>
@@ -330,7 +333,7 @@
                         <!-- select -->
                         <div class="form-group">
                             <label>Select the desired size of NodeGroup</label>
-                            <select class="form-control" id="eks-nodes-amt">
+                            <select class="form-control" id="nodes-amount-dropdown">
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -392,7 +395,7 @@
                         <!-- select -->
                         <div class="form-group">
                             <label>Select the expiration time</label>
-                            <select class="form-control" id="eks-expiration-time">
+                            <select class="form-control" id="expiration-time-dropdown">
                                 <option value="1">1h</option>
                                 <option value="2">2h</option>
                                 <option value="4">4h</option>
@@ -405,6 +408,12 @@
                                 <option value="336">14d</option>
                                 <option value="720">30d</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 align-content-lg-center" id="cost-label-div" style="display: none;">
+                        <div class="callout callout-info">
+                            <h5>System Info!</h5>
+                            <p id="cost-label">Calculating costs</p>
                         </div>
                     </div>
                     <br>

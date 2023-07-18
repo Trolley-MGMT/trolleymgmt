@@ -48,7 +48,7 @@ class MailSender:
         em.set_content(body)
 
         context = ssl.create_default_context()
-        logger.info(f'Sending an email to: {self.user_email} with {GMAIL_USER} user and {GMAIL_PASSWORD}')
+        logger.info(f'Sending an email to: {self.user_email} with')
         try:
             with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
                 smtp.login(GMAIL_USER, GMAIL_PASSWORD)

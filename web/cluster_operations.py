@@ -63,7 +63,8 @@ else:
 
 class ClusterOperation:
     def __init__(self, provider: str = "", user_email: str = "", github_actions_token: str = "",
-                 github_repository: str = "", user_name: str = "", project_name: str = "", cluster_name: str = "",
+                 github_repository: str = "", infracost_token: str = "", user_name: str = "", project_name: str = "",
+                 cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", az_location_name: str = "",
                  az_resource_group: str = "", az_subscription_id: str = "", az_machine_type: str = "",
                  region_name: str = "", zone_name: str = "", gcp_project_id: str = "", gke_machine_type: str = "",
@@ -87,6 +88,7 @@ class ClusterOperation:
         self.project_name = project_name
         self.github_actions_token = github_actions_token
         self.github_repository = github_repository
+        self.infracost_token = infracost_token
         self.cluster_type = cluster_type
         self.cluster_version = cluster_version
         self.az_location_name = az_location_name
@@ -114,8 +116,17 @@ class ClusterOperation:
             'Accept': 'application/vnd.github+json',
             'Authorization': f'token {self.github_actions_token}'
         }
+        self.infracost_request_header = {
+            'X-Api-Key': self.infracost_token,
+            'Content-Type': 'application/json',
+        }
+
         self.github_actions_api_url = f'https://api.github.com/repos/{self.github_repository}/dispatches'
         self.github_test_url = f'https://api.github.com/repos/{self.github_repository}'
+        self.infracost_test_url = f'https://pricing.api.infracost.io/graphql'
+        self.infracost_test_json_data = {
+            'query': '{ products(filter: {vendorName: "aws", service: "AmazonEC2", region: "us-east-1", attributeFilters: [{key: "instanceType", value: "m3.large"}, {key: "operatingSystem", value: "Linux"}, {key: "tenancy", value: "Shared"}, {key: "capacitystatus", value: "Used"}, {key: "preInstalledSw", value: "NA"}]}) { prices(filter: {purchaseOption: "on_demand"}) { USD } } } ',
+        }
 
     def build_eksctl_object(self):
         eksctl_node_groups_object = EKSCTLNodeGroupObject(name='ng1', instanceType=self.eks_machine_type,
@@ -147,7 +158,19 @@ class ClusterOperation:
         if response.status_code == 200:
             return True
         else:
-            logger.info(f'This is the request response: {response.reason}')
+            logger.info(f'GitHub credentials check failed due to the following reason: {response.reason}')
+            return False
+
+    def infracost_check(self) -> bool:
+        response = requests.post(url=self.infracost_test_url,
+                                 headers=self.infracost_request_header,
+                                 json=self.infracost_test_json_data)
+        if response.status_code == 200:
+            return True
+        else:
+            error_response = response.json()['error']
+            logger.info(
+                f'Infracost credentials check failed due to the following reason: {response.reason} : {error_response}')
             return False
 
     def trigger_gke_build_github_action(self) -> bool:
@@ -266,6 +289,7 @@ class ClusterOperation:
             "event_type": "gcp-caching-action-trigger",
             "client_payload": {"project_name": self.project_name,
                                "google_creds_json": self.google_creds_json,
+                               "infracost_token": self.infracost_token,
                                "mongo_user": self.mongo_user,
                                "mongo_password": self.mongo_password,
                                "mongo_url": self.mongo_url}
@@ -280,10 +304,11 @@ class ClusterOperation:
 
     def trigger_aws_caching(self):
         json_data = {
-            "event_type": "aws-caching-action-trigger",
-            "client_payload": {"aws_access_key_id": self.aws_access_key_id,
-                               "project_name": self.project_name,
+            "event_type": "aws-caching-action-infracost-trigger",
+            "client_payload": {"project_name": self.project_name,
+                               "aws_access_key_id": self.aws_access_key_id,
                                "aws_secret_access_key": self.aws_secret_access_key,
+                               "infracost_token": self.infracost_token,
                                "mongo_user": self.mongo_user,
                                "mongo_password": self.mongo_password,
                                "mongo_url": self.mongo_url}
@@ -304,6 +329,7 @@ class ClusterOperation:
         json_data = {
             "event_type": "az-caching-action-trigger",
             "client_payload": {"azure_credentials": self.azure_credentials,
+                               "infracost_token": self.infracost_token,
                                "client_id": client_id,
                                "client_secret": client_secret,
                                "tenant_id": tenant_id,
