@@ -44,7 +44,7 @@ jobs:
           cd cloud-pricing-api
           ls
           echo "SELF_HOSTED_INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
-          INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}"
+          INFRACOST_API_KEY=${{ github.event.client_payload.infracost_token }}
           SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY
           ls
           pwd
