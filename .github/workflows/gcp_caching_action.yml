@@ -48,16 +48,9 @@ jobs:
       - name: Installing Infracost
         if: always()
         run: |
-          docker -v
-          docker compose version
-          pwd
-          ls
           cd cloud-pricing-api
-          ls
           export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
           export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
-          ls
-          pwd
           docker-compose run init_job
 
       - name: Caching Tasks
@@ -67,7 +60,6 @@ jobs:
           export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
           export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
           docker-compose up -d api
-          curl --version
           curl --retry 20 --retry-all-errors http://localhost:4000/health
           export MONGO_URL=${{ github.event.client_payload.mongo_url }}
           export MONGO_USER=${{ github.event.client_payload.mongo_user }}
@@ -77,7 +69,5 @@ jobs:
           export INFRACOST_URL=http://localhost:4000
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
-          cd ..
-          ls 
           pip3 install -r web/requirements.txt
           python3 web/scripts/gcp_caching_script.py
