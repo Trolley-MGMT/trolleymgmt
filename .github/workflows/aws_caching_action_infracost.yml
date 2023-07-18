@@ -67,6 +67,8 @@ jobs:
           export INFRACOST_URL=http://localhost:4000
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
+          cd ..
+          ls 
           pip3 install -r web/requirements.txt
           python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
           
