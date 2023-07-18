@@ -36,6 +36,7 @@ jobs:
           echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
           
       - name: Installing Infracost
+        if: always()
         run: |
           docker -v
           docker compose version
