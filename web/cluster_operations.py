@@ -286,7 +286,7 @@ class ClusterOperation:
 
     def trigger_gcp_caching(self):
         json_data = {
-            "event_type": "gcp-caching-action-trigger",
+            "event_type": "gcp-caching-action-infracost-trigger",
             "client_payload": {"project_name": self.project_name,
                                "google_creds_json": self.google_creds_json,
                                "infracost_token": self.infracost_token,

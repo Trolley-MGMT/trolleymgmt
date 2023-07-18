@@ -1,21 +1,13 @@
-name: AWS Caching
+name: GCP Caching
+
 on:
   repository_dispatch:
-    types: aws-caching-action-infracost-trigger
+    types: gcp-caching-action-infracost-trigger
 
 jobs:
-  aws-caching-infracost-trigger:
-    runs-on: ubuntu-22.04
+  gcp-caching-infracost-trigger:
+    runs-on: ubuntu-20.04
     steps:
-      - uses: 'actions/checkout@v3'
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ github.event.client_payload.aws_access_key_id }}
-          aws-secret-access-key: ${{ github.event.client_payload.aws_secret_access_key }}
-          aws-region: us-east-1
-
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Set up Python 3.9
@@ -23,18 +15,36 @@ jobs:
         with:
           python-version: 3.9
 
-
       - name: Checkout infracost pricing repo
         uses: actions/checkout@v3
         with:
           repository: infracost/cloud-pricing-api
           path: cloud-pricing-api
 
+
       - name: Echo the values
         run: |
+          echo "client_payload is: ${{ github.event.client_payload.client_payload }}"
+          echo "google_creds_json is: ${{ github.event.client_payload.google_creds_json }}"      
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
           echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
-          
+      
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: ${{ github.event.client_payload.google_creds_json }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+      - name: Use gcloud CLI
+        run: |
+          gcloud info
+          cat $GOOGLE_APPLICATION_CREDENTIALS
+          export GOOGLE_CREDS_CONTENT=$(cat $GOOGLE_APPLICATION_CREDENTIALS)
+          echo $GOOGLE_CREDS_CONTENT >> /home/runner/work/gcp_credentials.json
+          echo "google_creds_content=$(cat $GOOGLE_APPLICATION_CREDENTIALS)" >> $GITHUB_ENV
+
+
       - name: Installing Infracost 1
         if: always()
         run: |
@@ -70,6 +80,4 @@ jobs:
           cd ..
           ls 
           pip3 install -r web/requirements.txt
-          python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
-          
-
+          python3 web/scripts/gcp_caching_script.py
