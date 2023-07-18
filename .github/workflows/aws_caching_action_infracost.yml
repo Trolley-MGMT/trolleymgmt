@@ -48,7 +48,7 @@ jobs:
           SELF_HOSTED_INFRACOST_API_KEY=$SELF_HOSTED_INFRACOST_API_KEY
           ls
           pwd
-          docker-compose run init_job -d
+          docker-compose run init_job
           docker-compose up api -d
 
       - name: Caching Tasks
