@@ -339,6 +339,17 @@ def az_caching(user_email: str, project_name: str, azure_credentials: str, githu
         except Exception as e:
             logger.error(f'problem decrypting github_actions_token_decrypted with error {e}')
             return False
+    if not infracost_token:
+        infracost_token_data = mongo_handler.mongo_utils.retrieve_infracost_data_object(user_email)
+        if not infracost_token_data:
+            logger.warning(f'No infracost data for {user_email} user was found. GCP caching will not start')
+            return True
+        try:
+            infracost_token_decrypted = crypter.decrypt(infracost_token_data['infracost_token']).decode("utf-8")
+            content['infracost_token'] = infracost_token_decrypted
+        except Exception as e:
+            logger.error(f'problem decrypting infracost_token_decrypted with error {e}')
+            return False
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_az_caching():
         return True
@@ -877,6 +888,7 @@ def fetch_regions():
     logger.info(f'A request to fetch regions for {cluster_type} has arrived')
     if cluster_type == AKS:
         regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=LOCATIONS_DICT, provider=AKS)
+        return jsonify(regions), 200
     elif cluster_type == GKE:
         regions = mongo_handler.mongo_utils.retrieve_cache(cache_type=REGIONS_LIST, provider=GKE)
     elif cluster_type == EKS:
@@ -890,7 +902,7 @@ def fetch_regions():
 
 
 @app.route('/fetch_kubernetes_versions', methods=[GET])
-# @login_required
+@login_required
 def fetch_kubernetes_versions():
     cluster_type = request.args.get(CLUSTER_TYPE.lower())
     location_name = request.args.get(LOCATION_NAME.lower())
@@ -920,7 +932,6 @@ def fetch_machine_types():
     cluster_type = request.args.get(CLUSTER_TYPE)
     machine_series = request.args.get(MACHINE_SERIES.lower())
     region_name = request.args.get(REGION_NAME.lower())
-
     logger.info(f'A request to fetch machine types for {cluster_type} has arrived')
     machine_types = mongo_handler.mongo_utils.retrieve_machine_types(machine_series=machine_series,
                                                                      cluster_type=cluster_type, region_name=region_name)

@@ -197,9 +197,9 @@ def main():
     # Inserting a AZ Zones and Machine Series Object
     series_list = []
     for location in machine_types_all_locations:
-        for machine_type in machine_types_all_locations[location]:
-            if not machine_type.machine_series in series_list:
-                series_list.append(machine_type.machine_series)
+        for machine in machine_types_all_locations[location]:
+            if not machine['machine_series'] in series_list:
+                series_list.append(machine['machine_series'])
 
         az_zones_and_machine_series_object = AZZonesAndMachineSeriesObject(
             location_name=location,
@@ -211,21 +211,21 @@ def main():
     # Inserting a AZ Machine Series and Machine Types Object
     machines_series_list = []
     for location_name in machine_types_all_locations:
-        for machine_type in machine_types_all_locations[location_name]:
-            if machine_type.machine_series not in machines_series_list:
-                machines_series_list.append(machine_type.machine_series)
+        for machine in machine_types_all_locations[location_name]:
+            if machine['machine_series'] not in machines_series_list:
+                machines_series_list.append(machine['machine_series'])
 
     series_and_machine_types_dict = {}
     for location_name in machine_types_all_locations:
         for machine_series in machines_series_list:
-            for machine_type in machine_types_all_locations[location_name]:
+            for machine in machine_types_all_locations[location_name]:
                 if machine_series not in series_and_machine_types_dict.keys():
-                    if machine_type.machine_series == machine_series:
-                        series_and_machine_types_dict[machine_series] = [machine_type.machine_type]
+                    if machine['machine_series'] == machine_series:
+                        series_and_machine_types_dict[machine_series] = [machine['machine_series']]
                 else:
-                    if machine_type.machine_series == machine_series:
-                        if machine_type.machine_type not in series_and_machine_types_dict[machine_series]:
-                            series_and_machine_types_dict[machine_series].append(machine_type.machine_type)
+                    if machine['machine_series'] == machine_series:
+                        if machine['machine_series'] not in series_and_machine_types_dict[machine_series]:
+                            series_and_machine_types_dict[machine_series].append(machine['machine_type'])
     for machine_series in series_and_machine_types_dict:
         az_series_and_machine_types_object = AZSeriesAndMachineTypesObject(
             machine_series=machine_series,

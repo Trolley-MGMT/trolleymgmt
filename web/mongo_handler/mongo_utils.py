@@ -105,6 +105,7 @@ invited_users: Collection = db.invited_users
 teams: Collection = db.teams
 users: Collection = db.users
 deployment_yamls: Collection = db.deployment_yamls
+
 az_locations_cache: Collection = db.az_locations_cache
 az_resource_groups_cache: Collection = db.az_resource_groups_cache
 az_machines_cache: Collection = db.az_machines_cache
@@ -114,7 +115,6 @@ aks_kubernetes_versions_cache: Collection = db.aks_kubernetes_versions_cache
 
 gke_cache: Collection = db.gke_cache
 gke_machines_cache: Collection = db.gke_machines_cache
-gke_machines_types_cache: Collection = db.gke_machines_types_cache
 gke_machines_series_cache: Collection = db.gke_machines_series_cache
 gke_zones_and_series_cache: Collection = db.gke_zones_and_series_cache
 gke_kubernetes_versions_cache: Collection = db.gke_kubernetes_versions_cache
@@ -123,8 +123,8 @@ aws_cache: Collection = db.aws_cache
 aws_machines_cache: Collection = db.aws_machines_cache
 aws_regions_and_series_cache: Collection = db.aws_regions_and_series_cache
 aws_series_and_machine_types_cache: Collection = db.aws_series_and_machine_types_cache
-fs = gridfs.GridFS(db)
 
+fs = gridfs.GridFS(db)
 k8s_agent_data: Collection = db.k8s_agent_data
 
 providers_data: Collection = db.providers_data
@@ -688,7 +688,7 @@ def retrieve_machine_series(region_name: str = '', cluster_type: str = '') -> li
         machine_series_object = aws_machines_cache.find_one(mongo_query)
     elif cluster_type == AKS:
         mongo_query = {'location_name': region_name}
-        machine_series_object = az_locations_and_series_cache.find_one(mongo_query)
+        machine_series_object = az_machines_cache.find_one(mongo_query)
     else:
         mongo_query = {'zone': region_name}
         machine_series_object = gke_zones_and_series_cache.find_one(mongo_query)
@@ -714,17 +714,19 @@ def retrieve_machine_types(machine_series: str = '', region_name: str = '', clus
         mongo_query = {'region': region_name}
         machine_types_object = aws_machines_cache.find_one(mongo_query)
     elif cluster_type == AKS:
-        mongo_query = {'machine_series': machine_series}
-        machine_types_object = az_series_and_machine_types_cache.find_one(mongo_query)
+        mongo_query = {'location_name': region_name}
+        machine_types_object = az_machines_cache.find_one(mongo_query)
     else:
         mongo_query = {'region': region_name}
         machine_types_object = gke_machines_cache.find_one(mongo_query)
     try:
-        for machine_type in machine_types_object['machines_list']:
-            if machine_type['machine_series'] == machine_series:
-                machine_types_response.append(machine_type)
+        for machine in machine_types_object['machines_list']:
+            if machine['machine_series'] == machine_series:
+                machine['machine_type'] = machine['machine_type'].replace('Standard_', '')
+                machine_types_response.append(machine)
         return machine_types_response
-    except:
+    except Exception as e:
+        logger.error(f'There was some problem here with: {e}')
         return []
 
 
@@ -1558,6 +1560,7 @@ def retrieve_infracost_data_object(user_email: str = '') -> dict:
         return {}
     del infracost_data_object['_id']
     return infracost_data_object
+
 
 def retrieve_credentials_data_object(provider: str, user_email: str) -> dict:
     """

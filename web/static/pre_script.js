@@ -1962,6 +1962,7 @@ $(document).ready(function() {
             var regionName = $("#eks-locations-dropdown").val();
         } else if (clusterType == 'aks') {
             var $dropdown = $("#az-machines-types-dropdown");
+            var regionName = $("#az-locations-dropdown").val();
         }
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -1972,8 +1973,8 @@ $(document).ready(function() {
                         $dropdown.empty()
                         window.localStorage.setItem("fetchedMachineTypes", JSON.stringify(response));
                         $("#cost-label").empty()
-                        var unitPrice = response[0]['unit_price']
-                        let totalPrice = findTotalPrice(unitPrice, clusterType);
+                        var unitPrice = response[0]['unit_price'].toFixed(2);
+                        let totalPrice = findTotalPrice(unitPrice, clusterType).toFixed(2);
                         let nodesAmount = $("#nodes-amount-dropdown").val();
                         $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
                         $.each(response, function(key, value) {
@@ -2019,36 +2020,6 @@ $(document).ready(function() {
         })
     }
 
-
-    //    function populate_kubernetes_versions(selected_location) {
-    //        if (clusterType == 'aks') {
-    //            var $dropdown = $("#aks-versions-dropdown");
-    //            var url = trolley_url + "/fetch_aks_versions?az_region=" + selected_location;
-    //        } else if (clusterType == 'eks') {
-    //            var $dropdown = $("#eks-versions-dropdown");
-    //            var url = trolley_url + "/fetch_eks_versions?aws_region=" + selected_location;
-    //        } else if (clusterType == 'gke') {
-    //            var $dropdown = $("#gke-versions-dropdown");
-    //            var url = trolley_url + "/fetch_gke_versions?gcp_zone=" + selected_location;
-    //        }
-    //        return new Promise((resolve, reject) => {
-    //            $.ajax({
-    //                url: url,
-    //                type: 'GET',
-    //                success: function(response) {
-    //                    if (response.length > 0) {
-    //                        $.each(response, function(key, value) {
-    //                            $dropdown.append($("<option />").val(value).text(value));
-    //                        });
-    //                    }
-    //                    resolve(response)
-    //                },
-    //                error: function(error) {
-    //                    alert("Failure fetching Kubernetes versions data")
-    //                },
-    //            })
-    //        })
-    //    }
 
     function populate_kubernetes_image_types(selected_location) {
         if (clusterType == 'aks') {
@@ -2302,8 +2273,8 @@ $(document).ready(function() {
         }
 
         $("#cost-label").empty();
-        let unitPrice = findUnitPrice(fetchedMachineTypesData, machineType);
-        let totalPrice = findTotalPrice(unitPrice, clusterType);
+        let unitPrice = findUnitPrice(fetchedMachineTypesData, machineType).toFixed(2);
+        let totalPrice = findTotalPrice(unitPrice, clusterType).toFixed(2);
         $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
     }
 
@@ -2368,8 +2339,8 @@ $(document).ready(function() {
         $("#cost-label").empty();
         let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
         var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
-        let unitPrice = findUnitPrice(fetchedMachineTypesData, gkeMachineType);
-        let totalPrice = findTotalPrice(unitPrice, 'gke');
+        let unitPrice = findUnitPrice(fetchedMachineTypesData, gkeMachineType).toFixed(2);
+        let totalPrice = findTotalPrice(unitPrice, 'gke').toFixed(2);
         $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
     })
 
@@ -2385,8 +2356,8 @@ $(document).ready(function() {
         $("#cost-label").empty();
         let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
         var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
-        let unitPrice = findUnitPrice(fetchedMachineTypesData, eksMachineType);
-        let totalPrice = findTotalPrice(unitPrice, 'eks');
+        let unitPrice = findUnitPrice(fetchedMachineTypesData, eksMachineType).toFixed(2);
+        let totalPrice = findTotalPrice(unitPrice, 'eks').toFixed(2);
         $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
     })
 
@@ -2396,6 +2367,17 @@ $(document).ready(function() {
         populate_machine_types(az_machine_series);
     })
 
+    $('#az-machines-types-dropdown').change(function() {
+        var azMachineType = $('#az-machines-types-dropdown').val();
+        let nodesAmount = 1;
+        $("#cost-label").empty();
+        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
+        var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
+        let unitPrice = findUnitPrice(fetchedMachineTypesData, azMachineType).toFixed(2);
+        let totalPrice = findTotalPrice(unitPrice, 'aks').toFixed(2);
+        $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
+
+    })
 
     $('#expiration-time-dropdown').change(function() {
         findTotalPriceForExpirationNodesChange();
