@@ -1054,14 +1054,6 @@ def delete_file(file_id):
     fs.delete(file_id)
 
 
-def insert_deployment_yaml(deployment_yaml_object: dict):
-    try:
-        deployment_yamls.insert_one(deployment_yaml_object)
-        return True
-    except:
-        return False
-
-
 def update_user_profile_image_id(user_email: str, grid_file_id: ObjectId):
     mongo_query = {USER_EMAIL.lower(): user_email}
     existing_user_object = users.find_one(mongo_query)

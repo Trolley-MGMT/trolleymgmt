@@ -2,7 +2,7 @@ name: GCP Caching
 
 on:
   repository_dispatch:
-    types: gcp-caching-action-trigger
+    types: gcp-caching-action-trigger-
 
 jobs:
   gcp-caching-trigger:

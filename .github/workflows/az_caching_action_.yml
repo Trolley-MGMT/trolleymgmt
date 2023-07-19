@@ -1,7 +1,7 @@
 name: AZ Caching
 on:
   repository_dispatch:
-    types: az-caching-action-trigger
+    types: az-caching-action-trigger-
 
 jobs:
   az_caching:
