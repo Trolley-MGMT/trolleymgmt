@@ -38,8 +38,10 @@ logger.addHandler(handler)
 
 
 def fetch_pricing_for_az_vm(machine_type: str, region: str) -> float:
+    logger.info(f'machine_type is: {machine_type}')
+    if 'DS2 v2' in machine_type:
+        logger.info(f'here')
     url = f'{INFRACOST_URL}/graphql'
-    # url = 'https://pricing.api.infracost.io/graphql'
     headers = {
         'X-Api-Key': f'{INFRACOST_TOKEN}',
         'Content-Type': 'application/json'
@@ -54,8 +56,7 @@ def fetch_pricing_for_az_vm(machine_type: str, region: str) -> float:
               productFamily: "Compute",
               region: $region,
               attributeFilters: [
-                { key: "skuName", value: $machineType }
-                { key: "productName", value:"Virtual Machines DSv2 Series Linux"}
+                { key: "armSkuName", value: $machineType }
               ]
             },
           ) {
@@ -81,8 +82,14 @@ def fetch_pricing_for_az_vm(machine_type: str, region: str) -> float:
 
     try:
         response = requests.post(url, headers=headers, json=data)
-        logger.info(response.json()['data']['products'])
-        return float(response.json()['data']['products'][0]['prices'][0]['USD'])
+        if len(response.json()['data']['products']) > 0:
+            logger.info(response.json()['data']['products'])
+            price_points = []
+            for item in response.json()['data']['products']:
+                if len(item['prices']) > 0:
+                    price_points.append(item)
+            prices = [float(item['prices'][0]['USD']) for item in price_points]
+            return max(prices)
     except Exception as e:
         logger.error(
             f'There was a problem fetching the unit price for in region: {region} with machine_type: {machine_type}'
@@ -119,9 +126,9 @@ def fetch_resource_groups() -> dict:
 
 
 def fetch_machine_types_per_location() -> dict:
-    machine_types_list = []
     machines_for_zone_dict = {}
     for location_name in CURRENTLY_ALLOWED_LOCATIONS_LIST:
+        machine_types_list = []
         command = f'{AZ_VM_SIZES_COMMAND} {location_name}'
         logger.info(f'Running a {command} command')
         result = run(command, stdout=PIPE, stderr=PIPE, text=True, shell=True)
@@ -160,10 +167,6 @@ def fetch_kubernetes_versions() -> dict:
 
 
 def main():
-    # machine_type = 'DS2 v2'
-    # location = 'centralus'
-    # unit_price = fetch_pricing_for_az_vm(machine_type, location)
-
     kubernetes_versions_all_locations = fetch_kubernetes_versions()
     for location_name in kubernetes_versions_all_locations:
         aks_kubernetes_versions_caching_object = AKSKubernetesVersionsCacheObject(
@@ -173,17 +176,21 @@ def main():
         insert_cache_object(caching_object=asdict(aks_kubernetes_versions_caching_object), provider=AKS,
                             aks_kubernetes_versions=True)
     machine_types_all_locations = fetch_machine_types_per_location()
+    machines_for_zone_dict_clean = {}
     for location in machine_types_all_locations:
         for machine in machine_types_all_locations[location]:
-            if '_' in machine['machine_type']:
-                machine_type = machine['machine_type'].replace('_', ' ')
-            else:
-                machine_type = machine['machine_type']
+            machine_type = machine['machine_type']
             unit_price = fetch_pricing_for_az_vm(machine_type, location)
-            print(unit_price)
+            if unit_price != 0:
+                machine['unit_price'] = unit_price
+                if location not in machines_for_zone_dict_clean.keys():
+                    machines_for_zone_dict_clean[location] = [machine]
+                else:
+                    logger.info(f'Inserting a {machine_type} machine_type for {location} location')
+                    machines_for_zone_dict_clean[location].insert(0, machine)
         az_machines_caching_object = AZMachinesCacheObject(
             location_name=location,
-            machines_list=machine_types_all_locations[location]
+            machines_list=machines_for_zone_dict_clean[location]
         )
         insert_cache_object(caching_object=asdict(az_machines_caching_object), provider=AKS, machine_types=True)
 
