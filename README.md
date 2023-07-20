@@ -246,7 +246,7 @@ If you get this response it means you can register and log into Trolley: http://
 -----------
 
 # Infracost Integration
-It is possible, starting v0.6 to add Infracost API Integration to Trolley to allow predicting clusters' billing.
+It is possible, starting v0.6, to add Infracost API Integration to Trolley to allow predicting clusters' billing.
 The prediction is done using Infracost's Pricing API and is calculated by counting the expiration time of the clusters that are being built and the nodes it is expected to use.
 To activate the feature simply register for a Token on their webpage: https://www.infracost.io/ and use the created token to add in the Settings Menu
 
