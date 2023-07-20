@@ -69,5 +69,6 @@ jobs:
           export INFRACOST_URL=http://localhost:4000
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
+          cd ..
           pip3 install -r web/requirements.txt
           python3 web/scripts/gcp_caching_script.py
