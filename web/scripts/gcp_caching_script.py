@@ -18,6 +18,12 @@ GCP_CREDENTIALS = os.getenv('GCP_CREDENTIALS', False)
 INFRACOST_URL = os.getenv('INFRACOST_URL', 'http://localhost:4000')
 INFRACOST_TOKEN = os.getenv('INFRACOST_TOKEN', False)
 
+POSTGRES_DBNAME = os.getenv('POSTGRES_DBNAME', 'cloud_pricing')
+POSTGRES_USER = os.getenv('POSTGRES_USER', 'postgres')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'postgres')
+POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
+POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5444)
+
 log_file_name = 'server.log'
 if DOCKER_ENV:
     log_file_path = f'{os.getcwd()}/web/{log_file_name}'
@@ -40,16 +46,16 @@ logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 
 if DOCKER_ENV:
     from mongo_handler.mongo_utils import insert_cache_object
-    from mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, \
-        GKESeriesAndMachineTypesObject, GKEZonesAndMachineSeriesObject, GKEMachinesCacheObject, \
+    from mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, GKEMachinesCacheObject, \
         GKEKubernetesVersionsCacheObject
-    from variables.variables import GKE
+    from postgresql_handler.postgresql_utils import Postgresql
+    from variables.variables import GKE, GCP
 else:
     from web.mongo_handler.mongo_utils import insert_cache_object
-    from web.mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, \
-        GKESeriesAndMachineTypesObject, GKEZonesAndMachineSeriesObject, GKEMachinesCacheObject, \
+    from web.mongo_handler.mongo_objects import GKECacheObject, GKEMachineTypeObject, GKEMachinesCacheObject, \
         GKEKubernetesVersionsCacheObject
-    from web.variables.variables import GKE
+    from web.postgresql_handler.postgresql_utils import Postgresql
+    from web.variables.variables import GKE, GCP
 
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
@@ -207,7 +213,8 @@ def fetch_machine_types_per_zone(zones_list: list, gcp_project_id: str, credenti
                                                        machine_series=machine['name'].split('-')[0],
                                                        vCPU=machine['guestCpus'],
                                                        memory=machine['memoryMb'],
-                                                       unit_price=0)
+                                                       unit_price=0,
+                                                       gke_price=0)
             machine_types_list.append(asdict(machine_type_object))
         machines_for_zone_dict[zone] = machine_types_list
     return machines_for_zone_dict
@@ -278,11 +285,18 @@ def main(gcp_credentials: str):
             for machine in machine_types_all_zones[zone]:
                 machine_type = machine['machine_type']
                 region = zone.split('-')[0] + '-' + zone.split('-')[1]
+                postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
+                                             postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
+                                             provider_name=GCP, region_name=region)
+                gke_price = postgres_object.fetch_kubernetes_pricing()
+                machine['gke_price'] = gke_price
+                logger.info(gke_price)
                 if INFRACOST_TOKEN:
                     unit_price = fetch_pricing_for_gcp_vm(machine_type, region)
                 else:
                     unit_price = 0
                 print(unit_price)
+
                 if unit_price != 0:
                     machine['unit_price'] = unit_price
                     if zone not in machines_for_zone_dict_clean.keys():

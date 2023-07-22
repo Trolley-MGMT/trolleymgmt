@@ -2237,7 +2237,9 @@ $(document).ready(function() {
         $("#userNameLabel").text(data['first_name'].capitalize());
     }
 
-    function findUnitPrice(fetchedMachineTypesData, machineType) {
+    function findUnitPrice(machineType) {
+        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
+        let fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
         var foundItem = $.grep(fetchedMachineTypesData, function(item) {
             return item.machine_type === machineType;
         });
@@ -2245,21 +2247,24 @@ $(document).ready(function() {
     }
 
     function findTotalPrice(unitPrice, clusterType) {
+        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
+        let fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
         let nodesAmount = $("#nodes-amount-dropdown").val();
         if (clusterType == "gke") {
             var hoursAmount = $('#expiration-time-dropdown').val();
+            clusterBasePrice = fetchedMachineTypesData[0]['gke_price']
         } else if (provider == "aws") {
             var hoursAmount = $('#expiration-time-dropdown').val();
+            clusterBasePrice = fetchedMachineTypesData[0]['eks_price']
         } else if (provider == "az") {
             var hoursAmount = $('#expiration-time-dropdown').val();
+            clusterBasePrice = fetchedMachineTypesData[0]['aks_price']
         }
-        return unitPrice * hoursAmount * nodesAmount
+        return unitPrice * hoursAmount * nodesAmount + clusterBasePrice
     }
 
     function findTotalPriceForExpirationNodesChange() {
         $("#cost-label-div").show();
-        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
-        var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
         let clusterType = window.localStorage.getItem("clusterType");
         let nodesAmount = $("#nodes-amount-dropdown").val();
         if (clusterType == 'gke') {
@@ -2273,7 +2278,7 @@ $(document).ready(function() {
         }
 
         $("#cost-label").empty();
-        let unitPrice = findUnitPrice(fetchedMachineTypesData, machineType).toFixed(2);
+        let unitPrice = findUnitPrice(machineType).toFixed(2);
         let totalPrice = findTotalPrice(unitPrice, clusterType).toFixed(2);
         $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
     }
@@ -2337,9 +2342,7 @@ $(document).ready(function() {
         var gkeMachineType = $('#gke-machines-types-dropdown').val();
         let nodesAmount = $("#nodes-amount-dropdown").val();
         $("#cost-label").empty();
-        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
-        var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
-        let unitPrice = findUnitPrice(fetchedMachineTypesData, gkeMachineType).toFixed(2);
+        let unitPrice = findUnitPrice(gkeMachineType).toFixed(2);
         let totalPrice = findTotalPrice(unitPrice, 'gke').toFixed(2);
         $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
     })
@@ -2354,9 +2357,7 @@ $(document).ready(function() {
         var eksMachineType = $('#eks-machines-types-dropdown').val();
         let nodesAmount = $("#nodes-amount-dropdown").val();
         $("#cost-label").empty();
-        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
-        var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
-        let unitPrice = findUnitPrice(fetchedMachineTypesData, eksMachineType).toFixed(2);
+        let unitPrice = findUnitPrice(eksMachineType).toFixed(2);
         let totalPrice = findTotalPrice(unitPrice, 'eks').toFixed(2);
         $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
     })
@@ -2371,9 +2372,7 @@ $(document).ready(function() {
         var azMachineType = $('#az-machines-types-dropdown').val();
         let nodesAmount = 1;
         $("#cost-label").empty();
-        let fetchedMachineTypes = window.localStorage.getItem("fetchedMachineTypes");
-        var fetchedMachineTypesData = JSON.parse(fetchedMachineTypes)
-        let unitPrice = findUnitPrice(fetchedMachineTypesData, azMachineType).toFixed(2);
+        let unitPrice = findUnitPrice(azMachineType).toFixed(2);
         let totalPrice = findTotalPrice(unitPrice, 'aks').toFixed(2);
         $("#cost-label").append('You will pay ' + nodesAmount * unitPrice + '$ per hour and a total price: ' + totalPrice + '$');
 

@@ -167,6 +167,7 @@ class GKEMachineTypeObject:
     vCPU: int
     memory: int
     unit_price: float
+    gke_price: float
 
 
 @dataclass
@@ -177,6 +178,7 @@ class AZMachineTypeObject:
     vCPU: int
     memory: int
     unit_price: float
+    aks_price: float
 
 
 @dataclass
@@ -237,6 +239,7 @@ class AWSMachineTypeObject:
     vCPU: int
     memory: int
     unit_price: float
+    eks_price: float
 
 
 @dataclass

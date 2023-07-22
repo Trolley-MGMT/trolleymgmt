@@ -6,14 +6,21 @@ from subprocess import PIPE, run
 
 import requests
 
-INFRACOST_URL = os.getenv('INFRACOST_URL', 'http://localhost:4000')
 INFRACOST_TOKEN = os.getenv('INFRACOST_TOKEN', False)
+INFRACOST_URL = os.getenv('INFRACOST_URL', 'http://localhost:4000')
 
+POSTGRES_DBNAME = os.getenv('POSTGRES_DBNAME', 'cloud_pricing')
+POSTGRES_USER = os.getenv('POSTGRES_USER', 'postgres')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'postgres')
+POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
+POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5444)
+
+from web.postgresql_handler.postgresql_utils import Postgresql
 from web.mongo_handler.mongo_utils import insert_cache_object
 from web.mongo_handler.mongo_objects import AZMachineTypeObject, \
     AZMachinesCacheObject, AZResourceGroupObject, AZLocationsCacheObject, AKSKubernetesVersionsCacheObject, \
     AZSeriesAndMachineTypesObject, AZZonesAndMachineSeriesObject
-from web.variables.variables import AKS
+from web.variables.variables import AKS, AZ
 
 AZ_LOCATIONS_COMMAND = 'az account list-locations'
 AZ_RESOURCE_GROUPS_COMMAND = 'az group list --query'
@@ -27,10 +34,11 @@ CURRENTLY_ALLOWED_LOCATIONS = 'australiacentral,australiacentral2,australiaeast,
                               'southindia,swedencentral,switzerlandnorth,switzerlandwest,uaecentral,uaenorth,uksouth,' \
                               'ukwest,westcentralus,westeurope,westus,westus2,westus3'
 CURRENTLY_ALLOWED_LOCATIONS_LIST = CURRENTLY_ALLOWED_LOCATIONS.split(',')
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('aws_caching_script.log')
+handler = logging.FileHandler('trolley_server.log')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
@@ -142,7 +150,8 @@ def fetch_machine_types_per_location() -> dict:
                                                               machine_type=machine['name'],
                                                               vCPU=machine['numberOfCores'],
                                                               memory=machine['memoryInMb'],
-                                                              unit_price=0)
+                                                              unit_price=0,
+                                                              aks_price=0)
                     machine_types_list.append(asdict(machine_type_object))
             machines_for_zone_dict[location_name] = machine_types_list
         else:
@@ -180,6 +189,11 @@ def main():
     for location in machine_types_all_locations:
         for machine in machine_types_all_locations[location]:
             machine_type = machine['machine_type']
+            postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
+                                         postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
+                                         provider_name=AZ, region_name=location)
+            aks_price = postgres_object.fetch_kubernetes_pricing()
+            machine['aks_price'] = aks_price
             unit_price = fetch_pricing_for_az_vm(machine_type, location)
             if unit_price != 0:
                 machine['unit_price'] = unit_price
@@ -223,9 +237,12 @@ def main():
                     if machine['machine_series'] == machine_series:
                         series_and_machine_types_dict[machine_series] = [machine['machine_series']]
                 else:
-                    if machine['machine_series'] == machine_series:
-                        if machine['machine_series'] not in series_and_machine_types_dict[machine_series]:
-                            series_and_machine_types_dict[machine_series].append(machine['machine_type'])
+                    try:
+                        if machine['machine_series'] == machine_series:
+                            if machine['machine_series'] not in series_and_machine_types_dict[machine_series]:
+                                series_and_machine_types_dict[machine_series].append(machine['machine_type'])
+                    except Exception as e:
+                        logger.error(f'Something went wrong {e}')
     for machine_series in series_and_machine_types_dict:
         az_series_and_machine_types_object = AZSeriesAndMachineTypesObject(
             machine_series=machine_series,

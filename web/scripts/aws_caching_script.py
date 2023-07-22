@@ -17,6 +17,12 @@ GITHUB_ACTIONS_ENV = os.getenv('GITHUB_ACTIONS_ENV')
 INFRACOST_TOKEN = os.getenv('INFRACOST_TOKEN', '')
 INFRACOST_URL = os.getenv('INFRACOST_URL', 'http://localhost:4000')
 
+POSTGRES_DBNAME = os.getenv('POSTGRES_DBNAME', 'cloud_pricing')
+POSTGRES_USER = os.getenv('POSTGRES_USER', 'postgres')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'postgres')
+POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
+POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5444)
+
 log_file_name = 'server.log'
 if DOCKER_ENV:
     log_file_path = f'{os.getcwd()}/web/{log_file_name}'
@@ -40,11 +46,14 @@ logger.info(f'App runs in the DOCKER_ENV: {DOCKER_ENV}')
 if DOCKER_ENV:
     from mongo_handler.mongo_utils import insert_cache_object
     from mongo_handler.mongo_objects import AWSCacheObject, AWSMachineTypeObject, AWSMachinesCacheObject
-    from variables.variables import EKS
+    from postgresql_handler.postgresql_utils import Postgresql
+    from variables.variables import EKS, AWS
 else:
     from web.mongo_handler.mongo_utils import insert_cache_object
     from web.mongo_handler.mongo_objects import AWSCacheObject, AWSMachineTypeObject, AWSMachinesCacheObject
-    from web.variables.variables import EKS
+    from web.postgresql_handler.postgresql_utils import Postgresql
+    from web.variables.variables import EKS, AWS
+
 
 LOCAL_USER = gt.getuser()
 
@@ -197,7 +206,8 @@ def fetch_machine_types_per_region(region: str, aws_access_key_id: str = '',
                                                        'DefaultVCpus'],
                                                    memory=machine_type_response['InstanceTypes'][0]['MemoryInfo'][
                                                        'SizeInMiB'],
-                                                   unit_price=0)
+                                                   unit_price=0,
+                                                   eks_price=0)
         machine_types_list.append(asdict(machine_type_object))
     return machine_types_list
 
@@ -246,11 +256,17 @@ def main(aws_access_key_id, aws_secret_access_key):
         machines_for_zone_dict_clean = {}
         for region in machines_for_zone_dict:
             for machine in machines_for_zone_dict[region]:
+                postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
+                                             postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
+                                             provider_name=AWS, region_name=region)
+                eks_price = postgres_object.fetch_kubernetes_pricing()
+                machine['eks_price'] = eks_price
                 if INFRACOST_TOKEN:
                     unit_price = fetch_pricing_for_ec2_instance(machine_type=machine['machine_type'],
                                                                 region=machine['region'])
                 else:
-                    unit_price = 0
+                    machines_for_zone_dict_clean = machines_for_zone_dict
+                    break
                 if unit_price != 0:
                     machine['unit_price'] = unit_price
                     if machine['region'] not in machines_for_zone_dict_clean.keys():
