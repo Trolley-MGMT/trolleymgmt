@@ -71,8 +71,9 @@ from mail_handler import MailSender
 from utils import random_string, apply_yaml
 from scripts import gcp_discovery_script, aws_discovery_script, az_discovery_script
 
-key = os.getenv('SECRET_KEY').encode()
-crypter = Fernet(key)
+secret_key = os.getenv('SECRET_KEY')
+encoded_secret_key = secret_key.encode()
+crypter = Fernet(encoded_secret_key)
 
 cache = Cache()
 app = Flask(__name__, template_folder='templates')
@@ -547,6 +548,7 @@ def trigger_eks_deployment():
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     user_name = content['user_name']
     cluster_name = f'{user_name}-{EKS}-{random_string(8)}'
+    content['secret_key'] = secret_key
     content['cluster_name'] = cluster_name
     content['project_name'] = PROJECT_NAME
     content['mongo_url'] = MONGO_URL

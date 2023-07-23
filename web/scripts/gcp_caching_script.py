@@ -296,12 +296,7 @@ def main(gcp_credentials: str):
                 machine['gke_price'] = gke_price
                 logger.info(gke_price)
                 if INFRACOST_TOKEN:
-                    # unit_price_ = fetch_pricing_for_gcp_vm(machine_type, region)
-                    postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
-                                                 postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
-                                                 provider_name=GCP, region_name=region,
-                                                 machine_type=machine_type)
-                    unit_price = postgres_object.fetch_vm_pricing()
+                    unit_price = fetch_pricing_for_gcp_vm(machine_type, region)
                 else:
                     unit_price = 0
                 print(unit_price)

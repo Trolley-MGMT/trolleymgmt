@@ -104,6 +104,7 @@ class Postgresql:
             logger.error("Error while connecting to PostgreSQL:", error)
 
     def fetch_vm_pricing(self) -> float:
+        #That thing is no good
         if self.provider_name == AZ:
             service_name = 'Virtual Machines'
             product_family = 'Compute'
@@ -137,22 +138,27 @@ class Postgresql:
         cursor.close()
         self.conn.close()
         prices_dict = {}
-        if not len(rows[0][0]) > 0:
-            return 0
+        try:
+            if not len(rows[0][0]) > 0:
+                return 0
+        except Exception as e:
+            logger.warning(
+                f'The query for {self.machine_type} machine type in {self.region_name} region for '
+                f'{self.provider_name} provider failed with: {e}')
         else:
             for row in rows:
                 try:
                     effective_date_start = list(row[0].values())[0][0]['effectiveDateStart']
                     if self.provider_name == AWS:
-                        description = list(row)[0][0]['description']
-                        if not 'Amazon EKS cluster usage' in description:
-                            epoch_time = 0
-                            prices_dict[epoch_time] = 0
-                        else:
-                            usd_price = list(row)[0][0]['USD']
-                            timestamp_obj = datetime.strptime(effective_date_start, '%Y-%m-%dT%H:%M:%SZ')
-                            epoch_time = (timestamp_obj - datetime(1970, 1, 1)).total_seconds()
-                            prices_dict[epoch_time] = usd_price
+                        for pricing_option in list(row[0].values()):
+                            if not pricing_option[0]['purchaseOption'] == 'on_demand':
+                                epoch_time = 0
+                                prices_dict[epoch_time] = 0
+                            else:
+                                usd_price = pricing_option[0]['USD']
+                                timestamp_obj = datetime.strptime(effective_date_start, '%Y-%m-%dT%H:%M:%SZ')
+                                epoch_time = (timestamp_obj - datetime(1970, 1, 1)).total_seconds()
+                                prices_dict[epoch_time] = usd_price
                     elif self.provider_name == AZ:
                         usd_price = list(row)[0][0]['USD']
                         timestamp_obj = datetime.strptime(effective_date_start, '%Y-%m-%dT%H:%M:%SZ')

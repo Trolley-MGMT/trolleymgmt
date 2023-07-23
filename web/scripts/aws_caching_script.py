@@ -54,7 +54,6 @@ else:
     from web.postgresql_handler.postgresql_utils import Postgresql
     from web.variables.variables import EKS, AWS
 
-
 LOCAL_USER = gt.getuser()
 
 if 'Darwin' in platform.system():
@@ -240,8 +239,8 @@ def main(aws_access_key_id, aws_secret_access_key):
 
         logger.info('Attempting to fetch regions_list')
         machines_for_zone_dict = {}
-        regions_list = ['eu-west-2', 'eu-west-3']
-        # regions_list = fetch_regions(ec2)
+        # regions_list = ['eu-west-2', 'eu-west-3']
+        regions_list = fetch_regions(ec2)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Submit the tasks to the executor
             future_results = [executor.submit(fetch_machine_types_per_region, region, aws_access_key_id,
@@ -262,22 +261,27 @@ def main(aws_access_key_id, aws_secret_access_key):
                 eks_price = postgres_object.fetch_kubernetes_pricing()
                 machine['eks_price'] = eks_price
                 if INFRACOST_TOKEN:
-                    postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
-                                                 postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
-                                                 provider_name=AWS, region_name=machine['region'],
-                                                 machine_type=machine['machine_type'])
-                    unit_price = postgres_object.fetch_vm_pricing()
-                    unit_price_ = fetch_pricing_for_ec2_instance(machine_type=machine['machine_type'],
-                                                                region=machine['region'])
+                    try:
+                        unit_price = fetch_pricing_for_ec2_instance(machine_type=machine['machine_type'],
+                                                                    region=machine['region'])
+                    except Exception as e:
+                        logger.error(f'Something is wrong: {e}')
+
                 else:
                     machines_for_zone_dict_clean = machines_for_zone_dict
                     break
                 if unit_price != 0:
-                    machine['unit_price'] = unit_price
-                    if machine['region'] not in machines_for_zone_dict_clean.keys():
-                        machines_for_zone_dict_clean[region] = [machine]
-                    else:
-                        machines_for_zone_dict_clean[region].insert(0, machine)
+                    try:
+                        machine['unit_price'] = unit_price
+                    except Exception as e:
+                        logger.error(f'Something is wrong: {e}')
+                    try:
+                        if machine['region'] not in machines_for_zone_dict_clean.keys():
+                            machines_for_zone_dict_clean[region] = [machine]
+                        else:
+                            machines_for_zone_dict_clean[region].insert(0, machine)
+                    except Exception as e:
+                        logger.error(f'Something is wrong: {e}')
 
             aws_machines_caching_object = AWSMachinesCacheObject(
                 region=region,
