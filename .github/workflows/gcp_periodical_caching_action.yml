@@ -1,6 +1,12 @@
 name: GCP Periodical Caching
 
 on:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        required: true
+        description: branch_name
+        default: master
   schedule:
     - cron: "0 1 * * *"
 
