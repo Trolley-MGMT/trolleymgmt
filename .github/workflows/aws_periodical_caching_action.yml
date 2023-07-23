@@ -41,30 +41,14 @@ jobs:
           echo "project_name is: ${{ secrets.PROJECT_NAME }}"
           echo "infracost_token is: ${{ secrets.INFRACOST_TOKEN }}"
 
-      - name: Installing Infracost
-        if: always()
-        run: |
-          cd cloud-pricing-api
-          export SELF_HOSTED_INFRACOST_API_KEY="${{ secrets.SELF_HOSTED_INFRACOST_API_KEY }}"
-          export INFRACOST_API_KEY="${{ secrets.INFRACOST_TOKEN }}"
-          docker-compose run init_job
-
       - name: Caching Tasks
         if: always()
         run: |
-          cd cloud-pricing-api
-          export SELF_HOSTED_INFRACOST_API_KEY="${{ secrets.SELF_HOSTED_INFRACOST_API_KEY }}"
-          export INFRACOST_API_KEY="${{ secrets.INFRACOST_TOKEN }}"
-          docker-compose up -d api
-          curl --retry 20 --retry-all-errors http://localhost:4000/health
           export MONGO_URL=${{ secrets.MONGO_URL }}
           export MONGO_USER=${{ secrets.MONGO_USER }}
           export MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
           export PROJECT_NAME=${{ secrets.PROJECT_NAME }}
-          export INFRACOST_TOKEN=${{ secrets.INFRACOST_TOKEN }}
-          export INFRACOST_URL=http://localhost:4000
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
-          cd ..
           pip3 install -r web/requirements.txt
           python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ secrets.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
