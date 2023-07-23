@@ -221,6 +221,10 @@ def fetch_machine_types_per_zone(zones_list: list, gcp_project_id: str, credenti
 
 
 def main(gcp_credentials: str):
+    # postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
+    #                              postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
+    #                              provider_name=GCP, region_name='europe-west1', machine_type='n1-standard-64')
+    # unit_price = postgres_object.fetch_vm_pricing()
     logger.info(f'Starting the caching flow with {gcp_credentials} credentials')
     if gcp_credentials:
         logger.info('gcp_credentials were found')
@@ -292,18 +296,28 @@ def main(gcp_credentials: str):
                 machine['gke_price'] = gke_price
                 logger.info(gke_price)
                 if INFRACOST_TOKEN:
-                    unit_price = fetch_pricing_for_gcp_vm(machine_type, region)
+                    # unit_price_ = fetch_pricing_for_gcp_vm(machine_type, region)
+                    postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
+                                                 postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
+                                                 provider_name=GCP, region_name=region,
+                                                 machine_type=machine_type)
+                    unit_price = postgres_object.fetch_vm_pricing()
                 else:
                     unit_price = 0
                 print(unit_price)
-
-                if unit_price != 0:
-                    machine['unit_price'] = unit_price
-                    if zone not in machines_for_zone_dict_clean.keys():
-                        machines_for_zone_dict_clean[zone] = [machine]
-                    else:
-                        logger.info(f'Inserting a {machine_type} machine_type for {zone} zone')
-                        machines_for_zone_dict_clean[zone].insert(0, machine)
+                try:
+                    if unit_price != 0:
+                        machine['unit_price'] = unit_price
+                        if zone not in machines_for_zone_dict_clean.keys():
+                            machines_for_zone_dict_clean[zone] = [machine]
+                        else:
+                            try:
+                                logger.info(f'Inserting a {machine_type} machine_type for {zone} zone')
+                                machines_for_zone_dict_clean[zone].insert(0, machine)
+                            except Exception as e:
+                                logger.error(f'Something went wrong: {e}')
+                except Exception as e:
+                    logger.error(f'Something went wrong: {e}')
 
         for zone in machine_types_all_zones:
             gke_machines_caching_object = GKEMachinesCacheObject(

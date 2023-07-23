@@ -62,7 +62,7 @@ else:
 
 
 class ClusterOperation:
-    def __init__(self, provider: str = "", user_email: str = "", github_actions_token: str = "",
+    def __init__(self, provider: str = "", user_email: str = "", secret_key: str = "", github_actions_token: str = "",
                  github_repository: str = "", infracost_token: str = "", user_name: str = "", project_name: str = "",
                  cluster_name: str = "",
                  cluster_type: str = "", cluster_version: str = "", az_location_name: str = "",
@@ -75,6 +75,7 @@ class ClusterOperation:
                  mongo_password: str = "", mongo_user: str = "", trolley_server_url: str = "",
                  aws_access_key_id: str = "", aws_secret_access_key: str = "", google_creds_json: str = "",
                  azure_credentials: str = ""):
+        self.secret_key = secret_key
         self.mongo_url = mongo_url
         self.mongo_password = mongo_password
         self.mongo_user = mongo_user
@@ -175,6 +176,7 @@ class ClusterOperation:
 
     def trigger_gke_build_github_action(self) -> bool:
         encoded_data = {
+            "secret_key": self.secret_key,
             "gcp_project_id": self.gcp_project_id,
             "project_name": self.project_name,
             "mongo_url": self.mongo_url,
@@ -209,6 +211,7 @@ class ClusterOperation:
     def trigger_eks_build_github_action(self) -> bool:
         aws_access_key_id, aws_secret_access_key = self.get_aws_credentials()
         encoded_data = {
+            "secret_key": self.secret_key,
             "cluster_name": self.cluster_name,
             "mongo_url": self.mongo_url,
             "mongo_user": self.mongo_user,
@@ -240,6 +243,7 @@ class ClusterOperation:
 
     def trigger_aks_build_github_action(self) -> bool:
         encoded_data = {
+            "secret_key": self.secret_key,
             "mongo_url": self.mongo_url,
             "mongo_user": self.mongo_user,
             "mongo_password": self.mongo_password,

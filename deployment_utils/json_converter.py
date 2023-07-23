@@ -53,6 +53,7 @@ def main(incoming_string: str = '', provider: str = ''):
         print(f'az_subscription_id is: {az_subscription_id}')
         print(f'az_machine_type is: {az_machine_type}')
 
+    secret_key = encoded_content['secret_key']
     mongo_url = encoded_content['mongo_url']
     mongo_user = encoded_content['mongo_user']
     mongo_password = encoded_content['mongo_password']
@@ -77,6 +78,7 @@ def main(incoming_string: str = '', provider: str = ''):
 
     if not 'Darwin' in platform.system():
         with open(GITHUB_ACTIONS_ENV_FILE, "w") as myfile:
+            myfile.write(f"SECRET_KEY={secret_key}\n")
             myfile.write(f"PROJECT_NAME={project_name}\n")
             myfile.write(f"MONGO_URL={mongo_url}\n")
             myfile.write(f"MONGO_USER={mongo_user}\n")

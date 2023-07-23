@@ -240,8 +240,8 @@ def main(aws_access_key_id, aws_secret_access_key):
 
         logger.info('Attempting to fetch regions_list')
         machines_for_zone_dict = {}
-        # regions_list = ['eu-west-2', 'eu-west-3']
-        regions_list = fetch_regions(ec2)
+        regions_list = ['eu-west-2', 'eu-west-3']
+        # regions_list = fetch_regions(ec2)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Submit the tasks to the executor
             future_results = [executor.submit(fetch_machine_types_per_region, region, aws_access_key_id,
@@ -262,7 +262,12 @@ def main(aws_access_key_id, aws_secret_access_key):
                 eks_price = postgres_object.fetch_kubernetes_pricing()
                 machine['eks_price'] = eks_price
                 if INFRACOST_TOKEN:
-                    unit_price = fetch_pricing_for_ec2_instance(machine_type=machine['machine_type'],
+                    postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
+                                                 postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
+                                                 provider_name=AWS, region_name=machine['region'],
+                                                 machine_type=machine['machine_type'])
+                    unit_price = postgres_object.fetch_vm_pricing()
+                    unit_price_ = fetch_pricing_for_ec2_instance(machine_type=machine['machine_type'],
                                                                 region=machine['region'])
                 else:
                     machines_for_zone_dict_clean = machines_for_zone_dict
