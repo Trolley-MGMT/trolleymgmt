@@ -10,7 +10,7 @@ on:
     - cron: "0 1 * * *"
 
 jobs:
-  aws-periodical-caching-trigger:
+  aws_caching:
     runs-on: ubuntu-22.04
     steps:
       - uses: 'actions/checkout@v3'
@@ -18,8 +18,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          aws-access-key-id: ${{ github.event.client_payload.aws_access_key_id }}
-          aws-secret-access-key: ${{ github.event.client_payload.aws_secret_access_key }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Checkout Code
@@ -38,33 +38,33 @@ jobs:
 
       - name: Echo the values
         run: |
-          echo "project_name is: ${{ github.event.client_payload.project_name }}"
-          echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
+          echo "project_name is: ${{ secrets.PROJECT_NAME }}"
+          echo "infracost_token is: ${{ secrets.INFRACOST_TOKEN }}"
 
       - name: Installing Infracost
         if: always()
         run: |
           cd cloud-pricing-api
-          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
-          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          export SELF_HOSTED_INFRACOST_API_KEY="${{ secrets.SELF_HOSTED_INFRACOST_API_KEY }}"
+          export INFRACOST_API_KEY="${{ secrets.INFRACOST_TOKEN }}"
           docker-compose run init_job
 
       - name: Caching Tasks
         if: always()
         run: |
           cd cloud-pricing-api
-          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
-          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          export SELF_HOSTED_INFRACOST_API_KEY="${{ secrets.SELF_HOSTED_INFRACOST_API_KEY }}"
+          export INFRACOST_API_KEY="${{ secrets.INFRACOST_TOKEN }}"
           docker-compose up -d api
           curl --retry 20 --retry-all-errors http://localhost:4000/health
-          export MONGO_URL=${{ github.event.client_payload.mongo_url }}
-          export MONGO_USER=${{ github.event.client_payload.mongo_user }}
-          export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
-          export PROJECT_NAME=${{ github.event.client_payload.project_name }}
-          export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
+          export MONGO_URL=${{ secrets.MONGO_URL }}
+          export MONGO_USER=${{ secrets.MONGO_USER }}
+          export MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+          export PROJECT_NAME=${{ secrets.PROJECT_NAME }}
+          export INFRACOST_TOKEN=${{ secrets.INFRACOST_TOKEN }}
           export INFRACOST_URL=http://localhost:4000
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           cd ..
           pip3 install -r web/requirements.txt
-          python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
+          python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ secrets.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
