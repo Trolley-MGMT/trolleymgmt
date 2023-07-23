@@ -10,7 +10,7 @@ on:
     - cron: "0 1 * * *"
 
 jobs:
-  aws_caching:
+  aws-periodical-caching-trigger:
     runs-on: ubuntu-22.04
     steps:
       - uses: 'actions/checkout@v3'
@@ -18,8 +18,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ github.event.client_payload.aws_access_key_id }}
+          aws-secret-access-key: ${{ github.event.client_payload.aws_secret_access_key }}
           aws-region: us-east-1
 
       - name: Checkout Code
@@ -29,13 +29,42 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Caching Tasks
-        env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
-          MONGO_USER: ${{ secrets.MONGO_USER }}
-          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
+      - name: Checkout infracost pricing repo
+        uses: actions/checkout@v3
+        with:
+          repository: infracost/cloud-pricing-api
+          path: cloud-pricing-api
+
+      - name: Echo the values
         run: |
+          echo "project_name is: ${{ github.event.client_payload.project_name }}"
+          echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
+
+      - name: Installing Infracost
+        if: always()
+        run: |
+          cd cloud-pricing-api
+          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          docker-compose run init_job
+
+      - name: Caching Tasks
+        if: always()
+        run: |
+          cd cloud-pricing-api
+          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          docker-compose up -d api
+          curl --retry 20 --retry-all-errors http://localhost:4000/health
+          export MONGO_URL=${{ github.event.client_payload.mongo_url }}
+          export MONGO_USER=${{ github.event.client_payload.mongo_user }}
+          export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
+          export PROJECT_NAME=${{ github.event.client_payload.project_name }}
+          export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
+          export INFRACOST_URL=http://localhost:4000
+          export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
+          cd ..
           pip3 install -r web/requirements.txt
-          python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ secrets.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
