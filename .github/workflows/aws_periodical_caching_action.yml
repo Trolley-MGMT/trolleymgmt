@@ -33,13 +33,6 @@ jobs:
         with:
           python-version: 3.9
 
-
-      - name: Checkout infracost pricing repo
-        uses: actions/checkout@v3
-        with:
-          repository: infracost/cloud-pricing-api
-          path: cloud-pricing-api
-
       - name: Echo the values
         run: |
           echo "project_name is: ${{ secrets.PROJECT_NAME }}"
