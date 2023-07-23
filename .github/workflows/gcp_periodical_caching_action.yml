@@ -49,9 +49,9 @@ jobs:
       - name: Caching Tasks
         if: always()
         run: |
-          export MONGO_URL=${{ github.event.client_payload.mongo_url }}
-          export MONGO_USER=${{ github.event.client_payload.mongo_user }}
-          export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
+          export MONGO_URL=${{ secrets.MONGO_URL }}
+          export MONGO_USER=${{ secrets.MONGO_USER }}
+          export MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
           export PROJECT_NAME=${{ github.event.inputs.project_name }}
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
