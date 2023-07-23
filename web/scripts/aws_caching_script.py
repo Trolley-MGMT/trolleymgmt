@@ -14,6 +14,8 @@ import requests
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 GITHUB_ACTIONS_ENV = os.getenv('GITHUB_ACTIONS_ENV')
+AWS_ACCESS_KEY_ID =os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 INFRACOST_TOKEN = os.getenv('INFRACOST_TOKEN', '')
 INFRACOST_URL = os.getenv('INFRACOST_URL', 'http://localhost:4000')
 

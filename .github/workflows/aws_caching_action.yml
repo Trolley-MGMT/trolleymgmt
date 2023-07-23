@@ -61,4 +61,4 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:.
           cd ..
           pip3 install -r web/requirements.txt
-          python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
+          python3 web/scripts/aws_caching_script.py

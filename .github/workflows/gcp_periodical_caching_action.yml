@@ -7,6 +7,10 @@ on:
         required: true
         description: branch_name
         default: master
+      project_name:
+        required: true
+        description: project_name
+        default: trolley
   schedule:
     - cron: "0 1 * * *"
 
@@ -43,13 +47,13 @@ jobs:
           python-version: 3.9
 
       - name: Caching Tasks
-        env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
-          MONGO_USER: ${{ secrets.MONGO_USER }}
-          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-          GITHUB_ACTIONS_ENV: Yes
-
+        if: always()
         run: |
+          export MONGO_URL=${{ github.event.client_payload.mongo_url }}
+          export MONGO_USER=${{ github.event.client_payload.mongo_user }}
+          export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
+          export PROJECT_NAME=${{ github.event.inputs.project_name }}
+          export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
           python3 web/scripts/gcp_caching_script.py
