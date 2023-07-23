@@ -6,6 +6,10 @@ on:
         required: true
         description: branch_name
         default: master
+      project_name:
+        required: true
+        description: project_name
+        default: trolley
   schedule:
     - cron: "0 1 * * *"
 
@@ -47,7 +51,7 @@ jobs:
           export MONGO_URL=${{ secrets.MONGO_URL }}
           export MONGO_USER=${{ secrets.MONGO_USER }}
           export MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
-          export PROJECT_NAME=${{ secrets.PROJECT_NAME }}
+          export PROJECT_NAME=${{ github.event.inputs.project_name }}
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
