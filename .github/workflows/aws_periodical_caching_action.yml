@@ -33,11 +33,6 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Echo the values
-        run: |
-          echo "project_name is: ${{ secrets.PROJECT_NAME }}"
-          echo "infracost_token is: ${{ secrets.INFRACOST_TOKEN }}"
-
       - name: Caching Tasks
         if: always()
         run: |

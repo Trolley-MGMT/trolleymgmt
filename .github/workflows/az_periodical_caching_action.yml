@@ -36,20 +36,10 @@ jobs:
           repository: infracost/cloud-pricing-api
           path: cloud-pricing-api
 
-      - name: Echo the values
-        run: |
-          echo "client_payload is: ${{ github.event.client_payload.client_payload }}"
-          echo "azure_credentials is: ${{ github.event.client_payload.azure_credentials }}"            
-          echo "client_id is: ${{ github.event.client_payload.client_id }}"
-          echo "client_secret is: ${{ github.event.client_payload.client_secret }}"
-          echo "tenant_id is: ${{ github.event.client_payload.tenant_id }}"
-          echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
-          echo "project_name is: ${{ github.event.client_payload.project_name }}"
-
       - name: Az CLI login
         uses: Azure/login@v1
         env:
-          CREDENTIALS: ${{ github.event.client_payload.azure_credentials }}
+          CREDENTIALS: ${{ secrets.azure_credentials }}
         with:
           creds: ${{ env.CREDENTIALS }}
 
