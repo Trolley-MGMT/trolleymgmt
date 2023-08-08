@@ -1,0 +1,84 @@
+name: AZ Periodical Caching
+on:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        required: true
+        description: branch_name
+        default: master
+      project_name:
+        required: true
+        description: project_name
+        default: trolley
+  schedule:
+    - cron: "0 1 * * *"
+
+jobs:
+  az_caching:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: 'actions/checkout@v3'
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Checkout infracost pricing repo
+        uses: actions/checkout@v3
+        with:
+          repository: infracost/cloud-pricing-api
+          path: cloud-pricing-api
+
+      - name: Echo the values
+        run: |
+          echo "client_payload is: ${{ github.event.client_payload.client_payload }}"
+          echo "azure_credentials is: ${{ github.event.client_payload.azure_credentials }}"            
+          echo "client_id is: ${{ github.event.client_payload.client_id }}"
+          echo "client_secret is: ${{ github.event.client_payload.client_secret }}"
+          echo "tenant_id is: ${{ github.event.client_payload.tenant_id }}"
+          echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
+          echo "project_name is: ${{ github.event.client_payload.project_name }}"
+
+      - name: Az CLI login
+        uses: Azure/login@v1
+        env:
+          CREDENTIALS: ${{ github.event.client_payload.azure_credentials }}
+        with:
+          creds: ${{ env.CREDENTIALS }}
+
+      - name: Installing Infracost
+        if: always()
+        run: |
+          cd cloud-pricing-api
+          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          docker-compose run init_job
+
+      - name: Caching Tasks
+        if: always()
+        run: |
+          cd cloud-pricing-api
+          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          docker-compose up -d api
+          curl --retry 20 --retry-all-errors http://localhost:4000/health
+          export MONGO_URL=${{ github.event.client_payload.mongo_url }}
+          export MONGO_USER=${{ github.event.client_payload.mongo_user }}
+          export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
+          export PROJECT_NAME=${{ github.event.client_payload.project_name }}
+          export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
+          export INFRACOST_URL=http://localhost:4000
+          export GITHUB_ACTIONS_ENV=Yes
+          export PYTHONPATH=$PYTHONPATH:.
+          cd ..
+          pip3 install -r web/requirements.txt
+          python3 web/scripts/az_caching_script.py
+          
+
