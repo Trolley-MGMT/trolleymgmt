@@ -38,6 +38,10 @@ jobs:
         with:
           creds: ${{ env.CREDENTIALS }}
 
+      - name: Echo the values
+        run: |
+          echo "project_name is: ${{ github.event.inputs.project_name }}
+
       - name: Caching Tasks
         if: always()
         run: |

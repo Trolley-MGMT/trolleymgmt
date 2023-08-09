@@ -33,6 +33,11 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Echo the values
+        run: |
+          echo "project_name is: ${{ github.event.inputs.project_name }}
+          
+
       - name: Caching Tasks
         if: always()
         run: |
