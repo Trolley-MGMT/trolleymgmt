@@ -11,7 +11,7 @@ on:
         description: project_name
         default: trolley
   schedule:
-    - cron: "0 1 * * *"
+    - cron: "*/5 * * * *"
 
 jobs:
   az_caching:
