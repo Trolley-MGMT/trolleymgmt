@@ -30,6 +30,9 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Echo the values
+        run: |
+          echo "default_project_name is: ${{ secrets.DEFAULT_PROJECT_NAME }}"
 
       - name: Az CLI login
         uses: Azure/login@v1
@@ -37,10 +40,6 @@ jobs:
           CREDENTIALS: ${{ secrets.azure_credentials }}
         with:
           creds: ${{ env.CREDENTIALS }}
-
-      - name: Echo the values
-        run: |
-          echo "default_project_name is: ${{ secrets.DEFAULT_PROJECT_NAME }}
 
       - name: Caching Tasks
         if: always()

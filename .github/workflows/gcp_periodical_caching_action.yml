@@ -24,6 +24,12 @@ jobs:
         with:
           credentials_json: ${{ secrets.GOOGLE_CREDS_JSON }}
 
+
+      - name: Echo the values
+        run: |
+          echo "default_project_name is: ${{ secrets.DEFAULT_PROJECT_NAME }}"
+          
+
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
       - name: Use gcloud CLI
@@ -46,9 +52,6 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Echo the values
-        run: |
-          echo "default_project_name is: ${{ secrets.DEFAULT_PROJECT_NAME }}
 
       - name: Caching Tasks
         if: always()

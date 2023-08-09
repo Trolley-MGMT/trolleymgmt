@@ -26,17 +26,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Echo the values
+        run: |
+          echo "default_project_name is: ${{ secrets.DEFAULT_PROJECT_NAME }}"
+
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
-
-      - name: Echo the values
-        run: |
-          echo "default_project_name is: ${{ secrets.DEFAULT_PROJECT_NAME }}
-          
 
       - name: Caching Tasks
         if: always()
