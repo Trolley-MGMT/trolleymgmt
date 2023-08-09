@@ -40,7 +40,7 @@ jobs:
 
       - name: Echo the values
         run: |
-          echo "project_name is: ${{ github.event.inputs.project_name }}
+          echo "default_project_name is: ${{ secrets.DEFAULT_PROJECT_NAME }}
 
       - name: Caching Tasks
         if: always()
@@ -49,6 +49,7 @@ jobs:
           export MONGO_USER=${{ secrets.MONGO_USER }}
           export MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
           export PROJECT_NAME=${{ github.event.inputs.project_name }}
+          export DEFAULT_PROJECT_NAME=${{ secrets.DEFAULT_PROJECT_NAME }}
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt

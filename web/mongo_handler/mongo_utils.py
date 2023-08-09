@@ -58,7 +58,12 @@ else:
 project_folder = os.path.expanduser(os.getcwd())
 load_dotenv(os.path.join(project_folder, '.env'))
 
-PROJECT_NAME = os.environ.get('PROJECT_NAME', 'trolley-dev')
+PROJECT_NAME = os.environ.get('PROJECT_NAME')
+DEFAULT_PROJECT_NAME = os.environ.get('DEFAULT_PROJECT_NAME', 'trolley-10')
+if not PROJECT_NAME:
+    project_name = DEFAULT_PROJECT_NAME
+else:
+    project_name = PROJECT_NAME
 
 MONGO_PASSWORD = os.environ['MONGO_PASSWORD']
 MONGO_USER = os.environ['MONGO_USER']
@@ -79,7 +84,7 @@ else:
     print('mongodb.net was not chosen')
     client = MongoClient(host=MONGO_URL, port=MONGO_PORT, connect=False, username=MONGO_USER, password=MONGO_PASSWORD)
     logger.info(f'succeeded connecting to mongodb client with {MONGO_URL} url')
-db = client[PROJECT_NAME]
+db = client[project_name]
 
 gke_clusters: Collection = db.gke_clusters
 gke_autopilot_clusters: Collection = db.gke_autopilot_clusters

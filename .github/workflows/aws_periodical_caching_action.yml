@@ -35,7 +35,7 @@ jobs:
 
       - name: Echo the values
         run: |
-          echo "project_name is: ${{ github.event.inputs.project_name }}
+          echo "default_project_name is: ${{ secrets.DEFAULT_PROJECT_NAME }}
           
 
       - name: Caching Tasks
@@ -44,6 +44,7 @@ jobs:
           export MONGO_URL=${{ secrets.MONGO_URL }}
           export MONGO_USER=${{ secrets.MONGO_USER }}
           export MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+          export DEFAULT_PROJECT_NAME=${{ secrets.DEFAULT_PROJECT_NAME }}
           export PROJECT_NAME=${{ github.event.inputs.project_name }}
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
