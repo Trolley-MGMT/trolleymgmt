@@ -13,7 +13,7 @@ POSTGRES_DBNAME = os.getenv('POSTGRES_DBNAME', 'cloud_pricing')
 POSTGRES_USER = os.getenv('POSTGRES_USER', 'postgres')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'postgres')
 POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
-POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5444)
+POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5432)
 
 from web.postgresql_handler.postgresql_utils import Postgresql
 from web.mongo_handler.mongo_utils import insert_cache_object
