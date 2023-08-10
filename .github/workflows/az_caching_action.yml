@@ -60,6 +60,7 @@ jobs:
           export PROJECT_NAME=${{ github.event.client_payload.project_name }}
           export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
           export INFRACOST_URL=http://localhost:4000
+          export POSTGRES_PORT=5432
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           cd ..
