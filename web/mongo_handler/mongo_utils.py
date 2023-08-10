@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import platform
@@ -8,6 +9,7 @@ from typing import Any, Mapping
 
 import gridfs
 from bson import ObjectId
+from cryptography.fernet import Fernet
 from gridfs.grid_file import GridOutCursor
 from dotenv import load_dotenv
 from pymongo import MongoClient
@@ -32,6 +34,9 @@ logging.basicConfig(
     format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
     handlers=handlers
 )
+
+key = os.getenv('SECRET_KEY').encode()
+crypter = Fernet(key)
 
 # horrible hack to solve the Dockerfile issues. Please find a better solution
 run_env = 'not_github'
@@ -1473,8 +1478,9 @@ def insert_provider_data_object(providers_data_object: dict) -> bool:
         logger.error(f'provider data was not inserted properly with error: {e}')
 
 
-def retrieve_provider_data_object(user_email: str, provider: str) -> Mapping[str, Any]:
+def retrieve_provider_data_object(user_email: str, provider: str, decrypted: bool = False) -> Mapping[str, Any]:
     """
+    @param decrypted:
     @param user_email: The email of the user we fetch the provider data for.
     @param provider: The provider name.
     """
@@ -1484,7 +1490,29 @@ def retrieve_provider_data_object(user_email: str, provider: str) -> Mapping[str
         logger.info(f'There is no provider data for {provider} provider for {user_email} user_email')
         return {}
     del providers_data_object['_id']
-    return providers_data_object
+    if decrypted:
+        decrypted_providers_data_object = {}
+        try:
+            if providers_data_object[PROVIDER] == AWS:
+                aws_access_key_id = providers_data_object['aws_access_key_id']
+                aws_secret_access_key = providers_data_object['aws_secret_access_key']
+                decrypted_aws_access_key_id = crypter.decrypt(aws_access_key_id)
+                decrypted_aws_secret_access_key = crypter.decrypt(aws_secret_access_key)
+                decrypted_providers_data_object['aws_access_key_id'] = decrypted_aws_access_key_id.decode('utf-8')
+                decrypted_providers_data_object['aws_secret_access_key'] = decrypted_aws_secret_access_key.decode(
+                    'utf-8')
+            elif providers_data_object[PROVIDER] == GCP:
+                google_creds_json = crypter.decrypt(providers_data_object['google_creds_json']).decode("utf-8")
+                decrypted_providers_data_object['google_creds_json'] = google_creds_json
+            elif providers_data_object[PROVIDER] == AZ:
+                azure_credentials = providers_data_object['azure_credentials']
+                decrypted_azure_credentials = crypter.decrypt(azure_credentials)
+                decrypted_providers_data_object['azure_credentials'] = decrypted_azure_credentials
+        except Exception as e:
+            logger.error(f'decrypting aws_access_key_id failed with error: {e}')
+        return decrypted_providers_data_object
+    else:
+        return providers_data_object
 
 
 def insert_github_data_object(github_data_object: dict) -> bool:

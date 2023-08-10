@@ -17,7 +17,7 @@ logger.addHandler(handler)
 
 class Postgresql:
     def __init__(self, postgres_user: str = "", postgres_password: str = "",
-                 postgres_host: str = "localhost", postgres_port: int = 5444,
+                 postgres_host: str = "localhost", postgres_port: int = 5432,
                  postgres_dbname='cloud_pricing', provider_name: str = AZ, region_name: str = '',
                  machine_type: str = ''):
         self.postgres_dbname = postgres_dbname
