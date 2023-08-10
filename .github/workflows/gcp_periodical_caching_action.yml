@@ -12,7 +12,7 @@ on:
         description: project_name
         default: trolley
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/15 * * * *"
 
 jobs:
   gcp_caching:
