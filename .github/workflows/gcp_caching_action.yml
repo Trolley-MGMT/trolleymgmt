@@ -60,7 +60,7 @@ jobs:
           export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
           export INFRACOST_URL=http://localhost:4000
           export POSTGRES_PORT=5432
-          export SECRET_KEY= ${{ secrets.SECRET_KEY }}
+          export SECRET_KEY=${{ secrets.SECRET_KEY }}
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           cd ..
