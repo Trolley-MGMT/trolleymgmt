@@ -34,14 +34,7 @@ jobs:
         run: |
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
           echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
-          
-      - name: Installing Infracost
-        if: always()
-        run: |
-          cd cloud-pricing-api
-          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
-          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
-          docker-compose run init_job
+        
 
       - name: Caching Tasks
         if: always()
@@ -49,6 +42,7 @@ jobs:
           cd cloud-pricing-api
           export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
           export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          docker-compose run init_job
           docker-compose up -d api
           curl --retry 20 --retry-all-errors http://localhost:4000/health
           export MONGO_URL=${{ github.event.client_payload.mongo_url }}
