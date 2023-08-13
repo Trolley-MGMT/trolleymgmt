@@ -59,19 +59,17 @@ jobs:
           export PGPASSWORD=postgres
           export POSTGRES_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cloud-pricing-api_postgres_1)
           psql -h $POSTGRES_IP -U postgres -d cloud_pricing -c "SELECT prices, region FROM products WHERE "service" = 'Azure Kubernetes Service' AND "region" = 'eastus';"
-#          docker exec -it cloud-pricing-api_postgres_1 bash
-#          psql -U postgres -P postgres -d cloud_pricing -c "SELECT prices, region FROM products;"
-#          curl --retry 20 --retry-all-errors http://localhost:4000/health
-#          export MONGO_URL=${{ github.event.client_payload.mongo_url }}
-#          export MONGO_USER=${{ github.event.client_payload.mongo_user }}
-#          export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
-#          export PROJECT_NAME=${{ github.event.client_payload.project_name }}
-#          export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
-#          export INFRACOST_URL=http://localhost:4000
-#          export POSTGRES_PORT=5432
-#          export SECRET_KEY=${{ secrets.SECRET_KEY }}
-#          export GITHUB_ACTIONS_ENV=Yes
-#          export PYTHONPATH=$PYTHONPATH:.
-#          cd ..
-#          pip3 install -r web/requirements.txt
-#          python3 web/scripts/gcp_caching_script.py
+          curl --retry 20 --retry-all-errors http://localhost:4000/health
+          export MONGO_URL=${{ github.event.client_payload.mongo_url }}
+          export MONGO_USER=${{ github.event.client_payload.mongo_user }}
+          export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
+          export PROJECT_NAME=${{ github.event.client_payload.project_name }}
+          export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
+          export INFRACOST_URL=http://localhost:4000
+          export POSTGRES_PORT=5432
+          export SECRET_KEY=${{ secrets.SECRET_KEY }}
+          export GITHUB_ACTIONS_ENV=Yes
+          export PYTHONPATH=$PYTHONPATH:.
+          cd ..
+          pip3 install -r web/requirements.txt
+          python3 web/scripts/gcp_caching_script.py
