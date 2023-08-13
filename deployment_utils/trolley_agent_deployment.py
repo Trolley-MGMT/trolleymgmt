@@ -93,6 +93,8 @@ def main():
                 if env_value['name'] == 'PROJECT_NAME':
                     deployment_yaml['spec']['template']['spec']['containers'][0]['env'][10]['value'] = \
                         PROJECT_NAME.split('-')[0]
+                if env_value['name'] == 'SECRET_KEY':
+                    deployment_yaml['spec']['template']['spec']['containers'][0]['env'][11]['value'] = SECRET_KEY
         deployment_string = json.dumps(deployment_yaml)
         deployments_string += f'---\n{deployment_string}\n'
     with open(edited_trolley_agent_full_path, 'w') as f:
