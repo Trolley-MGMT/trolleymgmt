@@ -244,11 +244,9 @@ def main(gcp_credentials: str):
                 credentials = f.read()
                 gcp_project_id = json.loads(credentials)['project_id']
                 logger.info(f'GCP_PROJECT_ID is: {gcp_project_id}')
-                print('Success extracting GCP_PROJECT_ID parameter')
 
         except Exception as e:
             logger.error('Problem extracting GCP_PROJECT_ID parameter')
-            print('Problem extracting GCP_PROJECT_ID parameter')
         try:
             credentials = service_account.Credentials.from_service_account_file(
                 FETCHED_CREDENTIALS_FILE_PATH)
@@ -293,7 +291,6 @@ def main(gcp_credentials: str):
                     unit_price = fetch_pricing_for_gcp_vm(machine_type, region)
                 else:
                     unit_price = 0
-                print(unit_price)
                 try:
                     if unit_price != 0:
                         machine['unit_price'] = unit_price
@@ -301,7 +298,6 @@ def main(gcp_credentials: str):
                             machines_for_zone_dict_clean[zone] = [machine]
                         else:
                             try:
-                                # logger.info(f'Inserting a {machine_type} machine_type for {zone} zone')
                                 machines_for_zone_dict_clean[zone].insert(0, machine)
                             except Exception as e:
                                 logger.error(f'Something went wrong: {e}')

@@ -46,9 +46,7 @@ logger.addHandler(handler)
 
 
 def fetch_pricing_for_az_vm(machine_type: str, region: str) -> float:
-    logger.info(f'machine_type is: {machine_type}')
-    if 'DS2 v2' in machine_type:
-        logger.info(f'here')
+    # logger.info(f'machine_type is: {machine_type}')
     url = f'{INFRACOST_URL}/graphql'
     headers = {
         'X-Api-Key': f'{INFRACOST_TOKEN}',

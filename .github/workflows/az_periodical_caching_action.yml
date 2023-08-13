@@ -11,7 +11,7 @@ on:
         description: project_name
         default: trolley
   schedule:
-    - cron: "*/45 * * * *"
+    - cron: "*/5 * * * *"
 
 jobs:
   az_caching:
@@ -49,6 +49,7 @@ jobs:
           export MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
           export PROJECT_NAME=${{ github.event.inputs.project_name }}
           export DEFAULT_PROJECT_NAME=${{ secrets.DEFAULT_PROJECT_NAME }}
+          export SECRET_KEY=${{ secrets.SECRET_KEY }}
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt

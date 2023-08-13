@@ -16,7 +16,6 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 
 DOCKER_ENV = os.getenv('DOCKER_ENV', False)
-
 log_file_name = 'server.log'
 if DOCKER_ENV:
     log_file_path = f'{os.getcwd()}/web/{log_file_name}'
