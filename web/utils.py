@@ -75,3 +75,12 @@ def apply_yaml(cluster_type: str, cluster_name: str, cluster_deployment_yaml: di
             except:
                 logger.error(f'Deployment of {deployment_name} failed')
                 return False
+
+
+def check_settings_keys(content: dict):
+    """This function checks what settings values were sent from the UI"""
+    keys_with_values = []
+    for key, value in content.items():
+        if value is not None and value != "":
+            keys_with_values.append(key)
+    return keys_with_values

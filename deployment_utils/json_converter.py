@@ -41,8 +41,6 @@ def main(incoming_string: str = '', provider: str = ''):
         gke_machine_type = encoded_content['gke_machine_type']
         image_type = encoded_content['image_type']
         region_name = encoded_content['region_name']
-        print(f'gke_machine_type is: {gke_machine_type}')
-        print(f'gcp_project_id is: {gcp_project_id}')
     elif provider == AZ:
         az_location_name = encoded_content['az_location_name']
         az_resource_group = encoded_content['az_resource_group']

@@ -64,11 +64,12 @@ from variables.variables import POST, GET, EKS, \
     ZONES_LIST, GKE_VERSIONS_LIST, GKE_IMAGE_TYPES, LOCATIONS_DICT, \
     CLUSTER_NAME, AWS, PROVIDER, GCP, AZ, PUT, OK, FAILURE, OBJECT_TYPE, CLUSTER, INSTANCE, TEAM_NAME, ZONE_NAMES, \
     REGION_NAME, CLIENT_NAME, AVAILABILITY, GCP_PROJECT_ID, GITHUB_REPOSITORY, GITHUB_ACTIONS_TOKEN, \
-    LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP, MACHINE_SERIES, INFRACOST_TOKEN
+    LOCATION_NAME, DISCOVERED, AZ_RESOURCE_GROUP, MACHINE_SERIES, INFRACOST_TOKEN, GOOGLE_CREDS_JSON, AWS_ACCESS_KEY_ID, \
+    AWS_SECRET_ACCESS_KEY, AZURE_CREDENTIALS
 
 from __init__ import __version__
 from mail_handler import MailSender
-from utils import random_string, apply_yaml
+from utils import random_string, apply_yaml, check_settings_keys
 from scripts import gcp_discovery_script, aws_discovery_script, az_discovery_script
 
 secret_key = os.getenv('SECRET_KEY')
@@ -136,10 +137,10 @@ def user_registration(first_name: str = '', last_name: str = '', password: str =
 
 
 def encode_provider_details(content: dict) -> ProviderObject:
-    encoded_aws_access_key_id = crypter.encrypt(str.encode(content['aws_access_key_id']))
-    encoded_aws_secret_access_key = crypter.encrypt(str.encode(content['aws_secret_access_key']))
-    encoded_google_creds_json = crypter.encrypt(str.encode(content['google_creds_json']))
-    encoded_azure_credentials = crypter.encrypt(str.encode(content['azure_credentials']))
+    encoded_aws_access_key_id = crypter.encrypt(str.encode(content[AWS_ACCESS_KEY_ID]))
+    encoded_aws_secret_access_key = crypter.encrypt(str.encode(content[AWS_SECRET_ACCESS_KEY]))
+    encoded_google_creds_json = crypter.encrypt(str.encode(content[GOOGLE_CREDS_JSON]))
+    encoded_azure_credentials = crypter.encrypt(str.encode(content[AZURE_CREDENTIALS]))
     provider_object = ProviderObject(provider=content[PROVIDER], aws_access_key_id=encoded_aws_access_key_id,
                                      aws_secret_access_key=encoded_aws_secret_access_key,
                                      azure_credentials=encoded_azure_credentials,
@@ -237,24 +238,27 @@ def login_required(f):
 
 
 def validate_provider_data(content: dict) -> bool:
-    if content[PROVIDER] == AWS:
-        try:
-            if not content['aws_access_key_id'] or not content['aws_secret_access_key']:
+    try:
+        retrieved_content = mongo_handler.mongo_utils.retrieve_provider_data_object(provider=content[PROVIDER],
+                                                                          user_email=content['user_email'],
+                                                                          decrypted=True)
+        if content[PROVIDER] == AWS:
+            if not retrieved_content[AWS_ACCESS_KEY_ID] or not retrieved_content[AWS_SECRET_ACCESS_KEY]:
                 return False
             else:
                 return True
-        except:
-            return False
-    elif content[PROVIDER] == GCP:
-        if not content['google_creds_json']:
-            return False
-        else:
-            return True
-    elif content[PROVIDER] == AZ:
-        if not content['azure_credentials']:
-            return False
-        else:
-            return True
+        elif content[PROVIDER] == GCP:
+            if not retrieved_content[GOOGLE_CREDS_JSON]:
+                return False
+            else:
+                return True
+        elif content[PROVIDER] == AZ:
+            if not retrieved_content[AZURE_CREDENTIALS]:
+                return False
+            else:
+                return True
+    except Exception as e:
+        logger.error(f"There was a problem validating provider data with error: {e}")
 
 
 def render_page(page_name: str = '', cluster_name: str = '', client_name: str = ''):
@@ -279,8 +283,8 @@ def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_
     This endpoint triggers a EKS Cluster deployment using a GitHub Action
     """
 
-    content = {'project_name': project_name, 'aws_access_key_id': aws_access_key_id,
-               'aws_secret_access_key': aws_secret_access_key,
+    content = {'project_name': project_name, AWS_ACCESS_KEY_ID: aws_access_key_id,
+               AWS_SECRET_ACCESS_KEY: aws_secret_access_key,
                GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
                INFRACOST_TOKEN: infracost_token,
                'mongo_password': os.getenv('MONGO_PASSWORD'),
@@ -322,7 +326,7 @@ def az_caching(user_email: str, project_name: str, azure_credentials: str, githu
     This endpoint triggers a EKS Cluster deployment using a GitHub Action
     """
 
-    content = {'project_name': project_name, 'azure_credentials': azure_credentials,
+    content = {'project_name': project_name, AZURE_CREDENTIALS: azure_credentials,
                GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
                INFRACOST_TOKEN: infracost_token,
                'mongo_password': os.getenv('MONGO_PASSWORD'),
@@ -363,7 +367,7 @@ def gcp_caching(user_email: str, project_name: str, google_creds_json: str, gith
     """
     This endpoint triggers a GCP Caching Action using a GitHub Action
     """
-    content = {'project_name': project_name, 'google_creds_json': google_creds_json,
+    content = {'project_name': project_name, GOOGLE_CREDS_JSON: google_creds_json,
                GITHUB_REPOSITORY: github_repository, GITHUB_ACTIONS_TOKEN: github_actions_token,
                INFRACOST_TOKEN: infracost_token,
                'mongo_password': os.getenv('MONGO_PASSWORD'),
@@ -523,7 +527,7 @@ def trigger_gke_deployment():
     logger.info(f'A request for {function_name} was requested with the following parameters: {content}')
     user_name = content['user_name']
     cluster_name = f'{user_name}-{GKE}-{random_string(8)}'
-    gcp_project_id = json.loads(content['google_creds_json'])['project_id']
+    gcp_project_id = json.loads(content[GOOGLE_CREDS_JSON])['project_id']
     content[GCP_PROJECT_ID] = gcp_project_id
     content['cluster_name'] = cluster_name
     content['project_name'] = PROJECT_NAME
@@ -578,7 +582,7 @@ def trigger_aks_deployment():
     content['mongo_url'] = MONGO_URL
     content['mongo_user'] = MONGO_USER
     content['mongo_password'] = MONGO_PASSWORD
-    content['az_subscription_id'] = json.loads(content['azure_credentials'])['subscriptionId']
+    content['az_subscription_id'] = json.loads(content[AZURE_CREDENTIALS])['subscriptionId']
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_aks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
@@ -619,7 +623,7 @@ def delete_cluster():
     elif content[CLUSTER_TYPE] == EKS:
         pass
     elif content[CLUSTER_TYPE] == AKS:
-        content['az_subscription_id'] = json.loads(content['azure_credentials'])['subscriptionId']
+        content['az_subscription_id'] = json.loads(content[AZURE_CREDENTIALS])['subscriptionId']
         az_resource_group = \
             mongo_handler.mongo_utils.retrieve_cluster_details(content[CLUSTER_TYPE], content[CLUSTER_NAME.lower()],
                                                                content[DISCOVERED])['az_resource_group']
@@ -682,46 +686,54 @@ def settings():
                 mongo_handler.mongo_utils.insert_infracost_data_object(asdict(encoded_infracost_token))
 
         # TODO find a better way to implement
+        settings_keys = check_settings_keys(content)
         if validate_provider_data(content):
-            if content[PROVIDER] == GCP:
-                credentials = content['google_creds_json']
+            if content[PROVIDER] == GCP and GOOGLE_CREDS_JSON in settings_keys:
+                credentials = content[GOOGLE_CREDS_JSON]
                 gcp_project_id = json.loads(credentials)['project_id']
                 content[GCP_PROJECT_ID] = gcp_project_id
-            encoded_provider_details = encode_provider_details(content)
-            if mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details)):
-                if content[PROVIDER] == GCP:
-                    if content['google_creds_json']:
-                        if gcp_caching(user_email, PROJECT_NAME, content['google_creds_json'],
-                                       github_repository=content[GITHUB_REPOSITORY],
-                                       github_actions_token=content[GITHUB_ACTIONS_TOKEN],
-                                       infracost_token=content[INFRACOST_TOKEN]):
-                            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-                        else:
-                            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-                elif content[PROVIDER] == AWS:
-                    if content['aws_access_key_id'] and content['aws_secret_access_key']:
-                        if aws_caching(user_email, PROJECT_NAME, content['aws_access_key_id'],
-                                       content['aws_secret_access_key'],
-                                       github_repository=content[GITHUB_REPOSITORY],
-                                       github_actions_token=content[GITHUB_ACTIONS_TOKEN],
-                                       infracost_token=content[INFRACOST_TOKEN]):
-                            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-                        else:
-                            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+                encoded_provider_details = encode_provider_details(content)
+                try:
+                    mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details))
+                except Exception as e:
+                    logger.error(f'Failed to insert the data provider with error: {e}')
+                if gcp_caching(user_email, PROJECT_NAME, content[GOOGLE_CREDS_JSON],
+                               github_repository=content[GITHUB_REPOSITORY],
+                               github_actions_token=content[GITHUB_ACTIONS_TOKEN],
+                               infracost_token=content[INFRACOST_TOKEN]):
                     return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-                elif content[PROVIDER] == AZ:
-                    if content['azure_credentials']:
-                        if az_caching(user_email, PROJECT_NAME, content['azure_credentials'],
-                                      github_repository=content[GITHUB_REPOSITORY],
-                                      github_actions_token=content[GITHUB_ACTIONS_TOKEN],
-                                      infracost_token=content[INFRACOST_TOKEN]):
-                            return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-                        else:
-                            return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
-                    else:
-                        return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
                 else:
                     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+            elif content[PROVIDER] == AWS \
+                    and AWS_ACCESS_KEY_ID in settings_keys and AWS_SECRET_ACCESS_KEY in settings_keys:
+                    encoded_provider_details = encode_provider_details(content)
+                    try:
+                        mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details))
+                    except Exception as e:
+                        logger.error(f'Failed to insert the data provider with error: {e}')
+                    if aws_caching(user_email, PROJECT_NAME, content[AWS_ACCESS_KEY_ID],
+                                   content[AWS_SECRET_ACCESS_KEY],
+                                   github_repository=content[GITHUB_REPOSITORY],
+                                   github_actions_token=content[GITHUB_ACTIONS_TOKEN],
+                                   infracost_token=content[INFRACOST_TOKEN]):
+                        return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+                    else:
+                        return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+            elif content[PROVIDER] == AZ and AZURE_CREDENTIALS in settings_keys:
+                encoded_provider_details = encode_provider_details(content)
+                try:
+                    mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details))
+                except Exception as e:
+                    logger.error(f'Failed to insert the data provider with error: {e}')
+                if az_caching(user_email, PROJECT_NAME, content[AZURE_CREDENTIALS],
+                              github_repository=content[GITHUB_REPOSITORY],
+                              github_actions_token=content[GITHUB_ACTIONS_TOKEN],
+                              infracost_token=content[INFRACOST_TOKEN]):
+                    return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+                else:
+                    return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+            else:
+                return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
         else:
             return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
     elif request.method == GET:
@@ -747,30 +759,27 @@ def settings():
             infracost_token_decrypted = ""
             logger.warning(f'problem decrypting infracost_token_decrypted with error {e}')
         try:
-            aws_access_key_id = crypter.decrypt(aws_credentials_data['aws_access_key_id']).decode("utf-8")
-            aws_secret_access_key = crypter.decrypt(aws_credentials_data['aws_secret_access_key']).decode("utf-8")
+            aws_access_key_id = crypter.decrypt(aws_credentials_data[AWS_ACCESS_KEY_ID]).decode("utf-8")
+            aws_secret_access_key = crypter.decrypt(aws_credentials_data[AWS_SECRET_ACCESS_KEY]).decode("utf-8")
         except Exception as e:
             aws_access_key_id = ""
             aws_secret_access_key = ""
             logger.warning(f'problem decrypting aws credentials with error {e}')
         try:
-            azure_credentials = crypter.decrypt(az_credentials_data['azure_credentials']).decode("utf-8")
+            azure_credentials = crypter.decrypt(az_credentials_data[AZURE_CREDENTIALS]).decode("utf-8")
         except Exception as e:
             azure_credentials = ""
             logger.warning(f'problem decrypting azure credentials with error {e}')
         try:
-            google_creds_json = crypter.decrypt(gcp_credentials_data['google_creds_json']).decode("utf-8")
+            google_creds_json = crypter.decrypt(gcp_credentials_data[GOOGLE_CREDS_JSON]).decode("utf-8")
         except Exception as e:
             google_creds_json = ""
             logger.warning(f'problem decrypting google credentials with error {e}')
 
-        # TODO add provider data
-        # provider_data_project = mongo_handler.mongo_utils.retrieve_provider_data_object()
-
-        return jsonify({'aws_access_key_id': aws_access_key_id,
-                        'aws_secret_access_key': aws_secret_access_key,
-                        'azure_credentials': azure_credentials,
-                        'google_creds_json': google_creds_json,
+        return jsonify({AWS_ACCESS_KEY_ID: aws_access_key_id,
+                        AWS_SECRET_ACCESS_KEY: aws_secret_access_key,
+                        AZURE_CREDENTIALS: azure_credentials,
+                        GOOGLE_CREDS_JSON: google_creds_json,
                         'github_actions_token': github_actions_token_decrypted,
                         'infracost_token': infracost_token_decrypted,
                         'github_repository': github_repository})

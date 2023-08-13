@@ -28,6 +28,12 @@ AWS = 'aws'
 GCP = 'gcp'
 AZ = 'azure'
 
+# credentials
+GOOGLE_CREDS_JSON = 'google_creds_json'
+AWS_ACCESS_KEY_ID = 'aws_access_key_id'
+AWS_SECRET_ACCESS_KEY = 'aws_secret_access_key'
+AZURE_CREDENTIALS = 'azure_credentials'
+
 # GKE
 CLUSTER_TYPE = 'cluster_type'
 GKE = 'gke'
