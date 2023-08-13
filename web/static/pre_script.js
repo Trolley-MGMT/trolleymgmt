@@ -689,6 +689,8 @@ $(document).ready(function() {
         $("#update-github-settings-label").show();
         $("#update-infracost-token-button").show();
         $("#update-infracost-token-label").show();
+        $("#sync-infracost-data-button").show();
+        $("#sync-infracost-data-label").show();
     });
 
     $("#sign-in-button").click(function() {
@@ -1016,13 +1018,9 @@ $(document).ready(function() {
         $("#infracost-token-div").show();
         $("#infracost-token").show();
         $("#update-infracost-token-button").hide();
-//        $("#github-provider-credentials-div").hide();
-//        $("#github-repository").hide();
-//        $("#github-repository-div").hide();
-//        $("#github-actions-token").hide();
-//        $("#github-actions-token-div").hide();
-//        $("#update-github-settings-button").hide();
-//        $("#update-github-settings-label").hide();
+    })
+    $("#sync-infracost-data-button").click(function() {
+        console.log("sd")
     })
 
     function assign_object(objectType, objectName, dataArray, assignedObject) {
@@ -1740,9 +1738,13 @@ $(document).ready(function() {
                 $("#infracost-token-div").show();
                 $("#update-infracost-token-button").hide();
                 $("#update-infracost-token-label").hide();
+                $("#sync-infracost-data-button").hide();
+                $("#sync-infracost-data-label").hide();
             } else {
                 $("#update-infracost-token-button").show();
                 $("#update-infracost-token-label").show();
+                $("#sync-infracost-data-button").hide();
+                $("#sync-infracost-data-label").hide();
             }
         }
 

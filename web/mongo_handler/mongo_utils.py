@@ -52,8 +52,9 @@ except:
 
 if 'Darwin' in platform.system() or run_env == 'github':
     from web.variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
-        USER_NAME, USER_EMAIL, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
-        ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER, LOCATION_NAME, REGION_NAME
+    USER_NAME, USER_EMAIL, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
+    ADMIN, USER, CLIENT, TEAM_ADDITIONAL_INFO, PROVIDER, LOCATION_NAME, REGION_NAME, GITHUB_ACTIONS_TOKEN, \
+    INFRACOST_TOKEN
 else:
     from variables.variables import GKE, GKE_AUTOPILOT, CLUSTER_NAME, AVAILABILITY, EKS, AKS, EXPIRATION_TIMESTAMP, \
         USER_NAME, USER_EMAIL, CLUSTER_TYPE, ACCOUNT_ID, CLIENT_NAME, AWS, GCP, AZ, INSTANCE_NAME, TEAM_NAME, \
@@ -1501,11 +1502,11 @@ def retrieve_provider_data_object(user_email: str, provider: str, decrypted: boo
                 decrypted_providers_data_object['aws_secret_access_key'] = decrypted_aws_secret_access_key.decode(
                     'utf-8')
             elif providers_data_object[PROVIDER] == GCP:
-                google_creds_json = crypter.decrypt(providers_data_object['google_creds_json']).decode("utf-8")
+                google_creds_json = crypter.decrypt(providers_data_object['google_creds_json']).decode('utf-8')
                 decrypted_providers_data_object['google_creds_json'] = google_creds_json
             elif providers_data_object[PROVIDER] == AZ:
                 azure_credentials = providers_data_object['azure_credentials']
-                decrypted_azure_credentials = crypter.decrypt(azure_credentials)
+                decrypted_azure_credentials = crypter.decrypt(azure_credentials).decode('utf-8')
                 decrypted_providers_data_object['azure_credentials'] = decrypted_azure_credentials
         except Exception as e:
             logger.error(f'decrypting aws_access_key_id failed with error: {e}')
@@ -1562,7 +1563,7 @@ def insert_infracost_data_object(infracost_data_object: dict) -> bool:
         logger.error(f'infracost data was not inserted properly with error: {e}')
 
 
-def retrieve_github_data_object(user_email: str = '') -> dict:
+def retrieve_github_data_object(user_email: str = '', decrypted: bool = False) -> Mapping[str, Any]:
     """
     """
     mongo_query = {'user_email': user_email}
@@ -1571,10 +1572,16 @@ def retrieve_github_data_object(user_email: str = '') -> dict:
         logger.info(f'There is no github data ')
         return {}
     del github_data_object['_id']
-    return github_data_object
+    if decrypted:
+        github_token = github_data_object[GITHUB_ACTIONS_TOKEN]
+        decrypted_github_token = crypter.decrypt(github_token)
+        github_data_object[GITHUB_ACTIONS_TOKEN] = decrypted_github_token.decode('utf-8')
+        return github_data_object
+    else:
+        return github_data_object
 
 
-def retrieve_infracost_data_object(user_email: str = '') -> dict:
+def retrieve_infracost_data_object(user_email: str = '', decrypted: bool = False) -> Mapping[str, Any]:
     """
     """
     mongo_query = {'user_email': user_email}
@@ -1583,7 +1590,13 @@ def retrieve_infracost_data_object(user_email: str = '') -> dict:
         logger.info(f'There is no infracost data ')
         return {}
     del infracost_data_object['_id']
-    return infracost_data_object
+    if decrypted:
+        infracost_token = infracost_data_object[INFRACOST_TOKEN]
+        decrypted_infracost_token = crypter.decrypt(infracost_token)
+        infracost_data_object[INFRACOST_TOKEN] = decrypted_infracost_token.decode('utf-8')
+        return infracost_data_object
+    else:
+        return infracost_data_object
 
 
 def retrieve_credentials_data_object(provider: str, user_email: str) -> dict:

@@ -198,7 +198,6 @@ def main():
                 if location not in machines_for_zone_dict_clean.keys():
                     machines_for_zone_dict_clean[location] = [machine]
                 else:
-                    logger.info(f'Inserting a {machine_type} machine_type for {location} location')
                     machines_for_zone_dict_clean[location].insert(0, machine)
         az_machines_caching_object = AZMachinesCacheObject(
             location_name=location,

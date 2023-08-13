@@ -240,8 +240,8 @@ def login_required(f):
 def validate_provider_data(content: dict) -> bool:
     try:
         retrieved_content = mongo_handler.mongo_utils.retrieve_provider_data_object(provider=content[PROVIDER],
-                                                                          user_email=content['user_email'],
-                                                                          decrypted=True)
+                                                                                    user_email=content['user_email'],
+                                                                                    decrypted=True)
         if content[PROVIDER] == AWS:
             if not retrieved_content[AWS_ACCESS_KEY_ID] or not retrieved_content[AWS_SECRET_ACCESS_KEY]:
                 return False
@@ -659,6 +659,47 @@ def insert_cluster_data():
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
 
 
+@app.route('/sync_infracost', methods=[GET, POST])
+@login_required
+def sync_infracost():
+    if request.method == POST:
+        user_email = session['user_email']
+        content = request.get_json()
+        provider = content[PROVIDER]
+        credentials_data = mongo_handler.mongo_utils.retrieve_provider_data_object(user_email, provider, decrypted=True)
+        infracost_data = mongo_handler.mongo_utils.retrieve_infracost_data_object(user_email, decrypted=True)
+        github_data = mongo_handler.mongo_utils.retrieve_github_data_object(user_email, decrypted=True)
+        if provider == AWS:
+            if aws_caching(user_email=user_email, project_name=PROJECT_NAME,
+                           aws_access_key_id=credentials_data[AWS_ACCESS_KEY_ID],
+                           aws_secret_access_key=credentials_data[AWS_SECRET_ACCESS_KEY],
+                           github_repository=github_data[GITHUB_REPOSITORY],
+                           github_actions_token=github_data[GITHUB_ACTIONS_TOKEN],
+                           infracost_token=infracost_data[INFRACOST_TOKEN]):
+                return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+            else:
+                return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+        elif provider == AZ:
+            if az_caching(user_email=user_email, project_name=PROJECT_NAME,
+                          azure_credentials=credentials_data[AZURE_CREDENTIALS],
+                          github_repository=github_data[GITHUB_REPOSITORY],
+                          github_actions_token=github_data[GITHUB_ACTIONS_TOKEN],
+                          infracost_token=infracost_data[INFRACOST_TOKEN]):
+                return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+            else:
+                return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+        elif provider == GCP:
+            if gcp_caching(user_email=user_email, project_name=PROJECT_NAME,
+                           google_creds_json=credentials_data[GOOGLE_CREDS_JSON],
+                           github_repository=github_data[GITHUB_REPOSITORY],
+                           github_actions_token=github_data[GITHUB_ACTIONS_TOKEN],
+                           infracost_token=infracost_data[INFRACOST_TOKEN]):
+                return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+            else:
+                return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+        return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+
+
 @app.route('/settings', methods=[GET, POST])
 @login_required
 def settings():
@@ -706,19 +747,19 @@ def settings():
                     return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
             elif content[PROVIDER] == AWS \
                     and AWS_ACCESS_KEY_ID in settings_keys and AWS_SECRET_ACCESS_KEY in settings_keys:
-                    encoded_provider_details = encode_provider_details(content)
-                    try:
-                        mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details))
-                    except Exception as e:
-                        logger.error(f'Failed to insert the data provider with error: {e}')
-                    if aws_caching(user_email, PROJECT_NAME, content[AWS_ACCESS_KEY_ID],
-                                   content[AWS_SECRET_ACCESS_KEY],
-                                   github_repository=content[GITHUB_REPOSITORY],
-                                   github_actions_token=content[GITHUB_ACTIONS_TOKEN],
-                                   infracost_token=content[INFRACOST_TOKEN]):
-                        return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
-                    else:
-                        return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
+                encoded_provider_details = encode_provider_details(content)
+                try:
+                    mongo_handler.mongo_utils.insert_provider_data_object(asdict(encoded_provider_details))
+                except Exception as e:
+                    logger.error(f'Failed to insert the data provider with error: {e}')
+                if aws_caching(user_email, PROJECT_NAME, content[AWS_ACCESS_KEY_ID],
+                               content[AWS_SECRET_ACCESS_KEY],
+                               github_repository=content[GITHUB_REPOSITORY],
+                               github_actions_token=content[GITHUB_ACTIONS_TOKEN],
+                               infracost_token=content[INFRACOST_TOKEN]):
+                    return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)
+                else:
+                    return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
             elif content[PROVIDER] == AZ and AZURE_CREDENTIALS in settings_keys:
                 encoded_provider_details = encode_provider_details(content)
                 try:
