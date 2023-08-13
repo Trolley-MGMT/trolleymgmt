@@ -126,7 +126,6 @@ def fetch_pricing_for_gcp_vm(machine_type: str, region: str) -> float:
 
     try:
         response = requests.post(url, headers=headers, json=data)
-        # logger.info(response.json()['data']['products'])
         return float(response.json()['data']['products'][0]['prices'][0]['USD'])
     except Exception as e:
         logger.error(
@@ -221,10 +220,6 @@ def fetch_machine_types_per_zone(zones_list: list, gcp_project_id: str, credenti
 
 
 def main(gcp_credentials: str):
-    # postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
-    #                              postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
-    #                              provider_name=GCP, region_name='europe-west1', machine_type='n1-standard-64')
-    # unit_price = postgres_object.fetch_vm_pricing()
     logger.info(f'Starting the caching flow with {gcp_credentials} credentials')
     if gcp_credentials:
         logger.info('gcp_credentials were found')

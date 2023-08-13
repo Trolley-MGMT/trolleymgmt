@@ -59,8 +59,8 @@ class Postgresql:
                 WHERE "service" = '{service_name}' 
                   AND "region" = '{self.region_name}';
             """
-            logger.info(
-                f'Running the {sql_query} query with {self.postgres_dbname} {self.postgres_user} {self.postgres_password} {self.postgres_host}')
+            # logger.info(
+            #     f'Running the {sql_query} query with {self.postgres_dbname} {self.postgres_user} {self.postgres_password} {self.postgres_host}')
             cursor.execute(sql_query)
             rows = cursor.fetchall()
 
