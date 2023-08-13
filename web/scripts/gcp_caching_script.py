@@ -126,7 +126,7 @@ def fetch_pricing_for_gcp_vm(machine_type: str, region: str) -> float:
 
     try:
         response = requests.post(url, headers=headers, json=data)
-        logger.info(response.json()['data']['products'])
+        # logger.info(response.json()['data']['products'])
         return float(response.json()['data']['products'][0]['prices'][0]['USD'])
     except Exception as e:
         logger.error(
@@ -204,7 +204,7 @@ def fetch_machine_types_per_zone(zones_list: list, gcp_project_id: str, credenti
     # zones_list = ['asia-northeast1-a', 'asia-northeast1-b']
     for zone in zones_list:
         machine_types_list = []
-        logger.info(f'Fetching machine types for {zone} zone')
+        # logger.info(f'Fetching machine types for {zone} zone')
         request = service.machineTypes().list(project=gcp_project_id, zone=zone)
         response = request.execute()
         for machine in response['items']:
@@ -294,7 +294,6 @@ def main(gcp_credentials: str):
                                              provider_name=GCP, region_name=region)
                 gke_price = postgres_object.fetch_kubernetes_pricing()
                 machine['gke_price'] = gke_price
-                logger.info(gke_price)
                 if INFRACOST_TOKEN:
                     unit_price = fetch_pricing_for_gcp_vm(machine_type, region)
                 else:
@@ -307,7 +306,7 @@ def main(gcp_credentials: str):
                             machines_for_zone_dict_clean[zone] = [machine]
                         else:
                             try:
-                                logger.info(f'Inserting a {machine_type} machine_type for {zone} zone')
+                                # logger.info(f'Inserting a {machine_type} machine_type for {zone} zone')
                                 machines_for_zone_dict_clean[zone].insert(0, machine)
                             except Exception as e:
                                 logger.error(f'Something went wrong: {e}')

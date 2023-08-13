@@ -59,6 +59,8 @@ class Postgresql:
                 WHERE "service" = '{service_name}' 
                   AND "region" = '{self.region_name}';
             """
+            logger.info(
+                f'Running the {sql_query} query with {self.postgres_dbname} {self.postgres_user} {self.postgres_password} {self.postgres_host}')
             cursor.execute(sql_query)
             rows = cursor.fetchall()
 
@@ -104,7 +106,7 @@ class Postgresql:
             logger.error("Error while connecting to PostgreSQL:", error)
 
     def fetch_vm_pricing(self) -> float:
-        #That thing is no good
+        # That thing is no good
         if self.provider_name == AZ:
             service_name = 'Virtual Machines'
             product_family = 'Compute'
