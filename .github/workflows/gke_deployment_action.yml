@@ -58,6 +58,7 @@ jobs:
           MONGO_PASSWORD: ${{ env.MONGO_PASSWORD }}
           PROJECT_ID: ${{ env.PROJECT_ID }}
           PROJECT_NAME: ${{ env.PROJECT_NAME }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
           KUBECONFIG: /tmp/kubeconfig
 
         run: |

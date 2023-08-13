@@ -53,6 +53,7 @@ jobs:
           AZ_LOCATION: ${{ env.AZ_LOCATION }}
           AZ_RESOURCE_GROUP: ${{ env.AZ_RESOURCE_GROUP }}
           EXPIRATION_TIME: ${{ env.EXPIRATION_TIME }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
 
         run: |
