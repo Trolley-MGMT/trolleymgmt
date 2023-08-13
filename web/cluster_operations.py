@@ -277,6 +277,7 @@ class ClusterOperation:
         json_data = {
             "event_type": "trolley-agent-api-deployment-trigger",
             "client_payload": {"cluster_name": self.cluster_name,
+                               "google_creds_json": self.google_creds_json,
                                "cluster_type": self.cluster_type,
                                "zone_name": self.zone_name,
                                "trolley_server_url": self.trolley_server_url,
