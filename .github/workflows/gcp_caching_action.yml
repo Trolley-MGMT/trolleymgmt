@@ -58,7 +58,7 @@ jobs:
           docker-compose ps
           export PGPASSWORD=postgres
           export POSTGRES_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cloud-pricing-api_postgres_1)
-          psql -h $POSTGRES_IP -U postgres -d cloud_pricing -c "SELECT prices, region FROM products;"
+          psql -h $POSTGRES_IP -U postgres -d cloud_pricing -c "SELECT prices, region FROM products WHERE "service" = 'Azure Kubernetes Service' AND "region" = 'eastus';"
 #          docker exec -it cloud-pricing-api_postgres_1 bash
 #          psql -U postgres -P postgres -d cloud_pricing -c "SELECT prices, region FROM products;"
 #          curl --retry 20 --retry-all-errors http://localhost:4000/health
