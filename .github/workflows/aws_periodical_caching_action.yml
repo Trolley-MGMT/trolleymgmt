@@ -10,8 +10,8 @@ on:
         required: true
         description: project_name
         default: trolley
-  schedule:
-    - cron: "*/5 * * * *"
+#  schedule:
+#    - cron: "*/5 * * * *"
 
 jobs:
   aws_caching:

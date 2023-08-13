@@ -39,8 +39,6 @@ jobs:
       - name: Caching Tasks
         if: always()
         run: |
-          sudo apt-get update
-          sudo apt-get install postgresql-client
           cd cloud-pricing-api
           export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
           export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
@@ -50,7 +48,6 @@ jobs:
           docker-compose ps
           export PGPASSWORD=postgres
           export POSTGRES_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cloud-pricing-api_postgres_1)
-          psql -h $POSTGRES_HOST -U postgres -d cloud_pricing -c "SELECT prices, region FROM products WHERE "service" = 'Azure Kubernetes Service' AND "region" = 'eastus';"
           curl --retry 20 --retry-all-errors http://localhost:4000/health
           export MONGO_URL=${{ github.event.client_payload.mongo_url }}
           export MONGO_USER=${{ github.event.client_payload.mongo_user }}
