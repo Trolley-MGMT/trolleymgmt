@@ -47,6 +47,8 @@ jobs:
       - name: Caching Tasks
         if: always()
         run: |
+          sudo apt-get update
+          sudo apt-get install postgresql-client
           cd cloud-pricing-api
           export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
           export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
@@ -54,6 +56,8 @@ jobs:
           docker-compose ps
           docker-compose up -d api
           docker-compose ps
+          docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cloud-pricing-api_postgres_1
+          psql -h 172.17.0.2 -U postgres -d mydb -c "SELECT * FROM employees;"
           docker exec -it cloud-pricing-api_postgres_1 bash
           psql -U postgres -P postgres -d cloud_pricing -c "SELECT prices, region FROM products;"
           curl --retry 20 --retry-all-errors http://localhost:4000/health
