@@ -612,6 +612,35 @@ $(document).ready(function() {
     });
 
 
+    $("#sync-provider-data-button").click(function() {
+        var cloud_provider = $('#cloud-providers-dropdown').val().toLowerCase();
+        let sync_infracost_data = JSON.stringify({
+            "provider": cloud_provider,
+        });
+
+        url = trolley_url + "/trigger_provider_sync";
+
+        swal_message = 'A request to sync infracost settings was sent'
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+            }
+        };
+        xhr.send(sync_infracost_data);
+
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: swal_message,
+            showConfirmButton: false,
+            timer: 5000
+        })
+    });
+
     $("#save-settings-button").click(function() {
         let data = ''
         var cloud_provider = $('#cloud-providers-dropdown').val().toLowerCase();
@@ -689,8 +718,8 @@ $(document).ready(function() {
         $("#update-github-settings-label").show();
         $("#update-infracost-token-button").show();
         $("#update-infracost-token-label").show();
-        $("#sync-infracost-data-button").show();
-        $("#sync-infracost-data-label").show();
+        $("#sync-provider-data-button").show();
+        $("#sync-provider-data-label").show();
     });
 
     $("#sign-in-button").click(function() {
@@ -1017,10 +1046,9 @@ $(document).ready(function() {
     $("#update-infracost-token-button").click(function() {
         $("#infracost-token-div").show();
         $("#infracost-token").show();
+        $("#infracost-token").show();
+        $("#update-infracost-token-label").hide();
         $("#update-infracost-token-button").hide();
-    })
-    $("#sync-infracost-data-button").click(function() {
-        console.log("sd")
     })
 
     function assign_object(objectType, objectName, dataArray, assignedObject) {
@@ -1738,13 +1766,13 @@ $(document).ready(function() {
                 $("#infracost-token-div").show();
                 $("#update-infracost-token-button").hide();
                 $("#update-infracost-token-label").hide();
-                $("#sync-infracost-data-button").hide();
-                $("#sync-infracost-data-label").hide();
+                $("#sync-provider-data-button").hide();
+                $("#sync-provider-data-label").hide();
             } else {
                 $("#update-infracost-token-button").show();
                 $("#update-infracost-token-label").show();
-                $("#sync-infracost-data-button").hide();
-                $("#sync-infracost-data-label").hide();
+                $("#sync-provider-data-button").show();
+                $("#sync-provider-data-label").show();
             }
         }
 

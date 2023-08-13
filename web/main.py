@@ -659,9 +659,9 @@ def insert_cluster_data():
             return Response(json.dumps(FAILURE), status=400, mimetype=APPLICATION_JSON)
 
 
-@app.route('/sync_infracost', methods=[GET, POST])
+@app.route('/trigger_provider_sync', methods=[GET, POST])
 @login_required
-def sync_infracost():
+def trigger_provider_sync():
     if request.method == POST:
         user_email = session['user_email']
         content = request.get_json()
