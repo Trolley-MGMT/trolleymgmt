@@ -53,6 +53,7 @@ jobs:
           echo "MONGO_URL=${MONGO_URL}" >> $GITHUB_ENV
           TROLLEY_SERVER_URL="${{ github.event.client_payload.trolley_server_url }}"
           echo "TROLLEY_SERVER_URL=${TROLLEY_SERVER_URL}" >> $GITHUB_ENV
+          SECRET_KEY="${{ secrets.SECRET_KEY }}"
 
       - name: Prepare the YAML and deploy
         run: |
