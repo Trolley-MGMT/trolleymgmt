@@ -18,6 +18,7 @@ MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD', 'password')
 MONGO_URL = os.environ.get('MONGO_URL', 'localhost')
 KUBECONFIG_PATH = os.environ.get('KUBECONFIG_PATH', '/home/runner/.kube/config')
 GITHUB_WORKSPACE = os.environ.get('GITHUB_WORKSPACE')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 if 'macOS' in platform.platform():
     home_path = f'{os.getcwd()}'

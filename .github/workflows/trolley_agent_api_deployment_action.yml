@@ -54,6 +54,7 @@ jobs:
           TROLLEY_SERVER_URL="${{ github.event.client_payload.trolley_server_url }}"
           echo "TROLLEY_SERVER_URL=${TROLLEY_SERVER_URL}" >> $GITHUB_ENV
           SECRET_KEY="${{ secrets.SECRET_KEY }}"
+          echo "SECRET_KEY=${SECRET_KEY}" >> $GITHUB_ENV
 
       - name: Prepare the YAML and deploy
         run: |
