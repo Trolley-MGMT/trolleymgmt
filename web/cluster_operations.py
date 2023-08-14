@@ -313,8 +313,12 @@ class ClusterOperation:
             return False
 
     def trigger_aws_caching(self):
+        if self.infracost_token:
+            event_type = "aws-caching-action-infracost-trigger"
+        else:
+            event_type = "aws-caching-action-trigger"
         json_data = {
-            "event_type": "aws-caching-action-trigger",
+            "event_type": event_type,
             "client_payload": {"project_name": self.project_name,
                                "aws_access_key_id": self.aws_access_key_id,
                                "aws_secret_access_key": self.aws_secret_access_key,
@@ -336,8 +340,12 @@ class ClusterOperation:
         client_id = json.loads(self.azure_credentials)['clientId']
         client_secret = json.loads(self.azure_credentials)['clientSecret']
         tenant_id = json.loads(self.azure_credentials)['tenantId']
+        if self.infracost_token:
+            event_type = "az-caching-action-infracost-trigger"
+        else:
+            event_type = "az-caching-action-trigger"
         json_data = {
-            "event_type": "az-caching-action-trigger",
+            "event_type": event_type,
             "client_payload": {"azure_credentials": self.azure_credentials,
                                "infracost_token": self.infracost_token,
                                "client_id": client_id,

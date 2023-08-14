@@ -1,7 +1,7 @@
-name: AWS Caching
+name: AWS Caching with Infracost
 on:
   repository_dispatch:
-    types: aws-caching-action-trigger
+    types: aws-caching-action-infracost-trigger
 
 jobs:
   aws-caching-trigger:
@@ -23,20 +23,42 @@ jobs:
         with:
           python-version: 3.9
 
+
+      - name: Checkout infracost pricing repo
+        uses: actions/checkout@v3
+        with:
+          repository: infracost/cloud-pricing-api
+          path: cloud-pricing-api
+
       - name: Echo the values
         run: |
           echo "project_name is: ${{ github.event.client_payload.project_name }}"
+          echo "infracost_token is: ${{ github.event.client_payload.infracost_token }}"
         
 
       - name: Caching Tasks
         if: always()
         run: |
+          cd cloud-pricing-api
+          export SELF_HOSTED_INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          export INFRACOST_API_KEY="${{ github.event.client_payload.infracost_token }}"
+          docker-compose run init_job
+          docker-compose ps
+          docker-compose up -d api
+          docker-compose ps
+          export PGPASSWORD=postgres
+          export POSTGRES_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cloud-pricing-api_postgres_1)
+          curl --retry 20 --retry-all-errors http://localhost:4000/health
           export MONGO_URL=${{ github.event.client_payload.mongo_url }}
           export MONGO_USER=${{ github.event.client_payload.mongo_user }}
           export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
           export PROJECT_NAME=${{ github.event.client_payload.project_name }}
+          export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
+          export INFRACOST_URL=http://localhost:4000
+          export POSTGRES_PORT=5432
           export SECRET_KEY=${{ secrets.SECRET_KEY }}
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
+          cd ..
           pip3 install -r web/requirements.txt
           python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
