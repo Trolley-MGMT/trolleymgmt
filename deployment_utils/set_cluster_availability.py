@@ -6,7 +6,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--cluster_type', default='gke', type=str, help='Type of the cluster built')
     parser.add_argument('--cluster_name', default='something-cluster', type=str, help='Name of the cluster to delete')
-    parser.add_argument('--discovered', choices=('True', 'False'),
+    parser.add_argument('--discovered', choices=('true', 'false'),
                         help='Check whether the cluster was discovered or built with Trolley')
     parser.add_argument('--availability', choices=('True', 'False'), help='Select cluster\'s availability')
     args = parser.parse_args()
