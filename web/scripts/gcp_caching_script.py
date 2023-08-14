@@ -282,7 +282,7 @@ def main(gcp_credentials: str):
             for machine in machine_types_all_zones[zone]:
                 machine_type = machine['machine_type']
                 region = zone.split('-')[0] + '-' + zone.split('-')[1]
-                if POSTGRES_USER:
+                if INFRACOST_TOKEN:
                     postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
                                                  postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
                                                  provider_name=GCP, region_name=region)
@@ -291,9 +291,11 @@ def main(gcp_credentials: str):
                     gke_price = 0
                 machine['gke_price'] = gke_price
                 if INFRACOST_TOKEN:
-                    unit_price = fetch_pricing_for_gcp_vm(machine_type, region)
-                else:
-                    unit_price = 0
+                    try:
+                        unit_price = fetch_pricing_for_gcp_vm(machine_type, region)
+                    except Exception as e:
+                        logger.warning(f'Something is wrong: {e}')
+                        unit_price = 0
                 try:
                     if unit_price != 0:
                         machine['unit_price'] = unit_price

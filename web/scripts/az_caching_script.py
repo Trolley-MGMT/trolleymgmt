@@ -6,7 +6,7 @@ from subprocess import PIPE, run
 
 import requests
 
-INFRACOST_TOKEN = os.getenv('INFRACOST_TOKEN', False)
+INFRACOST_TOKEN = os.getenv('INFRACOST_TOKEN', '')
 INFRACOST_URL = os.getenv('INFRACOST_URL', 'http://localhost:4000')
 
 POSTGRES_DBNAME = os.getenv('POSTGRES_DBNAME', 'cloud_pricing')
@@ -187,7 +187,7 @@ def main():
     for location in machine_types_all_locations:
         for machine in machine_types_all_locations[location]:
             machine_type = machine['machine_type']
-            if POSTGRES_USER:
+            if INFRACOST_TOKEN:
                 postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
                                              postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
                                              provider_name=AZ, region_name=location)
@@ -195,7 +195,11 @@ def main():
             else:
                 aks_price = 0
             machine['aks_price'] = aks_price
-            unit_price = fetch_pricing_for_az_vm(machine_type, location)
+            try:
+                unit_price = fetch_pricing_for_az_vm(machine_type, location)
+            except Exception as e:
+                logger.error(f'Something is wrong: {e}')
+                unit_price = 0
             if unit_price != 0:
                 machine['unit_price'] = unit_price
                 if location not in machines_for_zone_dict_clean.keys():

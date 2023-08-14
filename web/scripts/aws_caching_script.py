@@ -257,7 +257,7 @@ def main(aws_access_key_id, aws_secret_access_key):
         machines_for_zone_dict_clean = {}
         for region in machines_for_zone_dict:
             for machine in machines_for_zone_dict[region]:
-                if POSTGRES_USER:
+                if INFRACOST_TOKEN:
                     postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
                                                  postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
                                                  provider_name=AWS, region_name=region)
@@ -270,7 +270,8 @@ def main(aws_access_key_id, aws_secret_access_key):
                         unit_price = fetch_pricing_for_ec2_instance(machine_type=machine['machine_type'],
                                                                     region=machine['region'])
                     except Exception as e:
-                        logger.error(f'Something is wrong: {e}')
+                        logger.warning(f'Something is wrong: {e}')
+                        unit_price = 0
 
                 else:
                     machines_for_zone_dict_clean = machines_for_zone_dict
