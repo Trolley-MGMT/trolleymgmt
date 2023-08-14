@@ -46,7 +46,6 @@ logger.addHandler(handler)
 
 
 def fetch_pricing_for_az_vm(machine_type: str, region: str) -> float:
-    # logger.info(f'machine_type is: {machine_type}')
     url = f'{INFRACOST_URL}/graphql'
     headers = {
         'X-Api-Key': f'{INFRACOST_TOKEN}',
@@ -195,10 +194,13 @@ def main():
             else:
                 aks_price = 0
             machine['aks_price'] = aks_price
-            try:
-                unit_price = fetch_pricing_for_az_vm(machine_type, location)
-            except Exception as e:
-                logger.error(f'Something is wrong: {e}')
+            if INFRACOST_TOKEN:
+                try:
+                    unit_price = fetch_pricing_for_az_vm(machine_type, location)
+                except Exception as e:
+                    logger.error(f'Something is wrong: {e}')
+                    unit_price = 0
+            else:
                 unit_price = 0
             if unit_price != 0:
                 machine['unit_price'] = unit_price
