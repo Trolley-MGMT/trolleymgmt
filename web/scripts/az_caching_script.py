@@ -187,10 +187,13 @@ def main():
     for location in machine_types_all_locations:
         for machine in machine_types_all_locations[location]:
             machine_type = machine['machine_type']
-            postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
-                                         postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
-                                         provider_name=AZ, region_name=location)
-            aks_price = postgres_object.fetch_kubernetes_pricing()
+            if POSTGRES_USER:
+                postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
+                                             postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
+                                             provider_name=AZ, region_name=location)
+                aks_price = postgres_object.fetch_kubernetes_pricing()
+            else:
+                aks_price = 0
             machine['aks_price'] = aks_price
             unit_price = fetch_pricing_for_az_vm(machine_type, location)
             if unit_price != 0:

@@ -282,10 +282,13 @@ def main(gcp_credentials: str):
             for machine in machine_types_all_zones[zone]:
                 machine_type = machine['machine_type']
                 region = zone.split('-')[0] + '-' + zone.split('-')[1]
-                postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
-                                             postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
-                                             provider_name=GCP, region_name=region)
-                gke_price = postgres_object.fetch_kubernetes_pricing()
+                if POSTGRES_USER:
+                    postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
+                                                 postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
+                                                 provider_name=GCP, region_name=region)
+                    gke_price = postgres_object.fetch_kubernetes_pricing()
+                else:
+                    gke_price = 0
                 machine['gke_price'] = gke_price
                 if INFRACOST_TOKEN:
                     unit_price = fetch_pricing_for_gcp_vm(machine_type, region)

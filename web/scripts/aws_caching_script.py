@@ -257,10 +257,13 @@ def main(aws_access_key_id, aws_secret_access_key):
         machines_for_zone_dict_clean = {}
         for region in machines_for_zone_dict:
             for machine in machines_for_zone_dict[region]:
-                postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
-                                             postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
-                                             provider_name=AWS, region_name=region)
-                eks_price = postgres_object.fetch_kubernetes_pricing()
+                if POSTGRES_USER:
+                    postgres_object = Postgresql(postgres_dbname=POSTGRES_DBNAME, postgres_host=POSTGRES_HOST,
+                                                 postgres_user=POSTGRES_USER, postgres_password=POSTGRES_PASSWORD,
+                                                 provider_name=AWS, region_name=region)
+                    eks_price = postgres_object.fetch_kubernetes_pricing()
+                else:
+                    eks_price = 0
                 machine['eks_price'] = eks_price
                 if INFRACOST_TOKEN:
                     try:
