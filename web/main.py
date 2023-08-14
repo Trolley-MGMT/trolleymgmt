@@ -321,14 +321,14 @@ def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_
     if not infracost_token:
         infracost_token_data = mongo_handler.mongo_utils.retrieve_infracost_data_object(user_email)
         if not infracost_token_data:
-            logger.warning(f'No infracost data for {user_email} user was found. GCP caching will not start')
-            return True
-        try:
-            infracost_token_decrypted = crypter.decrypt(infracost_token_data['infracost_token']).decode("utf-8")
-            content['infracost_token'] = infracost_token_decrypted
-        except Exception as e:
-            logger.error(f'problem decrypting infracost_token_decrypted with error {e}')
-            return False
+            logger.warning(f'No infracost data for {user_email} user was found. AWS caching will start without Infracost data')
+        else:
+            try:
+                infracost_token_decrypted = crypter.decrypt(infracost_token_data['infracost_token']).decode("utf-8")
+                content['infracost_token'] = infracost_token_decrypted
+            except Exception as e:
+                logger.error(f'problem decrypting infracost_token_decrypted with error {e}')
+                return False
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_aws_caching():
         return True
@@ -363,14 +363,15 @@ def az_caching(user_email: str, project_name: str, azure_credentials: str, githu
     if not infracost_token:
         infracost_token_data = mongo_handler.mongo_utils.retrieve_infracost_data_object(user_email)
         if not infracost_token_data:
-            logger.warning(f'No infracost data for {user_email} user was found. GCP caching will not start')
-            return True
-        try:
-            infracost_token_decrypted = crypter.decrypt(infracost_token_data['infracost_token']).decode("utf-8")
-            content['infracost_token'] = infracost_token_decrypted
-        except Exception as e:
-            logger.error(f'problem decrypting infracost_token_decrypted with error {e}')
-            return False
+            logger.warning(
+                f'No infracost data for {user_email} user was found. AZ caching will start without Infracost data')
+        else:
+            try:
+                infracost_token_decrypted = crypter.decrypt(infracost_token_data['infracost_token']).decode("utf-8")
+                content['infracost_token'] = infracost_token_decrypted
+            except Exception as e:
+                logger.error(f'problem decrypting infracost_token_decrypted with error {e}')
+                return False
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_az_caching():
         return True
