@@ -243,20 +243,36 @@ def validate_provider_data(content: dict) -> bool:
                                                                                     user_email=content['user_email'],
                                                                                     decrypted=True)
         if content[PROVIDER] == AWS:
-            if not retrieved_content[AWS_ACCESS_KEY_ID] or not retrieved_content[AWS_SECRET_ACCESS_KEY]:
-                return False
-            else:
-                return True
-        elif content[PROVIDER] == GCP:
-            if not retrieved_content[GOOGLE_CREDS_JSON]:
-                return False
-            else:
-                return True
+            try:
+                if content[AWS_ACCESS_KEY_ID] and content[AWS_SECRET_ACCESS_KEY]:
+                    return True
+            except Exception as e:
+                logger.warning(f'Requested content did not have the credentials. Checking the DB: {e}')
+                if not retrieved_content[AWS_ACCESS_KEY_ID] or not retrieved_content[AWS_SECRET_ACCESS_KEY]:
+                    return False
+                else:
+                    return True
         elif content[PROVIDER] == AZ:
-            if not retrieved_content[AZURE_CREDENTIALS]:
-                return False
-            else:
-                return True
+            try:
+                if content[AZURE_CREDENTIALS]:
+                    return True
+            except Exception as e:
+                logger.warning(f'Requested content did not have the credentials. Checking the DB: {e}')
+                if not retrieved_content[AZURE_CREDENTIALS]:
+                    return False
+                else:
+                    return True
+        elif content[PROVIDER] == GCP:
+            try:
+                if content[GOOGLE_CREDS_JSON]:
+                    return True
+            except Exception as e:
+                logger.warning(f'Requested content did not have the credentials. Checking the DB: {e}')
+                if not retrieved_content[GOOGLE_CREDS_JSON]:
+                    return False
+                else:
+                    return True
+
     except Exception as e:
         logger.error(f"There was a problem validating provider data with error: {e}")
 
@@ -388,14 +404,14 @@ def gcp_caching(user_email: str, project_name: str, google_creds_json: str, gith
     if not infracost_token:
         infracost_token_data = mongo_handler.mongo_utils.retrieve_infracost_data_object(user_email)
         if not infracost_token_data:
-            logger.warning(f'No infracost data for {user_email} user was found. GCP caching will not start')
-            return True
-        try:
-            infracost_token_decrypted = crypter.decrypt(infracost_token_data['infracost_token']).decode("utf-8")
-            content['infracost_token'] = infracost_token_decrypted
-        except Exception as e:
-            logger.error(f'problem decrypting infracost_token_decrypted with error {e}')
-            return False
+            logger.warning(f'No infracost data for {user_email} user was found. GCP caching will start without Infracost data')
+        else:
+            try:
+                infracost_token_decrypted = crypter.decrypt(infracost_token_data['infracost_token']).decode("utf-8")
+                content['infracost_token'] = infracost_token_decrypted
+            except Exception as e:
+                logger.error(f'problem decrypting infracost_token_decrypted with error {e}')
+                return False
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_gcp_caching():
         return True
@@ -721,6 +737,8 @@ def settings():
             if cluster_operation.github_check():
                 encoded_github_details = encode_github_details(content)
                 mongo_handler.mongo_utils.insert_github_data_object(asdict(encoded_github_details))
+            else:
+                return Response(json.dumps('Failure to authenticate with GitHub'), status=400, mimetype=APPLICATION_JSON)
         if content['infracost_token']:
             if cluster_operation.infracost_check():
                 encoded_infracost_token = encode_infracost_details(content)

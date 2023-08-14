@@ -160,7 +160,7 @@ class ClusterOperation:
         if response.status_code == 200:
             return True
         else:
-            logger.info(f'GitHub credentials check failed due to the following reason: {response.reason}')
+            logger.error(f'GitHub credentials check failed due to the following reason: {response.reason}')
             return False
 
     def infracost_check(self) -> bool:
@@ -171,7 +171,7 @@ class ClusterOperation:
             return True
         else:
             error_response = response.json()['error']
-            logger.info(
+            logger.error(
                 f'Infracost credentials check failed due to the following reason: {response.reason} : {error_response}')
             return False
 
@@ -291,8 +291,12 @@ class ClusterOperation:
         return response
 
     def trigger_gcp_caching(self):
+        if self.infracost_token:
+            event_type = "gcp-caching-action-infracost-trigger"
+        else:
+            event_type = "gcp-caching-action-trigger"
         json_data = {
-            "event_type": "gcp-caching-action-trigger",
+            "event_type": event_type,
             "client_payload": {"project_name": self.project_name,
                                "google_creds_json": self.google_creds_json,
                                "infracost_token": self.infracost_token,
