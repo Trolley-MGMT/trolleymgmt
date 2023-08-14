@@ -38,6 +38,7 @@ jobs:
           MONGO_USER: ${{ secrets.MONGO_USER }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
           gcloud components install beta --quiet
           export PYTHONPATH=$PYTHONPATH:.

@@ -46,6 +46,7 @@ jobs:
           MONGO_PASSWORD: ${{ github.event.client_payload.mongo_password }}
           MONGO_URL: ${{ github.event.client_payload.mongo_url }}
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
 
         run: |

@@ -39,6 +39,7 @@ jobs:
           MONGO_PASSWORD: ${{ github.event.client_payload.mongo_password }}
           CLUSTER_NAME: ${{ github.event.client_payload.cluster_name }}
           RESOURCE_GROUP: ${{ github.event.client_payload.az_resource_group }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
         run: |
           export PYTHONPATH=$PYTHONPATH:.
