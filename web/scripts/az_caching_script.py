@@ -202,12 +202,11 @@ def main():
                     unit_price = 0
             else:
                 unit_price = 0
-            if unit_price != 0:
-                machine['unit_price'] = unit_price
-                if location not in machines_for_zone_dict_clean.keys():
-                    machines_for_zone_dict_clean[location] = [machine]
-                else:
-                    machines_for_zone_dict_clean[location].insert(0, machine)
+            machine['unit_price'] = unit_price
+            if location not in machines_for_zone_dict_clean.keys():
+                machines_for_zone_dict_clean[location] = [machine]
+            else:
+                machines_for_zone_dict_clean[location].insert(0, machine)
         az_machines_caching_object = AZMachinesCacheObject(
             location_name=location,
             machines_list=machines_for_zone_dict_clean[location]

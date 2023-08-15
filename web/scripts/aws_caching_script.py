@@ -276,18 +276,12 @@ def main(aws_access_key_id, aws_secret_access_key):
                 else:
                     machines_for_zone_dict_clean = machines_for_zone_dict
                     break
-                if unit_price != 0:
-                    try:
-                        machine['unit_price'] = unit_price
-                    except Exception as e:
-                        logger.error(f'Something is wrong: {e}')
-                    try:
-                        if machine['region'] not in machines_for_zone_dict_clean.keys():
-                            machines_for_zone_dict_clean[region] = [machine]
-                        else:
-                            machines_for_zone_dict_clean[region].insert(0, machine)
-                    except Exception as e:
-                        logger.error(f'Something is wrong: {e}')
+
+                machine['unit_price'] = unit_price
+                if machine['region'] not in machines_for_zone_dict_clean.keys():
+                    machines_for_zone_dict_clean[region] = [machine]
+                else:
+                    machines_for_zone_dict_clean[region].insert(0, machine)
 
             aws_machines_caching_object = AWSMachinesCacheObject(
                 region=region,
