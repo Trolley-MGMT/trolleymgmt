@@ -19,5 +19,4 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           pip3 install -r web/requirements.txt
-          pytest web/scripts/tests/test_aws_caching_script --aws-access-key-id ${{ secrets.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          
+          python3 web/scripts/tests/test_aws_caching_script --aws-access-key-id ${{ secrets.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
