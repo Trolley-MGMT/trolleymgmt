@@ -1,4 +1,4 @@
-name: Trolley Agent Automated Build Image
+name: Trolley Test
 on:
   push:
     branches:
