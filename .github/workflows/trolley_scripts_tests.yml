@@ -1,0 +1,22 @@
+name: Trolley Agent Automated Build Image
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test_run:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Running Tests
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          pip3 install -r web/requirements.txt
+          pytest web/scripts/tests/test_aws_caching_script --aws-access-key-id ${{ secrets.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
