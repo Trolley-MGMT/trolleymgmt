@@ -15,6 +15,20 @@ jobs:
         with:
           python-version: 3.9
 
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: ${{ github.event.client_payload.google_creds_json }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+      - name: Use gcloud CLI
+        run: |
+          gcloud info
+          cat $GOOGLE_APPLICATION_CREDENTIALS
+          export GOOGLE_CREDS_CONTENT=$(cat $GOOGLE_APPLICATION_CREDENTIALS)
+          echo $GOOGLE_CREDS_CONTENT >> /home/runner/work/gcp_credentials.json
+          echo "google_creds_content=$(cat $GOOGLE_APPLICATION_CREDENTIALS)" >> $GITHUB_ENV
+
       - name: Running Tests
         run: |
           export GITHUB_ACTIONS_ENV=Yes
