@@ -17,7 +17,6 @@ from web.scripts.gcp_caching_script import fetch_zones, fetch_regions
 
 LOCAL_USER = gt.getuser()
 GITHUB_ACTIONS_ENV = os.getenv('GITHUB_ACTIONS_ENV')
-GOOGLE_CREDS_JSON = os.getenv('GOOGLE_CREDS_JSON')
 
 log_file_name = 'server.log'
 log_file_path = f'{os.getcwd()}/{log_file_name}'
@@ -49,18 +48,18 @@ else:
 
 
 def get_gcp_credentials() -> str:
+    # try:
+    #     google_creds_json = os.getenv(GOOGLE_CREDS_JSON)
+    #     return google_creds_json
+    # except Exception as e:
+    #     logger.warning(f'google_creds_json was not passed: {e}')
+    # if 'Darwin' in platform.system():
     try:
-        google_creds_json = os.getenv(GOOGLE_CREDS_JSON)
-        return google_creds_json
+        with open(GCP_CREDENTIALS_PATH, "r") as f:
+            google_creds_json = f.read()
+            return google_creds_json
     except Exception as e:
-        logger.warning(f'google_creds_json was not passed: {e}')
-    if 'Darwin' in platform.system():
-        try:
-            with open(GCP_CREDENTIALS_PATH, "r") as f:
-                google_creds_json = f.read()
-                return google_creds_json
-        except Exception as e:
-            logger.error(f'GCP credentials were not found with error: {e}')
+        logger.error(f'GCP credentials were not found with error: {e}')
 
 
 
