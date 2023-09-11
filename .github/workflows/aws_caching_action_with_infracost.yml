@@ -53,7 +53,9 @@ jobs:
           export MONGO_USER=${{ github.event.client_payload.mongo_user }}
           export MONGO_PASSWORD=${{ github.event.client_payload.mongo_password }}
           export PROJECT_NAME=${{ github.event.client_payload.project_name }}
-          export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }}
+          export AWS_ACCESS_KEY_ID=${{ github.event.client_payload.aws_access_key_id }}
+          export AWS_SECRET_ACCESS_KEY=${{ github.event.client_payload.aws_secret_access_key }}
+          export INFRACOST_TOKEN=${{ github.event.client_payload.infracost_token }} 
           export INFRACOST_URL=http://localhost:4000
           export POSTGRES_PORT=5432
           export SECRET_KEY=${{ secrets.SECRET_KEY }}
@@ -61,4 +63,4 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:.
           cd ..
           pip3 install -r web/requirements.txt
-          python3 web/scripts/aws_caching_script.py --aws-access-key-id ${{ github.event.client_payload.aws_access_key_id }} --aws-secret-access-key ${{ github.event.client_payload.aws_secret_access_key }}
+          python3 web/scripts/aws_caching_script.py

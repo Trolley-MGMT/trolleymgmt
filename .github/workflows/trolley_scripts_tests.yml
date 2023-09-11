@@ -56,5 +56,5 @@ jobs:
           pip3 install -r web/requirements.txt
           pytest web/scripts/tests/test_az_caching_script.py
           pytest web/scripts/tests/test_gcp_caching_script.py
-          pytest web/scripts/tests/test_aws_caching_script.py --aws-access-key-id ${{ secrets.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          pytest web/scripts/tests/test_aws_caching_script.py
 
