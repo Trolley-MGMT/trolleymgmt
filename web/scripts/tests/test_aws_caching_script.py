@@ -81,3 +81,11 @@ def test_fetch_zones(request):
     zones_list = fetch_zones(ec2, aws_access_key_id, aws_secret_access_key)
     assert isinstance(zones_list, list)
     assert len(zones_list) > 0
+
+def test_fetch_subnets(request):
+    aws_access_key_id, aws_secret_access_key = get_aws_credentials(request)
+    ec2 = get_ec2(aws_access_key_id, aws_secret_access_key)
+    zones_list = fetch_zones(ec2, aws_access_key_id, aws_secret_access_key)
+    subnets_dict = fetch_subnets(zones_list, ec2)
+    assert isinstance(subnets_dict, dict)
+    assert len(subnets_dict) > 0
