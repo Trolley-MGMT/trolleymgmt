@@ -9,13 +9,7 @@ import sys
 from google.oauth2 import service_account
 from googleapiclient import discovery
 
-from dotenv import load_dotenv
-
-project_folder_ = os.path.expanduser(os.getcwd())
-project_folder = "/".join(project_folder_.split('/')[:-2])
-load_dotenv(os.path.join(project_folder, '.env'))
-
-from web.scripts.gcp_caching_script import fetch_zones, fetch_regions, fetch_gke_image_types, fetch_kubernetes_versions
+from web.scripts.az_caching_script import fetch_locations, fetch_resource_groups, fetch_kubernetes_versions
 
 LOCAL_USER = gt.getuser()
 
@@ -50,7 +44,7 @@ def get_gcp_credentials() -> str:
         logger.error(f'GCP credentials were not found with error: {e}')
 
 
-def fetch_stuff():
+def fetch_zones():
     try:
         credentials = service_account.Credentials.from_service_account_file(
             GCP_CREDENTIALS_PATH)
@@ -62,29 +56,28 @@ def fetch_stuff():
     except Exception as e:
         logger.error(f'Credentials were not provided with a file with error: {e}')
 
-def test_fetch_regions():
-    gcp_project_id, service, zones_list = fetch_stuff()
-    regions_list = fetch_regions(gcp_project_id)
-    assert isinstance(regions_list, list)
-    assert len(regions_list) > 0
-
-
-
-def test_fetch_zones():
-    gcp_project_id, service, zones_list = fetch_stuff()
-    assert isinstance(zones_list, list)
-    assert len(zones_list) > 0
-
+#
+# def test_fetch_regions():
+#     gcp_project_id, service, zones_list = fetch_zones()
+#     regions_list = fetch_regions(gcp_project_id)
+#     assert isinstance(regions_list, list)
+#     assert len(regions_list) > 0
+#
+#
+# def test_fetch_zones():
+#     gcp_project_id, service, zones_list = fetch_zones()
+#     assert isinstance(zones_list, list)
+#     assert len(zones_list) > 0
+#
 
 def test_fetch_kubernetes_versions():
-    gcp_project_id, service, zones_list = fetch_stuff()
-    kubernetes_versions_dict = fetch_kubernetes_versions(zones_list, gcp_project_id, service)
-    assert isinstance(kubernetes_versions_dict, dict)
-    assert len(kubernetes_versions_dict) > 0
+    kubernetes_versions_all_locations = fetch_kubernetes_versions()
+    assert isinstance(kubernetes_versions_all_locations, dict)
+    assert len(kubernetes_versions_all_locations) > 0
 
 
-def test_fetch_gke_image_types():
-    gcp_project_id, service, zones_list = fetch_stuff()
-    gke_image_types_list = fetch_gke_image_types(zones_list, gcp_project_id, service)
-    assert isinstance(gke_image_types_list, list)
-    assert len(gke_image_types_list) > 0
+# def test_fetch_gke_image_types():
+#     gcp_project_id, service, zones_list = fetch_zones()
+#     gke_image_types_list = fetch_gke_image_types(zones_list, gcp_project_id, service)
+#     assert isinstance(gke_image_types_list, list)
+#     assert len(gke_image_types_list) > 0
