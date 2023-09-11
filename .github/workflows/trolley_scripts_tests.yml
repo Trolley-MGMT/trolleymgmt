@@ -17,6 +17,7 @@ jobs:
 
       - name: Running Tests
         run: |
+          export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           export SECRET_KEY=${{ secrets.SECRET_KEY }}
           export MONGO_URL=${{ secrets.mongo_url }}
