@@ -77,6 +77,7 @@ def test_fetch_regions():
     # f.write(gcp_credentials_json)
     # f.close()
     # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GCP_CREDENTIALS_PATH
+    print(gcp_credentials_json)
     gcp_project_id = json.loads(gcp_credentials_json)['project_id']
     regions_list = fetch_regions(gcp_project_id)
     assert isinstance(regions_list, list)
