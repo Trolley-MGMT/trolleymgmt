@@ -6,7 +6,6 @@ import platform
 import getpass as gt
 import sys
 
-from google.cloud.compute import ZonesClient
 from google.oauth2 import service_account
 from googleapiclient import discovery
 
@@ -51,46 +50,49 @@ def get_gcp_credentials() -> str:
         logger.error(f'GCP credentials were not found with error: {e}')
 
 
-def test_fetch_regions():
-    gcp_credentials_json = get_gcp_credentials()
-    gcp_project_id = json.loads(gcp_credentials_json)['project_id']
-    regions_list = fetch_regions(gcp_project_id)
-    assert isinstance(regions_list, list)
-    assert len(regions_list) > 0
-
-
-def test_fetch_zones():
+def fetch_zones():
+    credentials = service_account.Credentials.from_service_account_file(
+        GCP_CREDENTIALS_PATH)
+    service = discovery.build('container', 'v1', credentials=credentials)
     gcp_credentials_json = get_gcp_credentials()
     gcp_project_id = json.loads(gcp_credentials_json)['project_id']
     zones_list = fetch_zones(gcp_project_id)
-    assert isinstance(zones_list, list)
-    assert len(zones_list) > 0
-    pass
+    return gcp_project_id, service, zones_list
+
+
+def test_fetch_regions():
+    try:
+        gcp_project_id, service, zones_list = fetch_zones()
+        regions_list = fetch_regions(gcp_project_id)
+        assert isinstance(regions_list, list)
+        assert len(regions_list) > 0
+    except Exception as e:
+        logger.error(f'Credentials were not provided with a file with error: {e}')
+
+
+def test_fetch_zones():
+    try:
+        gcp_project_id, service, zones_list = fetch_zones()
+        assert isinstance(zones_list, list)
+        assert len(zones_list) > 0
+        pass
+    except Exception as e:
+        logger.error(f'Credentials were not provided with a file with error: {e}')
 
 
 def test_fetch_kubernetes_versions():
     try:
-        credentials = service_account.Credentials.from_service_account_file(
-            GCP_CREDENTIALS_PATH)
-        service = discovery.build('container', 'v1', credentials=credentials)
-        gcp_credentials_json = get_gcp_credentials()
-        gcp_project_id = json.loads(gcp_credentials_json)['project_id']
-        zones_list = fetch_zones(gcp_project_id)
+        gcp_project_id, service, zones_list = fetch_zones()
         kubernetes_versions_dict = fetch_kubernetes_versions(zones_list, gcp_project_id, service)
         assert isinstance(kubernetes_versions_dict, dict)
         assert len(kubernetes_versions_dict) > 0
     except Exception as e:
         logger.error(f'Credentials were not provided with a file with error: {e}')
 
+
 def test_fetch_gke_image_types():
     try:
-        credentials = service_account.Credentials.from_service_account_file(
-            GCP_CREDENTIALS_PATH)
-        service = discovery.build('container', 'v1', credentials=credentials)
-        gcp_credentials_json = get_gcp_credentials()
-        gcp_project_id = json.loads(gcp_credentials_json)['project_id']
-        zones_list = fetch_zones(gcp_project_id)
-        gcp_project_id = json.loads(gcp_credentials_json)['project_id']
+        gcp_project_id, service, zones_list = fetch_zones()
         gke_image_types_list = fetch_gke_image_types(zones_list, gcp_project_id, service)
         assert isinstance(gke_image_types_list, list)
         assert len(gke_image_types_list) > 0
