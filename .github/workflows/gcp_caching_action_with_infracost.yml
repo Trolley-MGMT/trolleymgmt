@@ -65,6 +65,7 @@ jobs:
           export INFRACOST_URL=http://localhost:4000
           export POSTGRES_PORT=5432
           export SECRET_KEY=${{ secrets.SECRET_KEY }}
+          export GOOGLE_CREDS_JSON=${{ secrets.GOOGLE_CREDS_JSON }}
           export GITHUB_ACTIONS_ENV=Yes
           export PYTHONPATH=$PYTHONPATH:.
           cd ..

@@ -6,7 +6,6 @@ import getpass as gt
 import sys
 
 import boto3
-import pytest
 from botocore.client import BaseClient
 from dotenv import load_dotenv
 
