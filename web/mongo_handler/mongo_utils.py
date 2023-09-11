@@ -34,7 +34,7 @@ logging.basicConfig(
     handlers=handlers
 )
 
-key = os.getenv('SECRET_KEY', '').encode()
+key = os.getenv('SECRET_KEY').encode()
 crypter = Fernet(key)
 
 # horrible hack to solve the Dockerfile issues. Please find a better solution
