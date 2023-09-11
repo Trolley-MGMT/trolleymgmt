@@ -1,7 +1,5 @@
-import json
 import logging
 import os
-import platform
 
 import getpass as gt
 import sys
@@ -31,44 +29,19 @@ logging.basicConfig(
     handlers=handlers
 )
 
-if 'Darwin' in platform.system():
-    GCP_CREDENTIALS_DIRECTORY = f'/Users/{LOCAL_USER}/.gcp'
-else:
-    GCP_CREDENTIALS_DIRECTORY = "/home/runner/work"
-GCP_CREDENTIALS_PATH = f'{GCP_CREDENTIALS_DIRECTORY}/gcp_credentials.json'
 
+def test_fetch_locations():
+    locations_dict = fetch_locations()
+    assert isinstance(locations_dict, dict)
+    assert len(locations_dict) > 0
 
-def get_gcp_credentials() -> str:
-    try:
-        with open(GCP_CREDENTIALS_PATH, "r") as f:
-            google_creds_json = f.read()
-            return google_creds_json
-    except Exception as e:
-        logger.error(f'GCP credentials were not found with error: {e}')
-
+def test_fetch_resource_groups():
+    resource_groups_dict = fetch_resource_groups()
+    assert isinstance(resource_groups_dict, dict)
+    assert len(resource_groups_dict) > 0
 
 #
-# def test_fetch_regions():
-#     gcp_project_id, service, zones_list = fetch_zones()
-#     regions_list = fetch_regions(gcp_project_id)
-#     assert isinstance(regions_list, list)
-#     assert len(regions_list) > 0
-#
-#
-# def test_fetch_zones():
-#     gcp_project_id, service, zones_list = fetch_zones()
-#     assert isinstance(zones_list, list)
-#     assert len(zones_list) > 0
-#
-
 def test_fetch_kubernetes_versions():
     kubernetes_versions_all_locations = fetch_kubernetes_versions()
     assert isinstance(kubernetes_versions_all_locations, dict)
     assert len(kubernetes_versions_all_locations) > 0
-
-
-# def test_fetch_gke_image_types():
-#     gcp_project_id, service, zones_list = fetch_zones()
-#     gke_image_types_list = fetch_gke_image_types(zones_list, gcp_project_id, service)
-#     assert isinstance(gke_image_types_list, list)
-#     assert len(gke_image_types_list) > 0
