@@ -6,8 +6,11 @@ import platform
 import getpass as gt
 import sys
 
-from google.oauth2 import service_account
-from googleapiclient import discovery
+from dotenv import load_dotenv
+
+project_folder_ = os.path.expanduser(os.getcwd())
+project_folder = "/".join(project_folder_.split('/')[:-2])
+load_dotenv(os.path.join(project_folder, '.env'))
 
 from web.scripts.az_caching_script import fetch_locations, fetch_resource_groups, fetch_kubernetes_versions
 
@@ -43,18 +46,6 @@ def get_gcp_credentials() -> str:
     except Exception as e:
         logger.error(f'GCP credentials were not found with error: {e}')
 
-
-def fetch_zones():
-    try:
-        credentials = service_account.Credentials.from_service_account_file(
-            GCP_CREDENTIALS_PATH)
-        service = discovery.build('container', 'v1', credentials=credentials)
-        gcp_credentials_json = get_gcp_credentials()
-        gcp_project_id = json.loads(gcp_credentials_json)['project_id']
-        zones_list = fetch_zones(gcp_project_id)
-        return gcp_project_id, service, zones_list
-    except Exception as e:
-        logger.error(f'Credentials were not provided with a file with error: {e}')
 
 #
 # def test_fetch_regions():
