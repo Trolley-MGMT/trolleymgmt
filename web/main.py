@@ -437,7 +437,6 @@ def get_clusters_data():
         try:
             kubeconfig_decrypted = crypter.decrypt(cluster['kubeconfig']).decode("utf-8")
             cluster['kubeconfig'] = kubeconfig_decrypted
-            del cluster['kubeconfig_encrypted']
         except Exception as e:
             logger.warning(f'Cluster did not have encrypted kubeconfig: {e}')
         clusters_decrypted.append(cluster)
@@ -600,6 +599,7 @@ def trigger_aks_deployment():
     content['mongo_user'] = MONGO_USER
     content['mongo_password'] = MONGO_PASSWORD
     content['az_subscription_id'] = json.loads(content[AZURE_CREDENTIALS])['subscriptionId']
+    content['az_machine_type'] = "standard_" + content['az_machine_type'].lower()
     cluster_operation = ClusterOperation(**content)
     if cluster_operation.trigger_aks_build_github_action():
         return Response(json.dumps(OK), status=200, mimetype=APPLICATION_JSON)

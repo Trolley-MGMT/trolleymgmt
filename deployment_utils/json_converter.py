@@ -58,7 +58,7 @@ def main(incoming_string: str = '', provider: str = ''):
     cluster_name = encoded_content['cluster_name']
     project_name = encoded_content['project_name']
     user_name = encoded_content['user_name']
-    cluster_version = encoded_content['cluster_version']
+    cluster_version = "\"" + encoded_content['cluster_version'] + "\""
     num_nodes = encoded_content['num_nodes']
     expiration_time = encoded_content['expiration_time']
 
