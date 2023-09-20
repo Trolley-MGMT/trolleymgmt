@@ -4,8 +4,9 @@ import random
 import string
 import sys
 
-DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+from faker import Faker
 
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
 
 if DOCKER_ENV:
     from mongo_handler.mongo_utils import retrieve_cluster_details, retrieve_deployment_yaml
@@ -31,20 +32,34 @@ file_handler = logging.FileHandler(log_file_path)
 stdout_handler = logging.StreamHandler(stream=sys.stdout)
 handlers = [file_handler, stdout_handler]
 
-
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
     handlers=handlers
 )
 
-
 KUBECONFIG_PATH = os.environ.get('KUBECONFIG_PATH', '/home/runner/.kube/config')
 
 
-def random_string(length=8):
-    letters = string.ascii_lowercase
+def random_string(length: int = 8, lower_case_only: bool = True):
+    if lower_case_only:
+        letters = string.ascii_lowercase
+    else:
+        letters = string.ascii_letters + string.digits
+
     return ''.join(random.choice(letters) for _ in range(length))
+
+def random_number(length: int = 8):
+    letters =  string.digits
+    return ''.join(random.choice(letters) for _ in range(length))
+
+def fake_string(string_type: str):
+    if string_type == 'private_ip':
+        fake = Faker()
+        return fake.ipv4_private()
+    elif string_type == 'public_ip':
+        fake = Faker()
+        return fake.ipv4_public()
 
 
 def apply_yaml(cluster_type: str, cluster_name: str, cluster_deployment_yaml: dict = None) -> bool:

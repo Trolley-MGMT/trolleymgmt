@@ -676,7 +676,7 @@ def retrieve_kubernetes_versions(location_name: str = '', provider: str = '') ->
             mongo_query = {REGION_NAME.lower(): location_name}
             kubernetes_versions_clusters_list = gke_kubernetes_versions_cache.find_one(mongo_query)
         elif provider == EKS:
-            kubernetes_versions_clusters_list = []
+            kubernetes_versions_clusters_list = {"kubernetes_versions_list": ["1.27", "1.26", "1.25", "1.24", "1.23"]}
         elif provider == AKS:
             mongo_query = {LOCATION_NAME.lower(): location_name}
             kubernetes_versions_clusters_list = aks_kubernetes_versions_cache.find_one(mongo_query)
