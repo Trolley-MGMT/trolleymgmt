@@ -134,7 +134,7 @@ class ClusterOperation:
                                                           desiredCapacity=int(self.num_nodes),
                                                           volumeSize=int(self.eks_volume_size))
         eksctl_metadata = EKSCTLMetadataObject(name=self.cluster_name, region=self.eks_location,
-                                               version=float(self.cluster_version))
+                                               kubernetesVersion=self.cluster_version)
         metadata: EKSCTLMetadataObject
         node_groups: [EKSCTLNodeGroupObject]
         eksctl_object = EKSCTLObject(apiVersion="eksctl.io/v1alpha5", kind="ClusterConfig", metadata=eksctl_metadata,

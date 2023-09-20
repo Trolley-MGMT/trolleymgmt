@@ -31,10 +31,8 @@ def main(incoming_string: str = '', provider: str = ''):
     if provider == AWS:
         region_name = encoded_content['region_name']
         eksctl_deployment_file = encoded_content['eksctl_deployment_file']
-        print("pringing the eksctl_deployment_file")
+        print("printing the eksctl_deployment_file")
         print(eksctl_deployment_file)
-        cluster_version = eksctl_deployment_file['metadata']['version']
-        eksctl_deployment_file['metadata']['cluster_version'] = f'"{cluster_version}"'
         print(f'eksctl_object is: {eksctl_deployment_file}')
         file = open(EKSCTL_DEPLOYMENT_FILE, "w")
         yaml.dump(eksctl_deployment_file, file)
