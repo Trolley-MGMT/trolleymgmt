@@ -339,7 +339,7 @@ def aws_caching(user_email: str, project_name: str, aws_access_key_id: str, aws_
 def az_caching(user_email: str, project_name: str, azure_credentials: str, github_repository: str,
                github_actions_token: str, infracost_token: str) -> bool:
     """
-    This endpoint triggers a EKS Cluster deployment using a GitHub Action
+    This endpoint triggers an AZ Cluster deployment using a GitHub Action
     """
 
     content = {'project_name': project_name, AZURE_CREDENTIALS: azure_credentials,
