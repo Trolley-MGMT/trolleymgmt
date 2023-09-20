@@ -258,7 +258,7 @@ class AWSSeriesAndMachineTypesObject:
 class EKSCTLMetadataObject:
     name: str
     region: str
-    kubernetesVersion: str
+    version: str
 
 
 @dataclass
